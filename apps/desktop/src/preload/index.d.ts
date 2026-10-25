@@ -20,6 +20,8 @@ import type {
   StockOverviewProduct,
   StockOverviewBatch,
   StockOverviewResult,
+  CreateInvoiceInput,
+  InvoiceRecord,
 } from '@pos/shared';
 
 export interface DbMetadata {
@@ -107,6 +109,11 @@ export interface AuthApi {
   ) => Promise<{ success: boolean; message: string }>;
 }
 
+export interface InvoiceApi {
+  createInvoice: (input: CreateInvoiceInput) => Promise<InvoiceRecord>;
+  getRecentInvoices: (limit?: number) => Promise<InvoiceRecord[]>;
+}
+
 export interface DesktopApi {
   ping: () => Promise<string>;
   getDbInfo: () => Promise<DbMetadata>;
@@ -114,6 +121,7 @@ export interface DesktopApi {
   products: ProductApi;
   purchasing: PurchasingApi;
   stock: StockApi;
+  invoices: InvoiceApi;
 }
 
 declare global {

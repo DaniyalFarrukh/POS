@@ -196,6 +196,92 @@ export const outbox = sqliteTable(
   (table) => [index('idx_outbox_synced_at').on(table.syncedAt)]
 );
 
+export const invoices = sqliteTable(
+  'invoices',
+  {
+    id: text('id').primaryKey(),
+    invoiceNumber: text('invoice_number').notNull(),
+    branchId: text('branch_id')
+      .notNull()
+      .references(() => branches.id),
+    counterId: text('counter_id')
+      .notNull()
+      .references(() => counters.id),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    customerName: text('customer_name'),
+    customerPhone: text('customer_phone'),
+    doctorName: text('doctor_name'),
+    notes: text('notes'),
+    subtotalPaisa: integer('subtotal_paisa').notNull(),
+    discountPaisa: integer('discount_paisa').notNull().default(0),
+    taxPaisa: integer('tax_paisa').notNull().default(0),
+    grandTotalPaisa: integer('grand_total_paisa').notNull(),
+    paidPaisa: integer('paid_paisa').notNull(),
+    changePaisa: integer('change_paisa').notNull().default(0),
+    status: text('status', { enum: ['finalized', 'cancelled', 'refunded'] }).notNull().default('finalized'),
+    fiscalStatus: text('fiscal_status', { enum: ['not_required', 'pending', 'submitted', 'failed'] }).notNull().default('not_required'),
+    fiscalInvoiceNumber: text('fiscal_invoice_number'),
+    qrPayload: text('qr_payload'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    uniqueIndex('idx_invoices_invoice_number').on(table.invoiceNumber),
+    index('idx_invoices_branch').on(table.branchId),
+    index('idx_invoices_counter').on(table.counterId),
+    index('idx_invoices_created_at').on(table.createdAt),
+  ]
+);
+
+export const invoiceLines = sqliteTable(
+  'invoice_lines',
+  {
+    id: text('id').primaryKey(),
+    invoiceId: text('invoice_id')
+      .notNull()
+      .references(() => invoices.id),
+    productId: text('product_id')
+      .notNull()
+      .references(() => products.id),
+    batchId: text('batch_id').references(() => batches.id),
+    batchNo: text('batch_no'),
+    expiryDate: text('expiry_date'),
+    quantity: integer('quantity').notNull(),
+    unitPricePaisa: integer('unit_price_paisa').notNull(),
+    discountBp: integer('discount_bp').notNull().default(0),
+    discountPaisa: integer('discount_paisa').notNull().default(0),
+    taxRateBp: integer('tax_rate_bp').notNull().default(0),
+    taxPaisa: integer('tax_paisa').notNull().default(0),
+    lineTotalPaisa: integer('line_total_paisa').notNull(),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('idx_invoice_lines_invoice').on(table.invoiceId),
+    index('idx_invoice_lines_product').on(table.productId),
+    index('idx_invoice_lines_batch').on(table.batchId),
+  ]
+);
+
+export const payments = sqliteTable(
+  'payments',
+  {
+    id: text('id').primaryKey(),
+    invoiceId: text('invoice_id')
+      .notNull()
+      .references(() => invoices.id),
+    paymentMethod: text('payment_method', { enum: ['cash', 'card', 'bank', 'other'] }).notNull(),
+    amountPaisa: integer('amount_paisa').notNull(),
+    tenderedPaisa: integer('tendered_paisa'),
+    changePaisa: integer('change_paisa'),
+    reference: text('reference'),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => [index('idx_payments_invoice').on(table.invoiceId)]
+);
+
 export type BranchModel = typeof branches.$inferSelect;
 export type CounterModel = typeof counters.$inferSelect;
 export type UserModel = typeof users.$inferSelect;
@@ -207,3 +293,6 @@ export type StockMovementModel = typeof stockMovements.$inferSelect;
 export type PurchaseModel = typeof purchases.$inferSelect;
 export type PurchaseLineModel = typeof purchaseLines.$inferSelect;
 export type OutboxModel = typeof outbox.$inferSelect;
+export type InvoiceModel = typeof invoices.$inferSelect;
+export type InvoiceLineModel = typeof invoiceLines.$inferSelect;
+export type PaymentModel = typeof payments.$inferSelect;

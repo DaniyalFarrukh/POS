@@ -6,6 +6,7 @@ import {
   computeInvoiceTotals,
   formatPKR,
   type InvoiceLineInput,
+  type CreateInvoiceInput,
   type Paisa,
 } from '@pos/shared';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -13,7 +14,7 @@ import { KeyboardShortcutOverlay } from './KeyboardShortcutOverlay';
 import { SubstitutesModal } from './SubstitutesModal';
 import { CustomerNotesModal } from './CustomerNotesModal';
 import { HeldCartsModal } from './HeldCartsModal';
-import { PaymentModal } from './PaymentModal';
+import { PaymentModal, type PaymentDetails } from './PaymentModal';
 
 interface PosCheckoutScreenProps {
   session: AuthSession;
@@ -334,14 +335,39 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
     setToastMessage('Parked cart removed.');
   };
 
-  // Settle Sale in-memory
-  const handleCompleteSale = () => {
-    const finalTotal = invoiceTotals.grandTotalPaisa;
+  // Settle Sale into SQLite database (invoices, lines, payments, stock movements, outbox)
+  const handleCompleteSale = async (details: PaymentDetails) => {
+    const input: CreateInvoiceInput = {
+      customerName: customer.name || undefined,
+      customerPhone: customer.phone || undefined,
+      doctorName: customer.doctorName || undefined,
+      notes: customer.notes || undefined,
+      paymentMethod: details.paymentMethod,
+      tenderedPaisa: details.tenderedPaisa,
+      lines: cartLines.map((line) => ({
+        productId: line.product.id,
+        batchId: line.batchId,
+        batchNo: line.batchNo,
+        expiryDate: line.expiryDate,
+        quantity: line.quantity,
+        unitPricePaisa: line.unitPricePaisa,
+        discountType: line.discountType,
+        discountBp: line.discountType === 'percent' ? line.discountBp : 0,
+        flatDiscountPaisa: line.discountType === 'flat' ? line.flatDiscountPaisa : 0,
+        taxRateBp: line.taxRateBp,
+        isTaxExempt: line.isTaxExempt,
+      })),
+    };
+
+    const saved = await window.api.invoices.createInvoice(input);
+
     setShowPaymentModal(false);
     setCartLines([]);
     setSelectedLineIndex(null);
     setCustomer({ name: '', phone: '', doctorName: '', notes: '' });
-    setToastMessage(`✅ Sale Settled (${formatPKR(finalTotal)})! Ready for next customer.`);
+    setToastMessage(
+      `✅ Invoice #${saved.invoiceNumber} saved to DB (${formatPKR(saved.grandTotalPaisa)})! Change: ${formatPKR(saved.changePaisa)}`
+    );
     searchInputRef.current?.focus();
   };
 

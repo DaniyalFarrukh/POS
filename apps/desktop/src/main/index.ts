@@ -27,6 +27,7 @@ import type {
   ReceiveGrnInput,
   StockAdjustmentInput,
   StockFilterParams,
+  CreateInvoiceInput,
 } from '@pos/shared';
 import {
   getProducts,
@@ -50,6 +51,7 @@ import {
   roleGuardedAdjustStock,
   getBatchesForProduct,
 } from './purchasing';
+import { roleGuardedCreateInvoice, roleGuardedGetRecentInvoices } from './invoices';
 import { seedDatabase } from './db/seed';
 
 // Explicitly set application name so userData resolves cleanly to %APPDATA%\POS Counter (no @ or slashes)
@@ -260,6 +262,15 @@ function createWindow(): void {
 
   ipcMain.handle('stock:get-batches-for-product', async (_event, productId: string) => {
     return getBatchesForProduct(productId);
+  });
+
+  // Invoice Handlers
+  ipcMain.handle('invoices:create', async (_event, input: CreateInvoiceInput) => {
+    return roleGuardedCreateInvoice(input);
+  });
+
+  ipcMain.handle('invoices:get-recent', async (_event, limit?: number) => {
+    return roleGuardedGetRecentInvoices(limit);
   });
 
   const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';

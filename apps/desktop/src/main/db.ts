@@ -281,6 +281,86 @@ export const MIGRATIONS: Migration[] = [
       `).run();
     },
   },
+  {
+    version: 4,
+    name: '0004_invoices_and_sales',
+    up: (db: DatabaseInstance) => {
+      db.exec(`
+        -- 1. Invoices table (Rule 1: integer paisa, Rule 3: immutable once finalized)
+        CREATE TABLE IF NOT EXISTS invoices (
+          id TEXT PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          branch_id TEXT NOT NULL REFERENCES branches(id) ON DELETE RESTRICT,
+          counter_id TEXT NOT NULL REFERENCES counters(id) ON DELETE RESTRICT,
+          user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+          customer_name TEXT,
+          customer_phone TEXT,
+          doctor_name TEXT,
+          notes TEXT,
+          subtotal_paisa INTEGER NOT NULL,
+          discount_paisa INTEGER NOT NULL DEFAULT 0,
+          tax_paisa INTEGER NOT NULL DEFAULT 0,
+          grand_total_paisa INTEGER NOT NULL,
+          paid_paisa INTEGER NOT NULL,
+          change_paisa INTEGER NOT NULL DEFAULT 0,
+          status TEXT NOT NULL CHECK(status IN ('finalized', 'cancelled', 'refunded')) DEFAULT 'finalized',
+          fiscal_status TEXT NOT NULL CHECK(fiscal_status IN ('not_required', 'pending', 'submitted', 'failed')) DEFAULT 'not_required',
+          fiscal_invoice_number TEXT,
+          qr_payload TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_invoices_invoice_number ON invoices(invoice_number);
+        CREATE INDEX IF NOT EXISTS idx_invoices_branch ON invoices(branch_id);
+        CREATE INDEX IF NOT EXISTS idx_invoices_counter ON invoices(counter_id);
+        CREATE INDEX IF NOT EXISTS idx_invoices_created_at ON invoices(created_at);
+
+        -- 2. Invoice lines table
+        CREATE TABLE IF NOT EXISTS invoice_lines (
+          id TEXT PRIMARY KEY,
+          invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+          product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+          batch_id TEXT REFERENCES batches(id) ON DELETE RESTRICT,
+          batch_no TEXT,
+          expiry_date TEXT,
+          quantity INTEGER NOT NULL CHECK(quantity > 0),
+          unit_price_paisa INTEGER NOT NULL,
+          discount_bp INTEGER NOT NULL DEFAULT 0,
+          discount_paisa INTEGER NOT NULL DEFAULT 0,
+          tax_rate_bp INTEGER NOT NULL DEFAULT 0,
+          tax_paisa INTEGER NOT NULL DEFAULT 0,
+          line_total_paisa INTEGER NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_invoice_lines_invoice ON invoice_lines(invoice_id);
+        CREATE INDEX IF NOT EXISTS idx_invoice_lines_product ON invoice_lines(product_id);
+        CREATE INDEX IF NOT EXISTS idx_invoice_lines_batch ON invoice_lines(batch_id);
+
+        -- 3. Payments table
+        CREATE TABLE IF NOT EXISTS payments (
+          id TEXT PRIMARY KEY,
+          invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+          payment_method TEXT NOT NULL CHECK(payment_method IN ('cash', 'card', 'bank', 'other')),
+          amount_paisa INTEGER NOT NULL,
+          tendered_paisa INTEGER,
+          change_paisa INTEGER,
+          reference TEXT,
+          created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
+      `);
+
+      // Update schema_version in app_meta
+      db.prepare(`
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '4')
+      `).run();
+    },
+  },
 ];
 
 let dbInstance: DatabaseInstance | null = null;

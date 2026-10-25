@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { formatPKR, type Paisa } from '@pos/shared';
 import type { CustomerInfo } from './types';
 
+export interface PaymentDetails {
+  paymentMethod: 'cash' | 'card' | 'bank' | 'other';
+  tenderedPaisa: number;
+  changePaisa: number;
+}
+
 interface PaymentModalProps {
   grandTotalPaisa: Paisa;
   netTotalPaisa: Paisa;
@@ -9,7 +15,7 @@ interface PaymentModalProps {
   totalTaxPaisa: Paisa;
   itemCount: number;
   customer: CustomerInfo;
-  onCompleteSale: () => void;
+  onCompleteSale: (details: PaymentDetails) => Promise<void>;
   onClose: () => void;
 }
 
@@ -23,10 +29,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onCompleteSale,
   onClose,
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'bank'>('cash');
-  // Store tendered amount in rupees as string for user input
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'bank' | 'other'>('cash');
   const initialRupees = (grandTotalPaisa / 100).toFixed(0);
   const [tenderedRupees, setTenderedRupees] = useState(initialRupees);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const tenderedInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,7 +43,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const tenderedPaisa = Math.round(Number(tenderedRupees || 0) * 100);
   const changePaisa = tenderedPaisa - grandTotalPaisa;
-  const isPayable = paymentMethod !== 'cash' || changePaisa >= 0;
+  const isPayable = (paymentMethod !== 'cash' || changePaisa >= 0) && !isSubmitting;
 
   const handleQuickTender = (rupees: number) => {
     setTenderedRupees(String(rupees));
@@ -51,10 +58,22 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     ...(grandTotalRupees < 5000 ? [{ label: 'Rs. 5,000', amount: 5000 }] : []),
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPayable) return;
-    onCompleteSale();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      await onCompleteSale({
+        paymentMethod,
+        tenderedPaisa: paymentMethod === 'cash' ? tenderedPaisa : grandTotalPaisa,
+        changePaisa: paymentMethod === 'cash' ? Math.max(0, changePaisa) : 0,
+      });
+    } catch (err: unknown) {
+      console.error('Invoice persistence failed:', err);
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to finalize invoice to database.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,7 +93,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         padding: '24px',
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !isSubmitting) onClose();
       }}
     >
       <div
@@ -116,6 +135,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={onClose}
             aria-label="Close dialog"
             style={{
@@ -123,7 +143,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               border: 'none',
               fontSize: '20px',
               color: '#94a3b8',
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
             }}
           >
             ✕
@@ -170,6 +190,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+          {errorMessage && (
+            <div
+              style={{
+                padding: '12px 14px',
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fca5a5',
+                borderRadius: '6px',
+                color: '#b91c1c',
+                fontSize: '13px',
+                marginBottom: '16px',
+                fontWeight: 600,
+              }}
+            >
+              ⚠️ {errorMessage}
+            </div>
+          )}
+
           {/* Payment Method Selector */}
           <div style={{ marginBottom: '20px' }}>
             <label
@@ -188,7 +225,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   <button
                     key={m.id}
                     type="button"
-                    onClick={() => setPaymentMethod(m.id as 'cash' | 'card' | 'bank')}
+                    disabled={isSubmitting}
+                    onClick={() => setPaymentMethod(m.id as 'cash' | 'card' | 'bank' | 'other')}
                     style={{
                       padding: '10px 8px',
                       borderRadius: '8px',
@@ -197,7 +235,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       color: isSelected ? '#1d4ed8' : '#334155',
                       fontWeight: 600,
                       fontSize: '13px',
-                      cursor: 'pointer',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
                       textAlign: 'center',
                     }}
                   >
@@ -232,6 +270,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   id="tendered-amount"
                   ref={tenderedInputRef}
                   type="number"
+                  disabled={isSubmitting}
                   min="0"
                   step="1"
                   value={tenderedRupees}
@@ -254,6 +293,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   <button
                     key={opt.label}
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => handleQuickTender(opt.amount)}
                     style={{
                       padding: '4px 10px',
@@ -263,7 +303,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       fontSize: '12px',
                       fontWeight: 600,
                       color: '#334155',
-                      cursor: 'pointer',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     }}
                   >
                     {opt.label}
@@ -307,25 +347,32 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
           )}
 
-          {/* In-Memory Notice */}
+          {/* Database Persistence Notice */}
           <div
             style={{
               padding: '8px 12px',
-              backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe',
+              backgroundColor: '#f0fdf4',
+              border: '1px solid #bbf7d0',
               borderRadius: '6px',
               fontSize: '12px',
-              color: '#1e40af',
+              color: '#166534',
               marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            ℹ️ <strong>In-Memory UI State</strong>: Per Phase 2 specifications, completed sales will simulate invoice settlement and reset the cart without writing to SQLite yet.
+            <span>💾</span>
+            <span>
+              <strong>Local SQLite Transaction</strong>: Creates invoice, payment record, decrements stock movements, and stages outbox sync in one atomic commit.
+            </span>
           </div>
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={onClose}
               style={{
                 padding: '12px 20px',
@@ -335,7 +382,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 fontSize: '14px',
                 fontWeight: 600,
                 color: '#475569',
-                cursor: 'pointer',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
             >
               Cancel (Esc)
@@ -357,8 +404,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 gap: '8px',
               }}
             >
-              <span>✓</span>
-              <span>Complete Sale</span>
+              <span>{isSubmitting ? '⏳' : '✓'}</span>
+              <span>{isSubmitting ? 'Saving to Database...' : 'Finalize Sale & Save'}</span>
             </button>
           </div>
         </form>

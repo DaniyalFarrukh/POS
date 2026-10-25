@@ -70,6 +70,10 @@ const api: DesktopApi = {
     getBatchesForProduct: (productId: string) =>
       ipcRenderer.invoke('stock:get-batches-for-product', productId),
   },
+  invoices: {
+    createInvoice: (input) => ipcRenderer.invoke('invoices:create', input),
+    getRecentInvoices: (limit) => ipcRenderer.invoke('invoices:get-recent', limit),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);
