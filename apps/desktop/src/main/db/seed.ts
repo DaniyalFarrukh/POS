@@ -149,7 +149,72 @@ export function seedDatabase(rawDb?: DatabaseInstance): { seededCount: number; d
 
   const defaultTaxCategoryId = taxRow.id;
 
-  // 2. Check existing count of products
+  // 2. Seed suppliers if empty
+  const supplierCountRow = db.prepare('SELECT COUNT(*) as count FROM suppliers').get() as {
+    count: number;
+  };
+  if (supplierCountRow.count === 0) {
+    const insertSupplier = db.prepare(`
+      INSERT INTO suppliers (id, name, contact_person, phone, email, address, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const standardSuppliers = [
+      {
+        name: 'Muller & Phipps Pakistan (Pvt) Ltd',
+        contactPerson: 'Tariq Mehmood',
+        phone: '021-35681122',
+        email: 'orders@mulphico.pk',
+        address: 'Plot 24, Korangi Industrial Area, Karachi',
+      },
+      {
+        name: 'Searle Distributors Pakistan',
+        contactPerson: 'Farhan Ahmed',
+        phone: '042-35882200',
+        email: 'dist@searlecompany.com',
+        address: '14-B, Gulberg II, Lahore',
+      },
+      {
+        name: 'GSK Consumer Healthcare Distribution',
+        contactPerson: 'Asim Khan',
+        phone: '021-111475725',
+        email: 'gsk.supply@gsk.com',
+        address: 'Dockyard Road, West Wharf, Karachi',
+      },
+      {
+        name: 'Ali Gohar & Company (Pvt) Ltd',
+        contactPerson: 'Bilal Sheikh',
+        phone: '051-5471188',
+        email: 'info@aligohar.com',
+        address: 'I-9/2 Industrial Area, Islamabad/Rawalpindi',
+      },
+      {
+        name: 'Premier Agencies Pharma Distribution',
+        contactPerson: 'Imran Raza',
+        phone: '041-8549922',
+        email: 'orders@premieragencies.pk',
+        address: 'Satyana Road, Peoples Colony, Faisalabad',
+      },
+    ];
+
+    const seedSuppliersTx = db.transaction(() => {
+      for (const s of standardSuppliers) {
+        insertSupplier.run(
+          generateUuidV7(),
+          s.name,
+          s.contactPerson,
+          s.phone,
+          s.email,
+          s.address,
+          now,
+          now
+        );
+      }
+    });
+    seedSuppliersTx();
+  }
+
+  // 3. Check existing count of products
   const countRow = db.prepare('SELECT COUNT(*) as count FROM products').get() as { count: number };
   if (countRow.count >= 200) {
     return { seededCount: 0, defaultTaxCategoryId };

@@ -203,6 +203,84 @@ export const MIGRATIONS: Migration[] = [
       `).run();
     },
   },
+  {
+    version: 3,
+    name: '0003_purchases_and_outbox',
+    up: (db: DatabaseInstance) => {
+      // 1. Extend suppliers with contact info if not already present
+      const existingCols = (
+        db.prepare(`PRAGMA table_info(suppliers)`).all() as { name: string }[]
+      ).map((c) => c.name);
+
+      if (!existingCols.includes('contact_person')) {
+        db.exec(`ALTER TABLE suppliers ADD COLUMN contact_person TEXT;`);
+      }
+      if (!existingCols.includes('phone')) {
+        db.exec(`ALTER TABLE suppliers ADD COLUMN phone TEXT;`);
+      }
+      if (!existingCols.includes('email')) {
+        db.exec(`ALTER TABLE suppliers ADD COLUMN email TEXT;`);
+      }
+      if (!existingCols.includes('address')) {
+        db.exec(`ALTER TABLE suppliers ADD COLUMN address TEXT;`);
+      }
+
+      // 2. Purchases header table (Rule 1: integer total_cost_paisa)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS purchases (
+          id TEXT PRIMARY KEY,
+          branch_id TEXT NOT NULL REFERENCES branches(id) ON DELETE RESTRICT,
+          supplier_id TEXT NOT NULL REFERENCES suppliers(id) ON DELETE RESTRICT,
+          supplier_invoice_no TEXT NOT NULL,
+          invoice_date TEXT NOT NULL,
+          total_cost_paisa INTEGER NOT NULL,
+          created_by_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_purchases_branch ON purchases(branch_id);
+        CREATE INDEX IF NOT EXISTS idx_purchases_supplier ON purchases(supplier_id);
+        CREATE INDEX IF NOT EXISTS idx_purchases_invoice_date ON purchases(invoice_date);
+
+        -- 3. Purchase lines table (Rule 1: integer cost_paisa and mrp_paisa)
+        CREATE TABLE IF NOT EXISTS purchase_lines (
+          id TEXT PRIMARY KEY,
+          purchase_id TEXT NOT NULL REFERENCES purchases(id) ON DELETE CASCADE,
+          product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+          batch_id TEXT NOT NULL REFERENCES batches(id) ON DELETE RESTRICT,
+          batch_no TEXT NOT NULL,
+          expiry_date TEXT NOT NULL,
+          quantity INTEGER NOT NULL CHECK(quantity > 0),
+          cost_paisa INTEGER NOT NULL,
+          mrp_paisa INTEGER NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_purchase_lines_purchase ON purchase_lines(purchase_id);
+        CREATE INDEX IF NOT EXISTS idx_purchase_lines_product ON purchase_lines(product_id);
+        CREATE INDEX IF NOT EXISTS idx_purchase_lines_batch ON purchase_lines(batch_id);
+
+        -- 4. Outbox table for offline sync (Rule 5 & architecture)
+        CREATE TABLE IF NOT EXISTS outbox (
+          id TEXT PRIMARY KEY,
+          event_type TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          synced_at TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_outbox_synced_at ON outbox(synced_at);
+      `);
+
+      // Update schema_version in app_meta
+      db.prepare(`
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '3')
+      `).run();
+    },
+  },
 ];
 
 let dbInstance: DatabaseInstance | null = null;

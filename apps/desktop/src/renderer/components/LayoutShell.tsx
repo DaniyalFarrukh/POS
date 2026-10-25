@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import type { AuthSession, UserRole } from '@pos/shared';
 import type { DbMetadata } from '../../preload/index.d';
 import { ProductList } from './products/ProductList';
+import { PurchasingDashboard } from './purchasing/PurchasingDashboard';
+import { StockOverview } from './stock/StockOverview';
 
 interface LayoutShellProps {
   session: AuthSession;
@@ -10,7 +12,7 @@ interface LayoutShellProps {
   onLogout: () => void;
 }
 
-type NavSection = 'pos' | 'products' | 'movements' | 'users' | 'diagnostics';
+type NavSection = 'pos' | 'products' | 'purchasing' | 'stock' | 'users' | 'diagnostics';
 
 export const LayoutShell: React.FC<LayoutShellProps> = ({
   session,
@@ -31,8 +33,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
   // Navigation items filtered by role
   const navItems: { id: NavSection; label: string; icon: string; minRole: UserRole }[] = [
     { id: 'pos', label: 'POS / Checkout', icon: '🛒', minRole: 'cashier' },
-    { id: 'products', label: 'Products & Batches', icon: '💊', minRole: 'pharmacist' },
-    { id: 'movements', label: 'Stock Movements', icon: '📦', minRole: 'pharmacist' },
+    { id: 'products', label: 'Product Catalog', icon: '💊', minRole: 'pharmacist' },
+    { id: 'purchasing', label: 'Purchasing & GRN', icon: '📥', minRole: 'pharmacist' },
+    { id: 'stock', label: 'Stock & Inventory', icon: '📦', minRole: 'pharmacist' },
     { id: 'users', label: 'Staff & Roles', icon: '👥', minRole: 'owner' },
     { id: 'diagnostics', label: 'Local DB & System', icon: '⚙️', minRole: 'cashier' },
   ];
@@ -384,23 +387,12 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             <ProductList />
           )}
 
-          {activeSection === 'movements' && (
-            <div>
-              <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
-                Stock Movements & Audit Ledger
-              </h2>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Append-only stock movements log. Sum of signed movements equals real-time stock balance.
-              </p>
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
-                <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '8px' }}>
-                  Stock Balance View Function:
-                </div>
-                <code style={{ display: 'block', backgroundColor: '#f1f5f9', padding: '12px', borderRadius: '6px', fontSize: '12px' }}>
-                  getStockByBatch(&apos;{session.branch.id}&apos;)
-                </code>
-              </div>
-            </div>
+          {activeSection === 'purchasing' && (
+            <PurchasingDashboard />
+          )}
+
+          {activeSection === 'stock' && (
+            <StockOverview />
           )}
 
           {activeSection === 'users' && (

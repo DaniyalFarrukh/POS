@@ -51,6 +51,21 @@ const api: DesktopApi = {
     seedProducts: (): Promise<{ seededCount: number; defaultTaxCategoryId: string }> =>
       ipcRenderer.invoke('products:seed'),
   },
+  purchasing: {
+    getSuppliers: () => ipcRenderer.invoke('purchasing:get-suppliers'),
+    getSupplier: (id: string) => ipcRenderer.invoke('purchasing:get-supplier', id),
+    createSupplier: (input) => ipcRenderer.invoke('purchasing:create-supplier', input),
+    updateSupplier: (id: string, input) => ipcRenderer.invoke('purchasing:update-supplier', id, input),
+    deleteSupplier: (id: string) => ipcRenderer.invoke('purchasing:delete-supplier', id),
+    receiveGrn: (input) => ipcRenderer.invoke('purchasing:receive-grn', input),
+  },
+  stock: {
+    getOverviewProducts: (params) => ipcRenderer.invoke('stock:get-overview-products', params),
+    getOverviewBatches: (params) => ipcRenderer.invoke('stock:get-overview-batches', params),
+    adjustStock: (input) => ipcRenderer.invoke('stock:adjust', input),
+    getBatchesForProduct: (productId: string) =>
+      ipcRenderer.invoke('stock:get-batches-for-product', productId),
+  },
 };
 
 contextBridge.exposeInMainWorld('api', api);

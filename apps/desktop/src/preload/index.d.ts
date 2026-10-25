@@ -10,6 +10,16 @@ import type {
   ProductWithTax,
   ProductListResult,
   TaxCategory,
+  Supplier,
+  CreateSupplierInput,
+  UpdateSupplierInput,
+  ReceiveGrnInput,
+  PurchaseRecord,
+  StockAdjustmentInput,
+  StockFilterParams,
+  StockOverviewProduct,
+  StockOverviewBatch,
+  StockOverviewResult,
 } from '@pos/shared';
 
 export interface DbMetadata {
@@ -36,6 +46,29 @@ export interface ProductApi {
   seedProducts: () => Promise<{ seededCount: number; defaultTaxCategoryId: string }>;
 }
 
+export interface PurchasingApi {
+  getSuppliers: () => Promise<Supplier[]>;
+  getSupplier: (id: string) => Promise<Supplier | null>;
+  createSupplier: (input: CreateSupplierInput) => Promise<Supplier>;
+  updateSupplier: (id: string, input: UpdateSupplierInput) => Promise<Supplier>;
+  deleteSupplier: (id: string) => Promise<{ success: boolean }>;
+  receiveGrn: (input: ReceiveGrnInput) => Promise<PurchaseRecord>;
+}
+
+export interface StockApi {
+  getOverviewProducts: (params: StockFilterParams) => Promise<StockOverviewResult<StockOverviewProduct>>;
+  getOverviewBatches: (params: StockFilterParams) => Promise<StockOverviewResult<StockOverviewBatch>>;
+  adjustStock: (input: StockAdjustmentInput) => Promise<{ success: boolean; movementId: string; newBalance: number }>;
+  getBatchesForProduct: (productId: string) => Promise<{
+    id: string;
+    batchNo: string;
+    expiryDate: string;
+    costPaisa: number;
+    mrpPaisa: number;
+    balance: number;
+  }[]>;
+}
+
 export interface AuthApi {
   getSetupStatus: () => Promise<{ needsSetup: boolean }>;
   completeSetup: (data: SetupInput) => Promise<AuthSession>;
@@ -55,6 +88,8 @@ export interface DesktopApi {
   getDbInfo: () => Promise<DbMetadata>;
   auth: AuthApi;
   products: ProductApi;
+  purchasing: PurchasingApi;
+  stock: StockApi;
 }
 
 declare global {

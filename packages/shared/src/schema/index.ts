@@ -60,10 +60,7 @@ export const ProductSchema = BaseEntitySchema.extend({
 });
 export type Product = z.infer<typeof ProductSchema>;
 
-export const SupplierSchema = BaseEntitySchema.extend({
-  name: z.string().min(1),
-});
-export type Supplier = z.infer<typeof SupplierSchema>;
+export { SupplierSchema, type Supplier } from './purchasing';
 
 // Rule 4: Batches NEVER store stock quantities directly
 export const BatchSchema = BaseEntitySchema.extend({

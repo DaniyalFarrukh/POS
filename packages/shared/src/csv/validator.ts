@@ -36,21 +36,8 @@ export interface CsvValidationResult {
   errorCount: number;
 }
 
-/**
- * Converts a string representing currency in Rupees to integer paisa.
- * Rule 1: Money is stored as INTEGER paisa. Never use floats.
- */
-export function convertRupeesToPaisa(val: string): number {
-  const match = val.trim().match(/^[^0-9]*([0-9]+(?:\.[0-9]+)?)[^0-9]*$/);
-  if (!match || !match[1]) {
-    throw new Error(`Invalid monetary amount: '${val}'`);
-  }
-  const num = parseFloat(match[1]);
-  if (isNaN(num) || num < 0) {
-    throw new Error(`Invalid monetary amount: '${val}'`);
-  }
-  return Math.round(num * 100);
-}
+import { convertRupeesToPaisa } from '../money';
+export { convertRupeesToPaisa };
 
 /**
  * Auto-detects standard CSV header column indices.

@@ -22,6 +22,11 @@ import type {
   CreateProductInput,
   UpdateProductInput,
   ProductSearchParams,
+  CreateSupplierInput,
+  UpdateSupplierInput,
+  ReceiveGrnInput,
+  StockAdjustmentInput,
+  StockFilterParams,
 } from '@pos/shared';
 import {
   getProducts,
@@ -31,6 +36,18 @@ import {
   roleGuardedUpdateProduct,
   roleGuardedImportCsv,
 } from './products';
+import {
+  getSuppliers,
+  getSupplier,
+  roleGuardedCreateSupplier,
+  roleGuardedUpdateSupplier,
+  roleGuardedDeleteSupplier,
+  roleGuardedReceiveGrn,
+  getStockOverviewByProduct,
+  getStockOverviewByBatch,
+  roleGuardedAdjustStock,
+  getBatchesForProduct,
+} from './purchasing';
 import { seedDatabase } from './db/seed';
 
 // Explicitly set application name so userData resolves cleanly to %APPDATA%\POS Counter (no @ or slashes)
@@ -191,6 +208,48 @@ function createWindow(): void {
 
   ipcMain.handle('products:seed', async () => {
     return seedDatabase();
+  });
+
+  // Purchasing & Suppliers Handlers
+  ipcMain.handle('purchasing:get-suppliers', async () => {
+    return getSuppliers();
+  });
+
+  ipcMain.handle('purchasing:get-supplier', async (_event, id: string) => {
+    return getSupplier(id);
+  });
+
+  ipcMain.handle('purchasing:create-supplier', async (_event, input: CreateSupplierInput) => {
+    return roleGuardedCreateSupplier(input);
+  });
+
+  ipcMain.handle('purchasing:update-supplier', async (_event, id: string, input: UpdateSupplierInput) => {
+    return roleGuardedUpdateSupplier(id, input);
+  });
+
+  ipcMain.handle('purchasing:delete-supplier', async (_event, id: string) => {
+    return roleGuardedDeleteSupplier(id);
+  });
+
+  ipcMain.handle('purchasing:receive-grn', async (_event, input: ReceiveGrnInput) => {
+    return roleGuardedReceiveGrn(input);
+  });
+
+  // Stock Overview & Adjustment Handlers
+  ipcMain.handle('stock:get-overview-products', async (_event, params: StockFilterParams) => {
+    return getStockOverviewByProduct(params);
+  });
+
+  ipcMain.handle('stock:get-overview-batches', async (_event, params: StockFilterParams) => {
+    return getStockOverviewByBatch(params);
+  });
+
+  ipcMain.handle('stock:adjust', async (_event, input: StockAdjustmentInput) => {
+    return roleGuardedAdjustStock(input);
+  });
+
+  ipcMain.handle('stock:get-batches-for-product', async (_event, productId: string) => {
+    return getBatchesForProduct(productId);
   });
 
   const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
