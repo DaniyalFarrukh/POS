@@ -36,6 +36,28 @@ export interface CsvImportSummary {
   errors: { rowNumber: number; barcode?: string; reason: string }[];
 }
 
+export interface PosCatalogItem {
+  id: string;
+  brandName: string;
+  genericName: string;
+  strength: string;
+  form: string;
+  manufacturer: string;
+  barcode: string | null;
+  mrpPaisa: number;
+  taxCategoryId: string;
+  taxCategoryName: string;
+  taxRateBp: number;
+  isControlled: boolean;
+  totalStock: number;
+  earliestBatch: {
+    id: string;
+    batchNo: string;
+    expiryDate: string;
+    balance: number;
+  } | null;
+}
+
 export interface ProductApi {
   getProducts: (params: ProductSearchParams) => Promise<ProductListResult>;
   getProduct: (id: string) => Promise<ProductWithTax | null>;
@@ -44,6 +66,8 @@ export interface ProductApi {
   getTaxCategories: () => Promise<TaxCategory[]>;
   importProductsCsv: (rows: CreateProductInput[]) => Promise<CsvImportSummary>;
   seedProducts: () => Promise<{ seededCount: number; defaultTaxCategoryId: string }>;
+  searchPosCatalog: (query: string, branchId?: string) => Promise<PosCatalogItem[]>;
+  getSubstitutes: (genericName: string, excludeProductId?: string, branchId?: string) => Promise<PosCatalogItem[]>;
 }
 
 export interface PurchasingApi {

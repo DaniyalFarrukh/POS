@@ -4,6 +4,7 @@ import type { DbMetadata } from '../../preload/index.d';
 import { ProductList } from './products/ProductList';
 import { PurchasingDashboard } from './purchasing/PurchasingDashboard';
 import { StockOverview } from './stock/StockOverview';
+import { PosCheckoutScreen } from './pos/PosCheckoutScreen';
 
 interface LayoutShellProps {
   session: AuthSession;
@@ -302,85 +303,12 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '24px 32px',
+            padding: activeSection === 'pos' ? '16px 20px' : '24px 32px',
             backgroundColor: '#f8fafc',
           }}
         >
           {activeSection === 'pos' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
-                    Point of Sale Terminal
-                  </h2>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                    Active checkout session on {session.counter.name}
-                  </p>
-                </div>
-                <div style={{ padding: '6px 12px', backgroundColor: '#e2e8f0', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
-                  Keyboard Mode: F1-F12 ready
-                </div>
-              </div>
-
-              {/* POS Shell Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '24px' }}>
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', marginBottom: '12px' }}>
-                    Item Search / Barcode Scanner
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Scan barcode or type generic name (e.g. Paracetamol, Augmentin)..."
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      fontSize: '14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <div style={{ marginTop: '20px', padding: '32px', textAlign: 'center', color: '#94a3b8', border: '2px dashed #e2e8f0', borderRadius: '8px' }}>
-                    Cart is empty. Scan an item or enter barcode to begin sale.
-                  </div>
-                </div>
-
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', marginBottom: '16px' }}>
-                    Sale Summary
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
-                    <span style={{ color: '#64748b' }}>Subtotal:</span>
-                    <span style={{ fontWeight: 600 }}>Rs. 0.00</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9', fontSize: '13px' }}>
-                    <span style={{ color: '#64748b' }}>GST / Tax:</span>
-                    <span style={{ fontWeight: 600 }}>Rs. 0.00</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 0 20px 0', fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-                    <span>Total:</span>
-                    <span>Rs. 0.00</span>
-                  </div>
-                  <button
-                    type="button"
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '14px',
-                      backgroundColor: '#94a3b8',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: 700,
-                      fontSize: '15px',
-                      cursor: 'not-allowed',
-                    }}
-                  >
-                    Complete Sale (Cash / Card)
-                  </button>
-                </div>
-              </div>
-            </div>
+            <PosCheckoutScreen session={session} />
           )}
 
           {activeSection === 'products' && (

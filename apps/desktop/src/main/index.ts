@@ -35,6 +35,8 @@ import {
   roleGuardedCreateProduct,
   roleGuardedUpdateProduct,
   roleGuardedImportCsv,
+  searchPosCatalog,
+  getSubstitutes,
 } from './products';
 import {
   getSuppliers,
@@ -208,6 +210,14 @@ function createWindow(): void {
 
   ipcMain.handle('products:seed', async () => {
     return seedDatabase();
+  });
+
+  ipcMain.handle('products:search-pos-catalog', async (_event, query: string, branchId?: string) => {
+    return searchPosCatalog(query, branchId);
+  });
+
+  ipcMain.handle('products:get-substitutes', async (_event, genericName: string, excludeProductId?: string, branchId?: string) => {
+    return getSubstitutes(genericName, excludeProductId, branchId);
   });
 
   // Purchasing & Suppliers Handlers

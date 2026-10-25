@@ -398,3 +398,250 @@ export const roleGuardedImportCsv = requireRole(
   ['pharmacist', 'owner'],
   async (_session, rows: CreateProductInput[]) => importProductsCsv(rows)
 );
+
+// ---------------------------------------------------------------------------
+// POS Checkout Catalog Search & Substitute Finder (Phase 2 POS)
+// ---------------------------------------------------------------------------
+export interface PosCatalogItem {
+  id: string;
+  brandName: string;
+  genericName: string;
+  strength: string;
+  form: string;
+  manufacturer: string;
+  barcode: string | null;
+  mrpPaisa: number;
+  taxCategoryId: string;
+  taxCategoryName: string;
+  taxRateBp: number;
+  isControlled: boolean;
+  totalStock: number;
+  earliestBatch: {
+    id: string;
+    batchNo: string;
+    expiryDate: string;
+    balance: number;
+  } | null;
+}
+
+export function searchPosCatalog(
+  query: string,
+  rawBranchId?: string,
+  rawDb?: DatabaseInstance
+): PosCatalogItem[] {
+  const db = rawDb ?? getDatabase();
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  // Determine branch ID
+  let branchId = rawBranchId;
+  if (!branchId) {
+    const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as { id: string } | undefined;
+    branchId = branchRow?.id ?? '';
+  }
+
+  // Exact barcode match takes highest precedence
+  const isBarcode = /^\d{6,14}$/.test(trimmed);
+
+  let rows: {
+    id: string;
+    brand_name: string;
+    generic_name: string;
+    strength: string;
+    form: string;
+    manufacturer: string;
+    barcode: string | null;
+    tax_category_id: string;
+    mrp_paisa: number;
+    is_controlled: number;
+    tax_category_name: string;
+    tax_rate_bp: number;
+  }[];
+
+  if (isBarcode) {
+    rows = db
+      .prepare(`
+        SELECT
+          p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
+          p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled,
+          tc.name as tax_category_name, tc.rate_bp as tax_rate_bp
+        FROM products p
+        INNER JOIN tax_categories tc ON p.tax_category_id = tc.id
+        WHERE p.is_active = 1 AND p.barcode = ?
+        LIMIT 1
+      `)
+      .all(trimmed) as typeof rows;
+  } else {
+    const term = `%${trimmed}%`;
+    rows = db
+      .prepare(`
+        SELECT
+          p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
+          p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled,
+          tc.name as tax_category_name, tc.rate_bp as tax_rate_bp
+        FROM products p
+        INNER JOIN tax_categories tc ON p.tax_category_id = tc.id
+        WHERE p.is_active = 1 AND (
+          p.brand_name LIKE ? OR p.generic_name LIKE ? OR p.barcode LIKE ?
+        )
+        ORDER BY
+          CASE WHEN p.brand_name LIKE ? THEN 0 ELSE 1 END,
+          p.brand_name ASC
+        LIMIT 20
+      `)
+      .all(term, term, term, `${trimmed}%`) as typeof rows;
+  }
+
+  if (rows.length === 0) return [];
+
+  const stockStmt = db.prepare<[string, string]>(`
+    SELECT COALESCE(SUM(quantity_signed), 0) as balance
+    FROM stock_movements
+    WHERE product_id = ? AND branch_id = ?
+  `);
+
+  const batchStmt = db.prepare<[string, string]>(`
+    SELECT
+      b.id, b.batch_no as batchNo, b.expiry_date as expiryDate,
+      COALESCE(SUM(sm.quantity_signed), 0) as balance
+    FROM batches b
+    LEFT JOIN stock_movements sm ON b.id = sm.batch_id AND sm.branch_id = ?
+    WHERE b.product_id = ?
+    GROUP BY b.id
+    ORDER BY b.expiry_date ASC
+  `);
+
+  return rows.map((r) => {
+    const stockRow = stockStmt.get(r.id, branchId) as { balance: number } | undefined;
+    const totalStock = stockRow?.balance ?? 0;
+
+    const batches = batchStmt.all(branchId, r.id) as {
+      id: string;
+      batchNo: string;
+      expiryDate: string;
+      balance: number;
+    }[];
+
+    // Pick earliest expiring batch with positive stock, or first batch
+    const inStockBatch = batches.find((b) => b.balance > 0) ?? batches[0] ?? null;
+
+    return {
+      id: r.id,
+      brandName: r.brand_name,
+      genericName: r.generic_name,
+      strength: r.strength,
+      form: r.form,
+      manufacturer: r.manufacturer,
+      barcode: r.barcode,
+      mrpPaisa: r.mrp_paisa,
+      taxCategoryId: r.tax_category_id,
+      taxCategoryName: r.tax_category_name,
+      taxRateBp: r.tax_rate_bp,
+      isControlled: r.is_controlled === 1,
+      totalStock,
+      earliestBatch: inStockBatch,
+    };
+  });
+}
+
+export function getSubstitutes(
+  genericName: string,
+  excludeProductId?: string,
+  rawBranchId?: string,
+  rawDb?: DatabaseInstance
+): PosCatalogItem[] {
+  const db = rawDb ?? getDatabase();
+  const trimmed = genericName.trim();
+  if (!trimmed) return [];
+
+  let branchId = rawBranchId;
+  if (!branchId) {
+    const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as { id: string } | undefined;
+    branchId = branchRow?.id ?? '';
+  }
+
+  const queryParams: unknown[] = [trimmed.toLowerCase()];
+  let excludeClause = '';
+  if (excludeProductId) {
+    excludeClause = 'AND p.id != ?';
+    queryParams.push(excludeProductId);
+  }
+
+  const rows = db
+    .prepare(`
+      SELECT
+        p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
+        p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled,
+        tc.name as tax_category_name, tc.rate_bp as tax_rate_bp
+      FROM products p
+      INNER JOIN tax_categories tc ON p.tax_category_id = tc.id
+      WHERE p.is_active = 1 AND LOWER(p.generic_name) = ? ${excludeClause}
+      ORDER BY p.brand_name ASC
+      LIMIT 15
+    `)
+    .all(...queryParams) as {
+    id: string;
+    brand_name: string;
+    generic_name: string;
+    strength: string;
+    form: string;
+    manufacturer: string;
+    barcode: string | null;
+    tax_category_id: string;
+    mrp_paisa: number;
+    is_controlled: number;
+    tax_category_name: string;
+    tax_rate_bp: number;
+  }[];
+
+  const stockStmt = db.prepare<[string, string]>(`
+    SELECT COALESCE(SUM(quantity_signed), 0) as balance
+    FROM stock_movements
+    WHERE product_id = ? AND branch_id = ?
+  `);
+
+  const batchStmt = db.prepare<[string, string]>(`
+    SELECT
+      b.id, b.batch_no as batchNo, b.expiry_date as expiryDate,
+      COALESCE(SUM(sm.quantity_signed), 0) as balance
+    FROM batches b
+    LEFT JOIN stock_movements sm ON b.id = sm.batch_id AND sm.branch_id = ?
+    WHERE b.product_id = ?
+    GROUP BY b.id
+    ORDER BY b.expiry_date ASC
+  `);
+
+  const results: PosCatalogItem[] = rows.map((r) => {
+    const stockRow = stockStmt.get(r.id, branchId) as { balance: number } | undefined;
+    const totalStock = stockRow?.balance ?? 0;
+
+    const batches = batchStmt.all(branchId, r.id) as {
+      id: string;
+      batchNo: string;
+      expiryDate: string;
+      balance: number;
+    }[];
+
+    const inStockBatch = batches.find((b) => b.balance > 0) ?? batches[0] ?? null;
+
+    return {
+      id: r.id,
+      brandName: r.brand_name,
+      genericName: r.generic_name,
+      strength: r.strength,
+      form: r.form,
+      manufacturer: r.manufacturer,
+      barcode: r.barcode,
+      mrpPaisa: r.mrp_paisa,
+      taxCategoryId: r.tax_category_id,
+      taxCategoryName: r.tax_category_name,
+      taxRateBp: r.tax_rate_bp,
+      isControlled: r.is_controlled === 1,
+      totalStock,
+      earliestBatch: inStockBatch,
+    };
+  });
+
+  // Prioritize in-stock substitutes first
+  return results.sort((a, b) => b.totalStock - a.totalStock);
+}

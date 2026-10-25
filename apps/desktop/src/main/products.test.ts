@@ -10,6 +10,8 @@ import {
   getTaxCategories,
   roleGuardedCreateProduct,
   roleGuardedImportCsv,
+  searchPosCatalog,
+  getSubstitutes,
 } from './products';
 import { seedDatabase } from './db/seed';
 import { setSessionForTesting, logout, ForbiddenError } from './auth';
@@ -301,6 +303,39 @@ describe('Product Management & CSV Bulk Import', () => {
           isActive: true,
         })
       ).resolves.toHaveProperty('brandName', 'Pharmacist Allowed Item');
+    });
+  });
+
+  describe('POS Search & Generic Substitutes', () => {
+    it('searches pos catalog by brand name or generic formula', () => {
+      const results = searchPosCatalog('Paracetamol', undefined, rawDb);
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.every((r) => r.genericName.toLowerCase().includes('paracetamol'))).toBe(true);
+      expect(results[0]).toHaveProperty('totalStock');
+      expect(results[0]).toHaveProperty('mrpPaisa');
+    });
+
+    it('finds exact barcode match instantly on scanner input', () => {
+      const all = getProducts({ page: 1, pageSize: 1 }, rawDb);
+      const barcode = all.products[0]?.barcode;
+      expect(barcode).toBeDefined();
+
+      const results = searchPosCatalog(barcode!, undefined, rawDb);
+      expect(results.length).toBeGreaterThanOrEqual(1);
+      expect(results[0]?.barcode).toBe(barcode);
+    });
+
+    it('retrieves active substitutes sharing identical generic molecule, prioritizing in-stock items', () => {
+      // Find two products with same generic name
+      const paracetamols = searchPosCatalog('Paracetamol', undefined, rawDb);
+      expect(paracetamols.length).toBeGreaterThanOrEqual(2);
+
+      const target = paracetamols[0]!;
+      const substitutes = getSubstitutes(target.genericName, target.id, undefined, rawDb);
+
+      expect(substitutes.length).toBeGreaterThanOrEqual(1);
+      expect(substitutes.every((s) => s.id !== target.id)).toBe(true);
+      expect(substitutes.every((s) => s.genericName.toLowerCase() === target.genericName.toLowerCase())).toBe(true);
     });
   });
 });

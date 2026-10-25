@@ -50,6 +50,10 @@ const api: DesktopApi = {
       ipcRenderer.invoke('products:import-csv', rows),
     seedProducts: (): Promise<{ seededCount: number; defaultTaxCategoryId: string }> =>
       ipcRenderer.invoke('products:seed'),
+    searchPosCatalog: (query: string, branchId?: string) =>
+      ipcRenderer.invoke('products:search-pos-catalog', query, branchId),
+    getSubstitutes: (genericName: string, excludeProductId?: string, branchId?: string) =>
+      ipcRenderer.invoke('products:get-substitutes', genericName, excludeProductId, branchId),
   },
   purchasing: {
     getSuppliers: () => ipcRenderer.invoke('purchasing:get-suppliers'),
