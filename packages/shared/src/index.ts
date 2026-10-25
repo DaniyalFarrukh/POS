@@ -14,6 +14,7 @@ export function getSharedInfo(): SharedInfo {
 
 export * from './uuid';
 export * from './money';
+export * from './tax';
 export * from './schema';
 export * from './schema/product';
 export * from './schema/purchasing';
