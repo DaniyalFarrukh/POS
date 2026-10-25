@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { AuthSession, UserRole } from '@pos/shared';
 import type { DbMetadata } from '../../preload/index.d';
+import { ProductList } from './products/ProductList';
 
 interface LayoutShellProps {
   session: AuthSession;
@@ -380,19 +381,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
           )}
 
           {activeSection === 'products' && (
-            <div>
-              <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
-                Products & Batches Management
-              </h2>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Authorized for Pharmacist and Owner roles.
-              </p>
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
-                <p style={{ margin: 0, color: '#475569' }}>
-                  Master catalog loaded with SQLite schema version 2. Batch stock calculation adheres strictly to <strong>Rule 4</strong> (balance = sum of signed movements).
-                </p>
-              </div>
-            </div>
+            <ProductList />
           )}
 
           {activeSection === 'movements' && (

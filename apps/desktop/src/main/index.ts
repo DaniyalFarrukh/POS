@@ -14,7 +14,24 @@ import {
   getSession,
   requireRole,
 } from './auth';
-import type { SetupInput, LoginInput, UnlockInput, UserRole } from '@pos/shared';
+import type {
+  SetupInput,
+  LoginInput,
+  UnlockInput,
+  UserRole,
+  CreateProductInput,
+  UpdateProductInput,
+  ProductSearchParams,
+} from '@pos/shared';
+import {
+  getProducts,
+  getProduct,
+  getTaxCategories,
+  roleGuardedCreateProduct,
+  roleGuardedUpdateProduct,
+  roleGuardedImportCsv,
+} from './products';
+import { seedDatabase } from './db/seed';
 
 // Explicitly set application name so userData resolves cleanly to %APPDATA%\POS Counter (no @ or slashes)
 app.setName('POS Counter');
@@ -147,6 +164,35 @@ function createWindow(): void {
     return handler();
   });
 
+  // Product & Inventory Handlers
+  ipcMain.handle('products:get-all', async (_event, params: ProductSearchParams) => {
+    return getProducts(params);
+  });
+
+  ipcMain.handle('products:get-one', async (_event, id: string) => {
+    return getProduct(id);
+  });
+
+  ipcMain.handle('products:create', async (_event, input: CreateProductInput) => {
+    return roleGuardedCreateProduct(input);
+  });
+
+  ipcMain.handle('products:update', async (_event, id: string, input: UpdateProductInput) => {
+    return roleGuardedUpdateProduct(id, input);
+  });
+
+  ipcMain.handle('products:get-tax-categories', async () => {
+    return getTaxCategories();
+  });
+
+  ipcMain.handle('products:import-csv', async (_event, rows: CreateProductInput[]) => {
+    return roleGuardedImportCsv(rows);
+  });
+
+  ipcMain.handle('products:seed', async () => {
+    return seedDatabase();
+  });
+
   const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
   const devUrl =
     process.env['VITE_DEV_SERVER_URL'] || (isDev ? 'http://localhost:5173' : undefined);
@@ -165,6 +211,8 @@ function createWindow(): void {
 app.whenReady().then(() => {
   try {
     initDatabase();
+    // Seed initial tax categories and 200 pharmacy products for development
+    seedDatabase();
   } catch (err) {
     console.error('[Main] Failed to initialize SQLite database on launch:', err);
   }

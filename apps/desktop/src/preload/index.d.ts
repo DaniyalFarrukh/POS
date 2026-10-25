@@ -1,4 +1,16 @@
-import type { SetupInput, LoginInput, UnlockInput, PublicUser, AuthSession } from '@pos/shared';
+import type {
+  SetupInput,
+  LoginInput,
+  UnlockInput,
+  PublicUser,
+  AuthSession,
+  CreateProductInput,
+  UpdateProductInput,
+  ProductSearchParams,
+  ProductWithTax,
+  ProductListResult,
+  TaxCategory,
+} from '@pos/shared';
 
 export interface DbMetadata {
   dbPath: string;
@@ -6,6 +18,22 @@ export interface DbMetadata {
   journalMode: string;
   foreignKeys: boolean;
   migrationsApplied: number;
+}
+
+export interface CsvImportSummary {
+  importedCount: number;
+  skippedCount: number;
+  errors: { rowNumber: number; barcode?: string; reason: string }[];
+}
+
+export interface ProductApi {
+  getProducts: (params: ProductSearchParams) => Promise<ProductListResult>;
+  getProduct: (id: string) => Promise<ProductWithTax | null>;
+  createProduct: (input: CreateProductInput) => Promise<ProductWithTax>;
+  updateProduct: (id: string, input: UpdateProductInput) => Promise<ProductWithTax>;
+  getTaxCategories: () => Promise<TaxCategory[]>;
+  importProductsCsv: (rows: CreateProductInput[]) => Promise<CsvImportSummary>;
+  seedProducts: () => Promise<{ seededCount: number; defaultTaxCategoryId: string }>;
 }
 
 export interface AuthApi {
@@ -26,6 +54,7 @@ export interface DesktopApi {
   ping: () => Promise<string>;
   getDbInfo: () => Promise<DbMetadata>;
   auth: AuthApi;
+  products: ProductApi;
 }
 
 declare global {

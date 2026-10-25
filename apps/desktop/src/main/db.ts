@@ -233,11 +233,22 @@ export function initDatabase(customPath?: string): DbMetadata {
 
   let dbPath = customPath;
   if (!dbPath) {
-    const userDataDir = app.getPath('userData');
-    if (!fs.existsSync(userDataDir)) {
-      fs.mkdirSync(userDataDir, { recursive: true });
+    if (app && typeof app.getPath === 'function') {
+      const userDataDir = app.getPath('userData');
+      if (!fs.existsSync(userDataDir)) {
+        fs.mkdirSync(userDataDir, { recursive: true });
+      }
+      dbPath = path.join(userDataDir, 'pharmacy.db');
+    } else if (process.env.APPDATA) {
+      const userDataDir = path.join(process.env.APPDATA, 'POS Counter');
+      if (!fs.existsSync(userDataDir)) {
+        fs.mkdirSync(userDataDir, { recursive: true });
+      }
+      dbPath = path.join(userDataDir, 'pharmacy.db');
+    } else {
+      // In unit test runner outside of Electron process
+      dbPath = ':memory:';
     }
-    dbPath = path.join(userDataDir, 'pharmacy.db');
   }
 
   console.log(`[Database] Initializing SQLite database at: ${dbPath}`);
@@ -329,6 +340,11 @@ export function getDatabase(): DatabaseInstance {
     initDatabase();
   }
   return dbInstance!;
+}
+
+export function setDatabaseForTesting(db: DatabaseInstance): void {
+  dbInstance = db;
+  drizzleInstance = drizzle(db, { schema });
 }
 
 export function getDrizzle(): BetterSQLite3Database<typeof schema> {
