@@ -3,6 +3,18 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import { initDatabase, getDbMetadata, type DbMetadata } from './db';
+import {
+  getSetupStatus,
+  completeSetup,
+  getUsers,
+  login,
+  logout,
+  lockSession,
+  unlockSession,
+  getSession,
+  requireRole,
+} from './auth';
+import type { SetupInput, LoginInput, UnlockInput, UserRole } from '@pos/shared';
 
 // Explicitly set application name so userData resolves cleanly to %APPDATA%\POS Counter (no @ or slashes)
 app.setName('POS Counter');
@@ -84,6 +96,55 @@ function createWindow(): void {
     const meta = getDbMetadata();
     console.log('[IPC] get-db-info called -> returning:', JSON.stringify(meta));
     return meta;
+  });
+
+  // Local Authentication Handlers
+  ipcMain.handle('auth:get-setup-status', async () => {
+    return getSetupStatus();
+  });
+
+  ipcMain.handle('auth:complete-setup', async (_event, data: SetupInput) => {
+    return completeSetup(data);
+  });
+
+  ipcMain.handle('auth:get-users', async () => {
+    return getUsers();
+  });
+
+  ipcMain.handle('auth:login', async (_event, data: LoginInput) => {
+    return login(data.userId, data.pin);
+  });
+
+  ipcMain.handle('auth:logout', async () => {
+    logout();
+  });
+
+  ipcMain.handle('auth:lock-session', async () => {
+    lockSession();
+  });
+
+  ipcMain.handle('auth:unlock-session', async (_event, data: UnlockInput) => {
+    return unlockSession(data.pin);
+  });
+
+  ipcMain.handle('auth:get-session', async () => {
+    return getSession();
+  });
+
+  ipcMain.handle('auth:test-role-action', async (_event, requiredRole: UserRole) => {
+    let allowed: UserRole[] = [];
+    if (requiredRole === 'cashier') allowed = ['cashier', 'pharmacist', 'owner'];
+    else if (requiredRole === 'pharmacist') allowed = ['pharmacist', 'owner'];
+    else allowed = ['owner'];
+
+    const handler = requireRole(allowed, (session) => {
+      return {
+        success: true,
+        message: `Action permitted: ${session.user.name} (${session.user.role}) has access to '${requiredRole}' action.`,
+      };
+    });
+
+    return handler();
   });
 
   const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
