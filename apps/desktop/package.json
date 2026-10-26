@@ -13,14 +13,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/noto-nastaliq-urdu": "^5.3.0",
     "@pos/shared": "workspace:*",
+    "adm-zip": "^0.6.1",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "13.0.3",
     "drizzle-orm": "^0.45.4",
+    "electron-updater": "^6.8.11",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.6.0",
     "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^24.19.2",

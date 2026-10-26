@@ -69,7 +69,12 @@ export function createInvoice(
 
   // 3. Generate sequential invoice number (e.g. INV-20261026-0001)
   const countRow = db
-    .prepare('SELECT COUNT(*) as count FROM invoices WHERE branch_id = ? AND created_at >= ?')
+    .prepare(`
+      SELECT COUNT(*) as count
+      FROM invoices i
+      JOIN counters c ON i.counter_id = c.id
+      WHERE c.branch_id = ? AND i.created_at >= ?
+    `)
     .get(branchId, `${dateKey}T00:00:00.000Z`) as { count: number } | undefined;
   const seq = (countRow?.count ?? 0) + 1;
   const compactDate = dateKey.replace(/-/g, '');
@@ -77,6 +82,7 @@ export function createInvoice(
 
   const invoiceId = generateUuidV7();
   const paymentId = generateUuidV7();
+  const clientRequestId = generateUuidV7();
 
   // Prepare batch lookup if line batchId was not explicitly passed
   const findBatchStmt = db.prepare<[string, string]>(`
@@ -110,31 +116,22 @@ export function createInvoice(
     // Insert invoice header
     db.prepare(`
       INSERT INTO invoices (
-        id, invoice_number, branch_id, counter_id, user_id,
-        customer_name, customer_phone, doctor_name, notes,
-        subtotal_paisa, discount_paisa, tax_paisa, grand_total_paisa,
-        paid_paisa, change_paisa, status, fiscal_status,
-        created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, counter_id, cashier_user_id, invoice_number, client_request_id,
+        status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa,
+        notes, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       invoiceId,
-      invoiceNumber,
-      branchId,
       counterId,
       userId,
-      data.customerName ?? null,
-      data.customerPhone ?? null,
-      data.doctorName ?? null,
-      data.notes ?? null,
+      invoiceNumber,
+      clientRequestId,
+      'finalized',
       computed.netTotalPaisa,
       computed.totalDiscountPaisa,
       computed.totalTaxPaisa,
       grandTotalPaisa,
-      amountPaisa,
-      changePaisa,
-      'finalized',
-      'not_required',
-      now,
+      data.notes ?? data.customerName ?? null,
       now
     );
 
@@ -143,10 +140,10 @@ export function createInvoice(
     // Insert invoice lines & stock movements
     const insertLineStmt = db.prepare(`
       INSERT INTO invoice_lines (
-        id, invoice_id, product_id, batch_id, batch_no, expiry_date,
-        quantity, unit_price_paisa, discount_bp, discount_paisa,
-        tax_rate_bp, tax_paisa, line_total_paisa, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, invoice_id, product_id, batch_id,
+        quantity, unit_price_paisa, discount_paisa,
+        tax_rate_bp, tax_paisa, line_total_paisa
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertMovementStmt = db.prepare(`
@@ -198,17 +195,12 @@ export function createInvoice(
         invoiceId,
         lineInput.productId,
         batchId,
-        batchNo,
-        expiryDate,
         lineInput.quantity,
         lineInput.unitPricePaisa,
-        lineInput.discountBp ?? 0,
         lineComputed.discountPaisa,
         lineComputed.taxRateBp,
         lineComputed.taxAmountPaisa,
-        lineComputed.lineTotalPaisa,
-        now,
-        now
+        lineComputed.lineTotalPaisa
       );
 
       // Insert negative stock movement (Rule 4: signed movement for sale)
@@ -259,19 +251,36 @@ export function createInvoice(
     }
 
     // Insert payment row
+    const paymentMethod: 'cash' | 'card' | 'wallet' =
+      data.paymentMethod === 'card'
+        ? 'card'
+        : data.paymentMethod === 'cash'
+          ? 'cash'
+          : 'wallet';
+
     db.prepare(`
       INSERT INTO payments (
-        id, invoice_id, payment_method, amount_paisa,
-        tendered_paisa, change_paisa, reference, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, invoice_id, method, amount_paisa
+      ) VALUES (?, ?, ?, ?)
     `).run(
       paymentId,
       invoiceId,
-      data.paymentMethod,
-      amountPaisa,
-      tenderedPaisa,
-      changePaisa,
-      data.paymentReference ?? null,
+      paymentMethod,
+      amountPaisa
+    );
+
+    // Insert fiscal submission record
+    db.prepare(`
+      INSERT INTO fiscal_submissions (
+        id, invoice_id, status, fiscal_invoice_number, qr_payload, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      generateUuidV7(),
+      invoiceId,
+      'not_required',
+      null,
+      null,
+      now,
       now
     );
 
@@ -313,15 +322,20 @@ export function createInvoice(
     };
 
     // Insert outbox event for offline cloud sync (Rule 5 & 7)
+    const outboxEventId = generateUuidV7();
     db.prepare(`
-      INSERT INTO outbox (id, event_type, payload, created_at, synced_at)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO outbox (
+        id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at, synced_at
+      ) VALUES (
+        ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'invoice.created', 'invoice.created', ?, ?, ?, 'pending', 0, ?, null
+      )
     `).run(
-      generateUuidV7(),
-      'invoice.created',
+      outboxEventId,
+      outboxEventId,
+      invoiceRecord.id,
       JSON.stringify(invoiceRecord),
       now,
-      null
+      now
     );
 
     return invoiceRecord;
@@ -333,100 +347,87 @@ export function createInvoice(
 /**
  * Retrieves recent finalized invoices for cashier terminal history.
  */
-export function getRecentInvoices(
-  branchId?: string,
-  limit = 20,
-  rawDb?: DatabaseInstance
+import {
+  finalizeSale,
+  type FinalizedInvoice,
+  type FinalizeSaleInput as CoreFinalizeSaleInput,
+} from './finalizeSale';
+import {
+  FinalizeSaleInputSchema,
+  type InvoiceSearchParams,
+  type FinalizeSaleInput,
+} from '@pos/shared';
+
+interface RawInvoiceRow {
+  id: string;
+  invoice_number: string;
+  branch_id: string;
+  counter_id: string;
+  cashier_user_id: string;
+  client_request_id: string;
+  notes: string | null;
+  subtotal_paisa: number;
+  discount_paisa: number;
+  tax_paisa: number;
+  total_paisa: number;
+  status: 'finalized';
+  created_at: string;
+  user_name: string | null;
+  counter_name: string | null;
+}
+
+interface RawLineRow {
+  id: string;
+  invoice_id: string;
+  product_id: string;
+  batch_id: string | null;
+  batch_no: string | null;
+  expiry_date: string | null;
+  quantity: number;
+  unit_price_paisa: number;
+  discount_paisa: number;
+  tax_rate_bp: number;
+  tax_paisa: number;
+  line_total_paisa: number;
+  brand_name: string | null;
+  generic_name: string | null;
+  strength: string | null;
+  form: string | null;
+}
+
+interface RawPaymentRow {
+  id: string;
+  invoice_id: string;
+  method: 'cash' | 'card' | 'wallet';
+  amount_paisa: number;
+}
+
+function mapInvoiceRows(
+  db: DatabaseInstance,
+  rows: RawInvoiceRow[]
 ): InvoiceRecord[] {
-  const db = rawDb ?? getDatabase();
-  const queryParams: unknown[] = [];
-  let whereClause = '';
-
-  if (branchId) {
-    whereClause = 'WHERE i.branch_id = ?';
-    queryParams.push(branchId);
-  }
-
-  queryParams.push(limit);
-
-  const rows = db
-    .prepare(`
-      SELECT
-        i.*,
-        u.name as user_name,
-        c.name as counter_name
-      FROM invoices i
-      LEFT JOIN users u ON i.user_id = u.id
-      LEFT JOIN counters c ON i.counter_id = c.id
-      ${whereClause}
-      ORDER BY i.created_at DESC
-      LIMIT ?
-    `)
-    .all(...queryParams) as {
-    id: string;
-    invoice_number: string;
-    branch_id: string;
-    counter_id: string;
-    user_id: string;
-    customer_name: string | null;
-    customer_phone: string | null;
-    doctor_name: string | null;
-    notes: string | null;
-    subtotal_paisa: number;
-    discount_paisa: number;
-    tax_paisa: number;
-    grand_total_paisa: number;
-    paid_paisa: number;
-    change_paisa: number;
-    status: 'finalized' | 'cancelled' | 'refunded';
-    fiscal_status: 'not_required' | 'pending' | 'submitted' | 'failed';
-    fiscal_invoice_number: string | null;
-    qr_payload: string | null;
-    created_at: string;
-    updated_at: string;
-    user_name: string | null;
-    counter_name: string | null;
-  }[];
-
   const lineStmt = db.prepare<[string]>(`
     SELECT
       il.*,
       p.brand_name,
       p.generic_name,
       p.strength,
-      p.form
+      p.form,
+      b.batch_no,
+      b.expiry_date
     FROM invoice_lines il
     LEFT JOIN products p ON il.product_id = p.id
+    LEFT JOIN batches b ON il.batch_id = b.id
     WHERE il.invoice_id = ?
+    ORDER BY il.rowid ASC
   `);
 
   const paymentStmt = db.prepare<[string]>(`
-    SELECT * FROM payments WHERE invoice_id = ? LIMIT 1
+    SELECT * FROM payments WHERE invoice_id = ? ORDER BY rowid ASC
   `);
 
   return rows.map((r) => {
-    const rawLines = lineStmt.all(r.id) as {
-      id: string;
-      invoice_id: string;
-      product_id: string;
-      batch_id: string | null;
-      batch_no: string | null;
-      expiry_date: string | null;
-      quantity: number;
-      unit_price_paisa: number;
-      discount_bp: number;
-      discount_paisa: number;
-      tax_rate_bp: number;
-      tax_paisa: number;
-      line_total_paisa: number;
-      created_at: string;
-      updated_at: string;
-      brand_name: string | null;
-      generic_name: string | null;
-      strength: string | null;
-      form: string | null;
-    }[];
-
+    const rawLines = lineStmt.all(r.id) as RawLineRow[];
     const lines: InvoiceLineRecord[] = rawLines.map((l) => ({
       id: l.id,
       invoiceId: l.invoice_id,
@@ -436,7 +437,7 @@ export function getRecentInvoices(
       expiryDate: l.expiry_date,
       quantity: l.quantity,
       unitPricePaisa: l.unit_price_paisa,
-      discountBp: l.discount_bp,
+      discountBp: 0,
       discountPaisa: l.discount_paisa,
       taxRateBp: l.tax_rate_bp,
       taxPaisa: l.tax_paisa,
@@ -445,58 +446,49 @@ export function getRecentInvoices(
       genericName: l.generic_name ?? undefined,
       strength: l.strength ?? undefined,
       form: l.form ?? undefined,
-      createdAt: l.created_at,
-      updatedAt: l.updated_at,
+      createdAt: r.created_at,
+      updatedAt: r.created_at,
     }));
 
-    const rawPayment = paymentStmt.get(r.id) as {
-      id: string;
-      invoice_id: string;
-      payment_method: 'cash' | 'card' | 'bank' | 'other';
-      amount_paisa: number;
-      tendered_paisa: number | null;
-      change_paisa: number | null;
-      reference: string | null;
-      created_at: string;
-    } | undefined;
+    const rawPayments = paymentStmt.all(r.id) as RawPaymentRow[];
+    const payments: PaymentRecord[] = rawPayments.map((p) => ({
+      id: p.id,
+      invoiceId: p.invoice_id,
+      paymentMethod: (p.method === 'wallet' ? 'bank' : p.method) as 'cash' | 'card' | 'bank',
+      amountPaisa: p.amount_paisa,
+      tenderedPaisa: p.amount_paisa,
+      changePaisa: 0,
+      reference: null,
+      createdAt: r.created_at,
+    }));
 
-    const payment: PaymentRecord | undefined = rawPayment
-      ? {
-          id: rawPayment.id,
-          invoiceId: rawPayment.invoice_id,
-          paymentMethod: rawPayment.payment_method,
-          amountPaisa: rawPayment.amount_paisa,
-          tenderedPaisa: rawPayment.tendered_paisa,
-          changePaisa: rawPayment.change_paisa,
-          reference: rawPayment.reference,
-          createdAt: rawPayment.created_at,
-        }
-      : undefined;
+    const primaryPayment = payments[0];
 
     return {
       id: r.id,
       invoiceNumber: r.invoice_number,
       branchId: r.branch_id,
       counterId: r.counter_id,
-      userId: r.user_id,
-      customerName: r.customer_name,
-      customerPhone: r.customer_phone,
-      doctorName: r.doctor_name,
+      userId: r.cashier_user_id,
+      customerName: r.notes,
+      customerPhone: null,
+      doctorName: null,
       notes: r.notes,
       subtotalPaisa: r.subtotal_paisa,
       discountPaisa: r.discount_paisa,
       taxPaisa: r.tax_paisa,
-      grandTotalPaisa: r.grand_total_paisa,
-      paidPaisa: r.paid_paisa,
-      changePaisa: r.change_paisa,
+      grandTotalPaisa: r.total_paisa,
+      paidPaisa: r.total_paisa,
+      changePaisa: 0,
       status: r.status,
-      fiscalStatus: r.fiscal_status,
-      fiscalInvoiceNumber: r.fiscal_invoice_number,
-      qrPayload: r.qr_payload,
+      fiscalStatus: 'not_required',
+      fiscalInvoiceNumber: null,
+      qrPayload: null,
       createdAt: r.created_at,
-      updatedAt: r.updated_at,
+      updatedAt: r.created_at,
       lines,
-      payment,
+      payment: primaryPayment,
+      payments,
       userName: r.user_name ?? undefined,
       counterName: r.counter_name ?? undefined,
     };
@@ -504,8 +496,126 @@ export function getRecentInvoices(
 }
 
 /**
- * Role-guarded IPC entry points. Cashiers, Pharmacists, and Owners can create invoices.
+ * Searches finalized invoices with optional query (number/notes), date range, and pagination.
  */
+export function searchInvoices(
+  branchId?: string,
+  params?: InvoiceSearchParams,
+  rawDb?: DatabaseInstance
+): InvoiceRecord[] {
+  const db = rawDb ?? getDatabase();
+  const queryParams: unknown[] = [];
+  const whereClauses: string[] = [];
+
+  if (branchId) {
+    whereClauses.push('c.branch_id = ?');
+    queryParams.push(branchId);
+  }
+
+  if (params?.query && params.query.trim()) {
+    const q = `%${params.query.trim()}%`;
+    whereClauses.push('(i.invoice_number LIKE ? OR i.notes LIKE ?)');
+    queryParams.push(q, q);
+  }
+
+  if (params?.dateFrom) {
+    whereClauses.push('i.created_at >= ?');
+    queryParams.push(`${params.dateFrom}T00:00:00.000Z`);
+  }
+
+  if (params?.dateTo) {
+    whereClauses.push('i.created_at <= ?');
+    queryParams.push(`${params.dateTo}T23:59:59.999Z`);
+  }
+
+  const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+  const limit = params?.limit ?? 50;
+  const offset = params?.offset ?? 0;
+  queryParams.push(limit, offset);
+
+  const rows = db
+    .prepare(`
+      SELECT
+        i.*,
+        c.branch_id,
+        u.name as user_name,
+        c.name as counter_name
+      FROM invoices i
+      LEFT JOIN users u ON i.cashier_user_id = u.id
+      LEFT JOIN counters c ON i.counter_id = c.id
+      ${whereSql}
+      ORDER BY i.created_at DESC
+      LIMIT ? OFFSET ?
+    `)
+    .all(...queryParams) as RawInvoiceRow[];
+
+  return mapInvoiceRows(db, rows);
+}
+
+/**
+ * Retrieves a single finalized invoice by ID with all lines and payments.
+ */
+export function getInvoiceById(
+  invoiceId: string,
+  rawDb?: DatabaseInstance
+): InvoiceRecord | null {
+  const db = rawDb ?? getDatabase();
+  const rows = db
+    .prepare(`
+      SELECT
+        i.*,
+        c.branch_id,
+        u.name as user_name,
+        c.name as counter_name
+      FROM invoices i
+      LEFT JOIN users u ON i.cashier_user_id = u.id
+      LEFT JOIN counters c ON i.counter_id = c.id
+      WHERE i.id = ?
+      LIMIT 1
+    `)
+    .all(invoiceId) as RawInvoiceRow[];
+
+  const results = mapInvoiceRows(db, rows);
+  return results[0] ?? null;
+}
+
+/**
+ * Retrieves recent finalized invoices for cashier terminal history.
+ */
+export function getRecentInvoices(
+  branchId?: string,
+  limit = 20,
+  rawDb?: DatabaseInstance
+): InvoiceRecord[] {
+  return searchInvoices(branchId, { limit, offset: 0 }, rawDb);
+}
+
+/**
+ * Role-guarded IPC entry points. Cashiers, Pharmacists, and Owners can finalize sales.
+ */
+export async function roleGuardedFinalizeSale(
+  input: FinalizeSaleInput,
+  rawDb?: DatabaseInstance
+): Promise<FinalizedInvoice> {
+  const session = assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
+  const validated = FinalizeSaleInputSchema.parse(input);
+
+  const fullInput: CoreFinalizeSaleInput = {
+    clientRequestId: validated.clientRequestId,
+    counterId: validated.counterId || session.counter.id,
+    cashierUserId: validated.cashierUserId || session.user.id,
+    lines: validated.lines.map((l) => ({
+      productId: l.productId,
+      quantity: l.quantity,
+      discountPaisa: l.discountPaisa ?? 0,
+    })),
+    payments: validated.payments,
+    notes: validated.notes ?? null,
+  };
+
+  return finalizeSale(fullInput, { db: rawDb });
+}
+
 export async function roleGuardedCreateInvoice(
   input: CreateInvoiceInput,
   rawDb?: DatabaseInstance
@@ -521,3 +631,20 @@ export async function roleGuardedGetRecentInvoices(
   const session = assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
   return getRecentInvoices(session.branch.id, limit, rawDb);
 }
+
+export async function roleGuardedSearchInvoices(
+  params?: InvoiceSearchParams,
+  rawDb?: DatabaseInstance
+): Promise<InvoiceRecord[]> {
+  const session = assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
+  return searchInvoices(session.branch.id, params, rawDb);
+}
+
+export async function roleGuardedGetInvoiceById(
+  invoiceId: string,
+  rawDb?: DatabaseInstance
+): Promise<InvoiceRecord | null> {
+  assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
+  return getInvoiceById(invoiceId, rawDb);
+}
+

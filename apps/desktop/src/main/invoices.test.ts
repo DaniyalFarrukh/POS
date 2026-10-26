@@ -192,11 +192,11 @@ describe('Invoice Creation & Database Persistence (Phase 2)', () => {
     // Verify Invoices table row
     const invoiceRow = rawDb.prepare('SELECT * FROM invoices WHERE id = ?').get(invoice.id) as {
       status: string;
-      grand_total_paisa: number;
+      total_paisa: number;
     };
     expect(invoiceRow).toBeDefined();
     expect(invoiceRow.status).toBe('finalized');
-    expect(invoiceRow.grand_total_paisa).toBe(25488);
+    expect(invoiceRow.total_paisa).toBe(25488);
 
     // Verify Invoice lines table row
     const lines = rawDb.prepare('SELECT * FROM invoice_lines WHERE invoice_id = ?').all(invoice.id);
@@ -204,13 +204,11 @@ describe('Invoice Creation & Database Persistence (Phase 2)', () => {
 
     // Verify Payments table row
     const payment = rawDb.prepare('SELECT * FROM payments WHERE invoice_id = ?').get(invoice.id) as {
-      payment_method: string;
+      method: string;
       amount_paisa: number;
-      change_paisa: number;
     };
-    expect(payment.payment_method).toBe('cash');
+    expect(payment.method).toBe('cash');
     expect(payment.amount_paisa).toBe(25488);
-    expect(payment.change_paisa).toBe(4512);
 
     // Verify Outbox table row (Rule 5 & 7)
     const outboxRow = rawDb.prepare('SELECT * FROM outbox WHERE event_type = ?').get('invoice.created') as {

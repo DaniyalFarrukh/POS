@@ -2,7 +2,10 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
-import { initDatabase, getDbMetadata, type DbMetadata } from './db';
+import { initDatabase, getDatabase, getDbMetadata, type DbMetadata } from './db';
+import { createTokenStore } from './sync/adapters/tokenStore';
+import { createSyncWorker, type SyncWorker } from './sync/core/syncWorker';
+import { registerSyncIpc } from './sync/adapters/syncIpc';
 import {
   getSetupStatus,
   completeSetup,
@@ -28,6 +31,8 @@ import type {
   StockAdjustmentInput,
   StockFilterParams,
   CreateInvoiceInput,
+  FinalizeSaleInput,
+  InvoiceSearchParams,
 } from '@pos/shared';
 import {
   getProducts,
@@ -51,8 +56,46 @@ import {
   roleGuardedAdjustStock,
   getBatchesForProduct,
 } from './purchasing';
-import { roleGuardedCreateInvoice, roleGuardedGetRecentInvoices } from './invoices';
+import {
+  roleGuardedCreateInvoice,
+  roleGuardedGetRecentInvoices,
+  roleGuardedFinalizeSale,
+  roleGuardedSearchInvoices,
+  roleGuardedGetInvoiceById,
+} from './invoices';
+import {
+  roleGuardedProcessReturn,
+  roleGuardedGetReturnableLines,
+} from './returns';
+import {
+  roleGuardedOpenShift,
+  roleGuardedCloseShift,
+  roleGuardedGetCurrentShift,
+  roleGuardedGetShiftHistory,
+} from './shifts';
+import { printReceiptHtml, type PrintReceiptOptions } from './printService';
 import { seedDatabase } from './db/seed';
+import {
+  createDatabaseBackup,
+  listDatabaseBackups,
+  restoreDatabaseBackup,
+  checkAndRunDailyBackup,
+} from './backup';
+import {
+  logError,
+  exportDiagnosticsZip,
+  gatherDiagnosticsMetadata,
+} from './logger';
+import { initAutoUpdater, checkForUpdates, getUpdaterStatus } from './updater';
+
+// Process-level unhandled exception hooks
+process.on('uncaughtException', (err) => {
+  logError('Process', `Uncaught Exception in Main: ${err.stack || err}`);
+});
+
+process.on('unhandledRejection', (reason) => {
+  logError('Process', `Unhandled Promise Rejection in Main: ${reason}`);
+});
 
 // Explicitly set application name so userData resolves cleanly to %APPDATA%\POS Counter (no @ or slashes)
 app.setName('POS Counter');
@@ -82,6 +125,7 @@ function resolvePreloadPath(): string {
 }
 
 let win: BrowserWindow | null = null;
+let syncWorker: SyncWorker | null = null;
 
 function createWindow(): void {
   win = new BrowserWindow({
@@ -264,13 +308,130 @@ function createWindow(): void {
     return getBatchesForProduct(productId);
   });
 
-  // Invoice Handlers
+  // Invoice & Sales Handlers
+  ipcMain.handle('sales:finalize', async (_event, input: FinalizeSaleInput) => {
+    const result = await roleGuardedFinalizeSale(input);
+    if (syncWorker) {
+      syncWorker.triggerDebouncedSync(2000);
+    }
+    return result;
+  });
+
   ipcMain.handle('invoices:create', async (_event, input: CreateInvoiceInput) => {
-    return roleGuardedCreateInvoice(input);
+    const result = await roleGuardedCreateInvoice(input);
+    if (syncWorker) {
+      syncWorker.triggerDebouncedSync(2000);
+    }
+    return result;
   });
 
   ipcMain.handle('invoices:get-recent', async (_event, limit?: number) => {
     return roleGuardedGetRecentInvoices(limit);
+  });
+
+  ipcMain.handle('invoices:search', async (_event, params?: InvoiceSearchParams) => {
+    return roleGuardedSearchInvoices(params);
+  });
+
+  ipcMain.handle('invoices:get-one', async (_event, invoiceId: string) => {
+    return roleGuardedGetInvoiceById(invoiceId);
+  });
+
+  ipcMain.handle('invoices:print-receipt', async (_event, htmlContent: string, options?: PrintReceiptOptions) => {
+    return printReceiptHtml(htmlContent, options);
+  });
+
+  // Returns & Credit Notes Handlers
+  ipcMain.handle('returns:get-returnable', async (_event, invoiceId: string) => {
+    return roleGuardedGetReturnableLines(invoiceId);
+  });
+
+  ipcMain.handle('returns:process', async (_event, input) => {
+    return roleGuardedProcessReturn(input);
+  });
+
+  // Shifts & Day-End Handlers
+  ipcMain.handle('shifts:get-current', async (_event, counterId?: string) => {
+    return roleGuardedGetCurrentShift(counterId);
+  });
+
+  ipcMain.handle('shifts:open', async (_event, input) => {
+    return roleGuardedOpenShift(input);
+  });
+
+  ipcMain.handle('shifts:close', async (_event, input) => {
+    return roleGuardedCloseShift(input);
+  });
+
+  ipcMain.handle('shifts:get-history', async (_event, options) => {
+    return roleGuardedGetShiftHistory(options);
+  });
+
+  // -------------------------------------------------------------------------
+  // System, Diagnostics, and Hardware Handlers (Phase 5)
+  // -------------------------------------------------------------------------
+  ipcMain.handle('system:get-printers', async () => {
+    if (win && win.webContents) {
+      try {
+        const printers = await win.webContents.getPrintersAsync();
+        return printers.map((p) => ({
+          name: p.name,
+          displayName: p.displayName || p.name,
+          isDefault: Boolean((p as { isDefault?: boolean }).isDefault),
+        }));
+      } catch (err) {
+        logError('System', `Failed to retrieve system printers: ${err}`);
+      }
+    }
+    return [];
+  });
+
+  ipcMain.handle('system:export-diagnostics', async () => {
+    return exportDiagnosticsZip();
+  });
+
+  ipcMain.handle('system:get-integrity-status', async () => {
+    const meta = gatherDiagnosticsMetadata();
+    return {
+      ok: meta.database.integrityCheck === 'ok',
+      message: meta.database.integrityCheck,
+      dbPath: meta.database.dbPath,
+    };
+  });
+
+  // -------------------------------------------------------------------------
+  // Database Backup & Restore Handlers (Phase 5)
+  // -------------------------------------------------------------------------
+  ipcMain.handle('backup:create', async () => {
+    return createDatabaseBackup();
+  });
+
+  ipcMain.handle('backup:list', async () => {
+    return listDatabaseBackups();
+  });
+
+  ipcMain.handle('backup:restore', async (_event, filename: string) => {
+    const session = getSession();
+    if (!session || session.user.role !== 'owner') {
+      throw new Error('Unauthorized: Only an Owner can restore database backups.');
+    }
+
+    return restoreDatabaseBackup(filename, session.user.role, {
+      onBeforeRestore: () => {
+        if (syncWorker) syncWorker.stop();
+      },
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Auto-Updater Handlers (Phase 5)
+  // -------------------------------------------------------------------------
+  ipcMain.handle('updater:check', async () => {
+    return checkForUpdates();
+  });
+
+  ipcMain.handle('updater:get-status', async () => {
+    return getUpdaterStatus();
   });
 
   const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production';
@@ -293,10 +454,35 @@ app.whenReady().then(() => {
     initDatabase();
     // Seed initial tax categories and 200 pharmacy products for development
     seedDatabase();
+
+    const db = getDatabase();
+    const tokenStore = createTokenStore(db);
+    syncWorker = createSyncWorker({
+      db,
+      fetch: globalThis.fetch,
+      tokenStore,
+      logger: console,
+    });
+    registerSyncIpc({ db, syncWorker, tokenStore });
+    syncWorker.start();
+
+    // Automated daily backup check (Rule of 14)
+    checkAndRunDailyBackup().catch((err) => {
+      logError('Backup', `Automated daily backup check failed: ${err}`);
+    });
   } catch (err) {
     console.error('[Main] Failed to initialize SQLite database on launch:', err);
   }
   createWindow();
+  if (win) {
+    initAutoUpdater(win);
+  }
+});
+
+app.on('before-quit', () => {
+  if (syncWorker) {
+    syncWorker.stop();
+  }
 });
 
 app.on('window-all-closed', () => {

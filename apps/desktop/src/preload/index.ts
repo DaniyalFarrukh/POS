@@ -14,6 +14,7 @@ import type {
   TaxCategory,
 } from '@pos/shared';
 import type { CsvImportSummary } from './index.d';
+import type { SyncStatus } from '../main/sync/core/types';
 
 const api: DesktopApi = {
   ping: (): Promise<string> => ipcRenderer.invoke('ping'),
@@ -73,6 +74,52 @@ const api: DesktopApi = {
   invoices: {
     createInvoice: (input) => ipcRenderer.invoke('invoices:create', input),
     getRecentInvoices: (limit) => ipcRenderer.invoke('invoices:get-recent', limit),
+    searchInvoices: (params) => ipcRenderer.invoke('invoices:search', params),
+    getInvoice: (id) => ipcRenderer.invoke('invoices:get-one', id),
+    printReceipt: (htmlContent, options) =>
+      ipcRenderer.invoke('invoices:print-receipt', htmlContent, options),
+  },
+  sales: {
+    finalizeSale: (input) => ipcRenderer.invoke('sales:finalize', input),
+  },
+  returns: {
+    getReturnableLines: (invoiceId) => ipcRenderer.invoke('returns:get-returnable', invoiceId),
+    processReturn: (input) => ipcRenderer.invoke('returns:process', input),
+  },
+  shifts: {
+    getCurrentShift: (counterId) => ipcRenderer.invoke('shifts:get-current', counterId),
+    openShift: (input) => ipcRenderer.invoke('shifts:open', input),
+    closeShift: (input) => ipcRenderer.invoke('shifts:close', input),
+    getShiftHistory: (options) => ipcRenderer.invoke('shifts:get-history', options),
+  },
+  sync: {
+    getStatus: () => ipcRenderer.invoke('sync:getStatus'),
+    syncNow: () => ipcRenderer.invoke('sync:syncNow'),
+    registerDevice: (serverUrl: string, code: string, deviceName?: string) =>
+      ipcRenderer.invoke('sync:registerDevice', serverUrl, code, deviceName),
+    listExceptions: (status?: string) => ipcRenderer.invoke('sync:listExceptions', status),
+    retryException: (id: string) => ipcRenderer.invoke('sync:retryException', id),
+    dismissException: (id: string, note?: string) =>
+      ipcRenderer.invoke('sync:dismissException', id, note),
+    onStatusChanged: (callback: (status: SyncStatus) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, status: SyncStatus) => callback(status);
+      ipcRenderer.on('sync-status-changed', listener);
+      return () => ipcRenderer.removeListener('sync-status-changed', listener);
+    },
+  },
+  system: {
+    getPrinters: () => ipcRenderer.invoke('system:get-printers'),
+    exportDiagnostics: () => ipcRenderer.invoke('system:export-diagnostics'),
+    getIntegrityStatus: () => ipcRenderer.invoke('system:get-integrity-status'),
+  },
+  backup: {
+    create: () => ipcRenderer.invoke('backup:create'),
+    list: () => ipcRenderer.invoke('backup:list'),
+    restore: (filename: string) => ipcRenderer.invoke('backup:restore', filename),
+  },
+  updater: {
+    check: () => ipcRenderer.invoke('updater:check'),
+    getStatus: () => ipcRenderer.invoke('updater:get-status'),
   },
 };
 

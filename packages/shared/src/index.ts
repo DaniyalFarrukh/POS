@@ -20,3 +20,5 @@ export * from './schema/product';
 export * from './schema/purchasing';
 export * from './csv/parser';
 export * from './csv/validator';
+export * from './fefo';
+export * from './schema/sync';

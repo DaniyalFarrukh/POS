@@ -12,15 +12,22 @@ export const branches = sqliteTable('branches', {
   updatedAt: text('updated_at').notNull(),
 });
 
-export const counters = sqliteTable('counters', {
-  id: text('id').primaryKey(),
-  branchId: text('branch_id')
-    .notNull()
-    .references(() => branches.id),
-  name: text('name').notNull(),
-  createdAt: text('created_at').notNull(),
-  updatedAt: text('updated_at').notNull(),
-});
+export const counters = sqliteTable(
+  'counters',
+  {
+    id: text('id').primaryKey(),
+    branchId: text('branch_id')
+      .notNull()
+      .references(() => branches.id),
+    name: text('name').notNull(),
+    code: text('code'),
+    lastInvoiceSeq: integer('last_invoice_seq').notNull().default(0),
+    lastCreditNoteSeq: integer('last_credit_note_seq').notNull().default(0),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [uniqueIndex('idx_counters_code').on(table.code)]
+);
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
@@ -188,49 +195,51 @@ export const outbox = sqliteTable(
   'outbox',
   {
     id: text('id').primaryKey(),
-    eventType: text('event_type').notNull(),
+    eventId: text('event_id'),
+    deviceSeq: integer('device_seq'),
+    type: text('type'),
+    eventType: text('event_type'),
+    entityId: text('entity_id'),
     payload: text('payload').notNull(),
+    occurredAt: text('occurred_at'),
+    status: text('status', { enum: ['pending', 'acked', 'exception'] })
+      .notNull()
+      .default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    lastError: text('last_error'),
     createdAt: text('created_at').notNull(),
     syncedAt: text('synced_at'),
   },
-  (table) => [index('idx_outbox_synced_at').on(table.syncedAt)]
+  (table) => [
+    uniqueIndex('idx_outbox_device_seq').on(table.deviceSeq),
+    index('idx_outbox_status_device_seq').on(table.status, table.deviceSeq),
+    index('idx_outbox_synced_at').on(table.syncedAt),
+  ]
 );
 
 export const invoices = sqliteTable(
   'invoices',
   {
     id: text('id').primaryKey(),
-    invoiceNumber: text('invoice_number').notNull(),
-    branchId: text('branch_id')
-      .notNull()
-      .references(() => branches.id),
     counterId: text('counter_id')
       .notNull()
       .references(() => counters.id),
-    userId: text('user_id')
+    cashierUserId: text('cashier_user_id')
       .notNull()
       .references(() => users.id),
-    customerName: text('customer_name'),
-    customerPhone: text('customer_phone'),
-    doctorName: text('doctor_name'),
-    notes: text('notes'),
+    invoiceNumber: text('invoice_number').notNull(),
+    clientRequestId: text('client_request_id').notNull(),
+    status: text('status', { enum: ['finalized'] }).notNull().default('finalized'),
     subtotalPaisa: integer('subtotal_paisa').notNull(),
     discountPaisa: integer('discount_paisa').notNull().default(0),
     taxPaisa: integer('tax_paisa').notNull().default(0),
-    grandTotalPaisa: integer('grand_total_paisa').notNull(),
-    paidPaisa: integer('paid_paisa').notNull(),
-    changePaisa: integer('change_paisa').notNull().default(0),
-    status: text('status', { enum: ['finalized', 'cancelled', 'refunded'] }).notNull().default('finalized'),
-    fiscalStatus: text('fiscal_status', { enum: ['not_required', 'pending', 'submitted', 'failed'] }).notNull().default('not_required'),
-    fiscalInvoiceNumber: text('fiscal_invoice_number'),
-    qrPayload: text('qr_payload'),
+    totalPaisa: integer('total_paisa').notNull(),
+    notes: text('notes'),
     createdAt: text('created_at').notNull(),
-    updatedAt: text('updated_at').notNull(),
   },
   (table) => [
     uniqueIndex('idx_invoices_invoice_number').on(table.invoiceNumber),
-    index('idx_invoices_branch').on(table.branchId),
-    index('idx_invoices_counter').on(table.counterId),
+    uniqueIndex('idx_invoices_client_request_id').on(table.clientRequestId),
     index('idx_invoices_created_at').on(table.createdAt),
   ]
 );
@@ -246,22 +255,16 @@ export const invoiceLines = sqliteTable(
       .notNull()
       .references(() => products.id),
     batchId: text('batch_id').references(() => batches.id),
-    batchNo: text('batch_no'),
-    expiryDate: text('expiry_date'),
     quantity: integer('quantity').notNull(),
     unitPricePaisa: integer('unit_price_paisa').notNull(),
-    discountBp: integer('discount_bp').notNull().default(0),
     discountPaisa: integer('discount_paisa').notNull().default(0),
     taxRateBp: integer('tax_rate_bp').notNull().default(0),
     taxPaisa: integer('tax_paisa').notNull().default(0),
     lineTotalPaisa: integer('line_total_paisa').notNull(),
-    createdAt: text('created_at').notNull(),
-    updatedAt: text('updated_at').notNull(),
   },
   (table) => [
-    index('idx_invoice_lines_invoice').on(table.invoiceId),
-    index('idx_invoice_lines_product').on(table.productId),
-    index('idx_invoice_lines_batch').on(table.batchId),
+    index('idx_invoice_lines_invoice_id').on(table.invoiceId),
+    index('idx_invoice_lines_batch_id').on(table.batchId),
   ]
 );
 
@@ -272,14 +275,159 @@ export const payments = sqliteTable(
     invoiceId: text('invoice_id')
       .notNull()
       .references(() => invoices.id),
-    paymentMethod: text('payment_method', { enum: ['cash', 'card', 'bank', 'other'] }).notNull(),
+    method: text('method', { enum: ['cash', 'card', 'wallet'] }).notNull(),
     amountPaisa: integer('amount_paisa').notNull(),
-    tenderedPaisa: integer('tendered_paisa'),
-    changePaisa: integer('change_paisa'),
-    reference: text('reference'),
-    createdAt: text('created_at').notNull(),
   },
   (table) => [index('idx_payments_invoice').on(table.invoiceId)]
+);
+
+export const fiscalSubmissions = sqliteTable(
+  'fiscal_submissions',
+  {
+    id: text('id').primaryKey(),
+    invoiceId: text('invoice_id')
+      .notNull()
+      .references(() => invoices.id),
+    status: text('status', {
+      enum: ['not_required', 'pending', 'submitted', 'failed'],
+    })
+      .notNull()
+      .default('not_required'),
+    fiscalInvoiceNumber: text('fiscal_invoice_number'),
+    qrPayload: text('qr_payload'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [index('idx_fiscal_submissions_invoice_id').on(table.invoiceId)]
+);
+
+export const shifts = sqliteTable(
+  'shifts',
+  {
+    id: text('id').primaryKey(),
+    branchId: text('branch_id')
+      .notNull()
+      .references(() => branches.id),
+    counterId: text('counter_id')
+      .notNull()
+      .references(() => counters.id),
+    cashierUserId: text('cashier_user_id')
+      .notNull()
+      .references(() => users.id),
+    status: text('status', { enum: ['open', 'closed'] }).notNull().default('open'),
+    openedAt: text('opened_at').notNull(),
+    closedAt: text('closed_at'),
+    openingCashPaisa: integer('opening_cash_paisa').notNull().default(0),
+    countedCashPaisa: integer('counted_cash_paisa'),
+    expectedCashPaisa: integer('expected_cash_paisa'),
+    differencePaisa: integer('difference_paisa'),
+    salesCashPaisa: integer('sales_cash_paisa').notNull().default(0),
+    salesCardPaisa: integer('sales_card_paisa').notNull().default(0),
+    salesWalletPaisa: integer('sales_wallet_paisa').notNull().default(0),
+    returnsCashPaisa: integer('returns_cash_paisa').notNull().default(0),
+    notes: text('notes'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('idx_shifts_counter').on(table.counterId),
+    index('idx_shifts_branch').on(table.branchId),
+  ]
+);
+
+export const creditNotes = sqliteTable(
+  'credit_notes',
+  {
+    id: text('id').primaryKey(),
+    creditNoteNumber: text('credit_note_number').notNull().unique(),
+    originalInvoiceId: text('original_invoice_id')
+      .notNull()
+      .references(() => invoices.id),
+    branchId: text('branch_id')
+      .notNull()
+      .references(() => branches.id),
+    counterId: text('counter_id')
+      .notNull()
+      .references(() => counters.id),
+    cashierUserId: text('cashier_user_id')
+      .notNull()
+      .references(() => users.id),
+    clientRequestId: text('client_request_id').notNull().unique(),
+    subtotalPaisa: integer('subtotal_paisa').notNull(),
+    taxPaisa: integer('tax_paisa').notNull().default(0),
+    totalPaisa: integer('total_paisa').notNull(),
+    refundMethod: text('refund_method', {
+      enum: ['cash', 'card', 'wallet', 'credit'],
+    }).notNull().default('cash'),
+    reason: text('reason', {
+      enum: [
+        'defective_damaged',
+        'expired',
+        'customer_return',
+        'dispensing_error',
+        'other',
+      ],
+    }).notNull(),
+    notes: text('notes'),
+    createdAt: text('created_at').notNull(),
+  },
+  (table) => [
+    index('idx_credit_notes_orig_inv').on(table.originalInvoiceId),
+    index('idx_credit_notes_branch').on(table.branchId),
+    index('idx_credit_notes_created_at').on(table.createdAt),
+  ]
+);
+
+export const creditNoteLines = sqliteTable(
+  'credit_note_lines',
+  {
+    id: text('id').primaryKey(),
+    creditNoteId: text('credit_note_id')
+      .notNull()
+      .references(() => creditNotes.id),
+    originalInvoiceLineId: text('original_invoice_line_id')
+      .notNull()
+      .references(() => invoiceLines.id),
+    productId: text('product_id')
+      .notNull()
+      .references(() => products.id),
+    batchId: text('batch_id').references(() => batches.id),
+    quantity: integer('quantity').notNull(),
+    unitPricePaisa: integer('unit_price_paisa').notNull(),
+    taxRateBp: integer('tax_rate_bp').notNull().default(0),
+    taxPaisa: integer('tax_paisa').notNull().default(0),
+    lineTotalPaisa: integer('line_total_paisa').notNull(),
+  },
+  (table) => [
+    index('idx_credit_note_lines_cn').on(table.creditNoteId),
+    index('idx_credit_note_lines_orig_line').on(table.originalInvoiceLineId),
+  ]
+);
+
+export const syncState = sqliteTable('sync_state', {
+  key: text('key').primaryKey(),
+  value: text('value'),
+});
+
+export const syncExceptions = sqliteTable(
+  'sync_exceptions',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id').notNull(),
+    code: text('code').notNull(),
+    message: text('message').notNull(),
+    payload: text('payload').notNull(),
+    status: text('status', { enum: ['open', 'dismissed', 'retried'] })
+      .notNull()
+      .default('open'),
+    note: text('note'),
+    createdAt: text('created_at').notNull(),
+    resolvedAt: text('resolved_at'),
+  },
+  (table) => [
+    index('idx_sync_exceptions_event_id').on(table.eventId),
+    index('idx_sync_exceptions_status').on(table.status),
+  ]
 );
 
 export type BranchModel = typeof branches.$inferSelect;
@@ -296,3 +444,11 @@ export type OutboxModel = typeof outbox.$inferSelect;
 export type InvoiceModel = typeof invoices.$inferSelect;
 export type InvoiceLineModel = typeof invoiceLines.$inferSelect;
 export type PaymentModel = typeof payments.$inferSelect;
+export type FiscalSubmissionModel = typeof fiscalSubmissions.$inferSelect;
+export type ShiftModel = typeof shifts.$inferSelect;
+export type CreditNoteModel = typeof creditNotes.$inferSelect;
+export type CreditNoteLineModel = typeof creditNoteLines.$inferSelect;
+export type SyncStateModel = typeof syncState.$inferSelect;
+export type SyncExceptionModel = typeof syncExceptions.$inferSelect;
+
+

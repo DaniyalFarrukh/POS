@@ -1,0 +1,57 @@
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('./assets/fonts/noto-nastaliq-urdu-arabic-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('./assets/fonts/noto-nastaliq-urdu-arabic-700-normal.woff2') format('woff2');
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* RTL layout support for Urdu */
+[dir="rtl"] {
+  font-family: 'Noto Nastaliq Urdu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+  letter-spacing: normal;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+/* Specific elements that must stay LTR even in Urdu mode */
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="password"],
+[dir="rtl"] .ltr-override,
+[dir="rtl"] .barcode-input,
+[dir="rtl"] .code-font {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Low-end PC optimization: smooth scroll and hardware acceleration hints */
+.virtual-scroll-container {
+  overflow-y: auto;
+  contain: content;
+}

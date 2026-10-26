@@ -200,8 +200,11 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
   `);
 
   const insertOutboxStmt = db.prepare(`
-    INSERT INTO outbox (id, event_type, payload, created_at)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO outbox (
+      id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
+    ) VALUES (
+      ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'purchase.received', 'purchase.received', ?, ?, ?, 'pending', 0, ?
+    )
   `);
 
   const purchaseId = generateUuidV7();
@@ -299,9 +302,11 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
     }
 
     // 3. Write outbox event in same transaction (Rule 5)
+    const outboxEventId = generateUuidV7();
     insertOutboxStmt.run(
-      generateUuidV7(),
-      'purchase.received',
+      outboxEventId,
+      outboxEventId,
+      purchaseId,
       JSON.stringify({
         purchaseId,
         supplierId: validated.supplierId,
@@ -309,6 +314,7 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
         totalCostPaisa,
         lineCount: validated.lines.length,
       }),
+      now,
       now
     );
   });
@@ -581,12 +587,17 @@ export function adjustStock(input: StockAdjustmentInput): {
     );
 
     // 2. Insert outbox record in same transaction (Rule 5)
+    const outboxEventId = generateUuidV7();
     db.prepare(`
-      INSERT INTO outbox (id, event_type, payload, created_at)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO outbox (
+        id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
+      ) VALUES (
+        ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'stock_adjustment.created', 'stock.adjusted', ?, ?, ?, 'pending', 0, ?
+      )
     `).run(
-      generateUuidV7(),
-      'stock.adjusted',
+      outboxEventId,
+      outboxEventId,
+      movementId,
       JSON.stringify({
         movementId,
         productId: validated.productId,
@@ -596,6 +607,7 @@ export function adjustStock(input: StockAdjustmentInput): {
         reasonType: validated.reasonType,
         reason: validated.reason,
       }),
+      now,
       now
     );
 

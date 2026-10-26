@@ -17,12 +17,19 @@ import type {
   PurchaseRecord,
   StockAdjustmentInput,
   StockFilterParams,
-  StockOverviewProduct,
-  StockOverviewBatch,
-  StockOverviewResult,
   CreateInvoiceInput,
   InvoiceRecord,
+  FinalizeSaleInput,
+  InvoiceSearchParams,
+  ReturnableLineItem,
+  ProcessReturnInput,
+  CreditNoteRecord,
+  ShiftRecord,
+  OpenShiftInput,
+  CloseShiftInput,
 } from '@pos/shared';
+import type { FinalizedInvoice } from '../main/finalizeSale';
+import type { SyncStatus, SyncExceptionRecord } from '../main/sync/core/types';
 
 export interface DbMetadata {
   dbPath: string;
@@ -109,9 +116,74 @@ export interface AuthApi {
   ) => Promise<{ success: boolean; message: string }>;
 }
 
+export interface SalesApi {
+  finalizeSale: (input: FinalizeSaleInput) => Promise<FinalizedInvoice>;
+}
+
 export interface InvoiceApi {
   createInvoice: (input: CreateInvoiceInput) => Promise<InvoiceRecord>;
   getRecentInvoices: (limit?: number) => Promise<InvoiceRecord[]>;
+  searchInvoices: (params?: InvoiceSearchParams) => Promise<InvoiceRecord[]>;
+  getInvoice: (id: string) => Promise<InvoiceRecord | null>;
+  printReceipt: (
+    htmlContent: string,
+    options?: { silent?: boolean; deviceName?: string }
+  ) => Promise<{ success: boolean; error?: string }>;
+}
+
+export interface ReturnsApi {
+  getReturnableLines: (invoiceId: string) => Promise<ReturnableLineItem[]>;
+  processReturn: (input: ProcessReturnInput) => Promise<CreditNoteRecord>;
+}
+
+export interface ShiftsApi {
+  getCurrentShift: (counterId?: string) => Promise<ShiftRecord | null>;
+  openShift: (input: OpenShiftInput) => Promise<ShiftRecord>;
+  closeShift: (input: CloseShiftInput) => Promise<ShiftRecord>;
+  getShiftHistory: (options?: {
+    branchId?: string;
+    counterId?: string;
+    limit?: number;
+    offset?: number;
+  }) => Promise<ShiftRecord[]>;
+}
+
+export interface SyncApi {
+  getStatus: () => Promise<SyncStatus>;
+  syncNow: () => Promise<SyncStatus>;
+  registerDevice: (
+    serverUrl: string,
+    code: string,
+    deviceName?: string
+  ) => Promise<{ success: boolean; deviceId: string; pharmacyId?: string; branchId?: string }>;
+  listExceptions: (status?: string) => Promise<SyncExceptionRecord[]>;
+  retryException: (id: string) => Promise<{ success: boolean }>;
+  dismissException: (id: string, note?: string) => Promise<{ success: boolean }>;
+  onStatusChanged: (callback: (status: SyncStatus) => void) => () => void;
+}
+
+export interface SystemApi {
+  getPrinters: () => Promise<Array<{ name: string; displayName: string; isDefault: boolean }>>;
+  exportDiagnostics: () => Promise<{ success: boolean; zipPath?: string; error?: string }>;
+  getIntegrityStatus: () => Promise<{ ok: boolean; message: string; dbPath: string }>;
+}
+
+export interface BackupRecord {
+  filename: string;
+  path: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+export interface BackupApi {
+  create: () => Promise<{ success: boolean; filename: string; path: string; sizeBytes: number }>;
+  list: () => Promise<BackupRecord[]>;
+  restore: (filename: string) => Promise<{ success: boolean; safetyBackupFile: string }>;
+}
+
+export interface UpdaterApi {
+  check: () => Promise<{ checking: boolean; updateAvailable?: boolean; error?: string }>;
+  getStatus: () => Promise<{ state: string; version?: string; releaseNotes?: string; error?: string }>;
 }
 
 export interface DesktopApi {
@@ -122,6 +194,13 @@ export interface DesktopApi {
   purchasing: PurchasingApi;
   stock: StockApi;
   invoices: InvoiceApi;
+  sales: SalesApi;
+  returns: ReturnsApi;
+  shifts: ShiftsApi;
+  sync: SyncApi;
+  system: SystemApi;
+  backup: BackupApi;
+  updater: UpdaterApi;
 }
 
 declare global {

@@ -5,10 +5,13 @@ import { computeLineWarning } from './types';
 import {
   computeInvoiceTotals,
   formatPKR,
+  generateUuidV7,
+  roundHalfUp,
   type InvoiceLineInput,
-  type CreateInvoiceInput,
+  type FinalizeSaleInput,
   type Paisa,
 } from '@pos/shared';
+import { generateThermalReceiptHtml } from '../../utils/receiptGenerator';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { KeyboardShortcutOverlay } from './KeyboardShortcutOverlay';
 import { SubstitutesModal } from './SubstitutesModal';
@@ -335,39 +338,111 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
     setToastMessage('Parked cart removed.');
   };
 
-  // Settle Sale into SQLite database (invoices, lines, payments, stock movements, outbox)
+  // Finalize Sale via Transaction Service (FEFO, payments, outbox, fiscal, stock movements)
   const handleCompleteSale = async (details: PaymentDetails) => {
-    const input: CreateInvoiceInput = {
-      customerName: customer.name || undefined,
-      customerPhone: customer.phone || undefined,
-      doctorName: customer.doctorName || undefined,
-      notes: customer.notes || undefined,
-      paymentMethod: details.paymentMethod,
-      tenderedPaisa: details.tenderedPaisa,
-      lines: cartLines.map((line) => ({
+    // 1. Prepare lines for finalizeSale: { productId, quantity, discountPaisa }
+    const lines = cartLines.map((line) => {
+      let discountPaisa = 0;
+      const grossPaisa = line.unitPricePaisa * line.quantity;
+      if (line.discountType === 'percent') {
+        discountPaisa = roundHalfUp(grossPaisa * (line.discountBp || 0), 10000);
+      } else if (line.discountType === 'flat') {
+        discountPaisa = line.flatDiscountPaisa || 0;
+      }
+      return {
         productId: line.product.id,
-        batchId: line.batchId,
-        batchNo: line.batchNo,
-        expiryDate: line.expiryDate,
         quantity: line.quantity,
-        unitPricePaisa: line.unitPricePaisa,
-        discountType: line.discountType,
-        discountBp: line.discountType === 'percent' ? line.discountBp : 0,
-        flatDiscountPaisa: line.discountType === 'flat' ? line.flatDiscountPaisa : 0,
-        taxRateBp: line.taxRateBp,
-        isTaxExempt: line.isTaxExempt,
-      })),
+        discountPaisa,
+      };
+    });
+
+    const clientRequestId = generateUuidV7();
+    const customerNotes = [
+      customer.name ? `Customer: ${customer.name}` : '',
+      customer.phone ? `Phone: ${customer.phone}` : '',
+      customer.doctorName ? `Doctor: ${customer.doctorName}` : '',
+      customer.notes ? `Note: ${customer.notes}` : '',
+    ]
+      .filter(Boolean)
+      .join(' | ');
+
+    const finalizeInput: FinalizeSaleInput = {
+      clientRequestId,
+      counterId: session.counter.id,
+      cashierUserId: session.user.id,
+      lines,
+      payments: details.payments,
+      notes: customerNotes || null,
     };
 
-    const saved = await window.api.invoices.createInvoice(input);
+    // 2. Finalize sale in SQLite via transaction service
+    const saved = await window.api.sales.finalizeSale(finalizeInput);
 
+    // 3. Clear cart and close modal immediately
     setShowPaymentModal(false);
     setCartLines([]);
     setSelectedLineIndex(null);
     setCustomer({ name: '', phone: '', doctorName: '', notes: '' });
-    setToastMessage(
-      `✅ Invoice #${saved.invoiceNumber} saved to DB (${formatPKR(saved.grandTotalPaisa)})! Change: ${formatPKR(saved.changePaisa)}`
+
+    // 4. Print thermal receipt via Windows print path
+    const receiptHtml = generateThermalReceiptHtml(
+      {
+        id: saved.id,
+        invoiceNumber: saved.invoiceNumber,
+        createdAt: saved.createdAt,
+        subtotalPaisa: saved.subtotalPaisa,
+        discountPaisa: saved.discountPaisa,
+        taxPaisa: saved.taxPaisa,
+        totalPaisa: saved.totalPaisa,
+        notes: saved.notes,
+        customerName: customer.name || null,
+        customerPhone: customer.phone || null,
+        doctorName: customer.doctorName || null,
+        cashierName: session.user.name,
+        counterName: session.counter.name,
+        branchName: session.branch.name,
+        lines: saved.lines.map((l) => ({
+          id: l.id,
+          brandName: l.brandName,
+          genericName: l.genericName,
+          batchNo: l.batchNo,
+          expiryDate: l.expiryDate,
+          quantity: l.quantity,
+          unitPricePaisa: l.unitPricePaisa,
+          discountPaisa: l.discountPaisa,
+          taxPaisa: l.taxPaisa,
+          lineTotalPaisa: l.lineTotalPaisa,
+        })),
+        payments: saved.payments.map((p) => ({
+          method: p.method,
+          amountPaisa: p.amountPaisa,
+          tenderedPaisa: p.method === 'cash' ? details.tenderedPaisa : undefined,
+          changePaisa: p.method === 'cash' ? details.changePaisa : undefined,
+        })),
+      },
+      { showBatchExpiry: true }
     );
+
+    let printResult: { success: boolean; error?: string } = { success: true };
+    try {
+      printResult = await window.api.invoices.printReceipt(receiptHtml);
+    } catch (printErr: unknown) {
+      printResult = {
+        success: false,
+        error: printErr instanceof Error ? printErr.message : String(printErr),
+      };
+    }
+
+    if (printResult.success) {
+      setToastMessage(
+        `✅ Invoice #${saved.invoiceNumber} finalized & printed (${formatPKR(saved.totalPaisa)})!`
+      );
+    } else {
+      setToastMessage(
+        `⚠️ Invoice #${saved.invoiceNumber} saved! Printer offline (${printResult.error || 'Failed'}). Reprint anytime from Invoices tab.`
+      );
+    }
+
     searchInputRef.current?.focus();
   };
 

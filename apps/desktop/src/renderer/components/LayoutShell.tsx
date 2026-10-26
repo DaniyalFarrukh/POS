@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import type { AuthSession, UserRole } from '@pos/shared';
 import type { DbMetadata } from '../../preload/index.d';
-import { ProductList } from './products/ProductList';
-import { PurchasingDashboard } from './purchasing/PurchasingDashboard';
-import { StockOverview } from './stock/StockOverview';
+import type { SyncStatus } from './sync/types';
 import { PosCheckoutScreen } from './pos/PosCheckoutScreen';
+import { SyncTopBarIndicator } from './sync/SyncTopBarIndicator';
+import { SyncOfflineBanner } from './sync/SyncOfflineBanner';
+import { SyncStatusModal } from './sync/SyncStatusModal';
+import { useI18n } from '../utils/i18n/I18nContext';
+
+// Low-end PC optimization: Lazy-load heavy non-primary screens
+const ProductList = lazy(() => import('./products/ProductList').then((m) => ({ default: m.ProductList })));
+const PurchasingDashboard = lazy(() => import('./purchasing/PurchasingDashboard').then((m) => ({ default: m.PurchasingDashboard })));
+const StockOverview = lazy(() => import('./stock/StockOverview').then((m) => ({ default: m.StockOverview })));
+const InvoiceHistoryScreen = lazy(() => import('./invoices/InvoiceHistoryScreen').then((m) => ({ default: m.InvoiceHistoryScreen })));
+const DayEndReportScreen = lazy(() => import('./shifts/DayEndReportScreen').then((m) => ({ default: m.DayEndReportScreen })));
+const SyncDashboardScreen = lazy(() => import('./sync/SyncDashboardScreen').then((m) => ({ default: m.SyncDashboardScreen })));
+const SettingsScreen = lazy(() => import('./settings/SettingsScreen').then((m) => ({ default: m.SettingsScreen })));
 
 interface LayoutShellProps {
   session: AuthSession;
@@ -13,7 +24,7 @@ interface LayoutShellProps {
   onLogout: () => void;
 }
 
-type NavSection = 'pos' | 'products' | 'purchasing' | 'stock' | 'users' | 'diagnostics';
+type NavSection = 'pos' | 'invoices' | 'shifts' | 'products' | 'purchasing' | 'stock' | 'sync' | 'users' | 'settings' | 'diagnostics';
 
 export const LayoutShell: React.FC<LayoutShellProps> = ({
   session,
@@ -21,6 +32,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
   onLock,
   onLogout,
 }) => {
+  const { locale, setLocale, t, isRtl } = useI18n();
   const [activeSection, setActiveSection] = useState<NavSection>('pos');
   const [roleTestResult, setRoleTestResult] = useState<{
     roleTested: string;
@@ -28,24 +40,81 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
     message: string;
   } | null>(null);
   const [testingRole, setTestingRole] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!window.api?.sync) return;
+    window.api.sync.getStatus().then(setSyncStatus).catch(console.error);
+    const unsubscribe = window.api.sync.onStatusChanged((s) => {
+      setSyncStatus(s);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   const userRole = session.user.role;
-
-  // Navigation items filtered by role
-  const navItems: { id: NavSection; label: string; icon: string; minRole: UserRole }[] = [
-    { id: 'pos', label: 'POS / Checkout', icon: '🛒', minRole: 'cashier' },
-    { id: 'products', label: 'Product Catalog', icon: '💊', minRole: 'pharmacist' },
-    { id: 'purchasing', label: 'Purchasing & GRN', icon: '📥', minRole: 'pharmacist' },
-    { id: 'stock', label: 'Stock & Inventory', icon: '📦', minRole: 'pharmacist' },
-    { id: 'users', label: 'Staff & Roles', icon: '👥', minRole: 'owner' },
-    { id: 'diagnostics', label: 'Local DB & System', icon: '⚙️', minRole: 'cashier' },
-  ];
 
   const canAccessSection = (minRole: UserRole): boolean => {
     if (userRole === 'owner') return true;
     if (userRole === 'pharmacist') return minRole === 'pharmacist' || minRole === 'cashier';
     return minRole === 'cashier';
   };
+
+  // Keyboard navigation shortcuts: F1 - F10
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setActiveSection('pos');
+      } else if (e.key === 'F2' && activeSection !== 'pos') {
+        if (canAccessSection('pharmacist')) {
+          e.preventDefault();
+          setActiveSection('products');
+        }
+      } else if (e.key === 'F3' && activeSection !== 'pos') {
+        if (canAccessSection('pharmacist')) {
+          e.preventDefault();
+          setActiveSection('purchasing');
+        }
+      } else if (e.key === 'F4' && activeSection !== 'pos') {
+        if (canAccessSection('pharmacist')) {
+          e.preventDefault();
+          setActiveSection('stock');
+        }
+      } else if (e.key === 'F5') {
+        e.preventDefault();
+        setActiveSection('invoices');
+      } else if (e.key === 'F6') {
+        e.preventDefault();
+        setActiveSection('shifts');
+      } else if (e.key === 'F9') {
+        e.preventDefault();
+        onLock();
+      } else if (e.key === 'F10') {
+        e.preventDefault();
+        setActiveSection('settings');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [userRole, onLock]);
+
+  // Navigation items filtered by role with i18n
+  const navItems: { id: NavSection; label: string; icon: string; minRole: UserRole }[] = [
+    { id: 'pos', label: t.posTerminal, icon: '🛒', minRole: 'cashier' },
+    { id: 'invoices', label: t.invoices, icon: '🧾', minRole: 'cashier' },
+    { id: 'shifts', label: t.shiftDayEnd, icon: '📊', minRole: 'cashier' },
+    { id: 'products', label: t.catalog, icon: '💊', minRole: 'pharmacist' },
+    { id: 'purchasing', label: t.purchasing, icon: '📥', minRole: 'pharmacist' },
+    { id: 'stock', label: t.stockOverview, icon: '📦', minRole: 'pharmacist' },
+    { id: 'sync', label: t.syncStatus, icon: '🔄', minRole: 'cashier' },
+    { id: 'settings', label: t.settings, icon: '⚙️', minRole: 'cashier' },
+    { id: 'users', label: 'Staff & Roles', icon: '👥', minRole: 'owner' },
+    { id: 'diagnostics', label: 'Local DB & System', icon: '💾', minRole: 'cashier' },
+  ];
 
   const visibleNav = navItems.filter((item) => canAccessSection(item.minRole));
 
@@ -130,24 +199,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
           </div>
         </div>
 
-        {/* Center: Offline Status Pill */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '4px 12px',
-            borderRadius: '9999px',
-            backgroundColor: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            color: '#166534',
-            fontSize: '12px',
-            fontWeight: 600,
-          }}
-        >
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-          Offline Ready • Local SQLite WAL
-        </div>
+        {/* Center: Sync Status Indicator (Click opens modal) */}
+        <SyncTopBarIndicator onClick={() => setIsSyncModalOpen(true)} />
 
         {/* Right: User Profile & Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -191,11 +244,32 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
 
           <div style={{ height: '24px', width: '1px', backgroundColor: '#e2e8f0' }} />
 
+          {/* Language Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setLocale(locale === 'en' ? 'ur' : 'en')}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#f1f5f9',
+              color: '#1e293b',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            🌐 {locale === 'en' ? 'اردو' : 'English'}
+          </button>
+
           {/* Lock Button */}
           <button
             type="button"
             onClick={onLock}
-            title="Lock Terminal"
+            title={t.lockTerminal}
             style={{
               padding: '6px 12px',
               borderRadius: '6px',
@@ -210,7 +284,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
               gap: '6px',
             }}
           >
-            🔒 Lock
+            🔒 {isRtl ? 'لاک' : 'Lock'}
           </button>
 
           {/* Logout Button */}
@@ -228,10 +302,16 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
               cursor: 'pointer',
             }}
           >
-            Log Out
+            {t.logout}
           </button>
         </div>
       </header>
+
+      {/* Offline Limit Warning Banner (Approaching / Critical / Exceeded) */}
+      <SyncOfflineBanner
+        status={syncStatus}
+        onOpenSyncStatus={() => setIsSyncModalOpen(true)}
+      />
 
       {/* Main Body with Left Nav */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -303,79 +383,97 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: activeSection === 'pos' ? '16px 20px' : '24px 32px',
+            padding: activeSection === 'pos' ? '16px 20px' : activeSection === 'settings' ? '0' : '24px 32px',
             backgroundColor: '#f8fafc',
           }}
         >
-          {activeSection === 'pos' && (
-            <PosCheckoutScreen session={session} />
-          )}
+          <Suspense fallback={<div style={{ padding: '24px', color: '#64748b' }}>{t.loading}</div>}>
+            {activeSection === 'pos' && (
+              <PosCheckoutScreen session={session} />
+            )}
 
-          {activeSection === 'products' && (
-            <ProductList />
-          )}
+            {activeSection === 'invoices' && (
+              <InvoiceHistoryScreen session={session} />
+            )}
 
-          {activeSection === 'purchasing' && (
-            <PurchasingDashboard />
-          )}
+            {activeSection === 'shifts' && (
+              <DayEndReportScreen session={session} />
+            )}
 
-          {activeSection === 'stock' && (
-            <StockOverview />
-          )}
+            {activeSection === 'products' && (
+              <ProductList />
+            )}
 
-          {activeSection === 'users' && (
-            <div>
-              <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
-                Staff & Role Permissions (Owner Only)
-              </h2>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Manage terminal PINs, roles (Owner, Pharmacist, Cashier), and staff access.
-              </p>
-              <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
-                <p style={{ margin: 0, color: '#475569' }}>
-                  Owner permissions verified. Only the owner role can view or manage staff accounts.
+            {activeSection === 'purchasing' && (
+              <PurchasingDashboard />
+            )}
+
+            {activeSection === 'stock' && (
+              <StockOverview />
+            )}
+
+            {activeSection === 'sync' && (
+              <SyncDashboardScreen session={session} />
+            )}
+
+            {activeSection === 'settings' && (
+              <SettingsScreen session={session} />
+            )}
+
+            {activeSection === 'users' && (
+              <div>
+                <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
+                  Staff & Role Permissions (Owner Only)
+                </h2>
+                <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+                  Manage terminal PINs, roles (Owner, Pharmacist, Cashier), and staff access.
                 </p>
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
+                  <p style={{ margin: 0, color: '#475569' }}>
+                    Owner permissions verified. Only the owner role can view or manage staff accounts.
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeSection === 'diagnostics' && (
-            <div>
-              <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
-                Local Database & Terminal Diagnostics
-              </h2>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Current SQLite WAL engine and migration status
-              </p>
+            {activeSection === 'diagnostics' && (
+              <div>
+                <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
+                  Local Database & Terminal Diagnostics
+                </h2>
+                <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+                  Current SQLite WAL engine and migration status
+                </p>
 
-              {dbInfo && (
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div>
-                    <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Database File:</span>
-                    <div style={{ fontFamily: 'Consolas, monospace', fontSize: '12px', marginTop: '4px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
-                      {dbInfo.dbPath}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '20px', marginTop: '6px' }}>
+                {dbInfo && (
+                  <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Schema Version:</span>
-                      <div style={{ fontWeight: 700, color: '#2563eb' }}>v{dbInfo.schemaVersion}</div>
+                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Database File:</span>
+                      <div style={{ fontFamily: 'Consolas, monospace', fontSize: '12px', marginTop: '4px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
+                        {dbInfo.dbPath}
+                      </div>
                     </div>
-                    <div>
-                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Journal Mode:</span>
-                      <div style={{ fontWeight: 700, color: '#166534' }}>{dbInfo.journalMode.toUpperCase()}</div>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Foreign Keys:</span>
-                      <div style={{ fontWeight: 700, color: dbInfo.foreignKeys ? '#166534' : '#dc2626' }}>
-                        {dbInfo.foreignKeys ? 'ENABLED' : 'DISABLED'}
+                    <div style={{ display: 'flex', gap: '20px', marginTop: '6px' }}>
+                      <div>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Schema Version:</span>
+                        <div style={{ fontWeight: 700, color: '#2563eb' }}>v{dbInfo.schemaVersion}</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Journal Mode:</span>
+                        <div style={{ fontWeight: 700, color: '#166534' }}>{dbInfo.journalMode.toUpperCase()}</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Foreign Keys:</span>
+                        <div style={{ fontWeight: 700, color: dbInfo.foreignKeys ? '#166534' : '#dc2626' }}>
+                          {dbInfo.foreignKeys ? 'ENABLED' : 'DISABLED'}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </Suspense>
 
           {/* Live IPC Role Guard Testing Panel */}
           <div
@@ -481,6 +579,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
           </div>
         </main>
       </div>
+
+      {/* Sync Status & Exceptions Modal */}
+      {isSyncModalOpen && (
+        <SyncStatusModal
+          session={session}
+          onClose={() => setIsSyncModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

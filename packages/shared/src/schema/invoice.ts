@@ -95,7 +95,41 @@ export const InvoiceRecordSchema = z.object({
   updatedAt: z.string(),
   lines: z.array(InvoiceLineRecordSchema).optional(),
   payment: PaymentRecordSchema.optional(),
+  payments: z.array(PaymentRecordSchema).optional(),
   userName: z.string().optional(),
   counterName: z.string().optional(),
 });
 export type InvoiceRecord = z.infer<typeof InvoiceRecordSchema>;
+
+export const FinalizeSaleLineInputSchema = z.object({
+  productId: z.string().uuid('Product ID must be a valid UUID'),
+  quantity: z.number().int('Quantity must be an integer').min(1, 'Quantity must be at least 1'),
+  discountPaisa: z.number().int().min(0).optional().default(0),
+});
+export type FinalizeSaleLineInput = z.input<typeof FinalizeSaleLineInputSchema>;
+
+export const FinalizeSalePaymentInputSchema = z.object({
+  method: z.enum(['cash', 'card', 'wallet']),
+  amountPaisa: z.number().int().min(1, 'Payment amount must be greater than 0'),
+});
+export type FinalizeSalePaymentInput = z.infer<typeof FinalizeSalePaymentInputSchema>;
+
+export const FinalizeSaleInputSchema = z.object({
+  clientRequestId: z.string().min(1, 'clientRequestId is required'),
+  counterId: z.string().uuid().optional(),
+  cashierUserId: z.string().uuid().optional(),
+  lines: z.array(FinalizeSaleLineInputSchema).min(1, 'At least one line item is required'),
+  payments: z.array(FinalizeSalePaymentInputSchema).min(1, 'At least one payment is required'),
+  notes: z.string().nullable().optional(),
+});
+export type FinalizeSaleInput = z.input<typeof FinalizeSaleInputSchema>;
+
+export const InvoiceSearchParamsSchema = z.object({
+  query: z.string().optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  limit: z.number().int().min(1).max(200).optional().default(50),
+  offset: z.number().int().min(0).optional().default(0),
+});
+export type InvoiceSearchParams = z.input<typeof InvoiceSearchParamsSchema>;
+

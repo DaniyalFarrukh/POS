@@ -361,6 +361,372 @@ export const MIGRATIONS: Migration[] = [
       `).run();
     },
   },
+  {
+    version: 5,
+    name: '0005_invoices_schema_and_immutability',
+    up: (db: DatabaseInstance) => {
+      // 1. Add last_invoice_seq and unique code to counters if missing
+      const counterCols = (
+        db.prepare(`PRAGMA table_info(counters)`).all() as { name: string }[]
+      ).map((c) => c.name);
+
+      if (!counterCols.includes('last_invoice_seq')) {
+        db.exec(`ALTER TABLE counters ADD COLUMN last_invoice_seq INTEGER NOT NULL DEFAULT 0;`);
+      }
+      if (!counterCols.includes('code')) {
+        db.exec(`ALTER TABLE counters ADD COLUMN code TEXT;`);
+        db.exec(`UPDATE counters SET code = 'C-' || substr(id, 1, 8) WHERE code IS NULL;`);
+        db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_counters_code ON counters(code);`);
+        db.exec(`
+          CREATE TRIGGER IF NOT EXISTS trg_counters_default_code
+          AFTER INSERT ON counters
+          FOR EACH ROW
+          WHEN NEW.code IS NULL
+          BEGIN
+            UPDATE counters SET code = 'C-' || substr(NEW.id, 1, 8) WHERE id = NEW.id;
+          END;
+        `);
+      }
+
+      // 2. Drop existing triggers and draft tables if they exist
+      db.exec(`
+        DROP TRIGGER IF EXISTS trg_invoices_no_update;
+        DROP TRIGGER IF EXISTS trg_invoices_no_delete;
+        DROP TRIGGER IF EXISTS trg_invoice_lines_no_update;
+        DROP TRIGGER IF EXISTS trg_invoice_lines_no_delete;
+        DROP TRIGGER IF EXISTS trg_payments_no_update;
+        DROP TRIGGER IF EXISTS trg_payments_no_delete;
+
+        DROP TABLE IF EXISTS payments;
+        DROP TABLE IF EXISTS invoice_lines;
+        DROP TABLE IF EXISTS invoices;
+        DROP TABLE IF EXISTS fiscal_submissions;
+      `);
+
+      // 3. Create tables with exact Phase 2 schema
+      db.exec(`
+        -- Invoices: id (UUIDv7), counter_id, cashier_user_id, invoice_number (UNIQUE),
+        -- client_request_id (UNIQUE), status ('finalized' only for now), subtotal_paisa,
+        -- discount_paisa, tax_paisa, total_paisa, notes, created_at (UTC ISO).
+        CREATE TABLE invoices (
+          id TEXT PRIMARY KEY,
+          counter_id TEXT NOT NULL REFERENCES counters(id) ON DELETE RESTRICT,
+          cashier_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+          invoice_number TEXT NOT NULL UNIQUE,
+          client_request_id TEXT NOT NULL UNIQUE,
+          status TEXT NOT NULL CHECK(status IN ('finalized')) DEFAULT 'finalized',
+          subtotal_paisa INTEGER NOT NULL,
+          discount_paisa INTEGER NOT NULL DEFAULT 0,
+          tax_paisa INTEGER NOT NULL DEFAULT 0,
+          total_paisa INTEGER NOT NULL,
+          notes TEXT,
+          created_at TEXT NOT NULL
+        );
+
+        -- Invoice lines: id, invoice_id, product_id, batch_id, quantity (integer),
+        -- unit_price_paisa, discount_paisa, tax_rate_bp, tax_paisa, line_total_paisa.
+        CREATE TABLE invoice_lines (
+          id TEXT PRIMARY KEY,
+          invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+          product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+          batch_id TEXT REFERENCES batches(id) ON DELETE RESTRICT,
+          quantity INTEGER NOT NULL CHECK(quantity > 0),
+          unit_price_paisa INTEGER NOT NULL,
+          discount_paisa INTEGER NOT NULL DEFAULT 0,
+          tax_rate_bp INTEGER NOT NULL DEFAULT 0,
+          tax_paisa INTEGER NOT NULL DEFAULT 0,
+          line_total_paisa INTEGER NOT NULL
+        );
+
+        -- Payments: id, invoice_id, method ('cash'|'card'|'wallet'), amount_paisa.
+        CREATE TABLE payments (
+          id TEXT PRIMARY KEY,
+          invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+          method TEXT NOT NULL CHECK(method IN ('cash', 'card', 'wallet')),
+          amount_paisa INTEGER NOT NULL
+        );
+
+        -- Fiscal submissions: id, invoice_id, status ('not_required'|'pending'|'submitted'|'failed'),
+        -- fiscal_invoice_number NULL, qr_payload NULL, created_at, updated_at.
+        -- (Fiscal data lives here so invoices stay fully immutable.)
+        CREATE TABLE fiscal_submissions (
+          id TEXT PRIMARY KEY,
+          invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+          status TEXT NOT NULL CHECK(status IN ('not_required', 'pending', 'submitted', 'failed')) DEFAULT 'not_required',
+          fiscal_invoice_number TEXT,
+          qr_payload TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        -- Indexes on invoices(created_at), invoice_lines(invoice_id), invoice_lines(batch_id)
+        CREATE INDEX idx_invoices_created_at ON invoices(created_at);
+        CREATE INDEX idx_invoice_lines_invoice_id ON invoice_lines(invoice_id);
+        CREATE INDEX idx_invoice_lines_batch_id ON invoice_lines(batch_id);
+        CREATE INDEX idx_fiscal_submissions_invoice_id ON fiscal_submissions(invoice_id);
+
+        -- SQLite triggers: BEFORE UPDATE and BEFORE DELETE on invoices, invoice_lines and payments
+        -- that RAISE(ABORT, 'finalized records are immutable').
+        CREATE TRIGGER trg_invoices_no_update
+        BEFORE UPDATE ON invoices
+        BEGIN
+          SELECT RAISE(ABORT, 'finalized records are immutable');
+        END;
+
+        CREATE TRIGGER trg_invoices_no_delete
+        BEFORE DELETE ON invoices
+        BEGIN
+          SELECT RAISE(ABORT, 'finalized records are immutable');
+        END;
+
+        CREATE TRIGGER trg_invoice_lines_no_update
+        BEFORE UPDATE ON invoice_lines
+        BEGIN
+          SELECT RAISE(ABORT, 'finalized records are immutable');
+        END;
+
+        CREATE TRIGGER trg_invoice_lines_no_delete
+        BEFORE DELETE ON invoice_lines
+        BEGIN
+          SELECT RAISE(ABORT, 'finalized records are immutable');
+        END;
+
+        CREATE TRIGGER trg_payments_no_update
+        BEFORE UPDATE ON payments
+        BEGIN
+          SELECT RAISE(ABORT, 'finalized records are immutable');
+        END;
+
+        CREATE TRIGGER trg_payments_no_delete
+        BEFORE DELETE ON payments
+        BEGIN
+          SELECT RAISE(ABORT, 'finalized records are immutable');
+        END;
+      `);
+
+      // Update schema_version in app_meta
+      db.prepare(`
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '5')
+      `).run();
+    },
+  },
+  {
+    version: 6,
+    name: '0006_returns_and_shifts',
+    up: (db: DatabaseInstance) => {
+      // 1. Add last_credit_note_seq to counters if missing
+      const counterCols = (
+        db.prepare(`PRAGMA table_info(counters)`).all() as { name: string }[]
+      ).map((c) => c.name);
+
+      if (!counterCols.includes('last_credit_note_seq')) {
+        db.exec(`ALTER TABLE counters ADD COLUMN last_credit_note_seq INTEGER NOT NULL DEFAULT 0;`);
+      }
+
+      // 2. Shifts table
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS shifts (
+          id TEXT PRIMARY KEY,
+          branch_id TEXT NOT NULL REFERENCES branches(id) ON DELETE RESTRICT,
+          counter_id TEXT NOT NULL REFERENCES counters(id) ON DELETE RESTRICT,
+          cashier_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+          status TEXT NOT NULL CHECK(status IN ('open', 'closed')) DEFAULT 'open',
+          opened_at TEXT NOT NULL,
+          closed_at TEXT,
+          opening_cash_paisa INTEGER NOT NULL DEFAULT 0,
+          counted_cash_paisa INTEGER,
+          expected_cash_paisa INTEGER,
+          difference_paisa INTEGER,
+          sales_cash_paisa INTEGER NOT NULL DEFAULT 0,
+          sales_card_paisa INTEGER NOT NULL DEFAULT 0,
+          sales_wallet_paisa INTEGER NOT NULL DEFAULT 0,
+          returns_cash_paisa INTEGER NOT NULL DEFAULT 0,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_shifts_counter ON shifts(counter_id);
+        CREATE INDEX IF NOT EXISTS idx_shifts_branch ON shifts(branch_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_shifts_counter_open ON shifts(counter_id) WHERE status = 'open';
+      `);
+
+      // 3. Credit notes & Credit note lines tables
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS credit_notes (
+          id TEXT PRIMARY KEY,
+          credit_note_number TEXT NOT NULL UNIQUE,
+          original_invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+          branch_id TEXT NOT NULL REFERENCES branches(id) ON DELETE RESTRICT,
+          counter_id TEXT NOT NULL REFERENCES counters(id) ON DELETE RESTRICT,
+          cashier_user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+          client_request_id TEXT NOT NULL UNIQUE,
+          subtotal_paisa INTEGER NOT NULL,
+          tax_paisa INTEGER NOT NULL DEFAULT 0,
+          total_paisa INTEGER NOT NULL,
+          refund_method TEXT NOT NULL CHECK(refund_method IN ('cash', 'card', 'wallet', 'credit')) DEFAULT 'cash',
+          reason TEXT NOT NULL CHECK(reason IN ('defective_damaged', 'expired', 'customer_return', 'dispensing_error', 'other')),
+          notes TEXT,
+          created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_credit_notes_orig_inv ON credit_notes(original_invoice_id);
+        CREATE INDEX IF NOT EXISTS idx_credit_notes_branch ON credit_notes(branch_id);
+        CREATE INDEX IF NOT EXISTS idx_credit_notes_created_at ON credit_notes(created_at);
+
+        CREATE TABLE IF NOT EXISTS credit_note_lines (
+          id TEXT PRIMARY KEY,
+          credit_note_id TEXT NOT NULL REFERENCES credit_notes(id) ON DELETE RESTRICT,
+          original_invoice_line_id TEXT NOT NULL REFERENCES invoice_lines(id) ON DELETE RESTRICT,
+          product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+          batch_id TEXT REFERENCES batches(id) ON DELETE RESTRICT,
+          quantity INTEGER NOT NULL CHECK(quantity > 0),
+          unit_price_paisa INTEGER NOT NULL,
+          tax_rate_bp INTEGER NOT NULL DEFAULT 0,
+          tax_paisa INTEGER NOT NULL DEFAULT 0,
+          line_total_paisa INTEGER NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_credit_note_lines_cn ON credit_note_lines(credit_note_id);
+        CREATE INDEX IF NOT EXISTS idx_credit_note_lines_orig_line ON credit_note_lines(original_invoice_line_id);
+
+        -- Immutability triggers on credit notes and lines (Rule 3)
+        CREATE TRIGGER IF NOT EXISTS trg_credit_notes_no_update
+        BEFORE UPDATE ON credit_notes
+        BEGIN
+          SELECT RAISE(ABORT, 'credit notes are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_credit_notes_no_delete
+        BEFORE DELETE ON credit_notes
+        BEGIN
+          SELECT RAISE(ABORT, 'credit notes are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_credit_note_lines_no_update
+        BEFORE UPDATE ON credit_note_lines
+        BEGIN
+          SELECT RAISE(ABORT, 'credit notes are immutable');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_credit_note_lines_no_delete
+        BEFORE DELETE ON credit_note_lines
+        BEGIN
+          SELECT RAISE(ABORT, 'credit notes are immutable');
+        END;
+      `);
+
+      // Update schema_version in app_meta
+      db.prepare(`
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '6')
+      `).run();
+    },
+  },
+  {
+    version: 7,
+    name: 'sync_client_tables_and_outbox_device_seq',
+    up: (db: DatabaseInstance): void => {
+      // 1. Ensure outbox has all Phase 3 columns (docs/SYNC_CLIENT.md)
+      const existingCols = new Set(
+        (db.pragma('table_info(outbox)') as Array<{ name: string }>).map((c) => c.name)
+      );
+
+      if (!existingCols.has('event_id')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN event_id TEXT;');
+      }
+      if (!existingCols.has('device_seq')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN device_seq INTEGER;');
+      }
+      if (!existingCols.has('type')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN type TEXT;');
+      }
+      if (!existingCols.has('entity_id')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN entity_id TEXT;');
+      }
+      if (!existingCols.has('occurred_at')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN occurred_at TEXT;');
+      }
+      if (!existingCols.has('status')) {
+        db.exec("ALTER TABLE outbox ADD COLUMN status TEXT NOT NULL DEFAULT 'pending';");
+      }
+      if (!existingCols.has('attempts')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0;');
+      }
+      if (!existingCols.has('last_error')) {
+        db.exec('ALTER TABLE outbox ADD COLUMN last_error TEXT;');
+      }
+
+      // 2. Backfill existing outbox rows: event_id = id, type = event_type, occurred_at = created_at
+      db.exec(`
+        UPDATE outbox SET event_id = id WHERE event_id IS NULL;
+        UPDATE outbox SET type = event_type WHERE type IS NULL;
+        UPDATE outbox SET occurred_at = created_at WHERE occurred_at IS NULL;
+        UPDATE outbox SET status = CASE WHEN synced_at IS NOT NULL THEN 'acked' ELSE 'pending' END;
+      `);
+
+      // 3. Backfill device_seq contiguously in created order for any unsequenced rows
+      const unsequencedRows = db
+        .prepare('SELECT id FROM outbox WHERE device_seq IS NULL ORDER BY created_at ASC, rowid ASC')
+        .all() as Array<{ id: string }>;
+
+      const maxSeqRow = db
+        .prepare('SELECT COALESCE(MAX(device_seq), 0) AS maxSeq FROM outbox')
+        .get() as { maxSeq: number };
+      let currentSeq = maxSeqRow.maxSeq;
+
+      const updateSeqStmt = db.prepare('UPDATE outbox SET device_seq = ? WHERE id = ?');
+      for (const row of unsequencedRows) {
+        currentSeq++;
+        updateSeqStmt.run(currentSeq, row.id);
+      }
+
+      // 4. Create UNIQUE index on device_seq and index on (status, device_seq)
+      db.exec(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_outbox_device_seq ON outbox(device_seq);
+        CREATE INDEX IF NOT EXISTS idx_outbox_status_device_seq ON outbox(status, device_seq);
+      `);
+
+      // 5. Create sync_state table (key/value) per docs/SYNC_CLIENT.md
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS sync_state (
+          key TEXT PRIMARY KEY,
+          value TEXT
+        );
+      `);
+
+      // Initialize default pull_cursor if not present
+      db.prepare(`
+        INSERT OR IGNORE INTO sync_state (key, value)
+        VALUES ('pull_cursor', '0')
+      `).run();
+
+      // 6. Create sync_exceptions table per docs/SYNC_CLIENT.md
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS sync_exceptions (
+          id TEXT PRIMARY KEY,
+          event_id TEXT NOT NULL,
+          code TEXT NOT NULL,
+          message TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'open',
+          note TEXT,
+          created_at TEXT NOT NULL,
+          resolved_at TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_sync_exceptions_event_id ON sync_exceptions(event_id);
+        CREATE INDEX IF NOT EXISTS idx_sync_exceptions_status ON sync_exceptions(status);
+      `);
+
+      // 7. Update schema_version in app_meta
+      db.prepare(`
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '7')
+      `).run();
+    },
+  },
 ];
 
 let dbInstance: DatabaseInstance | null = null;
@@ -432,6 +798,14 @@ export function initDatabase(customPath?: string): DbMetadata {
   const fkResult = db.pragma('foreign_keys', { simple: true }) as number;
   const foreignKeysEnabled = fkResult === 1;
   console.log(`[Database] Foreign keys enabled: ${foreignKeysEnabled}`);
+
+  // 2b. Startup Integrity Check (Phase 5)
+  const integrityResult = db.pragma('integrity_check', { simple: true }) as string;
+  if (integrityResult !== 'ok') {
+    console.error(`[Database] FATAL: PRAGMA integrity_check failed: ${integrityResult}`);
+    throw new Error(`SQLite Database Integrity Failure: PRAGMA integrity_check returned '${integrityResult}'`);
+  }
+  console.log('[Database] PRAGMA integrity_check: ok');
 
   // 3. Migration tracking table
   db.exec(`
@@ -517,6 +891,28 @@ export function getDbMetadata(): DbMetadata {
     return initDatabase();
   }
   return cachedMetadata;
+}
+
+export function getDbPath(): string {
+  if (cachedMetadata) {
+    return cachedMetadata.dbPath;
+  }
+  if (app && typeof app.getPath === 'function') {
+    return path.join(app.getPath('userData'), 'pharmacy.db');
+  } else if (process.env.APPDATA) {
+    return path.join(process.env.APPDATA, 'POS Counter', 'pharmacy.db');
+  }
+  return ':memory:';
+}
+
+export function closeDatabase(): void {
+  if (dbInstance && dbInstance.open) {
+    console.log('[Database] Closing active SQLite connection...');
+    dbInstance.close();
+  }
+  dbInstance = null;
+  drizzleInstance = null;
+  cachedMetadata = null;
 }
 
 /**

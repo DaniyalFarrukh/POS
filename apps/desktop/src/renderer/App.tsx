@@ -5,6 +5,8 @@ import { SetupScreen } from './components/SetupScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { LayoutShell } from './components/LayoutShell';
 import { LockOverlay } from './components/LockOverlay';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { I18nProvider } from './utils/i18n/I18nContext';
 import { useIdleTimer } from './hooks/useIdleTimer';
 
 export function App() {
@@ -72,65 +74,56 @@ export function App() {
     enabled: Boolean(session && !session.isLocked),
   });
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          height: '100vh',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#ffffff',
-          fontFamily: 'system-ui, sans-serif',
-          color: '#64748b',
-          fontSize: '15px',
-        }}
-      >
-        Initializing POS Terminal Engine...
-      </div>
-    );
-  }
-
-  // 1. First-run Setup Screen
-  if (needsSetup) {
-    return (
-      <SetupScreen
-        onSetupComplete={(newSession) => {
-          setNeedsSetup(false);
-          setSession(newSession);
-        }}
-      />
-    );
-  }
-
-  // 2. Login Screen
-  if (!session) {
-    return (
-      <LoginScreen
-        onLoginSuccess={(newSession) => {
-          setSession(newSession);
-        }}
-      />
-    );
-  }
-
-  // 3. Authenticated Layout Shell + Auto-lock overlay
   return (
-    <>
-      <LayoutShell
-        session={session}
-        dbInfo={dbInfo}
-        onLock={handleLock}
-        onLogout={handleLogout}
-      />
+    <ErrorBoundary>
+      <I18nProvider>
+        {loading ? (
+          <div
+            style={{
+              display: 'flex',
+              height: '100vh',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#ffffff',
+              fontFamily: 'system-ui, sans-serif',
+              color: '#64748b',
+              fontSize: '15px',
+            }}
+          >
+            Initializing POS Terminal Engine...
+          </div>
+        ) : needsSetup ? (
+          <SetupScreen
+            onSetupComplete={(newSession) => {
+              setNeedsSetup(false);
+              setSession(newSession);
+            }}
+          />
+        ) : !session ? (
+          <LoginScreen
+            onLoginSuccess={(newSession) => {
+              setSession(newSession);
+            }}
+          />
+        ) : (
+          <>
+            <LayoutShell
+              session={session}
+              dbInfo={dbInfo}
+              onLock={handleLock}
+              onLogout={handleLogout}
+            />
 
-      {session.isLocked && (
-        <LockOverlay
-          session={session}
-          onUnlocked={(unlockedSession) => setSession(unlockedSession)}
-          onSwitchUser={handleLogout}
-        />
-      )}
-    </>
+            {session.isLocked && (
+              <LockOverlay
+                session={session}
+                onUnlocked={(unlockedSession) => setSession(unlockedSession)}
+                onSwitchUser={handleLogout}
+              />
+            )}
+          </>
+        )}
+      </I18nProvider>
+    </ErrorBoundary>
   );
 }

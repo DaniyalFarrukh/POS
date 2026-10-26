@@ -21,5 +21,5 @@
 
 ## Fiscal (FBR) readiness
 - A FiscalService interface sits behind invoice finalization. Current implementation is a no-op.
-- invoices have: fiscal_status (not_required|pending|submitted|failed), fiscal_invoice_number (nullable), qr_payload (nullable).
+- Invoices are fully immutable; all fiscal integration state is tracked in the separate `fiscal_submissions` table (status: not_required|pending|submitted|failed, fiscal_invoice_number nullable, qr_payload nullable, created_at, updated_at).
 - Receipt template has reserved space for QR and fiscal number.
