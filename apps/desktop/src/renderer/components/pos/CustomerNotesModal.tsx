@@ -29,30 +29,16 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="customer-notes-modal-title"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.6)',
-        backdropFilter: 'blur(3px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50,
-        padding: '24px',
-      }}
+      className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
+        className="modal-content-card"
         style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          width: '520px',
+          width: '540px',
           maxWidth: '100%',
-          overflow: 'hidden',
-          border: '1px solid #cbd5e1',
         }}
       >
         <div
@@ -65,36 +51,44 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
             alignItems: 'center',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>👤</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>👤</span>
             <h3
               id="customer-notes-modal-title"
-              style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#0f172a' }}
+              style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}
             >
-              Customer & Prescription Notes (F6)
+              Customer & Prescription Notes
             </h3>
+            <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 5px' }}>F6</kbd>
           </div>
           <button
             type="button"
+            className="interactive-btn"
             onClick={onClose}
             aria-label="Close dialog"
             style={{
               background: 'transparent',
               border: 'none',
-              fontSize: '18px',
+              borderRadius: '6px',
+              width: '30px',
+              height: '30px',
+              fontSize: '16px',
               color: '#64748b',
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ padding: '20px 24px' }}>
+        <form onSubmit={handleSubmit} style={{ padding: '22px 24px' }}>
           <div style={{ marginBottom: '14px' }}>
             <label
               htmlFor="cust-name"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}
+              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
             >
               Patient / Customer Name
             </label>
@@ -107,11 +101,12 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: '6px',
+                padding: '10px 14px',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 fontSize: '14px',
                 boxSizing: 'border-box',
+                fontFamily: 'var(--font-sans)',
               }}
             />
           </div>
@@ -119,7 +114,7 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '14px' }}>
             <label
               htmlFor="cust-phone"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}
+              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
             >
               Contact Number
             </label>
@@ -129,10 +124,11 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
               placeholder="e.g. 0300-1234567"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="tabular-nums"
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: '6px',
+                padding: '10px 14px',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 fontSize: '14px',
                 boxSizing: 'border-box',
@@ -143,7 +139,7 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '14px' }}>
             <label
               htmlFor="cust-doctor"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}
+              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
             >
               Prescribing Doctor / Clinic
             </label>
@@ -155,11 +151,12 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
               onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: '6px',
+                padding: '10px 14px',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 fontSize: '14px',
                 boxSizing: 'border-box',
+                fontFamily: 'var(--font-sans)',
               }}
             />
           </div>
@@ -167,7 +164,7 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '20px' }}>
             <label
               htmlFor="cust-notes"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}
+              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
             >
               Prescription / Dosage Instructions / Notes
             </label>
@@ -179,12 +176,13 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: '6px',
+                padding: '10px 14px',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 fontSize: '13px',
                 boxSizing: 'border-box',
                 resize: 'vertical',
+                fontFamily: 'var(--font-sans)',
               }}
             />
           </div>
@@ -194,20 +192,21 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
               display: 'flex',
               justifyContent: 'flex-end',
               gap: '12px',
-              paddingTop: '10px',
+              paddingTop: '14px',
               borderTop: '1px solid #f1f5f9',
             }}
           >
             <button
               type="button"
+              className="interactive-btn"
               onClick={onClose}
               style={{
-                padding: '9px 18px',
+                padding: '10px 18px',
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 fontSize: '13px',
-                fontWeight: 600,
+                fontWeight: 700,
                 color: '#475569',
                 cursor: 'pointer',
               }}
@@ -216,15 +215,17 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
             </button>
             <button
               type="submit"
+              className="interactive-btn"
               style={{
-                padding: '9px 20px',
-                backgroundColor: '#2563eb',
+                padding: '10px 22px',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
                 border: 'none',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 fontSize: '13px',
-                fontWeight: 600,
+                fontWeight: 800,
                 color: '#ffffff',
                 cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
               }}
             >
               Attach to Sale

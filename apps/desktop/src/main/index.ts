@@ -160,7 +160,11 @@ function createWindow(): void {
   });
 
   win.webContents.on('did-finish-load', () => {
-    console.log('[WebContents] did-finish-load successfully');
+    console.log('[WebContents] did-finish-load successfully from URL:', win?.webContents.getURL());
+  });
+
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    console.log(`[Renderer Console level=${level}] ${message} (${sourceId}:${line})`);
   });
 
   win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
@@ -438,10 +442,15 @@ function createWindow(): void {
   const devUrl =
     process.env['VITE_DEV_SERVER_URL'] || (isDev ? 'http://localhost:5173' : undefined);
 
+  console.log('[Main] isDev:', isDev, '| devUrl:', devUrl);
   if (devUrl) {
     win.loadURL(devUrl);
   } else {
     win.loadFile(path.join(RENDERER_DIST, 'index.html'));
+  }
+
+  if (isDev) {
+    win.webContents.openDevTools({ mode: 'detach' });
   }
 
   win.on('closed', () => {

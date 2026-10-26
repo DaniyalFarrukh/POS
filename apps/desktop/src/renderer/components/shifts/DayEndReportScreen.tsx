@@ -189,18 +189,20 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
       {/* Toast Notification */}
       {toastMessage && (
         <div
+          className="toast-slide-in"
           style={{
             position: 'fixed',
             top: '20px',
             right: '24px',
-            backgroundColor: '#0f172a',
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
             color: '#f8fafc',
             padding: '12px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)',
+            borderRadius: '10px',
+            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3), 0 0 0 1px rgba(99, 102, 241, 0.3)',
             zIndex: 9999,
             fontSize: '13px',
-            fontWeight: 500,
+            fontWeight: 700,
+            backdropFilter: 'blur(8px)',
           }}
         >
           {toastMessage}
@@ -217,10 +219,16 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
         }}
       >
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px 0' }}>
-            📊 Day-End & Shift Reconciliation
-          </h1>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>📊</span>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              Day-End & Shift Reconciliation
+            </h1>
+            <kbd className="kbd-cap" style={{ fontSize: '11px', padding: '2px 8px' }}>
+              F5
+            </kbd>
+          </div>
+          <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
             Active Counter: <strong style={{ color: '#0f172a' }}>{session.counter.name}</strong> •
             Branch: <strong style={{ color: '#0f172a' }}>{session.branch.name}</strong> • Cashier:{' '}
             <strong style={{ color: '#0f172a' }}>{session.user.name}</strong>
@@ -230,44 +238,47 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
             type="button"
+            className="interactive-btn"
             onClick={loadData}
             disabled={loading}
             style={{
-              padding: '9px 16px',
+              padding: '9px 18px',
               backgroundColor: '#ffffff',
               border: '1px solid #cbd5e1',
               borderRadius: '8px',
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 700,
               color: '#334155',
               cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
             }}
           >
-            🔄 {loading ? 'Refreshing...' : 'Refresh'}
+            <span>{loading ? 'Refreshing...' : '🔄 Refresh Data'}</span>
           </button>
           {!currentShift && (
             <button
               type="button"
+              className="interactive-btn"
               onClick={() => setShowOpenModal(true)}
               style={{
                 padding: '9px 20px',
-                backgroundColor: '#16a34a',
+                background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 800,
                 color: '#ffffff',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 4px rgba(22, 163, 74, 0.2)',
+                gap: '8px',
+                boxShadow: '0 2px 4px rgba(5, 150, 105, 0.3)',
               }}
             >
-              🚀 Open New Shift
+              <span>🚀 Open New Shift</span>
             </button>
           )}
         </div>
@@ -278,7 +289,7 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
         <div
           style={{
             backgroundColor: '#ffffff',
-            borderRadius: '12px',
+            borderRadius: '14px',
             border: '1px solid #e2e8f0',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
             padding: '24px',
@@ -296,34 +307,28 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
               marginBottom: '20px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <span
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: '#dcfce7',
-                  color: '#15803d',
-                  padding: '4px 12px',
+                  gap: '8px',
+                  backgroundColor: '#ecfdf5',
+                  color: '#065f46',
+                  padding: '5px 14px',
                   borderRadius: '9999px',
                   fontSize: '12px',
-                  fontWeight: 700,
+                  fontWeight: 800,
+                  border: '1px solid #a7f3d0',
                 }}
               >
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: '#16a34a',
-                  }}
-                />
+                <span className="pulse-green-dot" />
                 SHIFT OPEN (ACTIVE)
               </span>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
-                Shift ID: <code>{currentShift.id.slice(0, 8)}</code>
+              <span className="tabular-nums" style={{ fontSize: '12px', color: '#64748b' }}>
+                Shift ID: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{currentShift.id.slice(0, 8)}</code>
               </span>
-              <span style={{ fontSize: '12px', color: '#64748b' }}>
+              <span className="tabular-nums" style={{ fontSize: '12px', color: '#64748b' }}>
                 Opened:{' '}
                 {new Date(currentShift.openedAt).toLocaleTimeString('en-US', {
                   hour: '2-digit',
@@ -338,15 +343,16 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
+                className="interactive-btn"
                 onClick={() => handlePrintZReport(currentShift)}
                 disabled={isPrinting}
                 style={{
                   padding: '8px 16px',
                   backgroundColor: '#ffffff',
                   border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   fontSize: '13px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: '#0f172a',
                   cursor: isPrinting ? 'not-allowed' : 'pointer',
                 }}
@@ -355,17 +361,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
               </button>
               <button
                 type="button"
+                className="interactive-btn"
                 onClick={() => setShowCloseModal(true)}
                 style={{
                   padding: '8px 20px',
-                  backgroundColor: '#dc2626',
+                  background: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   fontSize: '13px',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   color: '#ffffff',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)',
+                  boxShadow: '0 2px 4px rgba(225, 29, 72, 0.3)',
                 }}
               >
                 🔒 End Shift & Reconcile
@@ -385,15 +392,15 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
             <div
               style={{
                 backgroundColor: '#f8fafc',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '18px',
+                borderRadius: '10px',
                 border: '1px solid #e2e8f0',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Opening Cash
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', marginTop: '6px' }}>
+              <div className="tabular-nums" style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
                 {formatPKR(currentShift.openingCashPaisa)}
               </div>
               <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
@@ -405,18 +412,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
             <div
               style={{
                 backgroundColor: '#f0fdf4',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '18px',
+                borderRadius: '10px',
                 border: '1px solid #bbf7d0',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 600, color: '#166534', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Cash Sales (+)
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#15803d', marginTop: '6px' }}>
+              <div className="tabular-nums" style={{ fontSize: '22px', fontWeight: 800, color: '#15803d', marginTop: '6px' }}>
                 {formatPKR(currentShift.salesCashPaisa)}
               </div>
-              <div style={{ fontSize: '11px', color: '#166534', marginTop: '4px' }}>
+              <div className="tabular-nums" style={{ fontSize: '11px', color: '#166534', marginTop: '4px' }}>
                 From {currentShift.salesCount} sale receipts
               </div>
             </div>
@@ -425,18 +432,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
             <div
               style={{
                 backgroundColor: '#eff6ff',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '18px',
+                borderRadius: '10px',
                 border: '1px solid #bfdbfe',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 600, color: '#1e40af', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Card & Wallet
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#1d4ed8', marginTop: '6px' }}>
+              <div className="tabular-nums" style={{ fontSize: '22px', fontWeight: 800, color: '#1d4ed8', marginTop: '6px' }}>
                 {formatPKR(currentShift.salesCardPaisa + currentShift.salesWalletPaisa)}
               </div>
-              <div style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>
+              <div className="tabular-nums" style={{ fontSize: '11px', color: '#2563eb', marginTop: '4px' }}>
                 Card: {formatPKR(currentShift.salesCardPaisa)} | Wallet: {formatPKR(currentShift.salesWalletPaisa)}
               </div>
             </div>
@@ -445,18 +452,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
             <div
               style={{
                 backgroundColor: '#fff1f2',
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '18px',
+                borderRadius: '10px',
                 border: '1px solid #fecdd3',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 600, color: '#9f1239', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#9f1239', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Cash Returns (-)
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#be123c', marginTop: '6px' }}>
+              <div className="tabular-nums" style={{ fontSize: '22px', fontWeight: 800, color: '#be123c', marginTop: '6px' }}>
                 {formatPKR(currentShift.returnsCashPaisa)}
               </div>
-              <div style={{ fontSize: '11px', color: '#9f1239', marginTop: '4px' }}>
+              <div className="tabular-nums" style={{ fontSize: '11px', color: '#9f1239', marginTop: '4px' }}>
                 From {currentShift.returnsCount} credit notes
               </div>
             </div>
@@ -464,16 +471,17 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
             {/* Expected In Drawer */}
             <div
               style={{
-                backgroundColor: '#0f172a',
-                padding: '16px',
-                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                padding: '18px',
+                borderRadius: '10px',
                 color: '#ffffff',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)',
               }}
             >
-              <div style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Expected In Drawer
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#38bdf8', marginTop: '6px' }}>
+              <div className="tabular-nums" style={{ fontSize: '22px', fontWeight: 900, color: '#38bdf8', marginTop: '6px' }}>
                 {formatPKR(currentShift.expectedCashPaisa)}
               </div>
               <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
@@ -531,42 +539,47 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
           flex: 1,
         }}
       >
-        <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px 0' }}>
-          📜 Shift & Day-End History
-        </h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+            📜 Shift & Day-End History
+          </h2>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>
+            Showing last {shiftHistory.length} closed shifts
+          </span>
+        </div>
 
         {shiftHistory.length === 0 ? (
           <div
             style={{
-              padding: '32px',
+              padding: '48px',
               textAlign: 'center',
               color: '#94a3b8',
               fontSize: '14px',
             }}
           >
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>📜</div>
             No closed shifts recorded yet.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr
                   style={{
                     backgroundColor: '#f8fafc',
                     borderBottom: '1px solid #e2e8f0',
-                    color: '#475569',
                     textAlign: 'left',
                   }}
                 >
-                  <th style={{ padding: '10px 12px' }}>Opened</th>
-                  <th style={{ padding: '10px 12px' }}>Closed</th>
-                  <th style={{ padding: '10px 12px' }}>Cashier</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Opening</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Gross Sales</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Expected</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Counted</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Variance</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'center' }}>Actions</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Opened</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Closed</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cashier</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Opening</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Gross Sales</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Expected</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Counted</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Variance</th>
+                  <th style={{ padding: '12px 14px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -579,20 +592,22 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                   return (
                     <tr
                       key={s.id}
+                      className="cart-row"
                       style={{
                         borderBottom: '1px solid #f1f5f9',
                         backgroundColor: s.status === 'open' ? '#f0fdf4' : '#ffffff',
+                        transition: 'background-color 0.15s ease',
                       }}
                     >
-                      <td style={{ padding: '12px' }}>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                      <td style={{ padding: '12px 14px' }}>
+                        <div className="tabular-nums" style={{ fontWeight: 700, color: '#1e293b' }}>
                           {new Date(s.openedAt).toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             timeZone: 'Asia/Karachi',
                           })}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                        <div className="tabular-nums" style={{ fontSize: '11px', color: '#64748b' }}>
                           {new Date(s.openedAt).toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -600,17 +615,17 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                           })}
                         </div>
                       </td>
-                      <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px 14px' }}>
                         {s.closedAt ? (
                           <div>
-                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                            <div className="tabular-nums" style={{ fontWeight: 700, color: '#1e293b' }}>
                               {new Date(s.closedAt).toLocaleDateString('en-GB', {
                                 day: '2-digit',
                                 month: 'short',
                                 timeZone: 'Asia/Karachi',
                               })}
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                            <div className="tabular-nums" style={{ fontSize: '11px', color: '#64748b' }}>
                               {new Date(s.closedAt).toLocaleTimeString('en-US', {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -626,48 +641,56 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                               fontSize: '11px',
                               fontWeight: 700,
                               padding: '2px 8px',
-                              borderRadius: '4px',
+                              borderRadius: '6px',
+                              border: '1px solid #bbf7d0',
                             }}
                           >
                             Active
                           </span>
                         )}
                       </td>
-                      <td style={{ padding: '12px', color: '#334155' }}>
+                      <td style={{ padding: '12px 14px', color: '#334155', fontWeight: 600 }}>
                         {s.cashierName || 'Cashier'}
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>
+                      <td className="tabular-nums" style={{ padding: '12px 14px', textAlign: 'right', color: '#475569' }}>
                         {formatPKR(s.openingCashPaisa)}
                       </td>
                       <td
+                        className="tabular-nums"
                         style={{
-                          padding: '12px',
+                          padding: '12px 14px',
                           textAlign: 'right',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: '#0f172a',
                         }}
                       >
                         {formatPKR(s.salesTotalPaisa)}
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'right', color: '#475569' }}>
+                      <td className="tabular-nums" style={{ padding: '12px 14px', textAlign: 'right', color: '#475569' }}>
                         {formatPKR(s.expectedCashPaisa)}
                       </td>
                       <td
+                        className="tabular-nums"
                         style={{
-                          padding: '12px',
+                          padding: '12px 14px',
                           textAlign: 'right',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: s.countedCashPaisa != null ? '#0f172a' : '#94a3b8',
                         }}
                       >
                         {s.countedCashPaisa != null ? formatPKR(s.countedCashPaisa) : '—'}
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
+                      <td className="tabular-nums" style={{ padding: '12px 14px', textAlign: 'right' }}>
                         {isClosed ? (
                           <span
                             style={{
-                              fontWeight: 700,
-                              color: isBalanced ? '#16a34a' : isShortage ? '#dc2626' : '#2563eb',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              backgroundColor: isBalanced ? '#ecfdf5' : isShortage ? '#fee2e2' : '#eff6ff',
+                              color: isBalanced ? '#047857' : isShortage ? '#b91c1c' : '#1d4ed8',
+                              border: `1px solid ${isBalanced ? '#a7f3d0' : isShortage ? '#fecaca' : '#bfdbfe'}`,
                             }}
                           >
                             {diff > 0 ? '+' : ''}
@@ -677,17 +700,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                           <span style={{ color: '#94a3b8' }}>—</span>
                         )}
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                         <button
                           type="button"
+                          className="interactive-btn"
                           onClick={() => handlePrintZReport(s)}
                           style={{
-                            padding: '4px 10px',
-                            backgroundColor: '#f1f5f9',
+                            padding: '5px 12px',
+                            backgroundColor: '#ffffff',
                             border: '1px solid #cbd5e1',
                             borderRadius: '6px',
                             fontSize: '12px',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             color: '#0f172a',
                             cursor: 'pointer',
                           }}
@@ -707,66 +731,77 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
       {/* Modal: Open Shift */}
       {showOpenModal && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '16px',
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="open-shift-title"
+          className="modal-backdrop"
           onClick={(e) => {
             if (e.target === e.currentTarget && !openingSubmitting) setShowOpenModal(false);
           }}
         >
           <div
+            className="modal-content-card"
             style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
               width: '100%',
-              maxWidth: '440px',
+              maxWidth: '460px',
               overflow: 'hidden',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
             }}
           >
             <div
               style={{
-                padding: '16px 20px',
-                backgroundColor: '#0f172a',
+                padding: '18px 24px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                 color: '#ffffff',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
               }}
             >
-              <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>🚀 Open New Shift</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '20px' }}>🚀</span>
+                <h2 id="open-shift-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
+                  Open New Shift
+                </h2>
+                <kbd className="kbd-cap-dark" style={{ fontSize: '11px', padding: '1px 6px' }}>
+                  Esc
+                </kbd>
+              </div>
               <button
                 type="button"
+                className="interactive-btn"
                 onClick={() => setShowOpenModal(false)}
                 disabled={openingSubmitting}
+                aria-label="Close dialog"
                 style={{
-                  background: 'none',
+                  background: 'rgba(255, 255, 255, 0.1)',
                   border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '20px',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  color: '#cbd5e1',
+                  fontSize: '16px',
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleOpenShift} style={{ padding: '20px' }}>
-              <div style={{ marginBottom: '16px' }}>
+            <form onSubmit={handleOpenShift} style={{ padding: '24px' }}>
+              <div style={{ marginBottom: '18px' }}>
                 <label
                   style={{
                     display: 'block',
                     fontSize: '12px',
-                    fontWeight: 600,
-                    color: '#475569',
+                    fontWeight: 700,
+                    color: '#334155',
                     marginBottom: '6px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                   }}
                 >
                   Opening Cash Float in Till (PKR) *
@@ -781,28 +816,31 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                   placeholder="e.g. 5000"
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '6px',
+                    padding: '12px 14px',
+                    borderRadius: '8px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '16px',
-                    fontWeight: 700,
+                    fontSize: '18px',
+                    fontWeight: 800,
                     boxSizing: 'border-box',
                     outline: 'none',
+                    fontFamily: 'Consolas, monospace',
                   }}
                 />
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                  Starting float: {formatPKR(convertRupeesToPaisa(openingCashInput || '0'))}
+                <div className="tabular-nums" style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                  Starting float: <strong style={{ color: '#0f172a' }}>{formatPKR(convertRupeesToPaisa(openingCashInput || '0'))}</strong>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: '24px' }}>
                 <label
                   style={{
                     display: 'block',
                     fontSize: '12px',
-                    fontWeight: 600,
-                    color: '#475569',
+                    fontWeight: 700,
+                    color: '#334155',
                     marginBottom: '6px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                   }}
                 >
                   Notes / Float Breakdown (Optional)
@@ -814,27 +852,29 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                   placeholder="e.g. 5x 1000, 10x 500 notes"
                   style={{
                     width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
                     border: '1px solid #cbd5e1',
                     fontSize: '13px',
                     boxSizing: 'border-box',
+                    outline: 'none',
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button
                   type="button"
+                  className="interactive-btn"
                   onClick={() => setShowOpenModal(false)}
                   disabled={openingSubmitting}
                   style={{
-                    padding: '8px 16px',
+                    padding: '9px 18px',
                     backgroundColor: '#ffffff',
                     border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
+                    borderRadius: '8px',
                     fontSize: '13px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     color: '#475569',
                     cursor: 'pointer',
                   }}
@@ -843,16 +883,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                 </button>
                 <button
                   type="submit"
+                  className="interactive-btn"
                   disabled={openingSubmitting}
                   style={{
-                    padding: '8px 20px',
-                    backgroundColor: '#16a34a',
+                    padding: '9px 24px',
+                    background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
                     border: 'none',
-                    borderRadius: '6px',
+                    borderRadius: '8px',
                     fontSize: '13px',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     color: '#ffffff',
                     cursor: openingSubmitting ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 4px rgba(5, 150, 105, 0.3)',
                   }}
                 >
                   {openingSubmitting ? 'Opening...' : 'Start Shift'}
@@ -866,58 +908,65 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
       {/* Modal: Close Shift / Day-End */}
       {showCloseModal && currentShift && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '16px',
-          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="close-shift-title"
+          className="modal-backdrop"
           onClick={(e) => {
             if (e.target === e.currentTarget && !closeSubmitting) setShowCloseModal(false);
           }}
         >
           <div
+            className="modal-content-card"
             style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '12px',
               width: '100%',
-              maxWidth: '520px',
+              maxWidth: '540px',
               overflow: 'hidden',
-              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
             }}
           >
             <div
               style={{
                 padding: '18px 24px',
-                backgroundColor: '#0f172a',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                 color: '#ffffff',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
               }}
             >
               <div>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>
-                  🔒 Close Shift & Day-End Reconciliation
-                </h2>
-                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                  Counter: {currentShift.counterName} • Cashier: {currentShift.cashierName}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>🔒</span>
+                  <h2 id="close-shift-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
+                    Close Shift & Reconciliation
+                  </h2>
+                  <kbd className="kbd-cap-dark" style={{ fontSize: '11px', padding: '1px 6px' }}>
+                    Esc
+                  </kbd>
+                </div>
+                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                  Counter: <strong style={{ color: '#ffffff' }}>{currentShift.counterName}</strong> • Cashier: {currentShift.cashierName}
                 </div>
               </div>
               <button
                 type="button"
+                className="interactive-btn"
                 onClick={() => setShowCloseModal(false)}
                 disabled={closeSubmitting}
+                aria-label="Close dialog"
                 style={{
-                  background: 'none',
+                  background: 'rgba(255, 255, 255, 0.1)',
                   border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '20px',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  color: '#cbd5e1',
+                  fontSize: '16px',
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 ✕
@@ -930,24 +979,24 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                 style={{
                   backgroundColor: '#f8fafc',
                   border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  marginBottom: '16px',
+                  borderRadius: '10px',
+                  padding: '16px 20px',
+                  marginBottom: '18px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>(+) Opening Float:</span>
-                  <span style={{ fontSize: '12px', fontWeight: 600 }}>{formatPKR(currentShift.openingCashPaisa)}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                  <span style={{ color: '#64748b' }}>(+) Opening Float:</span>
+                  <span className="tabular-nums" style={{ fontWeight: 600 }}>{formatPKR(currentShift.openingCashPaisa)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '12px', color: '#16a34a' }}>(+) Total Cash Sales:</span>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#16a34a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                  <span style={{ color: '#047857' }}>(+) Total Cash Sales:</span>
+                  <span className="tabular-nums" style={{ fontWeight: 700, color: '#047857' }}>
                     {formatPKR(currentShift.salesCashPaisa)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '12px', color: '#dc2626' }}>(-) Total Cash Refunds:</span>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#dc2626' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px' }}>
+                  <span style={{ color: '#b91c1c' }}>(-) Total Cash Refunds:</span>
+                  <span className="tabular-nums" style={{ fontWeight: 700, color: '#b91c1c' }}>
                     {formatPKR(currentShift.returnsCashPaisa)}
                   </span>
                 </div>
@@ -957,13 +1006,13 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     borderTop: '1px dashed #cbd5e1',
-                    paddingTop: '8px',
+                    paddingTop: '10px',
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
                     System Expected Cash:
                   </span>
-                  <span style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                  <span className="tabular-nums" style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
                     {formatPKR(currentShift.expectedCashPaisa)}
                   </span>
                 </div>
@@ -978,6 +1027,8 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                     fontWeight: 700,
                     color: '#1e293b',
                     marginBottom: '6px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                   }}
                 >
                   Physical Counted Cash in Drawer (PKR) *
@@ -995,11 +1046,12 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                     width: '100%',
                     padding: '12px 14px',
                     borderRadius: '8px',
-                    border: '2px solid #0284c7',
-                    fontSize: '18px',
+                    border: '2px solid #6366f1',
+                    fontSize: '20px',
                     fontWeight: 800,
                     boxSizing: 'border-box',
                     outline: 'none',
+                    fontFamily: 'Consolas, monospace',
                   }}
                 />
               </div>
@@ -1007,44 +1059,44 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
               {/* Discrepancy Alert */}
               <div
                 style={{
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  marginBottom: '16px',
+                  padding: '14px 18px',
+                  borderRadius: '10px',
+                  marginBottom: '18px',
                   border: '1px solid',
                   backgroundColor:
                     modalDifferencePaisa === 0
                       ? '#ecfdf5'
                       : modalDifferencePaisa < 0
-                      ? '#fef2f2'
+                      ? '#fff1f2'
                       : '#eff6ff',
                   borderColor:
                     modalDifferencePaisa === 0
                       ? '#a7f3d0'
                       : modalDifferencePaisa < 0
-                      ? '#fecaca'
+                      ? '#fecdd3'
                       : '#bfdbfe',
                   color:
                     modalDifferencePaisa === 0
                       ? '#065f46'
                       : modalDifferencePaisa < 0
-                      ? '#991b1b'
+                      ? '#9f1239'
                       : '#1e40af',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700 }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800 }}>
                     {modalDifferencePaisa === 0
                       ? '✅ Cash Drawer Balanced'
                       : modalDifferencePaisa < 0
                       ? '⚠️ Cash Shortage Detected'
                       : 'ℹ️ Cash Overage Detected'}
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: 800 }}>
+                  <span className="tabular-nums" style={{ fontSize: '18px', fontWeight: 900 }}>
                     {modalDifferencePaisa > 0 ? '+' : ''}
                     {formatPKR(modalDifferencePaisa)}
                   </span>
                 </div>
-                <div style={{ fontSize: '11px', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', marginTop: '4px' }}>
                   {modalDifferencePaisa === 0
                     ? 'Physical cash matches system expected amount exactly.'
                     : modalDifferencePaisa < 0
@@ -1054,14 +1106,16 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
               </div>
 
               {/* Close Notes */}
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: '24px' }}>
                 <label
                   style={{
                     display: 'block',
                     fontSize: '12px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     color: '#475569',
                     marginBottom: '6px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
                   }}
                 >
                   Closing Notes / Discrepancy Reason
@@ -1073,28 +1127,30 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                   placeholder="Explain any shortage or overage notes..."
                   style={{
                     width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
                     border: '1px solid #cbd5e1',
                     fontSize: '13px',
                     boxSizing: 'border-box',
                     resize: 'none',
+                    outline: 'none',
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button
                   type="button"
+                  className="interactive-btn"
                   onClick={() => setShowCloseModal(false)}
                   disabled={closeSubmitting}
                   style={{
-                    padding: '9px 16px',
+                    padding: '9px 18px',
                     backgroundColor: '#ffffff',
                     border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
+                    borderRadius: '8px',
                     fontSize: '13px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     color: '#475569',
                     cursor: 'pointer',
                   }}
@@ -1103,16 +1159,18 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
                 </button>
                 <button
                   type="submit"
+                  className="interactive-btn"
                   disabled={closeSubmitting}
                   style={{
-                    padding: '9px 22px',
-                    backgroundColor: '#dc2626',
+                    padding: '9px 24px',
+                    background: 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)',
                     border: 'none',
-                    borderRadius: '6px',
+                    borderRadius: '8px',
                     fontSize: '13px',
-                    fontWeight: 700,
+                    fontWeight: 800,
                     color: '#ffffff',
                     cursor: closeSubmitting ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 4px rgba(225, 29, 72, 0.3)',
                   }}
                 >
                   {closeSubmitting ? 'Sealing Shift...' : 'Confirm & Seal Shift'}

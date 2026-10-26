@@ -57,15 +57,16 @@ export const PinPad: React.FC<PinPadProps> = ({
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '280px' }}>
-      {/* Masked PIN Display */}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '290px' }}>
+      {/* Masked PIN Display with Glow */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: '10px',
+          gap: '12px',
           margin: '16px 0 24px 0',
-          minHeight: '28px',
+          minHeight: '32px',
+          alignItems: 'center',
         }}
       >
         {[...Array(Math.max(4, pin.length))].map((_, index) => {
@@ -74,13 +75,14 @@ export const PinPad: React.FC<PinPadProps> = ({
             <div
               key={index}
               style={{
-                width: '18px',
-                height: '18px',
+                width: filled ? '16px' : '14px',
+                height: filled ? '16px' : '14px',
                 borderRadius: '50%',
                 border: filled ? '2px solid #2563eb' : '2px solid #cbd5e1',
-                backgroundColor: filled ? '#2563eb' : '#f8fafc',
-                transition: 'all 0.15s ease-in-out',
-                transform: filled ? 'scale(1.1)' : 'scale(1)',
+                background: filled ? '#2563eb' : '#ffffff',
+                boxShadow: filled ? '0 0 8px rgba(37, 99, 235, 0.4)' : 'none',
+                transition: 'all 0.15s var(--ease-spring)',
+                transform: filled ? 'scale(1.15)' : 'scale(1)',
               }}
             />
           );
@@ -92,7 +94,7 @@ export const PinPad: React.FC<PinPadProps> = ({
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '12px',
+          gap: '10px',
           width: '100%',
         }}
       >
@@ -100,24 +102,9 @@ export const PinPad: React.FC<PinPadProps> = ({
           <button
             key={digit}
             type="button"
+            className="pinpad-btn"
             disabled={disabled}
             onClick={() => handleDigit(digit)}
-            style={{
-              height: '56px',
-              fontSize: '22px',
-              fontWeight: 600,
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              color: '#1e293b',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-              transition: 'background-color 0.1s, transform 0.05s',
-              userSelect: 'none',
-            }}
-            onMouseDown={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
-            onMouseUp={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
           >
             {digit}
           </button>
@@ -126,18 +113,16 @@ export const PinPad: React.FC<PinPadProps> = ({
         {/* Bottom row: Clear, 0, Backspace */}
         <button
           type="button"
+          className="pinpad-btn"
           disabled={disabled || pin.length === 0}
           onClick={handleClear}
           style={{
-            height: '56px',
-            fontSize: '13px',
-            fontWeight: 600,
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#f8fafc',
-            color: '#64748b',
-            cursor: disabled || pin.length === 0 ? 'not-allowed' : 'pointer',
-            userSelect: 'none',
+            fontSize: '11.5px',
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+            color: pin.length > 0 ? '#e11d48' : '#94a3b8',
+            backgroundColor: pin.length > 0 ? '#fff1f2' : '#f8fafc',
+            borderColor: pin.length > 0 ? '#fecdd3' : '#e2e8f0',
           }}
         >
           CLEAR
@@ -145,41 +130,21 @@ export const PinPad: React.FC<PinPadProps> = ({
 
         <button
           type="button"
+          className="pinpad-btn"
           disabled={disabled}
           onClick={() => handleDigit('0')}
-          style={{
-            height: '56px',
-            fontSize: '22px',
-            fontWeight: 600,
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            color: '#1e293b',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-            userSelect: 'none',
-          }}
-          onMouseDown={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
-          onMouseUp={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
         >
           0
         </button>
 
         <button
           type="button"
+          className="pinpad-btn"
           disabled={disabled || pin.length === 0}
           onClick={handleBackspace}
           style={{
-            height: '56px',
-            fontSize: '16px',
-            fontWeight: 600,
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#f8fafc',
-            color: '#64748b',
-            cursor: disabled || pin.length === 0 ? 'not-allowed' : 'pointer',
-            userSelect: 'none',
+            fontSize: '18px',
+            color: pin.length > 0 ? '#475569' : '#94a3b8',
           }}
           title="Backspace"
         >
@@ -187,28 +152,46 @@ export const PinPad: React.FC<PinPadProps> = ({
         </button>
       </div>
 
-      {/* Enter / Submit Button */}
+      {/* Enter / Submit Button with Accessible Contrast */}
       <button
         type="button"
+        className="interactive-btn"
         disabled={disabled || pin.length < 4}
         onClick={onSubmit}
         style={{
           marginTop: '16px',
           width: '100%',
           height: '48px',
-          fontSize: '16px',
-          fontWeight: 600,
-          borderRadius: '8px',
-          border: 'none',
-          backgroundColor: pin.length >= 4 && !disabled ? '#2563eb' : '#94a3b8',
-          color: '#ffffff',
+          fontSize: '14px',
+          fontWeight: 700,
+          borderRadius: '10px',
+          border: pin.length >= 4 && !disabled ? '1px solid #1d4ed8' : '1px solid #e2e8f0',
+          backgroundColor: pin.length >= 4 && !disabled ? '#2563eb' : '#f1f5f9',
+          color: pin.length >= 4 && !disabled ? '#ffffff' : '#64748b',
           cursor: pin.length >= 4 && !disabled ? 'pointer' : 'not-allowed',
-          boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)',
-          transition: 'background-color 0.15s',
-          userSelect: 'none',
+          boxShadow: pin.length >= 4 && !disabled ? '0 4px 12px rgba(37, 99, 235, 0.28)' : 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px',
+          transition: 'all 0.15s ease',
         }}
       >
-        Submit PIN (Enter)
+        <span>Submit PIN</span>
+        <kbd
+          style={{
+            fontSize: '10.5px',
+            fontWeight: 700,
+            padding: '2px 6px',
+            borderRadius: '5px',
+            backgroundColor: pin.length >= 4 && !disabled ? 'rgba(255, 255, 255, 0.2)' : '#ffffff',
+            border: pin.length >= 4 && !disabled ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #cbd5e1',
+            color: pin.length >= 4 && !disabled ? '#ffffff' : '#64748b',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          Enter ↵
+        </kbd>
       </button>
     </div>
   );

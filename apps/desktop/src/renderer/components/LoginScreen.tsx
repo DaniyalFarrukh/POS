@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { PublicUser, AuthSession } from '@pos/shared';
 import { PinPad } from './PinPad';
+import { BrandLogo, ShieldCheckIcon } from './common/Icons';
 
 interface LoginScreenProps {
   onLoginSuccess: (session: AuthSession) => void;
@@ -61,11 +62,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'owner':
-        return { bg: '#fef3c7', text: '#92400e', border: '#fde68a' };
+        return { bg: '#fef3c7', text: '#92400e', border: '#fde68a', label: 'SUPER ADMIN' };
       case 'pharmacist':
-        return { bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' };
+        return { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe', label: 'PHARMACIST' };
       default:
-        return { bg: '#dcfce7', text: '#166534', border: '#bbf7d0' };
+        return { bg: '#ecfdf5', text: '#047857', border: '#a7f3d0', label: 'CASHIER' };
     }
   };
 
@@ -79,6 +80,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         backgroundColor: '#f1f5f9',
         padding: '24px',
         boxSizing: 'border-box',
+        fontFamily: 'var(--font-sans)',
       }}
     >
       <div
@@ -87,69 +89,74 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           maxWidth: '860px',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+          boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(226, 232, 240, 0.8)',
           border: '1px solid #e2e8f0',
           overflow: 'hidden',
         }}
       >
-        {/* Terminal Header */}
+        {/* Terminal Header with Human-Made Brand Logo */}
         <div
           style={{
-            padding: '24px 32px',
-            borderBottom: '1px solid #e2e8f0',
+            padding: '20px 32px',
+            borderBottom: '1px solid #f1f5f9',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             backgroundColor: '#ffffff',
           }}
         >
-          <div>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
-              POS Terminal Login
-            </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-              Select your staff profile and enter your PIN
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <BrandLogo size={38} showText={true} textSubtitle="Clinical Pharmacy Terminal" />
           </div>
+
           <div
             style={{
               padding: '6px 14px',
               borderRadius: '9999px',
               fontSize: '12px',
-              fontWeight: 600,
+              fontWeight: 700,
               backgroundColor: '#f8fafc',
               color: '#334155',
               border: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            Offline Mode • Local WAL
+            <ShieldCheckIcon size={15} color="#059669" />
+            <span>Local SQLite WAL Active</span>
           </div>
         </div>
 
         {error && (
           <div
+            className="shake-animation"
             style={{
-              margin: '16px 32px 0 32px',
+              margin: '18px 32px 0 32px',
               padding: '12px 16px',
-              backgroundColor: '#fef2f2',
-              color: '#b91c1c',
-              border: '1px solid #fecaca',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 500,
+              backgroundColor: '#fff1f2',
+              color: '#be123c',
+              border: '1px solid #fecdd3',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            {error}
+            <span style={{ fontWeight: 800 }}>Notice:</span>
+            <span>{error}</span>
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', padding: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '28px', padding: '28px 32px' }}>
           {/* User Selection List */}
           <div>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '14px' }}>
-              Choose Account:
+            <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Select Account
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {users.map((user) => {
                 const isSelected = selectedUser?.id === user.id;
                 const badge = getRoleBadgeStyle(user.role);
@@ -157,6 +164,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 return (
                   <div
                     key={user.id}
+                    className="interactive-btn"
                     onClick={() => {
                       setSelectedUser(user);
                       setPin('');
@@ -166,55 +174,54 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '14px 18px',
-                      borderRadius: '10px',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
                       border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
                       backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                      boxShadow: isSelected ? '0 2px 8px rgba(37, 99, 235, 0.1)' : 'var(--shadow-sm)',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      boxShadow: isSelected ? '0 2px 4px rgba(37, 99, 235, 0.1)' : 'none',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div
                         style={{
-                          width: '40px',
-                          height: '40px',
+                          width: '38px',
+                          height: '38px',
                           borderRadius: '50%',
-                          backgroundColor: isSelected ? '#2563eb' : '#e2e8f0',
+                          background: isSelected ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#f1f5f9',
                           color: isSelected ? '#ffffff' : '#475569',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: '16px',
+                          fontWeight: 800,
+                          fontSize: '15px',
                         }}
                       >
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b' }}>
+                        <div style={{ fontWeight: 700, fontSize: '14.5px', color: '#0f172a' }}>
                           {user.name}
                         </div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>
-                          Terminal User
+                        <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 500 }}>
+                          Staff Member
                         </div>
                       </div>
                     </div>
 
                     <span
                       style={{
-                        padding: '3px 10px',
+                        padding: '3px 8px',
                         borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 600,
+                        fontSize: '10.5px',
+                        fontWeight: 800,
                         backgroundColor: badge.bg,
                         color: badge.text,
                         border: `1px solid ${badge.border}`,
-                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
                       }}
                     >
-                      {user.role}
+                      {badge.label}
                     </span>
                   </div>
                 );
@@ -230,17 +237,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: '#f8fafc',
-              padding: '24px',
-              borderRadius: '12px',
+              padding: '24px 20px',
+              borderRadius: '16px',
               border: '1px solid #e2e8f0',
             }}
           >
             {selectedUser ? (
               <>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: '#1e293b', marginBottom: '2px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b', marginBottom: '2px' }}>
                   {selectedUser.name}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
+                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: 500 }}>
                   Enter PIN to unlock terminal
                 </div>
 
@@ -252,7 +259,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 />
               </>
             ) : (
-              <div style={{ color: '#94a3b8', fontSize: '14px' }}>Select an account to log in</div>
+              <div style={{ color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>Select an account to log in</div>
             )}
           </div>
         </div>

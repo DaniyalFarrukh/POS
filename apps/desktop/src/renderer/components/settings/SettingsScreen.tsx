@@ -304,18 +304,22 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
       {/* Top Header */}
       <div
         style={{
-          padding: '16px 24px',
+          padding: '18px 28px',
           backgroundColor: '#ffffff',
           borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-            {t.settingsTitle}
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>⚙️</span>
+            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+              {t.settingsTitle}
+            </h1>
+          </div>
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
             {t.settingsDesc}
           </p>
@@ -323,18 +327,24 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             type="button"
+            className="interactive-btn"
             onClick={() => setLocale(locale === 'en' ? 'ur' : 'en')}
             style={{
-              padding: '6px 12px',
-              backgroundColor: '#e2e8f0',
+              padding: '7px 14px',
+              backgroundColor: '#f1f5f9',
               border: '1px solid #cbd5e1',
-              borderRadius: '6px',
+              borderRadius: '8px',
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            🌐 {locale === 'en' ? 'اردو' : 'English'}
+            <span>🌐</span>
+            <span>{locale === 'en' ? 'اردو' : 'English'}</span>
           </button>
         </div>
       </div>
@@ -343,38 +353,48 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
       <div
         style={{
           display: 'flex',
-          gap: '4px',
-          padding: '8px 24px 0 24px',
+          gap: '6px',
+          padding: '10px 28px',
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid #cbd5e1',
+          borderBottom: '1px solid #e2e8f0',
         }}
       >
         {[
-          { id: 'general', label: t.tabGeneral },
-          { id: 'hardware', label: t.tabHardware },
-          { id: 'scanner', label: t.tabScanner },
-          { id: 'shortcuts', label: t.tabShortcuts },
-          { id: 'backup', label: t.tabBackup },
-          { id: 'diagnostics', label: t.tabDiagnostics },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            style={{
-              padding: '10px 16px',
-              border: 'none',
-              background: 'none',
-              borderBottom: activeTab === tab.id ? '3px solid #2563eb' : '3px solid transparent',
-              color: activeTab === tab.id ? '#2563eb' : '#64748b',
-              fontWeight: activeTab === tab.id ? 700 : 500,
-              fontSize: '14px',
-              cursor: 'pointer',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { id: 'general', label: t.tabGeneral, icon: '⚙️' },
+          { id: 'hardware', label: t.tabHardware, icon: '🖨️' },
+          { id: 'scanner', label: t.tabScanner, icon: '⚡' },
+          { id: 'shortcuts', label: t.tabShortcuts, icon: '⌨️' },
+          { id: 'backup', label: t.tabBackup, icon: '💾' },
+          { id: 'diagnostics', label: t.tabDiagnostics, icon: '🩺' },
+        ].map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              className="interactive-btn"
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '8px',
+                backgroundColor: isActive ? '#4f46e5' : 'transparent',
+                color: isActive ? '#ffffff' : '#64748b',
+                fontWeight: isActive ? 800 : 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: isActive ? '0 2px 4px rgba(79, 70, 229, 0.25)' : 'none',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab Contents */}
@@ -937,105 +957,152 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
       {/* RESTORE CONFIRMATION MODAL */}
       {restoreModalFile && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '16px',
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="restore-modal-title"
+          className="modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setRestoreModalFile(null);
+              setOwnerPinInput('');
+              setRestoreError(null);
+            }
           }}
         >
           <div
             dir={isRtl ? 'rtl' : 'ltr'}
+            className="modal-content-card"
             style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '8px',
-              maxWidth: '500px',
+              maxWidth: '520px',
               width: '100%',
-              padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+              overflow: 'hidden',
             }}
           >
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: 700, color: '#dc2626' }}>
-              ⚠ {t.restoreModalTitle}
-            </h3>
-
-            <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.5, marginBottom: '16px' }}>
-              {t.restoreModalWarning}
-            </p>
-
-            <div style={{ backgroundColor: '#f8fafc', padding: '10px', borderRadius: '6px', marginBottom: '16px', fontSize: '12px', fontFamily: 'monospace' }}>
-              File: {restoreModalFile}
-            </div>
-
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-              {t.restoreOwnerPinPrompt}
-            </label>
-            <input
-              type="password"
-              maxLength={8}
-              autoFocus
-              value={ownerPinInput}
-              onChange={(e) => setOwnerPinInput(e.target.value)}
-              placeholder="••••"
+            <div
               style={{
-                width: '100%',
-                padding: '8px 12px',
-                fontSize: '18px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                marginBottom: '16px',
-                textAlign: 'center',
-                letterSpacing: '4px',
+                padding: '18px 24px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
               }}
-            />
-
-            {restoreError && (
-              <div style={{ fontSize: '13px', color: '#dc2626', marginBottom: '16px' }}>
-                {restoreError}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '20px' }}>⚠️</span>
+                <h3 id="restore-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#fca5a5' }}>
+                  {t.restoreModalTitle}
+                </h3>
               </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
+                className="interactive-btn"
                 onClick={() => {
                   setRestoreModalFile(null);
                   setOwnerPinInput('');
                   setRestoreError(null);
                 }}
+                aria-label="Close dialog"
                 style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f1f5f9',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                {t.cancel}
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmRestore}
-                disabled={!ownerPinInput}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#dc2626',
-                  color: '#ffffff',
+                  background: 'rgba(255, 255, 255, 0.1)',
                   border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: !ownerPinInput ? 'not-allowed' : 'pointer',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  color: '#cbd5e1',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {t.restoreConfirmButton}
+                ✕
               </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.5, marginBottom: '16px' }}>
+                {t.restoreModalWarning}
+              </p>
+
+              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '18px', fontSize: '12px', fontFamily: 'monospace', color: '#0f172a' }}>
+                File: <strong>{restoreModalFile}</strong>
+              </div>
+
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {t.restoreOwnerPinPrompt}
+              </label>
+              <input
+                type="password"
+                maxLength={8}
+                autoFocus
+                value={ownerPinInput}
+                onChange={(e) => setOwnerPinInput(e.target.value)}
+                placeholder="••••"
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  fontSize: '22px',
+                  borderRadius: '8px',
+                  border: '2px solid #e11d48',
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                  letterSpacing: '6px',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                }}
+              />
+
+              {restoreError && (
+                <div style={{ fontSize: '13px', color: '#dc2626', marginBottom: '16px', fontWeight: 700 }}>
+                  ⚠️ {restoreError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="interactive-btn"
+                  onClick={() => {
+                    setRestoreModalFile(null);
+                    setOwnerPinInput('');
+                    setRestoreError(null);
+                  }}
+                  style={{
+                    padding: '9px 18px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#475569',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  type="button"
+                  className="interactive-btn"
+                  onClick={handleConfirmRestore}
+                  disabled={!ownerPinInput}
+                  style={{
+                    padding: '9px 22px',
+                    background: ownerPinInput ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)' : '#cbd5e1',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: !ownerPinInput ? 'not-allowed' : 'pointer',
+                    boxShadow: ownerPinInput ? '0 2px 4px rgba(225, 29, 72, 0.3)' : 'none',
+                  }}
+                >
+                  {t.restoreConfirmButton}
+                </button>
+              </div>
             </div>
           </div>
         </div>

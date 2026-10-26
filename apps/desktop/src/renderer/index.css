@@ -14,6 +14,71 @@
   src: url('./assets/fonts/noto-nastaliq-urdu-arabic-700-normal.woff2') format('woff2');
 }
 
+:root {
+  /* Design Tokens: Color Palette (Zendenta Clinical Royal Blue) */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #2563eb;
+  --primary-600: #1d4ed8;
+  --primary-700: #1e40af;
+  --primary-800: #1e3a8a;
+  --primary-900: #172554;
+
+  --success-50: #ecfdf5;
+  --success-100: #d1fae5;
+  --success-200: #a7f3d0;
+  --success-500: #10b981;
+  --success-600: #059669;
+  --success-700: #047857;
+
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-200: #fde68a;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  --warning-700: #b45309;
+
+  --danger-50: #fff1f2;
+  --danger-100: #ffe4e6;
+  --danger-200: #fecdd3;
+  --danger-500: #f43f5e;
+  --danger-600: #e11d48;
+  --danger-700: #be123c;
+
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'SF Mono', monospace;
+
+  /* Elevations */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-primary-glow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  --shadow-success-glow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  --shadow-danger-glow: 0 0 0 3px rgba(244, 63, 94, 0.25);
+
+  /* Transitions */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -23,15 +88,256 @@ html, body {
   padding: 0;
   height: 100%;
   width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  background-color: #f8fafc;
-  color: #0f172a;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  background-color: var(--slate-100);
+  color: var(--slate-900);
+  user-select: none;
+}
+
+/* Tabular numbers for all financial, quantities, barcodes */
+.tabular-nums,
+[data-tabular-nums] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border-radius: 9999px;
+  transition: background 0.15s var(--ease-smooth);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-400);
+}
+
+/* Keyboard Shortcut Keycap */
+.kbd-cap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--slate-100);
+  color: var(--slate-700);
+  border: 1px solid var(--slate-300);
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.08);
+  line-height: 1.2;
+}
+
+.kbd-cap-dark {
+  background: var(--slate-800);
+  color: #38bdf8;
+  border: 1px solid var(--slate-600);
+  box-shadow: 0 1px 0 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Interactive Button Hover & Press Dynamics */
+.interactive-btn {
+  transition: transform 0.12s var(--ease-spring), box-shadow 0.15s var(--ease-smooth), background-color 0.15s var(--ease-smooth), border-color 0.15s var(--ease-smooth);
+  cursor: pointer;
+}
+
+.interactive-btn:active:not(:disabled) {
+  transform: scale(0.975) translateY(1px);
+}
+
+.interactive-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-primary-glow);
+}
+
+/* Tactile PIN Pad Key */
+.pinpad-btn {
+  height: 56px;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  border-radius: 12px;
+  border: 1px solid var(--slate-200);
+  background: #ffffff;
+  color: var(--slate-800);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.12s var(--ease-spring);
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pinpad-btn:hover:not(:disabled) {
+  background: var(--slate-50);
+  border-color: var(--primary-300);
+  color: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.12);
+}
+
+.pinpad-btn:active:not(:disabled) {
+  transform: scale(0.94) translateY(2px);
+  background: var(--primary-50);
+  border-color: var(--primary-500);
+  box-shadow: none;
+}
+
+.pinpad-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Modal Backdrop & Animations conforming to modern web guidance */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  opacity: 1;
+  transition: opacity 0.25s var(--ease-smooth);
+}
+
+.modal-content-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  transform: scale(1) translateY(0);
+  transition: transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
+}
+
+@starting-style {
+  .modal-backdrop {
+    opacity: 0;
+  }
+  .modal-content-card {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+}
+
+/* Micro-Pulse for Live Sync Dot */
+@keyframes statusGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+}
+
+.pulse-green-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--success-500);
+  animation: statusGlow 2.5s infinite var(--ease-smooth);
+}
+
+/* Floating Toast Notification Animation */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.toast-slide-in {
+  animation: toastSlideIn 0.25s var(--ease-spring) forwards;
+}
+
+/* Shake Animation for Invalid PIN or Error */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.shake-animation {
+  animation: errorShake 0.4s var(--ease-spring);
+}
+
+/* Cart Table Row Hover & Selection */
+.cart-row {
+  transition: background-color 0.12s var(--ease-smooth), border-left-color 0.12s var(--ease-smooth);
+  border-left: 3px solid transparent;
+}
+
+.cart-row:hover {
+  background-color: #f8fafc !important;
+}
+
+.cart-row.selected {
+  background-color: #f0fdf4 !important;
+  border-left-color: var(--success-500) !important;
+}
+
+/* Hero Grand Total Glow Animation */
+.pay-btn-hero {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.35);
+  transition: all 0.15s var(--ease-spring);
+  position: relative;
+  overflow: hidden;
+}
+
+.pay-btn-hero:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.45);
+  transform: translateY(-1px);
+}
+
+.pay-btn-hero:active:not(:disabled) {
+  transform: scale(0.98) translateY(1px);
+  box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.3);
+}
+
+.pay-btn-hero:disabled {
+  background: var(--slate-300);
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* RTL layout support for Urdu */
 [dir="rtl"] {
-  font-family: 'Noto Nastaliq Urdu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+  font-family: 'Noto Nastaliq Urdu', var(--font-sans);
   letter-spacing: normal;
 }
 
@@ -45,13 +351,201 @@ html, body {
 [dir="rtl"] input[type="password"],
 [dir="rtl"] .ltr-override,
 [dir="rtl"] .barcode-input,
-[dir="rtl"] .code-font {
+[dir="rtl"] .code-font,
+[dir="rtl"] .tabular-nums {
   direction: ltr;
   text-align: left;
 }
 
-/* Low-end PC optimization: smooth scroll and hardware acceleration hints */
+/* Zendenta Modern Clinical SaaS Components */
+.search-pill {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 8px 16px 8px 38px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.search-pill:focus {
+  background-color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.search-pill::placeholder {
+  color: #94a3b8;
+}
+
+/* Zendenta Underline Sub-Tabs */
+.tab-underline {
+  position: relative;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #64748b;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.tab-underline:hover {
+  color: #0f172a;
+}
+
+.tab-underline.active {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.tab-underline.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background-color: #2563eb;
+  border-radius: 2px 2px 0 0;
+}
+
+/* Zendenta Pastel Status Badges */
+.badge-teal {
+  background-color: #ccfbf1;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-purple {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-blue {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-amber {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-rose {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-emerald {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Sidebar Section Header */
+.sidebar-section-header {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 12px 14px 4px 14px;
+  user-select: none;
+}
+
+/* Kebab Menu Action Button */
+.kebab-btn {
+  background: transparent;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.kebab-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Low-end PC optimization & accessibility */
 .virtual-scroll-container {
   overflow-y: auto;
   contain: content;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pulse-green-dot {
+    animation: none;
+  }
 }

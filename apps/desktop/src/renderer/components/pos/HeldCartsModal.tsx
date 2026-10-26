@@ -38,33 +38,17 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="held-carts-modal-title"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.6)',
-        backdropFilter: 'blur(3px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50,
-        padding: '24px',
-      }}
+      className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
+        className="modal-content-card"
         style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          width: '680px',
+          width: '700px',
           maxWidth: '100%',
-          maxHeight: '85vh',
-          display: 'flex',
-          flexDirection: 'column',
-          border: '1px solid #cbd5e1',
-          overflow: 'hidden',
+          maxHeight: '88vh',
         }}
       >
         <div
@@ -77,25 +61,33 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
             alignItems: 'center',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '18px' }}>🛒</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>🛒</span>
             <h3
               id="held-carts-modal-title"
-              style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#0f172a' }}
+              style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}
             >
-              Park / Recall Transactions (F4)
+              Park / Recall Transactions
             </h3>
+            <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 5px' }}>F4</kbd>
           </div>
           <button
             type="button"
+            className="interactive-btn"
             onClick={onClose}
             aria-label="Close dialog"
             style={{
               background: 'transparent',
               border: 'none',
-              fontSize: '18px',
+              borderRadius: '6px',
+              width: '30px',
+              height: '30px',
+              fontSize: '16px',
               color: '#64748b',
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             ✕
@@ -107,20 +99,20 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
           {activeLines.length > 0 && (
             <div
               style={{
-                backgroundColor: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: '8px',
-                padding: '16px',
+                backgroundColor: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                borderRadius: '12px',
+                padding: '16px 18px',
                 marginBottom: '20px',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: 700, color: '#166534', fontSize: '14px' }}>
-                    Park Active Cart ({activeLines.length} items • {formatPKR(grandTotalPaisa)})
+                  <div style={{ fontWeight: 800, color: '#065f46', fontSize: '14px' }}>
+                    Park Active Cart ({activeLines.length} items • <span className="tabular-nums">{formatPKR(grandTotalPaisa)}</span>)
                   </div>
-                  <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
-                    Patient: {customer.name || 'Walk-in'}
+                  <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px', fontWeight: 500 }}>
+                    Patient: {customer.name || 'Walk-in Customer'}
                   </div>
                 </div>
               </div>
@@ -133,24 +125,28 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
                   onChange={(e) => setParkNote(e.target.value)}
                   style={{
                     flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid #86efac',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #a7f3d0',
                     fontSize: '13px',
+                    backgroundColor: '#ffffff',
+                    outline: 'none',
                   }}
                 />
                 <button
                   type="submit"
+                  className="interactive-btn"
                   style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#16a34a',
+                    padding: '9px 18px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                     color: '#ffffff',
                     border: 'none',
-                    borderRadius: '6px',
-                    fontWeight: 600,
+                    borderRadius: '8px',
+                    fontWeight: 700,
                     fontSize: '13px',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(16, 185, 129, 0.25)',
                   }}
                 >
                   Park Cart
@@ -161,22 +157,22 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
 
           {/* Held Carts List */}
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '10px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Parked Transactions ({heldCarts.length})
             </div>
 
             {heldCarts.length === 0 ? (
               <div
                 style={{
-                  padding: '32px',
+                  padding: '36px 20px',
                   textAlign: 'center',
                   color: '#94a3b8',
-                  border: '1px dashed #cbd5e1',
-                  borderRadius: '8px',
+                  border: '2px dashed #cbd5e1',
+                  borderRadius: '12px',
                   fontSize: '13px',
                 }}
               >
-                No parked carts in memory. Press F4 whenever you need to serve another customer while keeping an existing cart open.
+                No parked carts in memory. Press <kbd className="kbd-cap">F4</kbd> whenever you need to serve another customer while keeping an existing cart open.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -185,27 +181,28 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
                     key={held.id}
                     style={{
                       border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '14px 16px',
+                      borderRadius: '10px',
+                      padding: '14px 18px',
                       backgroundColor: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      boxShadow: 'var(--shadow-sm)',
                     }}
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>
+                        <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>
                           {held.customer.name || 'Walk-in Customer'}
                         </span>
-                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        <span className="tabular-nums" style={{ fontSize: '11px', color: '#64748b' }}>
                           • {held.heldAt}
                         </span>
                       </div>
                       <div style={{ fontSize: '12px', color: '#475569', marginTop: '3px' }}>
-                        {held.cartLines.length} items • <strong>{formatPKR(held.totalPaisa)}</strong>
+                        {held.cartLines.length} items • <strong className="tabular-nums">{formatPKR(held.totalPaisa)}</strong>
                         {held.note && (
-                          <span style={{ marginLeft: '10px', color: '#0284c7', fontStyle: 'italic' }}>
+                          <span style={{ marginLeft: '10px', color: '#4f46e5', fontStyle: 'italic', fontWeight: 600 }}>
                             "{held.note}"
                           </span>
                         )}
@@ -215,34 +212,37 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button
                         type="button"
+                        className="interactive-btn"
                         onClick={() => {
                           onRecallCart(held);
                           onClose();
                         }}
                         style={{
-                          padding: '7px 14px',
-                          backgroundColor: '#2563eb',
+                          padding: '8px 16px',
+                          background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
                           color: '#ffffff',
                           border: 'none',
-                          borderRadius: '6px',
+                          borderRadius: '8px',
                           fontSize: '12px',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(79, 70, 229, 0.25)',
                         }}
                       >
                         Recall Cart
                       </button>
                       <button
                         type="button"
+                        className="interactive-btn"
                         onClick={() => onDeleteHeldCart(held.id)}
                         style={{
-                          padding: '7px 10px',
-                          backgroundColor: '#fee2e2',
-                          color: '#b91c1c',
-                          border: '1px solid #fca5a5',
-                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          backgroundColor: '#fff1f2',
+                          color: '#be123c',
+                          border: '1px solid #fecdd3',
+                          borderRadius: '8px',
                           fontSize: '12px',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           cursor: 'pointer',
                         }}
                       >
@@ -258,7 +258,7 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
 
         <div
           style={{
-            padding: '12px 24px',
+            padding: '14px 24px',
             backgroundColor: '#f8fafc',
             borderTop: '1px solid #e2e8f0',
             display: 'flex',
@@ -267,14 +267,15 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
         >
           <button
             type="button"
+            className="interactive-btn"
             onClick={onClose}
             style={{
               padding: '8px 18px',
               backgroundColor: '#ffffff',
               border: '1px solid #cbd5e1',
-              borderRadius: '6px',
+              borderRadius: '8px',
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 700,
               color: '#475569',
               cursor: 'pointer',
             }}

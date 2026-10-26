@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { SetupInput, AuthSession } from '@pos/shared';
 import { PinPad } from './PinPad';
+import { BrandLogo } from './common/Icons';
 
 interface SetupScreenProps {
   onSetupComplete: (session: AuthSession) => void;
@@ -61,29 +62,35 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
           width: '100%',
           maxWidth: '820px',
           backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          borderRadius: '16px',
+          boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(226, 232, 240, 0.8)',
           border: '1px solid #e2e8f0',
           overflow: 'hidden',
         }}
       >
-        {/* Header */}
+        {/* Header with Human-Made Brand Logo */}
         <div
           style={{
-            padding: '28px 32px 20px 32px',
+            padding: '24px 32px 20px 32px',
             borderBottom: '1px solid #e2e8f0',
             backgroundColor: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'inline-block', padding: '4px 10px', backgroundColor: '#eff6ff', color: '#1d4ed8', borderRadius: '6px', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
-            INITIAL SETUP WIZARD
+          <div>
+            <div style={{ display: 'inline-block', padding: '3px 8px', backgroundColor: '#eff6ff', color: '#1d4ed8', borderRadius: '6px', fontSize: '11px', fontWeight: 800, marginBottom: '6px', letterSpacing: '0.04em' }}>
+              INITIAL SETUP WIZARD
+            </div>
+            <h1 style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+              Configure Counter Terminal
+            </h1>
+            <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+              Initialize your pharmacy branch, counter terminal, and the primary Owner account.
+            </p>
           </div>
-          <h1 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 700, color: '#0f172a' }}>
-            Configure Counter Terminal
-          </h1>
-          <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
-            Initialize your store branch, counter terminal, and the primary Owner account.
-          </p>
+          <BrandLogo size={40} showText={false} />
         </div>
 
         {error && (

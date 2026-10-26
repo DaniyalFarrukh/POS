@@ -76,68 +76,60 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="substitutes-modal-title"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.65)',
-        backdropFilter: 'blur(3px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 50,
-        padding: '24px',
-      }}
+      className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
+        className="modal-content-card"
         style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          width: '760px',
+          width: '780px',
           maxWidth: '100%',
           maxHeight: '85vh',
           display: 'flex',
           flexDirection: 'column',
-          border: '1px solid #cbd5e1',
           overflow: 'hidden',
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: '20px 24px',
-            borderBottom: '1px solid #e2e8f0',
-            backgroundColor: '#f8fafc',
+            padding: '18px 24px',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            color: '#ffffff',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>🔄</span>
               <h3
                 id="substitutes-modal-title"
-                style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}
+                style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em' }}
               >
                 Generic Substitutes Available
               </h3>
+              <kbd className="kbd-cap-dark" style={{ fontSize: '11px', padding: '1px 6px' }}>
+                Esc
+              </kbd>
             </div>
-            <div style={{ marginTop: '6px', fontSize: '13px', color: '#64748b' }}>
-              Original: <strong style={{ color: '#0f172a' }}>{product.brandName}</strong> ({product.genericName} {product.strength})
+            <div style={{ marginTop: '4px', fontSize: '12px', color: '#94a3b8' }}>
+              Original: <strong style={{ color: '#ffffff' }}>{product.brandName}</strong> ({product.genericName} {product.strength})
               {product.totalStock <= 0 ? (
                 <span
                   style={{
                     marginLeft: '8px',
-                    padding: '2px 6px',
+                    padding: '2px 8px',
                     borderRadius: '4px',
-                    backgroundColor: '#fee2e2',
-                    color: '#b91c1c',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    color: '#fca5a5',
                     fontSize: '11px',
                     fontWeight: 700,
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
                   }}
                 >
                   Out of Stock
@@ -147,16 +139,21 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
           </div>
           <button
             type="button"
+            className="interactive-btn"
             onClick={onClose}
             aria-label="Close substitutes modal"
             style={{
-              background: 'transparent',
+              background: 'rgba(255, 255, 255, 0.1)',
               border: 'none',
-              fontSize: '20px',
-              color: '#64748b',
+              borderRadius: '8px',
+              width: '32px',
+              height: '32px',
+              fontSize: '16px',
+              color: '#cbd5e1',
               cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             ✕
@@ -166,21 +163,25 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
         {/* Content List */}
         <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1 }}>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-              Finding available substitutes sharing '{product.genericName}'...
+            <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+              <div style={{ fontSize: '24px', marginBottom: '8px', animation: 'pulse 1.5s infinite' }}>⏳</div>
+              <div style={{ fontWeight: 600 }}>Searching active substitutes...</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                Matching generic formula '{product.genericName}'
+              </div>
             </div>
           ) : substitutes.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔍</div>
-              <div style={{ fontWeight: 600, color: '#1e293b' }}>
+            <div style={{ padding: '48px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔍</div>
+              <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>
                 No active substitutes found in database
               </div>
-              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                No other products currently share the generic formula '{product.genericName}'.
+              <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                No other registered products currently share the generic formula '{product.genericName}'.
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div
                 style={{
                   fontSize: '12px',
@@ -188,10 +189,13 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
                   marginBottom: '4px',
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
-                <span>Found {substitutes.length} matching alternatives with same active ingredient:</span>
-                <span>Use [↑][↓] to navigate, [Enter] to choose</span>
+                <span>Found <strong style={{ color: '#0f172a' }}>{substitutes.length}</strong> matching alternatives with same active ingredient:</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  Use <kbd className="kbd-cap">↑</kbd> <kbd className="kbd-cap">↓</kbd> to navigate, <kbd className="kbd-cap">Enter</kbd> to choose
+                </span>
               </div>
 
               {substitutes.map((sub, idx) => {
@@ -209,28 +213,30 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '12px 16px',
-                      borderRadius: '8px',
-                      border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                      backgroundColor: isSelected ? '#eff6ff' : inStock ? '#ffffff' : '#f8fafc',
+                      padding: '14px 18px',
+                      borderRadius: '10px',
+                      border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                      backgroundColor: isSelected ? '#f5f3ff' : inStock ? '#ffffff' : '#f8fafc',
+                      boxShadow: isSelected ? '0 4px 12px rgba(99, 102, 241, 0.12)' : '0 1px 2px rgba(0, 0, 0, 0.04)',
                       cursor: inStock ? 'pointer' : 'not-allowed',
                       opacity: inStock ? 1 : 0.65,
-                      transition: 'border 0.1s ease',
+                      transition: 'all 0.15s ease',
                     }}
                   >
                     <div style={{ flex: 1, marginRight: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f172a' }}>
+                        <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>
                           {sub.brandName}
                         </span>
                         <span
                           style={{
-                            padding: '1px 6px',
-                            backgroundColor: '#e2e8f0',
-                            borderRadius: '4px',
+                            padding: '2px 8px',
+                            backgroundColor: '#f1f5f9',
+                            borderRadius: '6px',
                             fontSize: '11px',
                             fontWeight: 600,
                             color: '#475569',
+                            border: '1px solid #e2e8f0',
                           }}
                         >
                           {sub.form} • {sub.strength}
@@ -238,23 +244,24 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
                         {sub.isControlled && (
                           <span
                             style={{
-                              padding: '1px 6px',
+                              padding: '2px 8px',
                               backgroundColor: '#fee2e2',
-                              borderRadius: '4px',
+                              borderRadius: '6px',
                               fontSize: '10px',
-                              fontWeight: 700,
+                              fontWeight: 800,
                               color: '#b91c1c',
+                              border: '1px solid #fecdd3',
                             }}
                           >
-                            CONTROLLED
+                            Rx CONTROLLED
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                        Mfr: {sub.manufacturer}
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                        Mfr: <span style={{ fontWeight: 600, color: '#334155' }}>{sub.manufacturer}</span>
                         {sub.earliestBatch && (
                           <span style={{ marginLeft: '12px' }}>
-                            Earliest Batch: <strong>{sub.earliestBatch.batchNo}</strong> (Exp: {sub.earliestBatch.expiryDate})
+                            Earliest Batch: <strong>{sub.earliestBatch.batchNo}</strong> (Exp: <span className="tabular-nums">{sub.earliestBatch.expiryDate}</span>)
                           </span>
                         )}
                       </div>
@@ -262,14 +269,15 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>
+                        <div className="tabular-nums" style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>
                           {formatPKR(sub.mrpPaisa)}
                         </div>
                         <div
+                          className="tabular-nums"
                           style={{
                             fontSize: '12px',
-                            fontWeight: 600,
-                            color: inStock ? '#166534' : '#dc2626',
+                            fontWeight: 700,
+                            color: inStock ? '#059669' : '#dc2626',
                           }}
                         >
                           {inStock ? `${sub.totalStock} in stock` : '0 in stock'}
@@ -278,20 +286,26 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
 
                       <button
                         type="button"
+                        className="interactive-btn"
                         disabled={!inStock}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (inStock) onSelectSubstitute(sub);
                         }}
                         style={{
-                          padding: '8px 14px',
-                          backgroundColor: inStock ? (isSelected ? '#2563eb' : '#3b82f6') : '#cbd5e1',
+                          padding: '8px 16px',
+                          background: inStock
+                            ? isSelected
+                              ? 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)'
+                              : '#4f46e5'
+                            : '#cbd5e1',
                           color: '#ffffff',
                           border: 'none',
-                          borderRadius: '6px',
-                          fontWeight: 600,
+                          borderRadius: '8px',
+                          fontWeight: 700,
                           fontSize: '13px',
                           cursor: inStock ? 'pointer' : 'not-allowed',
+                          boxShadow: inStock ? '0 2px 4px rgba(79, 70, 229, 0.25)' : 'none',
                         }}
                       >
                         {inStock ? 'Select Substitute' : 'No Stock'}
@@ -307,7 +321,7 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
         {/* Footer */}
         <div
           style={{
-            padding: '12px 24px',
+            padding: '14px 24px',
             backgroundColor: '#f8fafc',
             borderTop: '1px solid #e2e8f0',
             display: 'flex',
@@ -317,19 +331,24 @@ export const SubstitutesModal: React.FC<SubstitutesModalProps> = ({
         >
           <button
             type="button"
+            className="interactive-btn"
             onClick={onClose}
             style={{
               padding: '8px 18px',
               backgroundColor: '#ffffff',
               border: '1px solid #cbd5e1',
-              borderRadius: '6px',
+              borderRadius: '8px',
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 700,
               color: '#475569',
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            Close (Esc)
+            <span>Close</span>
+            <kbd className="kbd-cap" style={{ fontSize: '10px' }}>Esc</kbd>
           </button>
         </div>
       </div>

@@ -465,23 +465,27 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         <div
           role="status"
           aria-live="polite"
+          className="toast-slide-in"
           style={{
             position: 'fixed',
-            top: '80px',
-            right: '32px',
+            top: '84px',
+            right: '28px',
             zIndex: 9999,
-            backgroundColor: '#0f172a',
+            backgroundColor: 'rgba(15, 23, 42, 0.92)',
+            backdropFilter: 'blur(10px)',
             color: '#f8fafc',
             padding: '12px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+            borderRadius: '10px',
+            boxShadow: 'var(--shadow-xl)',
             fontSize: '13px',
             fontWeight: 600,
             border: '1px solid #334155',
-            animation: 'fadeIn 0.2s ease-in',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
           }}
         >
-          {toastMessage}
+          <span>{toastMessage}</span>
         </div>
       )}
 
@@ -489,11 +493,11 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
       <div
         style={{
           backgroundColor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '10px',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
+          borderRadius: '14px',
           padding: '12px 18px',
           marginBottom: '12px',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
           position: 'relative',
         }}
       >
@@ -505,9 +509,10 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                 left: '14px',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                fontSize: '18px',
-                color: '#64748b',
+                fontSize: '17px',
+                color: searchFocused ? '#4f46e5' : '#64748b',
                 pointerEvents: 'none',
+                transition: 'color 0.15s ease',
               }}
             >
               🔍
@@ -516,54 +521,70 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
               ref={searchInputRef}
               type="text"
               autoFocus
-              placeholder="Scan barcode or search medicine brand / generic name (Press Enter to add, F3 to focus)..."
+              placeholder="Scan barcode or type medicine brand / generic name (Press Enter to add, F3 to focus)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => {
-                // Short timeout to allow click on dropdown items
                 setTimeout(() => setSearchFocused(false), 200);
               }}
               onKeyDown={handleSearchKeyDown}
               style={{
                 width: '100%',
-                padding: '12px 16px 12px 42px',
-                fontSize: '15px',
-                borderRadius: '8px',
-                border: searchFocused ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                padding: '12px 100px 12px 42px',
+                fontSize: '14px',
+                fontWeight: 500,
+                borderRadius: '10px',
+                border: searchFocused ? '2px solid #4f46e5' : '1px solid #cbd5e1',
                 outline: 'none',
                 boxSizing: 'border-box',
-                backgroundColor: '#ffffff',
+                backgroundColor: searchFocused ? '#ffffff' : '#f8fafc',
+                boxShadow: searchFocused ? 'var(--shadow-primary-glow)' : 'none',
+                transition: 'all 0.15s ease',
+                fontFamily: 'var(--font-sans)',
               }}
             />
-            {isSearching && (
-              <span
-                style={{
-                  position: 'absolute',
-                  right: '14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  fontSize: '12px',
-                  color: '#64748b',
-                }}
-              >
-                Searching...
-              </span>
-            )}
+            <div
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              {isSearching ? (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#6366f1',
+                    fontWeight: 700,
+                  }}
+                >
+                  Searching...
+                </span>
+              ) : (
+                <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '2px 5px' }}>
+                  F3 Focus
+                </kbd>
+              )}
+            </div>
           </div>
 
-          {/* Quick Header Indicators */}
+          {/* Quick Header Indicators & Modals */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {customer.name && (
               <div
                 style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '6px',
+                  padding: '7px 12px',
+                  backgroundColor: '#eef2ff',
+                  border: '1px solid #c7d2fe',
+                  borderRadius: '8px',
                   fontSize: '12px',
-                  color: '#1d4ed8',
-                  fontWeight: 600,
+                  color: '#4338ca',
+                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -576,40 +597,48 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
 
             <button
               type="button"
+              className="interactive-btn"
               onClick={handleOpenCustomer}
               style={{
-                padding: '8px 12px',
-                backgroundColor: '#f1f5f9',
+                padding: '8px 14px',
+                backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 fontSize: '12px',
-                fontWeight: 600,
+                fontWeight: 700,
                 color: '#334155',
-                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              F6 Customer / Rx
+              <span>👤</span>
+              <span>Customer / Rx</span>
+              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>F6</kbd>
             </button>
 
             <button
               type="button"
+              className="interactive-btn"
               onClick={handleOpenHold}
               style={{
-                padding: '8px 12px',
-                backgroundColor: heldCarts.length > 0 ? '#fef3c7' : '#f1f5f9',
+                padding: '8px 14px',
+                backgroundColor: heldCarts.length > 0 ? '#fffbeb' : '#ffffff',
                 border: `1px solid ${heldCarts.length > 0 ? '#fde68a' : '#cbd5e1'}`,
-                borderRadius: '6px',
+                borderRadius: '8px',
                 fontSize: '12px',
-                fontWeight: 600,
-                color: heldCarts.length > 0 ? '#92400e' : '#334155',
-                cursor: 'pointer',
+                fontWeight: 700,
+                color: heldCarts.length > 0 ? '#b45309' : '#334155',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
               <span>🛒</span>
-              <span>F4 Hold ({heldCarts.length})</span>
+              <span>Parked ({heldCarts.length})</span>
+              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>F4</kbd>
             </button>
           </div>
         </div>
@@ -619,29 +648,29 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
           <div
             style={{
               position: 'absolute',
-              top: '100%',
+              top: 'calc(100% + 6px)',
               left: '18px',
               right: '18px',
-              marginTop: '4px',
               backgroundColor: '#ffffff',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15)',
-              zIndex: 30,
-              maxHeight: '340px',
+              borderRadius: '12px',
+              border: '1px solid #c7d2fe',
+              boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
+              zIndex: 50,
+              maxHeight: '360px',
               overflowY: 'auto',
             }}
           >
             <div
               style={{
-                padding: '8px 12px',
+                padding: '8px 16px',
                 backgroundColor: '#f8fafc',
                 borderBottom: '1px solid #e2e8f0',
                 fontSize: '11px',
-                fontWeight: 600,
+                fontWeight: 800,
                 color: '#64748b',
                 display: 'flex',
                 justifyContent: 'space-between',
+                letterSpacing: '0.04em',
               }}
             >
               <span>SELECT ITEM TO ADD TO CART:</span>
@@ -650,31 +679,37 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
             {searchResults.map((item, idx) => {
               const isSelected = idx === searchSelectedIndex;
               const hasStock = item.totalStock > 0;
+              const isLowStock = hasStock && item.totalStock <= 10;
               return (
                 <div
                   key={item.id}
                   onClick={() => addProductToCart(item)}
                   onMouseEnter={() => setSearchSelectedIndex(idx)}
                   style={{
-                    padding: '10px 14px',
+                    padding: '11px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     borderBottom: '1px solid #f1f5f9',
-                    backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                    backgroundColor: isSelected ? '#eef2ff' : '#ffffff',
+                    borderLeft: isSelected ? '4px solid #4f46e5' : '4px solid transparent',
                     cursor: 'pointer',
+                    transition: 'all 0.1s ease',
                   }}
                 >
                   <div style={{ flex: 1, marginRight: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <strong style={{ fontSize: '14px', color: '#0f172a' }}>{item.brandName}</strong>
+                      <strong style={{ fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>
+                        {item.brandName}
+                      </strong>
                       <span
                         style={{
                           fontSize: '11px',
                           color: '#475569',
                           backgroundColor: '#f1f5f9',
-                          padding: '1px 6px',
-                          borderRadius: '4px',
+                          padding: '2px 7px',
+                          borderRadius: '6px',
+                          fontWeight: 500,
                         }}
                       >
                         {item.genericName} • {item.strength} ({item.form})
@@ -683,21 +718,24 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                         <span
                           style={{
                             fontSize: '10px',
-                            color: '#b91c1c',
-                            backgroundColor: '#fee2e2',
-                            padding: '1px 4px',
-                            borderRadius: '3px',
-                            fontWeight: 700,
+                            color: '#be123c',
+                            backgroundColor: '#ffe4e6',
+                            border: '1px solid #fecdd3',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontWeight: 800,
+                            letterSpacing: '0.05em',
                           }}
                         >
-                          CONTROLLED
+                          Rx CONTROLLED
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                      Mfr: {item.manufacturer} {item.barcode ? `• Barcode: ${item.barcode}` : ''}
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', display: 'flex', gap: '12px' }}>
+                      <span>Mfr: <strong>{item.manufacturer}</strong></span>
+                      {item.barcode && <span className="tabular-nums">Barcode: {item.barcode}</span>}
                       {item.earliestBatch && (
-                        <span style={{ marginLeft: '8px' }}>
+                        <span className="tabular-nums" style={{ color: '#0284c7', fontWeight: 600 }}>
                           Batch: {item.earliestBatch.batchNo} (Exp: {item.earliestBatch.expiryDate})
                         </span>
                       )}
@@ -706,14 +744,19 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>
+                      <div className="tabular-nums" style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>
                         {formatPKR(item.mrpPaisa)}
                       </div>
                       <div
                         style={{
                           fontSize: '11px',
-                          fontWeight: 600,
-                          color: hasStock ? '#166534' : '#dc2626',
+                          fontWeight: 700,
+                          color: !hasStock ? '#e11d48' : isLowStock ? '#d97706' : '#059669',
+                          backgroundColor: !hasStock ? '#fff1f2' : isLowStock ? '#fffbeb' : '#ecfdf5',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          marginTop: '2px',
                         }}
                       >
                         {hasStock ? `${item.totalStock} in stock` : '0 in stock'}
@@ -723,22 +766,23 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                     {!hasStock && (
                       <button
                         type="button"
+                        className="interactive-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSubstituteTargetProduct(item);
                         }}
                         style={{
-                          padding: '4px 10px',
-                          backgroundColor: '#fef3c7',
+                          padding: '5px 12px',
+                          backgroundColor: '#fffbeb',
                           border: '1px solid #fde68a',
-                          color: '#92400e',
-                          borderRadius: '4px',
+                          color: '#b45309',
+                          borderRadius: '6px',
                           fontSize: '11px',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           cursor: 'pointer',
                         }}
                       >
-                        Find Substitutes
+                        🔄 Substitutes
                       </button>
                     )}
                   </div>
@@ -754,12 +798,12 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         style={{
           flex: 1,
           backgroundColor: '#ffffff',
-          borderRadius: '10px',
-          border: '1px solid #e2e8f0',
+          borderRadius: '14px',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
         }}
       >
         <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -769,6 +813,7 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
               borderCollapse: 'collapse',
               textAlign: 'left',
               fontSize: '13px',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             <thead>
@@ -780,17 +825,21 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                   position: 'sticky',
                   top: 0,
                   zIndex: 10,
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
                 }}
               >
-                <th style={{ padding: '10px 12px', width: '32px' }}>#</th>
-                <th style={{ padding: '10px 12px' }}>Product & Active Formula</th>
-                <th style={{ padding: '10px 12px', width: '170px' }}>Batch & Expiry</th>
-                <th style={{ padding: '10px 12px', width: '220px' }}>Warnings & Stock</th>
-                <th style={{ padding: '10px 12px', width: '100px', textAlign: 'right' }}>MRP</th>
-                <th style={{ padding: '10px 12px', width: '110px', textAlign: 'center' }}>Qty</th>
-                <th style={{ padding: '10px 12px', width: '130px' }}>Discount</th>
-                <th style={{ padding: '10px 12px', width: '110px', textAlign: 'right' }}>Total</th>
-                <th style={{ padding: '10px 12px', width: '50px', textAlign: 'center' }}>Act</th>
+                <th style={{ padding: '12px 14px', width: '36px' }}>#</th>
+                <th style={{ padding: '12px 14px' }}>Product & Active Formula</th>
+                <th style={{ padding: '12px 14px', width: '180px' }}>Batch & Expiry</th>
+                <th style={{ padding: '12px 14px', width: '220px' }}>Warnings & Stock</th>
+                <th style={{ padding: '12px 14px', width: '110px', textAlign: 'right' }}>MRP</th>
+                <th style={{ padding: '12px 14px', width: '120px', textAlign: 'center' }}>Qty</th>
+                <th style={{ padding: '12px 14px', width: '140px' }}>Discount</th>
+                <th style={{ padding: '12px 14px', width: '120px', textAlign: 'right' }}>Total</th>
+                <th style={{ padding: '12px 14px', width: '48px', textAlign: 'center' }}>Act</th>
               </tr>
             </thead>
             <tbody>
@@ -799,17 +848,17 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                   <td
                     colSpan={9}
                     style={{
-                      padding: '60px 20px',
+                      padding: '70px 20px',
                       textAlign: 'center',
                       color: '#94a3b8',
                     }}
                   >
-                    <div style={{ fontSize: '32px', marginBottom: '10px' }}>🛒</div>
-                    <div style={{ fontWeight: 600, fontSize: '16px', color: '#64748b' }}>
+                    <div style={{ fontSize: '36px', marginBottom: '12px' }}>🛒</div>
+                    <div style={{ fontWeight: 800, fontSize: '17px', color: '#334155', letterSpacing: '-0.01em' }}>
                       Cart is currently empty
                     </div>
-                    <p style={{ margin: '6px 0 0 0', fontSize: '13px' }}>
-                      Scan a product barcode or type in the search bar above [F3] to begin adding items.
+                    <p style={{ margin: '6px 0 16px 0', fontSize: '13px', color: '#64748b' }}>
+                      Scan a product barcode or press <kbd className="kbd-cap" style={{ fontSize: '11px' }}>F3</kbd> to search and add items.
                     </p>
                   </td>
                 </tr>
@@ -822,37 +871,37 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                   return (
                     <tr
                       key={line.id}
+                      className={`cart-row ${isSelected ? 'selected' : ''}`}
                       onClick={() => setSelectedLineIndex(idx)}
                       style={{
                         borderBottom: '1px solid #f1f5f9',
-                        backgroundColor: isSelected ? '#f0fdf4' : idx % 2 === 0 ? '#ffffff' : '#fafafa',
                         cursor: 'pointer',
-                        transition: 'background-color 0.1s ease',
                       }}
                     >
                       {/* # Number */}
-                      <td style={{ padding: '10px 12px', color: '#64748b', fontWeight: 600 }}>
+                      <td style={{ padding: '12px 14px', color: '#94a3b8', fontWeight: 700, fontSize: '12px' }}>
                         {idx + 1}
                       </td>
 
                       {/* Product Name & Formula */}
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '12px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px' }}>
                             {line.product.brandName}
                           </span>
-                          <span style={{ fontSize: '11px', color: '#64748b' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
                             ({line.product.strength} {line.product.form})
                           </span>
                           {line.product.isControlled && (
                             <span
                               style={{
                                 padding: '1px 5px',
-                                backgroundColor: '#fee2e2',
-                                color: '#b91c1c',
-                                borderRadius: '3px',
+                                backgroundColor: '#ffe4e6',
+                                color: '#be123c',
+                                border: '1px solid #fecdd3',
+                                borderRadius: '4px',
                                 fontSize: '10px',
-                                fontWeight: 700,
+                                fontWeight: 800,
                               }}
                             >
                               Rx
@@ -865,13 +914,13 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       </td>
 
                       {/* Batch & Expiry */}
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '12px 14px' }}>
                         {line.batchNo ? (
                           <div>
-                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                            <div className="tabular-nums" style={{ fontWeight: 700, color: '#1e293b', fontSize: '12px' }}>
                               Batch: {line.batchNo}
                             </div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                            <div className="tabular-nums" style={{ fontSize: '11px', color: '#64748b' }}>
                               Exp: {line.expiryDate || 'N/A'}
                             </div>
                           </div>
@@ -883,7 +932,7 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       </td>
 
                       {/* Warnings & Substitutes */}
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '12px 14px' }}>
                         {warning.type !== 'none' ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <div
@@ -891,8 +940,8 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
-                                padding: '2px 8px',
-                                borderRadius: '4px',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
                                 backgroundColor: warning.bgColor,
                                 border: `1px solid ${warning.borderColor}`,
                                 color: warning.color,
@@ -907,6 +956,7 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                             {(warning.type === 'out-of-stock' || warning.type === 'low-stock') && (
                               <button
                                 type="button"
+                                className="interactive-btn"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSubstituteTargetProduct(line.product);
@@ -917,9 +967,8 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                                   border: '1px solid #cbd5e1',
                                   borderRadius: '4px',
                                   fontSize: '11px',
-                                  fontWeight: 600,
+                                  fontWeight: 700,
                                   color: '#0284c7',
-                                  cursor: 'pointer',
                                   alignSelf: 'flex-start',
                                 }}
                               >
@@ -931,10 +980,12 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                           <span
                             style={{
                               fontSize: '11px',
-                              color: '#166534',
-                              backgroundColor: '#f0fdf4',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
+                              fontWeight: 700,
+                              color: '#059669',
+                              backgroundColor: '#ecfdf5',
+                              border: '1px solid #a7f3d0',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
                             }}
                           >
                             ✓ In Stock ({line.product.totalStock})
@@ -943,31 +994,35 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       </td>
 
                       {/* MRP */}
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#334155' }}>
+                      <td className="tabular-nums" style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#334155', fontSize: '14px' }}>
                         {formatPKR(line.unitPricePaisa)}
                       </td>
 
                       {/* Quantity Input */}
-                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                         <div
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             border: '1px solid #cbd5e1',
-                            borderRadius: '6px',
+                            borderRadius: '8px',
                             overflow: 'hidden',
+                            backgroundColor: '#ffffff',
+                            boxShadow: 'var(--shadow-sm)',
                           }}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             type="button"
+                            className="interactive-btn"
                             onClick={() => updateLineQuantity(idx, line.quantity - 1)}
                             style={{
-                              padding: '4px 8px',
+                              padding: '5px 10px',
                               background: '#f8fafc',
                               border: 'none',
                               cursor: 'pointer',
-                              fontWeight: 700,
+                              fontWeight: 800,
+                              fontSize: '14px',
                               color: '#475569',
                             }}
                           >
@@ -978,24 +1033,28 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                             min="1"
                             value={line.quantity}
                             onChange={(e) => updateLineQuantity(idx, Number(e.target.value))}
+                            className="tabular-nums"
                             style={{
                               width: '42px',
                               textAlign: 'center',
                               border: 'none',
                               fontSize: '13px',
-                              fontWeight: 700,
+                              fontWeight: 800,
                               padding: '4px 0',
+                              outline: 'none',
                             }}
                           />
                           <button
                             type="button"
+                            className="interactive-btn"
                             onClick={() => updateLineQuantity(idx, line.quantity + 1)}
                             style={{
-                              padding: '4px 8px',
+                              padding: '5px 10px',
                               background: '#f8fafc',
                               border: 'none',
                               cursor: 'pointer',
-                              fontWeight: 700,
+                              fontWeight: 800,
+                              fontSize: '14px',
                               color: '#475569',
                             }}
                           >
@@ -1005,8 +1064,8 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       </td>
 
                       {/* Line Discount */}
-                      <td style={{ padding: '10px 12px' }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: 'flex', gap: '4px' }}>
+                      <td style={{ padding: '12px 14px' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                           <select
                             value={line.discountType}
                             onChange={(e) =>
@@ -1014,15 +1073,17 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                                 idx,
                                 e.target.value as 'none' | 'percent' | 'flat',
                                 line.discountType === 'percent'
-                                  ? line.discountBp / 100
+                                    ? line.discountBp / 100
                                   : line.flatDiscountPaisa / 100
                               )
                             }
                             style={{
-                              padding: '3px 4px',
+                              padding: '4px 6px',
                               fontSize: '11px',
-                              borderRadius: '4px',
+                              fontWeight: 600,
+                              borderRadius: '6px',
                               border: '1px solid #cbd5e1',
+                              backgroundColor: '#ffffff',
                             }}
                           >
                             <option value="none">0%</option>
@@ -1043,12 +1104,15 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                               onChange={(e) =>
                                 updateLineDiscount(idx, line.discountType, Number(e.target.value))
                               }
+                              className="tabular-nums"
                               style={{
-                                width: '50px',
-                                padding: '3px 6px',
+                                width: '54px',
+                                padding: '4px 6px',
                                 fontSize: '11px',
-                                borderRadius: '4px',
+                                fontWeight: 700,
+                                borderRadius: '6px',
                                 border: '1px solid #cbd5e1',
+                                outline: 'none',
                               }}
                             />
                           )}
@@ -1057,10 +1121,11 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
 
                       {/* Line Total */}
                       <td
+                        className="tabular-nums"
                         style={{
-                          padding: '10px 12px',
+                          padding: '12px 14px',
                           textAlign: 'right',
-                          fontWeight: 700,
+                          fontWeight: 800,
                           fontSize: '14px',
                           color: '#0f172a',
                         }}
@@ -1069,9 +1134,10 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       </td>
 
                       {/* Remove Line */}
-                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                         <button
                           type="button"
+                          className="interactive-btn"
                           onClick={(e) => {
                             e.stopPropagation();
                             setCartLines((prev) => prev.filter((_, i) => i !== idx));
@@ -1081,13 +1147,20 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                             background: 'transparent',
                             border: 'none',
                             color: '#94a3b8',
-                            fontSize: '14px',
+                            fontSize: '15px',
                             cursor: 'pointer',
                             padding: '4px 8px',
-                            borderRadius: '4px',
+                            borderRadius: '6px',
+                            transition: 'all 0.15s ease',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#e11d48';
+                            e.currentTarget.style.backgroundColor = '#fff1f2';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = '#94a3b8';
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
                         >
                           ✕
                         </button>
@@ -1101,15 +1174,15 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         </div>
       </div>
 
-      {/* BOTTOM SECTION: Fixed Totals & Pay Bar */}
+      {/* BOTTOM SECTION: Fixed Totals & Pay Command Bar */}
       <div
         style={{
           marginTop: '12px',
           backgroundColor: '#ffffff',
-          borderRadius: '10px',
-          border: '1px solid #e2e8f0',
-          padding: '14px 20px',
-          boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+          borderRadius: '14px',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
+          padding: '14px 22px',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -1119,70 +1192,72 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
             type="button"
+            className="interactive-btn"
             disabled={cartLines.length === 0}
             onClick={() => setShowClearConfirm(true)}
             style={{
-              padding: '8px 14px',
-              backgroundColor: cartLines.length > 0 ? '#fff1f2' : '#f1f5f9',
-              border: `1px solid ${cartLines.length > 0 ? '#fecdd3' : '#cbd5e1'}`,
-              color: cartLines.length > 0 ? '#e11d48' : '#94a3b8',
-              borderRadius: '6px',
+              padding: '8px 16px',
+              backgroundColor: cartLines.length > 0 ? '#fff1f2' : '#f8fafc',
+              border: `1px solid ${cartLines.length > 0 ? '#fecdd3' : '#e2e8f0'}`,
+              color: cartLines.length > 0 ? '#be123c' : '#94a3b8',
+              borderRadius: '8px',
               fontSize: '12px',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: cartLines.length > 0 ? 'pointer' : 'not-allowed',
             }}
           >
             Clear Cart
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: '#64748b' }}>
-            <span>Shortcuts:</span>
-            <kbd style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #cbd5e1' }}>F2 Pay</kbd>
-            <kbd style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #cbd5e1' }}>F3 Scan</kbd>
-            <kbd style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #cbd5e1' }}>F4 Hold</kbd>
-            <kbd style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #cbd5e1' }}>F6 Notes</kbd>
-            <kbd style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #cbd5e1' }}>Del Remove</kbd>
-            <span style={{ color: '#0284c7', fontWeight: 600 }}>• Hold [Alt] for HUD</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b' }}>
+            <span style={{ fontWeight: 700, marginRight: '4px' }}>Shortcuts:</span>
+            <kbd className="kbd-cap">F2 Pay</kbd>
+            <kbd className="kbd-cap">F3 Scan</kbd>
+            <kbd className="kbd-cap">F4 Hold</kbd>
+            <kbd className="kbd-cap">F6 Notes</kbd>
+            <kbd className="kbd-cap">Del Line</kbd>
+            <span style={{ color: '#4f46e5', fontWeight: 700, marginLeft: '6px' }}>• Hold [Alt] HUD</span>
           </div>
         </div>
 
         {/* Right Side: Totals & Large Pay Button */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
           {/* Subtotals Breakdown */}
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', fontSize: '13px' }}>
+          <div style={{ display: 'flex', gap: '22px', alignItems: 'center', fontSize: '13px' }}>
             <div>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Subtotal</div>
-              <div style={{ fontWeight: 600, color: '#334155' }}>
+              <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Subtotal</div>
+              <div className="tabular-nums" style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>
                 {formatPKR(invoiceTotals.netTotalPaisa)}
               </div>
             </div>
 
             {invoiceTotals.totalDiscountPaisa > 0 && (
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Discount</div>
-                <div style={{ fontWeight: 600, color: '#16a34a' }}>
+                <div style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Discount</div>
+                <div className="tabular-nums" style={{ fontWeight: 700, color: '#059669', fontSize: '14px' }}>
                   -{formatPKR(invoiceTotals.totalDiscountPaisa)}
                 </div>
               </div>
             )}
 
             <div>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase' }}>Tax (GST)</div>
-              <div style={{ fontWeight: 600, color: '#334155' }}>
+              <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Tax (GST)</div>
+              <div className="tabular-nums" style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>
                 {formatPKR(invoiceTotals.totalTaxPaisa)}
               </div>
             </div>
 
-            <div style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '20px' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>
+            <div style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '22px' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.06em' }}>
                 Grand Total
               </div>
               <div
+                className="tabular-nums"
                 style={{
-                  fontSize: '24px',
-                  fontWeight: 800,
+                  fontSize: '26px',
+                  fontWeight: 900,
                   color: '#0f172a',
-                  fontFamily: 'Consolas, monospace',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 {formatPKR(invoiceTotals.grandTotalPaisa)}
@@ -1190,33 +1265,27 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
             </div>
           </div>
 
-          {/* Pay Button */}
+          {/* Large Hero Pay Button */}
           <button
             type="button"
+            className="pay-btn-hero interactive-btn"
             disabled={cartLines.length === 0}
             onClick={handleOpenPay}
             style={{
               padding: '12px 28px',
-              backgroundColor: cartLines.length > 0 ? '#16a34a' : '#94a3b8',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: '16px',
-              cursor: cartLines.length > 0 ? 'pointer' : 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              boxShadow: cartLines.length > 0 ? '0 4px 6px -1px rgba(22, 163, 74, 0.3)' : 'none',
             }}
           >
             <span>Pay & Print</span>
             <kbd
+              className="kbd-cap-dark"
               style={{
                 fontSize: '12px',
-                padding: '2px 6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                borderRadius: '4px',
+                padding: '2px 7px',
               }}
             >
               F2

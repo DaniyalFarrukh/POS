@@ -123,71 +123,72 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.65)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: '16px',
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="return-modal-title"
+      className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget && !submitting) onClose();
       }}
     >
       <div
+        className="modal-content-card"
         style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           width: '100%',
-          maxWidth: '720px',
+          maxWidth: '740px',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          border: '1px solid #e2e8f0',
         }}
       >
         {/* Modal Header */}
         <div
           style={{
             padding: '18px 24px',
-            backgroundColor: '#0f172a',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             color: '#f8fafc',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>🔄</span>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>
+              <h2 id="return-modal-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
                 Process Return & Credit Note
               </h2>
+              <kbd className="kbd-cap-dark" style={{ fontSize: '11px', padding: '1px 6px' }}>
+                Esc
+              </kbd>
             </div>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-              Invoice #{invoice.invoiceNumber} • Created:{' '}
+              Invoice <strong style={{ color: '#ffffff' }}>#{invoice.invoiceNumber}</strong> • Created:{' '}
               {new Date(invoice.createdAt).toLocaleDateString('en-GB', {
                 timeZone: 'Asia/Karachi',
               })}
             </div>
           </div>
           <button
+            type="button"
+            className="interactive-btn"
             onClick={onClose}
             disabled={submitting}
+            aria-label="Close return modal"
             style={{
-              background: 'transparent',
+              background: 'rgba(255, 255, 255, 0.1)',
               border: 'none',
-              color: '#94a3b8',
-              fontSize: '24px',
+              borderRadius: '8px',
+              width: '32px',
+              height: '32px',
+              fontSize: '16px',
+              color: '#cbd5e1',
               cursor: submitting ? 'not-allowed' : 'pointer',
-              padding: '4px 8px',
-              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             ✕
@@ -548,20 +549,20 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
               alignItems: 'center',
               backgroundColor: '#ecfdf5',
               border: '1px solid #a7f3d0',
-              padding: '12px 16px',
-              borderRadius: '8px',
+              padding: '14px 18px',
+              borderRadius: '10px',
             }}
           >
             <div>
-              <div style={{ fontSize: '12px', color: '#047857', fontWeight: 600 }}>
-                Estimated Refund Summary:
+              <div style={{ fontSize: '12px', color: '#047857', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Estimated Refund Summary
               </div>
-              <div style={{ fontSize: '11px', color: '#065f46' }}>
-                {totalReturnUnits} items selected • Restored into original batches
+              <div style={{ fontSize: '12px', color: '#065f46', marginTop: '2px' }}>
+                <span className="tabular-nums" style={{ fontWeight: 700 }}>{totalReturnUnits}</span> items selected • Automatically restored to original inventory batches
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#065f46' }}>
+              <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: 800, color: '#065f46', letterSpacing: '-0.02em' }}>
                 {formatPKR(estimatedRefundPaisa)}
               </div>
             </div>
@@ -571,7 +572,7 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
         {/* Modal Footer */}
         <div
           style={{
-            padding: '16px 24px',
+            padding: '14px 24px',
             backgroundColor: '#f8fafc',
             borderTop: '1px solid #e2e8f0',
             display: 'flex',
@@ -581,37 +582,46 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
         >
           <button
             type="button"
+            className="interactive-btn"
             onClick={onClose}
             disabled={submitting}
             style={{
-              padding: '9px 18px',
-              borderRadius: '6px',
+              padding: '8px 18px',
+              borderRadius: '8px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               color: '#475569',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: '13px',
               cursor: submitting ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            Cancel
+            <span>Cancel</span>
+            <kbd className="kbd-cap" style={{ fontSize: '10px' }}>Esc</kbd>
           </button>
           <button
             type="button"
+            className="interactive-btn"
             onClick={handleSubmit}
             disabled={submitting || totalReturnUnits <= 0}
             style={{
-              padding: '9px 20px',
-              borderRadius: '6px',
+              padding: '8px 22px',
+              borderRadius: '8px',
               border: 'none',
-              backgroundColor: totalReturnUnits > 0 && !submitting ? '#dc2626' : '#94a3b8',
+              background: totalReturnUnits > 0 && !submitting
+                ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
+                : '#cbd5e1',
               color: '#ffffff',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: '13px',
               cursor: totalReturnUnits > 0 && !submitting ? 'pointer' : 'not-allowed',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
+              boxShadow: totalReturnUnits > 0 && !submitting ? '0 2px 4px rgba(225, 29, 72, 0.25)' : 'none',
             }}
           >
             {submitting ? '⏳ Processing...' : `Confirm Return (${formatPKR(estimatedRefundPaisa)})`}

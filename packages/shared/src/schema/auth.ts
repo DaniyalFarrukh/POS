@@ -1,5 +1,7 @@
 import { z } from 'zod';
-import { UserRoleSchema, type UserRole } from './index';
+
+export const UserRoleSchema = z.enum(['owner', 'pharmacist', 'cashier']);
+export type UserRole = z.infer<typeof UserRoleSchema>;
 
 // 4 to 8 numeric digits for offline terminal PIN
 export const PinSchema = z.string().regex(/^\d{4,8}$/, 'PIN must be between 4 and 8 digits');

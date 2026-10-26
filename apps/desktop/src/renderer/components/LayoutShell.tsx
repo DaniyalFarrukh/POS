@@ -7,6 +7,22 @@ import { SyncTopBarIndicator } from './sync/SyncTopBarIndicator';
 import { SyncOfflineBanner } from './sync/SyncOfflineBanner';
 import { SyncStatusModal } from './sync/SyncStatusModal';
 import { useI18n } from '../utils/i18n/I18nContext';
+import {
+  BrandLogo,
+  CartIcon,
+  InvoiceIcon,
+  AnalyticsIcon,
+  MedicineIcon,
+  StaffIcon,
+  PurchasingIcon,
+  StockIcon,
+  SyncIcon,
+  SettingsIcon,
+  DatabaseIcon,
+  HospitalIcon,
+  GlobeIcon,
+  LockIcon,
+} from './common/Icons';
 
 // Low-end PC optimization: Lazy-load heavy non-primary screens
 const ProductList = lazy(() => import('./products/ProductList').then((m) => ({ default: m.ProductList })));
@@ -102,21 +118,46 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [userRole, onLock]);
 
-  // Navigation items filtered by role with i18n
-  const navItems: { id: NavSection; label: string; icon: string; minRole: UserRole }[] = [
-    { id: 'pos', label: t.posTerminal, icon: '🛒', minRole: 'cashier' },
-    { id: 'invoices', label: t.invoices, icon: '🧾', minRole: 'cashier' },
-    { id: 'shifts', label: t.shiftDayEnd, icon: '📊', minRole: 'cashier' },
-    { id: 'products', label: t.catalog, icon: '💊', minRole: 'pharmacist' },
-    { id: 'purchasing', label: t.purchasing, icon: '📥', minRole: 'pharmacist' },
-    { id: 'stock', label: t.stockOverview, icon: '📦', minRole: 'pharmacist' },
-    { id: 'sync', label: t.syncStatus, icon: '🔄', minRole: 'cashier' },
-    { id: 'settings', label: t.settings, icon: '⚙️', minRole: 'cashier' },
-    { id: 'users', label: 'Staff & Roles', icon: '👥', minRole: 'owner' },
-    { id: 'diagnostics', label: 'Local DB & System', icon: '💾', minRole: 'cashier' },
+  interface NavItemDef {
+    id: NavSection;
+    label: string;
+    icon: React.ReactNode;
+    minRole: UserRole;
+    shortcut?: string;
+    section: 'MAIN' | 'CLINIC' | 'FINANCE' | 'SYSTEM';
+  }
+
+  // Categorized Navigation items filtered by role with i18n & keyboard shortcuts
+  const navItems: NavItemDef[] = [
+    { id: 'pos', label: t.posTerminal, icon: <CartIcon size={17} />, minRole: 'cashier', shortcut: 'F1', section: 'MAIN' },
+    { id: 'invoices', label: t.invoices, icon: <InvoiceIcon size={17} />, minRole: 'cashier', shortcut: 'F5', section: 'CLINIC' },
+    { id: 'shifts', label: t.shiftDayEnd, icon: <AnalyticsIcon size={17} />, minRole: 'cashier', shortcut: 'F6', section: 'CLINIC' },
+    { id: 'products', label: t.catalog, icon: <MedicineIcon size={17} />, minRole: 'pharmacist', shortcut: 'F2', section: 'CLINIC' },
+    { id: 'users', label: 'Staff List', icon: <StaffIcon size={17} />, minRole: 'owner', section: 'CLINIC' },
+    { id: 'purchasing', label: t.purchasing, icon: <PurchasingIcon size={17} />, minRole: 'pharmacist', shortcut: 'F3', section: 'FINANCE' },
+    { id: 'stock', label: t.stockOverview, icon: <StockIcon size={17} />, minRole: 'pharmacist', shortcut: 'F4', section: 'FINANCE' },
+    { id: 'sync', label: t.syncStatus, icon: <SyncIcon size={17} />, minRole: 'cashier', section: 'SYSTEM' },
+    { id: 'settings', label: t.settings, icon: <SettingsIcon size={17} />, minRole: 'cashier', shortcut: 'F10', section: 'SYSTEM' },
+    { id: 'diagnostics', label: 'Local DB & Engine', icon: <DatabaseIcon size={17} />, minRole: 'cashier', section: 'SYSTEM' },
   ];
 
   const visibleNav = navItems.filter((item) => canAccessSection(item.minRole));
+
+  const getSectionTitle = (id: NavSection): string => {
+    switch (id) {
+      case 'pos': return 'POS Checkout & Terminal';
+      case 'invoices': return 'Reservations & Invoices';
+      case 'shifts': return 'Shift & Day-End Report';
+      case 'products': return 'Treatments & Product Catalog';
+      case 'purchasing': return 'Purchases & Receiving';
+      case 'stock': return 'Stock Overview & Inventory';
+      case 'sync': return 'Cloud Sync & Replication';
+      case 'settings': return 'System Settings';
+      case 'users': return 'Staff List & Roles';
+      case 'diagnostics': return 'Engine Diagnostics & WAL';
+      default: return 'Treatments';
+    }
+  };
 
   const handleTestRole = async (targetRole: 'cashier' | 'pharmacist' | 'owner') => {
     setTestingRole(true);
@@ -142,241 +183,457 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'owner':
-        return { bg: '#fef3c7', text: '#92400e', border: '#fde68a' };
+        return { bg: '#fef3c7', text: '#92400e', border: '#fde68a', label: 'Super admin' };
       case 'pharmacist':
-        return { bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' };
+        return { bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe', label: 'Pharmacist' };
       default:
-        return { bg: '#dcfce7', text: '#166534', border: '#bbf7d0' };
+        return { bg: '#dcfce7', text: '#166534', border: '#bbf7d0', label: 'Cashier' };
     }
   };
 
   const badge = getRoleBadgeStyle(userRole);
 
+  const sectionsOrder: Array<{ key: 'MAIN' | 'CLINIC' | 'FINANCE' | 'SYSTEM'; title?: string }> = [
+    { key: 'MAIN' },
+    { key: 'CLINIC', title: 'CLINIC' },
+    { key: 'FINANCE', title: 'FINANCE & ASSETS' },
+    { key: 'SYSTEM', title: 'SYSTEM & SETTINGS' },
+  ];
+
   return (
     <div
       style={{
         display: 'flex',
-        flexDirection: 'column',
         height: '100vh',
         backgroundColor: '#f8fafc',
-        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: 'var(--font-sans)',
         overflow: 'hidden',
+        direction: isRtl ? 'rtl' : 'ltr',
       }}
     >
-      {/* Top Bar */}
-      <header
+      {/* Zendenta Clean White Sidebar */}
+      <aside
         style={{
-          height: '60px',
+          width: '248px',
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
+          borderRight: isRtl ? 'none' : '1px solid #f1f5f9',
+          borderLeft: isRtl ? '1px solid #f1f5f9' : 'none',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 24px',
+          flexDirection: 'column',
           flexShrink: 0,
+          zIndex: 30,
+          boxShadow: '1px 0 4px rgba(15, 23, 42, 0.02)',
         }}
       >
-        {/* Left: Store & Terminal */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '20px' }}>🏥</span>
-            <span style={{ fontWeight: 700, fontSize: '16px', color: '#0f172a' }}>
-              {session.branch.name}
-            </span>
-          </div>
-          <span style={{ color: '#cbd5e1' }}>•</span>
-          <div
-            style={{
-              padding: '2px 8px',
-              backgroundColor: '#f1f5f9',
-              borderRadius: '4px',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#475569',
-            }}
-          >
-            {session.counter.name}
-          </div>
+        {/* Brand Header with Authentic Human-Made Vector Logo */}
+        <div
+          style={{
+            padding: '18px 16px 14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <BrandLogo size={36} showText={true} textSubtitle="Pharmacy POS" />
         </div>
 
-        {/* Center: Sync Status Indicator (Click opens modal) */}
-        <SyncTopBarIndicator onClick={() => setIsSyncModalOpen(true)} />
-
-        {/* Right: User Profile & Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {/* User Badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Clinic / Branch Selector Card */}
+        <div
+          style={{
+            margin: '0 12px 14px 12px',
+            padding: '9px 12px',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
             <div
               style={{
                 width: '32px',
                 height: '32px',
+                borderRadius: '8px',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#2563eb',
+                flexShrink: 0,
+              }}
+            >
+              <HospitalIcon size={16} color="#2563eb" />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: '12px',
+                  color: '#0f172a',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  lineHeight: 1.2,
+                }}
+              >
+                {session.branch.name || 'Avicena Clinic'}
+              </div>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: '#64748b',
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {session.counter.name || 'Terminal 1'} • WAL Active
+              </div>
+            </div>
+          </div>
+          <span style={{ color: '#94a3b8', fontSize: '12px' }}>⌄</span>
+        </div>
+
+        {/* Categorized Navigation Menu */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '0 10px 14px 10px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1px',
+          }}
+        >
+          {sectionsOrder.map((sec) => {
+            const items = visibleNav.filter((item) => item.section === sec.key);
+            if (items.length === 0) return null;
+
+            return (
+              <div key={sec.key} style={{ marginBottom: '6px' }}>
+                {sec.title && (
+                  <div className="sidebar-section-header">{sec.title}</div>
+                )}
+                {items.map((item) => {
+                  const isActive = activeSection === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="interactive-btn"
+                      onClick={() => setActiveSection(item.id)}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        marginBottom: '2px',
+                        borderRadius: '9px',
+                        border: isActive ? '1px solid #bfdbfe' : '1px solid transparent',
+                        backgroundColor: isActive ? '#eff6ff' : 'transparent',
+                        color: isActive ? '#2563eb' : '#475569',
+                        fontSize: '13px',
+                        fontWeight: isActive ? 700 : 500,
+                        textAlign: isRtl ? 'right' : 'left',
+                        boxShadow: isActive ? '0 1px 2px rgba(37, 99, 235, 0.08)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            filter: isActive ? 'drop-shadow(0 1px 2px rgba(37,99,235,0.3))' : 'none',
+                          }}
+                        >
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </div>
+                      {item.shortcut && (
+                        <kbd
+                          className="kbd-cap"
+                          style={{
+                            backgroundColor: isActive ? '#ffffff' : '#f1f5f9',
+                            borderColor: isActive ? '#bfdbfe' : '#e2e8f0',
+                            color: isActive ? '#2563eb' : '#64748b',
+                            fontSize: '10px',
+                            padding: '1px 5px',
+                          }}
+                        >
+                          {item.shortcut}
+                        </kbd>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sidebar Bottom Footer: Auto-lock & Local WAL info */}
+        <div
+          style={{
+            padding: '12px 14px',
+            borderTop: '1px solid #f1f5f9',
+            backgroundColor: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '11px',
+            color: '#64748b',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="pulse-green-dot" title="Local SQLite WAL Engine Online" />
+            <span style={{ fontWeight: 600 }}>WAL Online</span>
+          </div>
+          <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+            Lock in {session.idleTimeoutMinutes}m
+          </span>
+        </div>
+      </aside>
+
+      {/* Main Area: Top Header + View Content */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          overflow: 'hidden',
+        }}
+      >
+        {/* Top Header Bar */}
+        <header
+          style={{
+            height: '64px',
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #f1f5f9',
+            boxShadow: '0 1px 2px rgba(15, 23, 42, 0.02)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 24px',
+            flexShrink: 0,
+            zIndex: 20,
+          }}
+        >
+          {/* Left: Back button `<` + Active Screen Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              className="interactive-btn"
+              onClick={() => setActiveSection('pos')}
+              title="Return to Dashboard / POS (F1)"
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: 700,
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              ‹
+            </button>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: '19px',
+                fontWeight: 800,
+                color: '#0f172a',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {getSectionTitle(activeSection)}
+            </h1>
+          </div>
+
+          {/* Center: Search Pill Bar + Circular Blue Plus Action */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ position: 'relative', width: '280px' }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  left: isRtl ? 'auto' : '14px',
+                  right: isRtl ? '14px' : 'auto',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#94a3b8',
+                  fontSize: '12px',
+                }}
+              >
+                🔍
+              </span>
+              <input
+                type="text"
+                className="search-pill"
+                placeholder="Search for anything here..."
+                style={{
+                  width: '100%',
+                  height: '36px',
+                  paddingLeft: isRtl ? '14px' : '36px',
+                  paddingRight: isRtl ? '36px' : '14px',
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setActiveSection('products');
+                  }
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              className="interactive-btn"
+              onClick={() => {
+                if (activeSection !== 'products') setActiveSection('products');
+              }}
+              title="Quick Add Action (+)"
+              style={{
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
                 backgroundColor: '#2563eb',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                border: 'none',
+                fontSize: '17px',
                 fontWeight: 700,
-                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(37, 99, 235, 0.35)',
               }}
             >
-              {session.user.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>
-                {session.user.name}
-              </div>
-              <span
+              +
+            </button>
+          </div>
+
+          {/* Right: Sync pill, Language toggle, Lock button & User Profile Chip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Sync Status Pill Indicator */}
+            <SyncTopBarIndicator onClick={() => setIsSyncModalOpen(true)} />
+
+            {/* Language Toggle Button */}
+            <button
+              type="button"
+              className="interactive-btn"
+              onClick={() => setLocale(locale === 'en' ? 'ur' : 'en')}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                color: '#334155',
+                fontSize: '12px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <GlobeIcon size={14} color="#64748b" />
+              <span>{locale === 'en' ? 'اردو' : 'EN'}</span>
+            </button>
+
+            {/* Lock Button with F9 shortcut */}
+            <button
+              type="button"
+              className="interactive-btn"
+              onClick={onLock}
+              title={`${t.lockTerminal} (F9)`}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                color: '#475569',
+                fontSize: '12px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <LockIcon size={13} color="#64748b" />
+              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>F9</kbd>
+            </button>
+
+            {/* User Profile Chip (Zendenta style) */}
+            <div
+              className="interactive-btn"
+              onClick={onLogout}
+              title={`Logged in as ${session.user.name} (${userRole}). Click to Logout.`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 10px 4px 5px',
+                backgroundColor: '#ffffff',
+                borderRadius: '9999px',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+            >
+              <div
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  color: badge.text,
-                  backgroundColor: badge.bg,
-                  padding: '1px 6px',
-                  borderRadius: '3px',
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  boxShadow: '0 2px 4px rgba(37, 99, 235, 0.25)',
                 }}
               >
-                {userRole}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ height: '24px', width: '1px', backgroundColor: '#e2e8f0' }} />
-
-          {/* Language Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setLocale(locale === 'en' ? 'ur' : 'en')}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#f1f5f9',
-              color: '#1e293b',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            🌐 {locale === 'en' ? 'اردو' : 'English'}
-          </button>
-
-          {/* Lock Button */}
-          <button
-            type="button"
-            onClick={onLock}
-            title={t.lockTerminal}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              color: '#475569',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            🔒 {isRtl ? 'لاک' : 'Lock'}
-          </button>
-
-          {/* Logout Button */}
-          <button
-            type="button"
-            onClick={onLogout}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #fee2e2',
-              backgroundColor: '#fff1f2',
-              color: '#be123c',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            {t.logout}
-          </button>
-        </div>
-      </header>
-
-      {/* Offline Limit Warning Banner (Approaching / Critical / Exceeded) */}
-      <SyncOfflineBanner
-        status={syncStatus}
-        onOpenSyncStatus={() => setIsSyncModalOpen(true)}
-      />
-
-      {/* Main Body with Left Nav */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left Navigation */}
-        <aside
-          style={{
-            width: '230px',
-            backgroundColor: '#ffffff',
-            borderRight: '1px solid #e2e8f0',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '16px 12px',
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ padding: '0 8px 8px 8px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Navigation ({userRole})
-            </div>
-            {visibleNav.map((item) => {
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveSection(item.id)}
+                {session.user.name.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a', lineHeight: 1.2 }}>
+                  {session.user.name}
+                </div>
+                <span
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                    color: isActive ? '#1d4ed8' : '#334155',
-                    fontSize: '13px',
-                    fontWeight: isActive ? 600 : 500,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.1s',
+                    fontSize: '9.5px',
+                    fontWeight: 600,
+                    color: '#64748b',
                   }}
                 >
-                  <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+                  {badge.label}
+                </span>
+              </div>
+              <span style={{ color: '#94a3b8', fontSize: '11px', marginLeft: '2px' }}>⌄</span>
+            </div>
           </div>
+        </header>
 
-          {/* Bottom Nav Helper */}
-          <div
-            style={{
-              padding: '12px',
-              backgroundColor: '#f8fafc',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              fontSize: '11px',
-              color: '#64748b',
-              lineHeight: 1.4,
-            }}
-          >
-            Auto-lock active after <strong>{session.idleTimeoutMinutes} min</strong> idle.
-          </div>
-        </aside>
+        {/* Offline Limit Warning Banner */}
+        <SyncOfflineBanner
+          status={syncStatus}
+          onOpenSyncStatus={() => setIsSyncModalOpen(true)}
+        />
 
         {/* Content Area */}
         <main
