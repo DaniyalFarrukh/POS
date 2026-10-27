@@ -464,16 +464,44 @@ function mapInvoiceRows(
 
     const primaryPayment = payments[0];
 
+    let customerName: string | null = null;
+    let customerPhone: string | null = null;
+    let doctorName: string | null = null;
+    let notes: string | null = r.notes;
+
+    if (r.notes) {
+      const parts = r.notes.split(' | ');
+      let hasPrefixedPart = false;
+      for (const p of parts) {
+        if (p.startsWith('Customer: ')) {
+          customerName = p.replace('Customer: ', '').trim();
+          hasPrefixedPart = true;
+        } else if (p.startsWith('Phone: ')) {
+          customerPhone = p.replace('Phone: ', '').trim();
+          hasPrefixedPart = true;
+        } else if (p.startsWith('Doctor: ')) {
+          doctorName = p.replace('Doctor: ', '').trim();
+          hasPrefixedPart = true;
+        } else if (p.startsWith('Note: ')) {
+          notes = p.replace('Note: ', '').trim();
+          hasPrefixedPart = true;
+        }
+      }
+      if (!hasPrefixedPart && !r.notes.includes(' | ')) {
+        customerName = r.notes.trim();
+      }
+    }
+
     return {
       id: r.id,
       invoiceNumber: r.invoice_number,
       branchId: r.branch_id,
       counterId: r.counter_id,
       userId: r.cashier_user_id,
-      customerName: r.notes,
-      customerPhone: null,
-      doctorName: null,
-      notes: r.notes,
+      customerName,
+      customerPhone,
+      doctorName,
+      notes,
       subtotalPaisa: r.subtotal_paisa,
       discountPaisa: r.discount_paisa,
       taxPaisa: r.tax_paisa,

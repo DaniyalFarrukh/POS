@@ -358,6 +358,7 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
               <tr>
                 <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Invoice #</th>
                 <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date & Time</th>
+                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Customer / Patient</th>
                 <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Items</th>
                 <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cashier / Counter</th>
                 <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Payment Method</th>
@@ -372,7 +373,7 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
             <tbody>
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
                     {loading ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '24px', animation: 'spin 1s linear infinite' }}>⏳</span>
@@ -426,6 +427,25 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                         {inv.invoiceNumber}
                       </td>
                       <td className="tabular-nums" style={{ padding: '12px 16px', color: '#475569' }}>{dateStr}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {inv.customerName ? (
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <span>👤</span>
+                              <span>{inv.customerName}</span>
+                            </div>
+                            {(inv.doctorName || inv.customerPhone) && (
+                              <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+                                {inv.doctorName ? `Dr. ${inv.doctorName}` : ''}
+                                {inv.doctorName && inv.customerPhone ? ' • ' : ''}
+                                {inv.customerPhone || ''}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>Walk-in</span>
+                        )}
+                      </td>
                       <td className="tabular-nums" style={{ padding: '12px 16px', color: '#334155', fontWeight: 600 }}>
                         {inv.lines?.length || 0} item{(inv.lines?.length || 0) === 1 ? '' : 's'}
                       </td>
@@ -601,10 +621,10 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
 
             {/* Modal Body: Lines & Totals */}
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
-              {selectedInvoice.notes && (
+              {(selectedInvoice.customerName || selectedInvoice.doctorName || selectedInvoice.customerPhone || selectedInvoice.notes) && (
                 <div
                   style={{
-                    padding: '10px 14px',
+                    padding: '12px 16px',
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
                     borderRadius: '8px',
@@ -613,7 +633,26 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                     color: '#334155',
                   }}
                 >
-                  <strong style={{ color: '#0f172a' }}>Notes:</strong> {selectedInvoice.notes}
+                  <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>👤</span>
+                    <span>Patient & Prescription Details</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '6px', fontSize: '12.5px' }}>
+                    {selectedInvoice.customerName && (
+                      <div><strong>Patient:</strong> {selectedInvoice.customerName}</div>
+                    )}
+                    {selectedInvoice.customerPhone && (
+                      <div><strong>Phone:</strong> {selectedInvoice.customerPhone}</div>
+                    )}
+                    {selectedInvoice.doctorName && (
+                      <div><strong>Doctor:</strong> {selectedInvoice.doctorName}</div>
+                    )}
+                  </div>
+                  {selectedInvoice.notes && (
+                    <div style={{ marginTop: '6px', fontSize: '12.5px', color: '#475569' }}>
+                      <strong>Instructions:</strong> {selectedInvoice.notes}
+                    </div>
+                  )}
                 </div>
               )}
 
