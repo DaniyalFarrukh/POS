@@ -15,6 +15,9 @@ import {
   assertRole,
   requireRole,
   setSessionForTesting,
+  getStaffList,
+  createStaffMember,
+  updateStaffMember,
   AuthError,
   ForbiddenError,
 } from './auth';
@@ -287,4 +290,138 @@ describe('Local Authentication & IPC Role Guard', () => {
       await expect(userHandler()).resolves.toBe('user_ok');
     });
   });
+
+  describe('Staff & Roles Management', () => {
+    let ownerSession: ReturnType<typeof completeSetup>;
+
+    beforeEach(() => {
+      ownerSession = completeSetup(
+        {
+          branchName: 'City Pharmacy - Saddar',
+          counterName: 'Counter 01',
+          ownerName: 'Dr. Tariq',
+          pin: '7890',
+        },
+        rawDb
+      );
+      setSessionForTesting(ownerSession);
+    });
+
+    it('lists all staff members including created date and role', () => {
+      const staff = getStaffList(ownerSession, rawDb);
+      expect(staff).toHaveLength(1);
+      expect(staff[0]!.name).toBe('Dr. Tariq');
+      expect(staff[0]!.role).toBe('owner');
+      expect(staff[0]!.isActive).toBe(true);
+      expect((staff[0] as unknown as { pin_hash?: string }).pin_hash).toBeUndefined();
+    });
+
+    it('creates new cashier and pharmacist staff members with hashed PIN', () => {
+      const cashier = createStaffMember(
+        {
+          name: 'Bilal Cashier',
+          role: 'cashier',
+          pin: '1234',
+        },
+        ownerSession,
+        rawDb
+      );
+
+      expect(cashier.id).toBeDefined();
+      expect(cashier.name).toBe('Bilal Cashier');
+      expect(cashier.role).toBe('cashier');
+      expect(cashier.isActive).toBe(true);
+
+      const pharmacist = createStaffMember(
+        {
+          name: 'Sara Pharmacist',
+          role: 'pharmacist',
+          pin: '5678',
+        },
+        ownerSession,
+        rawDb
+      );
+
+      expect(pharmacist.name).toBe('Sara Pharmacist');
+      expect(pharmacist.role).toBe('pharmacist');
+
+      const all = getStaffList(ownerSession, rawDb);
+      expect(all).toHaveLength(3);
+
+      // Verify created cashier can log in
+      const cashierSession = login(cashier.id, '1234', rawDb);
+      expect(cashierSession.user.name).toBe('Bilal Cashier');
+      expect(cashierSession.user.role).toBe('cashier');
+    });
+
+    it('updates staff member role and PIN', () => {
+      const staff = createStaffMember(
+        {
+          name: 'Kamran Ali',
+          role: 'cashier',
+          pin: '1122',
+        },
+        ownerSession,
+        rawDb
+      );
+
+      // Promote to pharmacist and update PIN
+      const updated = updateStaffMember(
+        staff.id,
+        {
+          role: 'pharmacist',
+          pin: '9988',
+        },
+        ownerSession,
+        rawDb
+      );
+
+      expect(updated.role).toBe('pharmacist');
+
+      // Old PIN fails, new PIN succeeds
+      expect(() => login(staff.id, '1122', rawDb)).toThrow(AuthError);
+      const newSession = login(staff.id, '9988', rawDb);
+      expect(newSession.user.role).toBe('pharmacist');
+    });
+
+    it('prevents owner from deactivating or demoting their own active account', () => {
+      expect(() =>
+        updateStaffMember(
+          ownerSession.user.id,
+          { isActive: false },
+          ownerSession,
+          rawDb
+        )
+      ).toThrow(AuthError);
+
+      expect(() =>
+        updateStaffMember(
+          ownerSession.user.id,
+          { role: 'cashier' },
+          ownerSession,
+          rawDb
+        )
+      ).toThrow(AuthError);
+    });
+
+    it('forbids cashier or pharmacist from managing staff accounts', () => {
+      const cashierSession = {
+        user: { id: generateUuidV7(), name: 'Cashier 1', role: 'cashier' as const, isActive: true },
+        branch: { id: generateUuidV7(), name: 'B1' },
+        counter: { id: generateUuidV7(), name: 'C1' },
+        isLocked: false,
+        idleTimeoutMinutes: 5,
+      };
+
+      expect(() => getStaffList(cashierSession, rawDb)).toThrow(ForbiddenError);
+      expect(() =>
+        createStaffMember(
+          { name: 'Test', role: 'cashier', pin: '1234' },
+          cashierSession,
+          rawDb
+        )
+      ).toThrow(ForbiddenError);
+    });
+  });
 });
+

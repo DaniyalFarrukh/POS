@@ -102,6 +102,27 @@ export interface StockApi {
   }[]>;
 }
 
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: 'owner' | 'pharmacist' | 'cashier';
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface CreateStaffInput {
+  name: string;
+  role: 'owner' | 'pharmacist' | 'cashier';
+  pin: string;
+}
+
+export interface UpdateStaffInput {
+  name?: string;
+  role?: 'owner' | 'pharmacist' | 'cashier';
+  pin?: string;
+  isActive?: boolean;
+}
+
 export interface AuthApi {
   getSetupStatus: () => Promise<{ needsSetup: boolean }>;
   completeSetup: (data: SetupInput) => Promise<AuthSession>;
@@ -114,6 +135,9 @@ export interface AuthApi {
   testRoleAction: (
     requiredRole: 'cashier' | 'pharmacist' | 'owner'
   ) => Promise<{ success: boolean; message: string }>;
+  getStaffList: () => Promise<StaffMember[]>;
+  createStaffMember: (input: CreateStaffInput) => Promise<StaffMember>;
+  updateStaffMember: (id: string, input: UpdateStaffInput) => Promise<StaffMember>;
 }
 
 export interface SalesApi {

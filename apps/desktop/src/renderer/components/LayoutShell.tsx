@@ -46,6 +46,9 @@ const SyncDashboardScreen = lazy(() =>
 const SettingsScreen = lazy(() =>
   import('./settings/SettingsScreen').then((m) => ({ default: m.SettingsScreen }))
 );
+const StaffManagementScreen = lazy(() =>
+  import('./staff/StaffManagementScreen').then((m) => ({ default: m.StaffManagementScreen }))
+);
 
 interface LayoutShellProps {
   session: AuthSession;
@@ -770,36 +773,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ session, dbInfo, onLoc
 
             {activeSection === 'settings' && <SettingsScreen session={session} />}
 
-            {activeSection === 'users' && (
-              <div>
-                <h2
-                  style={{
-                    margin: '0 0 6px 0',
-                    fontSize: '22px',
-                    fontWeight: 700,
-                    color: '#0f172a',
-                  }}
-                >
-                  Staff & Role Permissions (Owner Only)
-                </h2>
-                <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                  Manage terminal PINs, roles (Owner, Pharmacist, Cashier), and staff access.
-                </p>
-                <div
-                  style={{
-                    backgroundColor: '#ffffff',
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                    padding: '24px',
-                  }}
-                >
-                  <p style={{ margin: 0, color: '#475569' }}>
-                    Owner permissions verified. Only the owner role can view or manage staff
-                    accounts.
-                  </p>
-                </div>
-              </div>
-            )}
+            {activeSection === 'users' && <StaffManagementScreen session={session} />}
 
             {activeSection === 'diagnostics' && (
               <div>

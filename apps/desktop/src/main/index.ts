@@ -16,6 +16,11 @@ import {
   unlockSession,
   getSession,
   requireRole,
+  getStaffList,
+  createStaffMember,
+  updateStaffMember,
+  type CreateStaffInput,
+  type UpdateStaffInput,
 } from './auth';
 import type {
   SetupInput,
@@ -227,6 +232,18 @@ function createWindow(): void {
     });
 
     return handler();
+  });
+
+  ipcMain.handle('auth:get-staff-list', async () => {
+    return getStaffList();
+  });
+
+  ipcMain.handle('auth:create-staff-member', async (_event, input: CreateStaffInput) => {
+    return createStaffMember(input);
+  });
+
+  ipcMain.handle('auth:update-staff-member', async (_event, id: string, input: UpdateStaffInput) => {
+    return updateStaffMember(id, input);
   });
 
   // Product & Inventory Handlers

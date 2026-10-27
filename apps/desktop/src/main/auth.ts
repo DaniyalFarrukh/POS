@@ -9,6 +9,8 @@ import {
   SetupInputSchema,
   LoginInputSchema,
   UnlockInputSchema,
+  UserRoleSchema,
+  PinSchema,
 } from '@pos/shared';
 import { getDatabase } from './db';
 
@@ -250,3 +252,181 @@ export function requireRole<TArgs extends unknown[], TReturn>(
     return handler(session, ...args);
   };
 }
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateStaffInput {
+  name: string;
+  role: UserRole;
+  pin: string;
+}
+
+export interface UpdateStaffInput {
+  name?: string;
+  role?: UserRole;
+  pin?: string;
+  isActive?: boolean;
+}
+
+export function getStaffList(
+  sessionOverride?: AuthSession | null,
+  dbInstance?: DatabaseInstance
+): StaffMember[] {
+  const session = sessionOverride !== undefined ? sessionOverride : activeSession;
+  assertRole(session, ['owner']);
+
+  const db = dbInstance ?? getDatabase();
+  const rows = db
+    .prepare('SELECT id, name, role, is_active, created_at FROM users ORDER BY created_at ASC')
+    .all() as {
+      id: string;
+      name: string;
+      role: UserRole;
+      is_active: number;
+      created_at: string;
+    }[];
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    role: r.role,
+    isActive: r.is_active === 1,
+    createdAt: r.created_at,
+  }));
+}
+
+export function createStaffMember(
+  input: CreateStaffInput,
+  sessionOverride?: AuthSession | null,
+  dbInstance?: DatabaseInstance
+): StaffMember {
+  const session = sessionOverride !== undefined ? sessionOverride : activeSession;
+  assertRole(session, ['owner']);
+
+  const trimmedName = input.name ? input.name.trim() : '';
+  if (trimmedName.length < 2) {
+    throw new AuthError('Staff member name must be at least 2 characters');
+  }
+
+  UserRoleSchema.parse(input.role);
+  PinSchema.parse(input.pin);
+
+  const db = dbInstance ?? getDatabase();
+  const id = generateUuidV7();
+  const now = new Date().toISOString();
+  const hashedPin = hashPin(input.pin);
+
+  db.prepare(`
+    INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
+    VALUES (?, ?, ?, ?, 1, ?, ?)
+  `).run(id, trimmedName, input.role, hashedPin, now, now);
+
+  return {
+    id,
+    name: trimmedName,
+    role: input.role,
+    isActive: true,
+    createdAt: now,
+  };
+}
+
+export function updateStaffMember(
+  id: string,
+  input: UpdateStaffInput,
+  sessionOverride?: AuthSession | null,
+  dbInstance?: DatabaseInstance
+): StaffMember {
+  const session = sessionOverride !== undefined ? sessionOverride : activeSession;
+  assertRole(session, ['owner']);
+
+  const db = dbInstance ?? getDatabase();
+  const existing = db
+    .prepare('SELECT id, name, role, is_active, created_at FROM users WHERE id = ?')
+    .get(id) as
+    | { id: string; name: string; role: UserRole; is_active: number; created_at: string }
+    | undefined;
+
+  if (!existing) {
+    throw new AuthError('Staff member not found');
+  }
+
+  // Safety guard: cannot deactivate yourself or strip yourself of owner role
+  if (session && session.user.id === id) {
+    if (input.isActive === false) {
+      throw new AuthError('You cannot deactivate your own active owner account');
+    }
+    if (input.role && input.role !== 'owner') {
+      throw new AuthError('You cannot change your own role away from owner');
+    }
+  }
+
+  if (input.role) {
+    UserRoleSchema.parse(input.role);
+  }
+
+  if (input.pin) {
+    PinSchema.parse(input.pin);
+  }
+
+  const updates: string[] = [];
+  const params: unknown[] = [];
+  const now = new Date().toISOString();
+
+  if (input.name !== undefined) {
+    const trimmed = input.name.trim();
+    if (trimmed.length < 2) throw new AuthError('Staff member name must be at least 2 characters');
+    updates.push('name = ?');
+    params.push(trimmed);
+  }
+
+  if (input.role !== undefined) {
+    updates.push('role = ?');
+    params.push(input.role);
+  }
+
+  if (input.isActive !== undefined) {
+    updates.push('is_active = ?');
+    params.push(input.isActive ? 1 : 0);
+  }
+
+  if (input.pin !== undefined) {
+    updates.push('pin_hash = ?');
+    params.push(hashPin(input.pin));
+  }
+
+  if (updates.length === 0) {
+    return {
+      id: existing.id,
+      name: existing.name,
+      role: existing.role,
+      isActive: existing.is_active === 1,
+      createdAt: existing.created_at,
+    };
+  }
+
+  updates.push('updated_at = ?');
+  params.push(now);
+
+  params.push(id);
+
+  db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
+
+  const updated = db
+    .prepare('SELECT id, name, role, is_active, created_at FROM users WHERE id = ?')
+    .get(id) as { id: string; name: string; role: UserRole; is_active: number; created_at: string };
+
+  return {
+    id: updated.id,
+    name: updated.name,
+    role: updated.role,
+    isActive: updated.is_active === 1,
+    createdAt: updated.created_at,
+  };
+}
+

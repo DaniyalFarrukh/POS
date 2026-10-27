@@ -24,7 +24,7 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
   let productId: string;
   let batchId: string;
 
-  const TODAY = '2026-10-26';
+  const TODAY = new Date().toISOString().slice(0, 10);
 
   beforeEach(() => {
     db = new Database(':memory:');

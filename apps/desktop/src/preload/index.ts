@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { DesktopApi } from './index.d';
 import type {
   SetupInput,
   LoginInput,
@@ -13,7 +12,7 @@ import type {
   ProductListResult,
   TaxCategory,
 } from '@pos/shared';
-import type { CsvImportSummary } from './index.d';
+import type { DesktopApi, CsvImportSummary, StaffMember, CreateStaffInput, UpdateStaffInput } from './index.d';
 import type { SyncStatus } from '../main/sync/core/types';
 
 const api: DesktopApi = {
@@ -35,6 +34,11 @@ const api: DesktopApi = {
       requiredRole: 'cashier' | 'pharmacist' | 'owner'
     ): Promise<{ success: boolean; message: string }> =>
       ipcRenderer.invoke('auth:test-role-action', requiredRole),
+    getStaffList: (): Promise<StaffMember[]> => ipcRenderer.invoke('auth:get-staff-list'),
+    createStaffMember: (input: CreateStaffInput): Promise<StaffMember> =>
+      ipcRenderer.invoke('auth:create-staff-member', input),
+    updateStaffMember: (id: string, input: UpdateStaffInput): Promise<StaffMember> =>
+      ipcRenderer.invoke('auth:update-staff-member', id, input),
   },
   products: {
     getProducts: (params: ProductSearchParams): Promise<ProductListResult> =>
