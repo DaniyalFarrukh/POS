@@ -1101,6 +1101,7 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               placeholder={line.discountType === 'percent' ? '%' : 'Rs'}
                               value={
                                 line.discountType === 'percent'

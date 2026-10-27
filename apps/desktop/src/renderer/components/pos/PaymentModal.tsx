@@ -38,7 +38,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [singleMethod, setSingleMethod] = useState<'cash' | 'card' | 'wallet'>('cash');
 
   // Single cash tender state (Rupees)
-  const initialRupees = (grandTotalPaisa / 100).toFixed(0);
+  const initialRupees =
+    grandTotalPaisa % 100 === 0
+      ? (grandTotalPaisa / 100).toFixed(0)
+      : (grandTotalPaisa / 100).toFixed(2);
   const [singleTenderedRupees, setSingleTenderedRupees] = useState(initialRupees);
 
   // Split payment state (Rupees)
@@ -106,7 +109,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     if (target === 'wallet') currentOthers = splitCashPaisa + splitCardPaisa;
 
     const remainingToTargetPaisa = Math.max(0, grandTotalPaisa - currentOthers);
-    const targetRupees = (remainingToTargetPaisa / 100).toFixed(0);
+    const targetRupees =
+      remainingToTargetPaisa % 100 === 0
+        ? (remainingToTargetPaisa / 100).toFixed(0)
+        : (remainingToTargetPaisa / 100).toFixed(2);
 
     if (target === 'cash') {
       setSplitCashRupees(targetRupees);
@@ -429,7 +435,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     type="number"
                     disabled={isSubmitting}
                     min="0"
-                    step="1"
+                    step="any"
                     value={singleTenderedRupees}
                     onChange={(e) => setSingleTenderedRupees(e.target.value)}
                     className="tabular-nums"
@@ -559,6 +565,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   <input
                     type="number"
                     min="0"
+                    step="any"
                     placeholder="Cash Amount"
                     value={splitCashRupees}
                     onChange={(e) => {
@@ -580,6 +587,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   <input
                     type="number"
                     min="0"
+                    step="any"
                     placeholder="Tendered"
                     value={splitCashTenderedRupees}
                     onChange={(e) => setSplitCashTenderedRupees(e.target.value)}
@@ -619,6 +627,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 <input
                   type="number"
                   min="0"
+                  step="any"
                   placeholder="Card Amount"
                   value={splitCardRupees}
                   onChange={(e) => setSplitCardRupees(e.target.value)}
@@ -651,6 +660,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 <input
                   type="number"
                   min="0"
+                  step="any"
                   placeholder="Wallet Amount"
                   value={splitWalletRupees}
                   onChange={(e) => setSplitWalletRupees(e.target.value)}
