@@ -178,6 +178,7 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     expect(htmlWithBatch).toContain('Rs. 14.00'); // Change due (1400 paisa)
     expect(htmlWithBatch).toContain('FBR FISCAL INVOICE');
     expect(htmlWithBatch).toContain('QR Code Space Reserved');
+    expect(htmlWithBatch).toContain('Powered by Hexalogic Tech');
 
     // 2. With batch & expiry toggled OFF
     const htmlWithoutBatch = generateThermalReceiptHtml(mockInvoiceData, { showBatchExpiry: false });
@@ -193,6 +194,7 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     const htmlUrdu = generateThermalReceiptHtml(mockInvoiceData, { locale: 'ur' });
     expect(htmlUrdu).toContain('dir="rtl"');
     expect(htmlUrdu).toContain('میزانِ کل');
+    expect(htmlUrdu).toContain('پاورڈ بائی ہیکسالوجک ٹیک');
   });
 
   it('finalizes a sale via roleGuardedFinalizeSale with split payments and persists to DB', async () => {

@@ -384,12 +384,18 @@ export function generateThermalReceiptHtml(
     <div style="font-size: 8.5px; color: #444; margin: 2px 0;">${t.fiscalStatusOffline}</div>
     <div class="qr-placeholder">${invoice.qrPayload ? 'QR CODE' : t.fiscalQrNotice}</div>
     <div>${t.invoiceNo}: ${invoice.fiscalInvoiceNumber || invoice.invoiceNumber}</div>
+    <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed #888; font-size: 8.5px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
+      ${t.poweredBy}
+    </div>
   </div>
 
   <!-- Footer -->
   <div class="footer">
     <div class="bold">${t.footerThankYou}</div>
     <div style="margin-top: 4px; font-size: 8.5px; color: #333;">${escapeHtml(options.customFooter || t.footerReturnPolicy)}</div>
+    <div style="margin-top: 6px; font-size: 8px; font-weight: bold; letter-spacing: 0.5px; color: #555; text-transform: uppercase;">
+      ${t.poweredBy}
+    </div>
   </div>
 </body>
 </html>`;
@@ -591,6 +597,7 @@ export function generateZReportHtml(
 
   <div class="text-center" style="margin-top: 15px; font-size: 8px; color: #666;">
     * System Generated Audit Document *
+    <div style="margin-top: 4px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">${t.poweredBy}</div>
   </div>
 </body>
 </html>`;

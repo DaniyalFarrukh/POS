@@ -53,6 +53,7 @@ export interface ReceiptStrings {
   returnsSummary: string;
   cashierSignature: string;
   managerSignature: string;
+  poweredBy: string;
 }
 
 export const RECEIPT_TRANSLATIONS: Record<'en' | 'ur', ReceiptStrings> = {
@@ -108,6 +109,7 @@ export const RECEIPT_TRANSLATIONS: Record<'en' | 'ur', ReceiptStrings> = {
     returnsSummary: 'Returns & Refunds Summary',
     cashierSignature: 'Cashier Signature: __________________',
     managerSignature: 'Manager Signature: __________________',
+    poweredBy: 'Powered by Hexalogic Tech',
   },
   ur: {
     pharmacyDefaultName: 'ہیکسا فارم فارمیسی',
@@ -160,6 +162,7 @@ export const RECEIPT_TRANSLATIONS: Record<'en' | 'ur', ReceiptStrings> = {
     returnsSummary: 'واپسی و ریفنڈ خلاصہ',
     cashierSignature: 'دستخط کیشیئر: __________________',
     managerSignature: 'دستخط منیجر: __________________',
+    poweredBy: 'پاورڈ بائی ہیکسالوجک ٹیک',
   },
 };
 
