@@ -4,18 +4,9 @@ import { eq, and } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateUuidV7 } from '@pos/shared';
 import * as schema from '../db/schema';
-import {
-  pharmacies,
-  branches,
-  counters,
-  users,
-  deviceRegistrationCodes,
-} from '../db/schema';
+import { pharmacies, branches, counters, users, deviceRegistrationCodes } from '../db/schema';
 import { getDb, closePool } from '../db';
-import {
-  generatePlainRegistrationCode,
-  hashRegistrationCode,
-} from '../auth/jwt';
+import { generatePlainRegistrationCode, hashRegistrationCode } from '../auth/jwt';
 
 dotenv.config();
 
@@ -36,9 +27,7 @@ export interface SeedResult {
  * Creates/retrieves development tenant, branch, counter, owner user,
  * and generates a single-use hashed device registration code.
  */
-export async function seedDevEnvironment(
-  db: NodePgDatabase<typeof schema>
-): Promise<SeedResult> {
+export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Promise<SeedResult> {
   const now = new Date().toISOString();
 
   // 1. Get or create Dev Pharmacy
@@ -67,12 +56,7 @@ export async function seedDevEnvironment(
   const existingBranches = await db
     .select()
     .from(branches)
-    .where(
-      and(
-        eq(branches.pharmacyId, pharmacy.id),
-        eq(branches.name, 'Main Branch')
-      )
-    )
+    .where(and(eq(branches.pharmacyId, pharmacy.id), eq(branches.name, 'Main Branch')))
     .limit(1);
 
   let branch = existingBranches[0];
@@ -130,12 +114,7 @@ export async function seedDevEnvironment(
   const existingOwners = await db
     .select()
     .from(users)
-    .where(
-      and(
-        eq(users.pharmacyId, pharmacy.id),
-        eq(users.role, 'owner')
-      )
-    )
+    .where(and(eq(users.pharmacyId, pharmacy.id), eq(users.role, 'owner')))
     .limit(1);
 
   let owner = existingOwners[0];
@@ -216,7 +195,9 @@ async function main() {
     console.log('Register a device terminal via:');
     console.log(`curl -X POST http://localhost:3001/devices/register \\`);
     console.log(`  -H "Content-Type: application/json" \\`);
-    console.log(`  -d '{"code":"${result.registrationCode.plainCode}","deviceName":"POS Counter 1 Terminal"}'`);
+    console.log(
+      `  -d '{"code":"${result.registrationCode.plainCode}","deviceName":"HexaPharm Counter 1 Terminal"}'`
+    );
     console.log('==================================================\n');
   } catch (error) {
     console.error('Failed to run development seed script:', error);

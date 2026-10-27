@@ -61,7 +61,7 @@ export function getLogDirectory(customDir?: string): string {
   if (app && typeof app.getPath === 'function') {
     baseDir = app.getPath('userData');
   } else if (process.env.APPDATA) {
-    baseDir = path.join(process.env.APPDATA, 'POS Counter');
+    baseDir = path.join(process.env.APPDATA, 'HexaPharm');
   } else {
     baseDir = path.join(process.cwd(), 'logs');
   }
@@ -202,12 +202,17 @@ export function gatherDiagnosticsMetadata(): DiagnosticsMetadata {
   }
 
   // Check sync state if available
-  let syncState: { lastPushSeq?: number; lastPullCursor?: string; pendingCount?: number } | undefined;
+  let syncState:
+    { lastPushSeq?: number; lastPullCursor?: string; pendingCount?: number } | undefined;
   try {
     const db = getDatabase();
-    const cursorRow = db.prepare("SELECT value FROM sync_state WHERE key = 'pull_cursor'").get() as { value: string } | undefined;
-    const pendingRow = db.prepare("SELECT COUNT(*) as cnt FROM outbox WHERE status = 'pending'").get() as { cnt: number } | undefined;
-    const seqRow = db.prepare('SELECT MAX(device_seq) as maxSeq FROM outbox').get() as { maxSeq: number } | undefined;
+    const cursorRow = db.prepare("SELECT value FROM sync_state WHERE key = 'pull_cursor'").get() as
+      { value: string } | undefined;
+    const pendingRow = db
+      .prepare("SELECT COUNT(*) as cnt FROM outbox WHERE status = 'pending'")
+      .get() as { cnt: number } | undefined;
+    const seqRow = db.prepare('SELECT MAX(device_seq) as maxSeq FROM outbox').get() as
+      { maxSeq: number } | undefined;
 
     syncState = {
       lastPushSeq: seqRow?.maxSeq ?? 0,
@@ -220,7 +225,7 @@ export function gatherDiagnosticsMetadata(): DiagnosticsMetadata {
 
   return {
     app: {
-      name: 'POS Counter Terminal',
+      name: 'HexaPharm Terminal',
       version: app ? app.getVersion() : '0.1.0',
       electronVersion: process.versions.electron || 'unknown',
       chromeVersion: process.versions.chrome || 'unknown',
@@ -265,7 +270,7 @@ export async function exportDiagnosticsZip(
     zip.addFile(
       'diagnostics.json',
       Buffer.from(JSON.stringify(metadata, null, 2), 'utf-8'),
-      'POS Counter System and Database Diagnostics'
+      'HexaPharm System and Database Diagnostics'
     );
 
     // 2. Add sanitized log files
@@ -290,8 +295,8 @@ export async function exportDiagnosticsZip(
       if (dialog && typeof dialog.showSaveDialog === 'function') {
         const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
         const result = await dialog.showSaveDialog({
-          title: 'Export POS Counter Diagnostics Bundle',
-          defaultPath: `pos-diagnostics-${dateStr}.zip`,
+          title: 'Export HexaPharm Diagnostics Bundle',
+          defaultPath: `hexapharm-diagnostics-${dateStr}.zip`,
           filters: [{ name: 'ZIP Archives', extensions: ['zip'] }],
         });
         if (result.canceled || !result.filePath) {
@@ -300,7 +305,7 @@ export async function exportDiagnosticsZip(
         destPath = result.filePath;
       } else {
         const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        destPath = path.join(os.tmpdir(), `pos-diagnostics-${dateStr}.zip`);
+        destPath = path.join(os.tmpdir(), `hexapharm-diagnostics-${dateStr}.zip`);
       }
     }
 

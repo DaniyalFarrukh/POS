@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { LockIcon, EyeIcon, EyeOffIcon } from './common/Icons';
 
 interface PinPadProps {
   pin: string;
@@ -6,6 +7,8 @@ interface PinPadProps {
   onSubmit: () => void;
   maxLength?: number;
   disabled?: boolean;
+  placeholder?: string;
+  autoFocus?: boolean;
 }
 
 export const PinPad: React.FC<PinPadProps> = ({
@@ -14,7 +17,18 @@ export const PinPad: React.FC<PinPadProps> = ({
   onSubmit,
   maxLength = 8,
   disabled = false,
+  placeholder,
+  autoFocus = true,
 }) => {
+  const [showPin, setShowPin] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus && !disabled) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus, disabled]);
+
   const handleDigit = (digit: string) => {
     if (disabled || pin.length >= maxLength) return;
     onChange(pin + digit);
@@ -28,11 +42,21 @@ export const PinPad: React.FC<PinPadProps> = ({
   const handleClear = () => {
     if (disabled) return;
     onChange('');
+    inputRef.current?.focus();
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, maxLength);
+    onChange(digitsOnly);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (disabled) return;
+      // If the input element itself is focused, let input's native event & onChange handle typing
+      if (document.activeElement === inputRef.current) return;
+
       if (e.key >= '0' && e.key <= '9') {
         e.preventDefault();
         handleDigit(e.key);
@@ -57,36 +81,129 @@ export const PinPad: React.FC<PinPadProps> = ({
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '290px' }}>
-      {/* Masked PIN Display with Glow */}
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: '290px',
+      }}
+    >
+      {/* Password / PIN Input Field with Lock Icon and Show/Hide Toggle */}
       <div
         style={{
+          position: 'relative',
+          width: '100%',
           display: 'flex',
-          justifyContent: 'center',
-          gap: '12px',
-          margin: '16px 0 24px 0',
-          minHeight: '32px',
           alignItems: 'center',
+          margin: '10px 0 18px 0',
         }}
       >
-        {[...Array(Math.max(4, pin.length))].map((_, index) => {
-          const filled = index < pin.length;
-          return (
-            <div
-              key={index}
-              style={{
-                width: filled ? '16px' : '14px',
-                height: filled ? '16px' : '14px',
-                borderRadius: '50%',
-                border: filled ? '2px solid #2563eb' : '2px solid #cbd5e1',
-                background: filled ? '#2563eb' : '#ffffff',
-                boxShadow: filled ? '0 0 8px rgba(37, 99, 235, 0.4)' : 'none',
-                transition: 'all 0.15s var(--ease-spring)',
-                transform: filled ? 'scale(1.15)' : 'scale(1)',
-              }}
-            />
-          );
-        })}
+        <div
+          style={{
+            position: 'absolute',
+            left: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#64748b',
+            pointerEvents: 'none',
+          }}
+        >
+          <LockIcon size={16} />
+        </div>
+
+        <input
+          ref={inputRef}
+          type={showPin ? 'text' : 'password'}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={maxLength}
+          value={pin}
+          disabled={disabled}
+          onChange={handleInputChange}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (pin.length >= 4) {
+                onSubmit();
+              }
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              handleClear();
+            }
+          }}
+          placeholder={placeholder || 'Enter PIN (4-8 digits)'}
+          style={{
+            width: '100%',
+            height: '46px',
+            paddingLeft: '38px',
+            paddingRight: '42px',
+            fontSize: pin.length > 0 ? (showPin ? '17px' : '22px') : '13.5px',
+            fontWeight: pin.length > 0 ? 800 : 500,
+            letterSpacing: pin.length > 0 ? (showPin ? '0.12em' : '0.22em') : 'normal',
+            textAlign: pin.length > 0 && !showPin ? 'center' : 'left',
+            color: '#0f172a',
+            backgroundColor: '#ffffff',
+            border: '2px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
+            boxSizing: 'border-box',
+            outline: 'none',
+            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+            fontFamily: showPin ? 'var(--font-mono, monospace)' : 'inherit',
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = '#2563eb';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = '#e2e8f0';
+            e.currentTarget.style.boxShadow = '0 1px 3px rgba(15, 23, 42, 0.05)';
+          }}
+        />
+
+        {/* Toggle Show/Hide Button */}
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={disabled}
+          onClick={() => {
+            setShowPin((prev) => !prev);
+            inputRef.current?.focus();
+          }}
+          title={showPin ? 'Hide PIN' : 'Show PIN'}
+          aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
+          style={{
+            position: 'absolute',
+            right: '8px',
+            width: '32px',
+            height: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#64748b',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            padding: 0,
+            transition: 'color 0.15s ease, background-color 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!disabled) {
+              e.currentTarget.style.color = '#1e293b';
+              e.currentTarget.style.backgroundColor = '#f1f5f9';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#64748b';
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          {showPin ? <EyeOffIcon size={17} /> : <EyeIcon size={17} />}
+        </button>
       </div>
 
       {/* Numeric Keypad Grid */}
@@ -104,7 +221,10 @@ export const PinPad: React.FC<PinPadProps> = ({
             type="button"
             className="pinpad-btn"
             disabled={disabled}
-            onClick={() => handleDigit(digit)}
+            onClick={() => {
+              handleDigit(digit);
+              inputRef.current?.focus();
+            }}
           >
             {digit}
           </button>
@@ -132,7 +252,10 @@ export const PinPad: React.FC<PinPadProps> = ({
           type="button"
           className="pinpad-btn"
           disabled={disabled}
-          onClick={() => handleDigit('0')}
+          onClick={() => {
+            handleDigit('0');
+            inputRef.current?.focus();
+          }}
         >
           0
         </button>
@@ -141,7 +264,10 @@ export const PinPad: React.FC<PinPadProps> = ({
           type="button"
           className="pinpad-btn"
           disabled={disabled || pin.length === 0}
-          onClick={handleBackspace}
+          onClick={() => {
+            handleBackspace();
+            inputRef.current?.focus();
+          }}
           style={{
             fontSize: '18px',
             color: pin.length > 0 ? '#475569' : '#94a3b8',
@@ -185,7 +311,10 @@ export const PinPad: React.FC<PinPadProps> = ({
             padding: '2px 6px',
             borderRadius: '5px',
             backgroundColor: pin.length >= 4 && !disabled ? 'rgba(255, 255, 255, 0.2)' : '#ffffff',
-            border: pin.length >= 4 && !disabled ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #cbd5e1',
+            border:
+              pin.length >= 4 && !disabled
+                ? '1px solid rgba(255, 255, 255, 0.35)'
+                : '1px solid #cbd5e1',
             color: pin.length >= 4 && !disabled ? '#ffffff' : '#64748b',
             fontFamily: 'var(--font-mono)',
           }}

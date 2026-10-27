@@ -37,11 +37,11 @@
     "vite-plugin-electron": "^1.1.2"
   },
   "build": {
-    "appId": "com.pos.counter",
-    "productName": "POS Counter",
+    "appId": "com.hexalogic.hexapharm",
+    "productName": "HexaPharm",
     "npmRebuild": false,
     "directories": {
-      "output": "release"
+      "output": "dist-release"
     },
     "files": [
       "dist/**/*",
@@ -59,13 +59,17 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "executableName": "HexaPharm",
+      "icon": "build/icon.png"
     },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "HexaPharm",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     }
   }
 }

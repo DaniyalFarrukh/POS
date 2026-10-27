@@ -177,7 +177,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     success: 'Success',
 
     settingsTitle: 'Terminal Settings & Hardware Configuration',
-    settingsDesc: 'Configure language, thermal receipt printers, barcode scanner wedge timing, and system backups.',
+    settingsDesc:
+      'Configure language, thermal receipt printers, barcode scanner wedge timing, and system backups.',
     tabGeneral: 'General & Language',
     tabHardware: 'Printer & Paper',
     tabScanner: 'Scanner Test',
@@ -211,7 +212,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     testPrintFailed: 'Failed to send print job to printer.',
 
     scannerTestTitle: 'Barcode Scanner Hardware Test',
-    scannerTestDesc: 'Scan any drug package barcode to verify hardware wedge keystroke speed (<50ms).',
+    scannerTestDesc:
+      'Scan any drug package barcode to verify hardware wedge keystroke speed (<50ms).',
     scannerInputPlaceholder: 'Focus here and scan a product barcode...',
     scannerStatusIdle: 'Ready for scan input',
     scannerStatusDetected: 'Hardware Wedge Scanner Detected (<50ms between keystrokes)',
@@ -249,7 +251,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     keyEscDesc: 'Cancel modal / Clear active search selection',
 
     backupTitle: 'SQLite Safe Database Backups',
-    backupDesc: 'Automated daily snapshots retain the last 14 backups. Manual backups use safe online SQLite backup API.',
+    backupDesc:
+      'Automated daily snapshots retain the last 14 backups. Manual backups use safe online SQLite backup API.',
     backupNow: 'Create Backup Now',
     backupCreating: 'Creating safe SQLite backup...',
     backupCreatedSuccess: 'Backup created successfully.',
@@ -260,14 +263,16 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     backupSize: 'File Size',
     restoreAction: 'Restore Backup',
     restoreModalTitle: 'Confirm Database Restore',
-    restoreModalWarning: 'WARNING: Restoring will replace active local data. A safety snapshot of current data will be created first. Only Owners can perform this action.',
+    restoreModalWarning:
+      'WARNING: Restoring will replace active local data. A safety snapshot of current data will be created first. Only Owners can perform this action.',
     restoreOwnerPinPrompt: 'Enter Owner PIN to authorize restore:',
     restoreConfirmButton: 'Authorize & Restore Database',
     restoreSuccessMessage: 'Database restored successfully! A safety snapshot was archived.',
     restoreErrorMessage: 'Failed to restore database.',
 
     diagnosticsTitle: 'Diagnostics & System Integrity',
-    diagnosticsDesc: 'Export sanitized diagnostics zip (scrubbed of all customer and sales data) and verify SQLite integrity.',
+    diagnosticsDesc:
+      'Export sanitized diagnostics zip (scrubbed of all customer and sales data) and verify SQLite integrity.',
     exportDiagnosticsBtn: 'Export Diagnostics ZIP',
     exportDiagnosticsSuccess: 'Diagnostics bundle exported to:',
     integrityStatus: 'SQLite Database Integrity',
@@ -277,12 +282,13 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     autoUpdateDesc: 'Check for new versions from the local deployment server.',
     checkUpdatesBtn: 'Check for Updates',
     checkingUpdates: 'Checking update server...',
-    updateUpToDate: 'POS Counter is up to date (Version matches latest release).',
+    updateUpToDate: 'HexaPharm is up to date (Version matches latest release).',
     updateAvailableMsg: 'A new update is available on the update server.',
 
     crashTitle: 'Something Went Wrong',
     crashSubtitle: 'The POS application encountered an unexpected runtime error.',
-    crashAdvice: 'Your database and shift records remain safe. You can reload the application or export diagnostics for technical support.',
+    crashAdvice:
+      'Your database and shift records remain safe. You can reload the application or export diagnostics for technical support.',
     reloadApp: 'Reload POS Application',
     exportCrashLog: 'Export Diagnostics Bundle',
     technicalDetails: 'Technical Error Details (Sanitized)',
@@ -315,7 +321,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     success: 'کامیابی',
 
     settingsTitle: 'ٹرمینل ترتیبات اور ہارڈویئر کنفیگریشن',
-    settingsDesc: 'زبان کا انتخاب، تھرمل پرنٹر، بارکوڈ اسکینر کی رفتار، اور ڈیٹا بیس بیک اپ کا انتظام کریں۔',
+    settingsDesc:
+      'زبان کا انتخاب، تھرمل پرنٹر، بارکوڈ اسکینر کی رفتار، اور ڈیٹا بیس بیک اپ کا انتظام کریں۔',
     tabGeneral: 'عام و زبان',
     tabHardware: 'پرنٹر و کاغذ',
     tabScanner: 'اسکینر ٹیسٹ',
@@ -387,7 +394,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     keyEscDesc: 'ونڈو بند کریں / تلاش منسوخ کریں',
 
     backupTitle: 'محفوظ SQLite ڈیٹا بیس بیک اپ',
-    backupDesc: 'روزانہ خودکار بیک اپ آخری 14 ریکارڈ محفوظ رکھتا ہے۔ یہ بیک اپ محفوظ آن لائن موڈ میں لیا جاتا ہے۔',
+    backupDesc:
+      'روزانہ خودکار بیک اپ آخری 14 ریکارڈ محفوظ رکھتا ہے۔ یہ بیک اپ محفوظ آن لائن موڈ میں لیا جاتا ہے۔',
     backupNow: 'ابھی بیک اپ بنائیں',
     backupCreating: 'ڈیٹا بیس بیک اپ تیار ہو رہا ہے...',
     backupCreatedSuccess: 'بیک اپ کامیابی کے ساتھ محفوظ ہو گیا۔',
@@ -398,7 +406,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
     backupSize: 'سائز',
     restoreAction: 'بیک اپ بحال کریں',
     restoreModalTitle: 'ڈیٹا بیس بحالی کی تصدیق',
-    restoreModalWarning: 'انتباہ: بیک اپ بحال کرنے سے موجودہ ڈیٹا تبدیل ہو جائے گا۔ حفاظتی طور پر موجودہ ڈیٹا کا الگ بیک اپ پہلے لیا جائے گا۔ صرف مالک ہی یہ عمل کر سکتا ہے۔',
+    restoreModalWarning:
+      'انتباہ: بیک اپ بحال کرنے سے موجودہ ڈیٹا تبدیل ہو جائے گا۔ حفاظتی طور پر موجودہ ڈیٹا کا الگ بیک اپ پہلے لیا جائے گا۔ صرف مالک ہی یہ عمل کر سکتا ہے۔',
     restoreOwnerPinPrompt: 'بحالی کی تصدیق کے لیے مالک کا پن کوڈ درج کریں:',
     restoreConfirmButton: 'تصدیق اور بحال کریں',
     restoreSuccessMessage: 'ڈیٹا بیس بحال ہو گیا! حفاظتی کاپی بھی محفوظ کر لی گئی۔',
@@ -420,7 +429,8 @@ export const TRANSLATIONS: Record<SupportedLocale, AppTranslations> = {
 
     crashTitle: 'ایک غیر متوقع مسئلہ پیش آیا',
     crashSubtitle: 'ایپلی کیشن میں ایک غیر متوقع خرابی رونما ہوئی ہے۔',
-    crashAdvice: 'آپ کا ڈیٹا بیس اور شفٹ کا ریکارڈ مکمل طور پر محفوظ ہے۔ آپ ایپلی کیشن دوبارہ چلا سکتے ہیں۔',
+    crashAdvice:
+      'آپ کا ڈیٹا بیس اور شفٹ کا ریکارڈ مکمل طور پر محفوظ ہے۔ آپ ایپلی کیشن دوبارہ چلا سکتے ہیں۔',
     reloadApp: 'ایپلیکیشن دوبارہ چلائیں',
     exportCrashLog: 'تشخیصی لاگ برآمد کریں',
     technicalDetails: 'تکنیکی خرابی کی تفصیلات',

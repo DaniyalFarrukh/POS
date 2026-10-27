@@ -25,13 +25,27 @@ import {
 } from './common/Icons';
 
 // Low-end PC optimization: Lazy-load heavy non-primary screens
-const ProductList = lazy(() => import('./products/ProductList').then((m) => ({ default: m.ProductList })));
-const PurchasingDashboard = lazy(() => import('./purchasing/PurchasingDashboard').then((m) => ({ default: m.PurchasingDashboard })));
-const StockOverview = lazy(() => import('./stock/StockOverview').then((m) => ({ default: m.StockOverview })));
-const InvoiceHistoryScreen = lazy(() => import('./invoices/InvoiceHistoryScreen').then((m) => ({ default: m.InvoiceHistoryScreen })));
-const DayEndReportScreen = lazy(() => import('./shifts/DayEndReportScreen').then((m) => ({ default: m.DayEndReportScreen })));
-const SyncDashboardScreen = lazy(() => import('./sync/SyncDashboardScreen').then((m) => ({ default: m.SyncDashboardScreen })));
-const SettingsScreen = lazy(() => import('./settings/SettingsScreen').then((m) => ({ default: m.SettingsScreen })));
+const ProductList = lazy(() =>
+  import('./products/ProductList').then((m) => ({ default: m.ProductList }))
+);
+const PurchasingDashboard = lazy(() =>
+  import('./purchasing/PurchasingDashboard').then((m) => ({ default: m.PurchasingDashboard }))
+);
+const StockOverview = lazy(() =>
+  import('./stock/StockOverview').then((m) => ({ default: m.StockOverview }))
+);
+const InvoiceHistoryScreen = lazy(() =>
+  import('./invoices/InvoiceHistoryScreen').then((m) => ({ default: m.InvoiceHistoryScreen }))
+);
+const DayEndReportScreen = lazy(() =>
+  import('./shifts/DayEndReportScreen').then((m) => ({ default: m.DayEndReportScreen }))
+);
+const SyncDashboardScreen = lazy(() =>
+  import('./sync/SyncDashboardScreen').then((m) => ({ default: m.SyncDashboardScreen }))
+);
+const SettingsScreen = lazy(() =>
+  import('./settings/SettingsScreen').then((m) => ({ default: m.SettingsScreen }))
+);
 
 interface LayoutShellProps {
   session: AuthSession;
@@ -40,14 +54,19 @@ interface LayoutShellProps {
   onLogout: () => void;
 }
 
-type NavSection = 'pos' | 'invoices' | 'shifts' | 'products' | 'purchasing' | 'stock' | 'sync' | 'users' | 'settings' | 'diagnostics';
+type NavSection =
+  | 'pos'
+  | 'invoices'
+  | 'shifts'
+  | 'products'
+  | 'purchasing'
+  | 'stock'
+  | 'sync'
+  | 'users'
+  | 'settings'
+  | 'diagnostics';
 
-export const LayoutShell: React.FC<LayoutShellProps> = ({
-  session,
-  dbInfo,
-  onLock,
-  onLogout,
-}) => {
+export const LayoutShell: React.FC<LayoutShellProps> = ({ session, dbInfo, onLock, onLogout }) => {
   const { locale, setLocale, t, isRtl } = useI18n();
   const [activeSection, setActiveSection] = useState<NavSection>('pos');
   const [roleTestResult, setRoleTestResult] = useState<{
@@ -124,38 +143,116 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
     icon: React.ReactNode;
     minRole: UserRole;
     shortcut?: string;
-    section: 'MAIN' | 'CLINIC' | 'FINANCE' | 'SYSTEM';
+    section: 'MAIN' | 'PHARMACY' | 'FINANCE' | 'SYSTEM';
   }
 
   // Categorized Navigation items filtered by role with i18n & keyboard shortcuts
   const navItems: NavItemDef[] = [
-    { id: 'pos', label: t.posTerminal, icon: <CartIcon size={17} />, minRole: 'cashier', shortcut: 'F1', section: 'MAIN' },
-    { id: 'invoices', label: t.invoices, icon: <InvoiceIcon size={17} />, minRole: 'cashier', shortcut: 'F5', section: 'CLINIC' },
-    { id: 'shifts', label: t.shiftDayEnd, icon: <AnalyticsIcon size={17} />, minRole: 'cashier', shortcut: 'F6', section: 'CLINIC' },
-    { id: 'products', label: t.catalog, icon: <MedicineIcon size={17} />, minRole: 'pharmacist', shortcut: 'F2', section: 'CLINIC' },
-    { id: 'users', label: 'Staff List', icon: <StaffIcon size={17} />, minRole: 'owner', section: 'CLINIC' },
-    { id: 'purchasing', label: t.purchasing, icon: <PurchasingIcon size={17} />, minRole: 'pharmacist', shortcut: 'F3', section: 'FINANCE' },
-    { id: 'stock', label: t.stockOverview, icon: <StockIcon size={17} />, minRole: 'pharmacist', shortcut: 'F4', section: 'FINANCE' },
-    { id: 'sync', label: t.syncStatus, icon: <SyncIcon size={17} />, minRole: 'cashier', section: 'SYSTEM' },
-    { id: 'settings', label: t.settings, icon: <SettingsIcon size={17} />, minRole: 'cashier', shortcut: 'F10', section: 'SYSTEM' },
-    { id: 'diagnostics', label: 'Local DB & Engine', icon: <DatabaseIcon size={17} />, minRole: 'cashier', section: 'SYSTEM' },
+    {
+      id: 'pos',
+      label: t.posTerminal,
+      icon: <CartIcon size={17} />,
+      minRole: 'cashier',
+      shortcut: 'F1',
+      section: 'MAIN',
+    },
+    {
+      id: 'invoices',
+      label: t.invoices,
+      icon: <InvoiceIcon size={17} />,
+      minRole: 'cashier',
+      shortcut: 'F5',
+      section: 'PHARMACY',
+    },
+    {
+      id: 'shifts',
+      label: t.shiftDayEnd,
+      icon: <AnalyticsIcon size={17} />,
+      minRole: 'cashier',
+      shortcut: 'F6',
+      section: 'PHARMACY',
+    },
+    {
+      id: 'products',
+      label: t.catalog,
+      icon: <MedicineIcon size={17} />,
+      minRole: 'pharmacist',
+      shortcut: 'F2',
+      section: 'PHARMACY',
+    },
+    {
+      id: 'users',
+      label: 'Staff List',
+      icon: <StaffIcon size={17} />,
+      minRole: 'owner',
+      section: 'PHARMACY',
+    },
+    {
+      id: 'purchasing',
+      label: t.purchasing,
+      icon: <PurchasingIcon size={17} />,
+      minRole: 'pharmacist',
+      shortcut: 'F3',
+      section: 'FINANCE',
+    },
+    {
+      id: 'stock',
+      label: t.stockOverview,
+      icon: <StockIcon size={17} />,
+      minRole: 'pharmacist',
+      shortcut: 'F4',
+      section: 'FINANCE',
+    },
+    {
+      id: 'sync',
+      label: t.syncStatus,
+      icon: <SyncIcon size={17} />,
+      minRole: 'cashier',
+      section: 'SYSTEM',
+    },
+    {
+      id: 'settings',
+      label: t.settings,
+      icon: <SettingsIcon size={17} />,
+      minRole: 'cashier',
+      shortcut: 'F10',
+      section: 'SYSTEM',
+    },
+    {
+      id: 'diagnostics',
+      label: 'Local DB & Engine',
+      icon: <DatabaseIcon size={17} />,
+      minRole: 'cashier',
+      section: 'SYSTEM',
+    },
   ];
 
   const visibleNav = navItems.filter((item) => canAccessSection(item.minRole));
 
   const getSectionTitle = (id: NavSection): string => {
     switch (id) {
-      case 'pos': return 'POS Checkout & Terminal';
-      case 'invoices': return 'Reservations & Invoices';
-      case 'shifts': return 'Shift & Day-End Report';
-      case 'products': return 'Treatments & Product Catalog';
-      case 'purchasing': return 'Purchases & Receiving';
-      case 'stock': return 'Stock Overview & Inventory';
-      case 'sync': return 'Cloud Sync & Replication';
-      case 'settings': return 'System Settings';
-      case 'users': return 'Staff List & Roles';
-      case 'diagnostics': return 'Engine Diagnostics & WAL';
-      default: return 'Treatments';
+      case 'pos':
+        return 'POS Checkout & Terminal';
+      case 'invoices':
+        return 'Reservations & Invoices';
+      case 'shifts':
+        return 'Shift & Day-End Report';
+      case 'products':
+        return 'Treatments & Product Catalog';
+      case 'purchasing':
+        return 'Purchases & Receiving';
+      case 'stock':
+        return 'Stock Overview & Inventory';
+      case 'sync':
+        return 'Cloud Sync & Replication';
+      case 'settings':
+        return 'System Settings';
+      case 'users':
+        return 'Staff List & Roles';
+      case 'diagnostics':
+        return 'Engine Diagnostics & WAL';
+      default:
+        return 'Treatments';
     }
   };
 
@@ -193,12 +290,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
 
   const badge = getRoleBadgeStyle(userRole);
 
-  const sectionsOrder: Array<{ key: 'MAIN' | 'CLINIC' | 'FINANCE' | 'SYSTEM'; title?: string }> = [
-    { key: 'MAIN' },
-    { key: 'CLINIC', title: 'CLINIC' },
-    { key: 'FINANCE', title: 'FINANCE & ASSETS' },
-    { key: 'SYSTEM', title: 'SYSTEM & SETTINGS' },
-  ];
+  const sectionsOrder: Array<{ key: 'MAIN' | 'PHARMACY' | 'FINANCE' | 'SYSTEM'; title?: string }> =
+    [
+      { key: 'MAIN' },
+      { key: 'PHARMACY', title: 'PHARMACY' },
+      { key: 'FINANCE', title: 'FINANCE & ASSETS' },
+      { key: 'SYSTEM', title: 'SYSTEM & SETTINGS' },
+    ];
 
   return (
     <div
@@ -211,7 +309,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
         direction: isRtl ? 'rtl' : 'ltr',
       }}
     >
-      {/* Zendenta Clean White Sidebar */}
+      {/* HexaPharm Clean White Sidebar */}
       <aside
         style={{
           width: '248px',
@@ -236,7 +334,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
           <BrandLogo size={36} showText={true} textSubtitle="Pharmacy POS" />
         </div>
 
-        {/* Clinic / Branch Selector Card */}
+        {/* Pharmacy / Branch Selector Card */}
         <div
           style={{
             margin: '0 12px 14px 12px',
@@ -280,7 +378,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                   lineHeight: 1.2,
                 }}
               >
-                {session.branch.name || 'Avicena Clinic'}
+                {session.branch.name || 'HexaPharm Main Branch'}
               </div>
               <div
                 style={{
@@ -316,9 +414,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
 
             return (
               <div key={sec.key} style={{ marginBottom: '6px' }}>
-                {sec.title && (
-                  <div className="sidebar-section-header">{sec.title}</div>
-                )}
+                {sec.title && <div className="sidebar-section-header">{sec.title}</div>}
                 {items.map((item) => {
                   const isActive = activeSection === item.id;
                   return (
@@ -349,7 +445,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                         <span
                           style={{
                             fontSize: '15px',
-                            filter: isActive ? 'drop-shadow(0 1px 2px rgba(37,99,235,0.3))' : 'none',
+                            filter: isActive
+                              ? 'drop-shadow(0 1px 2px rgba(37,99,235,0.3))'
+                              : 'none',
                           }}
                         >
                           {item.icon}
@@ -389,6 +487,8 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             justifyContent: 'space-between',
             fontSize: '11px',
             color: '#64748b',
+            flexShrink: 0,
+            boxSizing: 'border-box',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -573,10 +673,12 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
               }}
             >
               <LockIcon size={13} color="#64748b" />
-              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>F9</kbd>
+              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>
+                F9
+              </kbd>
             </button>
 
-            {/* User Profile Chip (Zendenta style) */}
+            {/* User Profile Chip (HexaPharm style) */}
             <div
               className="interactive-btn"
               onClick={onLogout}
@@ -611,7 +713,9 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                 {session.user.name.charAt(0).toUpperCase()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a', lineHeight: 1.2 }}>
+                <div
+                  style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a', lineHeight: 1.2 }}
+                >
                   {session.user.name}
                 </div>
                 <span
@@ -630,64 +734,68 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
         </header>
 
         {/* Offline Limit Warning Banner */}
-        <SyncOfflineBanner
-          status={syncStatus}
-          onOpenSyncStatus={() => setIsSyncModalOpen(true)}
-        />
+        <SyncOfflineBanner status={syncStatus} onOpenSyncStatus={() => setIsSyncModalOpen(true)} />
 
         {/* Content Area */}
         <main
           style={{
             flex: 1,
-            overflowY: 'auto',
-            padding: activeSection === 'pos' ? '16px 20px' : activeSection === 'settings' ? '0' : '24px 32px',
+            overflowY: activeSection === 'pos' ? 'hidden' : 'auto',
+            padding:
+              activeSection === 'pos'
+                ? '0'
+                : activeSection === 'settings'
+                  ? '0'
+                  : '24px 32px',
             backgroundColor: '#f8fafc',
+            display: activeSection === 'pos' ? 'flex' : 'block',
+            flexDirection: 'column',
+            minHeight: 0,
           }}
         >
           <Suspense fallback={<div style={{ padding: '24px', color: '#64748b' }}>{t.loading}</div>}>
-            {activeSection === 'pos' && (
-              <PosCheckoutScreen session={session} />
-            )}
+            {activeSection === 'pos' && <PosCheckoutScreen session={session} />}
 
-            {activeSection === 'invoices' && (
-              <InvoiceHistoryScreen session={session} />
-            )}
+            {activeSection === 'invoices' && <InvoiceHistoryScreen session={session} />}
 
-            {activeSection === 'shifts' && (
-              <DayEndReportScreen session={session} />
-            )}
+            {activeSection === 'shifts' && <DayEndReportScreen session={session} />}
 
-            {activeSection === 'products' && (
-              <ProductList />
-            )}
+            {activeSection === 'products' && <ProductList />}
 
-            {activeSection === 'purchasing' && (
-              <PurchasingDashboard />
-            )}
+            {activeSection === 'purchasing' && <PurchasingDashboard />}
 
-            {activeSection === 'stock' && (
-              <StockOverview />
-            )}
+            {activeSection === 'stock' && <StockOverview />}
 
-            {activeSection === 'sync' && (
-              <SyncDashboardScreen session={session} />
-            )}
+            {activeSection === 'sync' && <SyncDashboardScreen session={session} />}
 
-            {activeSection === 'settings' && (
-              <SettingsScreen session={session} />
-            )}
+            {activeSection === 'settings' && <SettingsScreen session={session} />}
 
             {activeSection === 'users' && (
               <div>
-                <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
+                <h2
+                  style={{
+                    margin: '0 0 6px 0',
+                    fontSize: '22px',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                  }}
+                >
                   Staff & Role Permissions (Owner Only)
                 </h2>
                 <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
                   Manage terminal PINs, roles (Owner, Pharmacist, Cashier), and staff access.
                 </p>
-                <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '24px' }}>
+                <div
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0',
+                    padding: '24px',
+                  }}
+                >
                   <p style={{ margin: 0, color: '#475569' }}>
-                    Owner permissions verified. Only the owner role can view or manage staff accounts.
+                    Owner permissions verified. Only the owner role can view or manage staff
+                    accounts.
                   </p>
                 </div>
               </div>
@@ -695,7 +803,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
 
             {activeSection === 'diagnostics' && (
               <div>
-                <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>
+                <h2
+                  style={{
+                    margin: '0 0 6px 0',
+                    fontSize: '22px',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                  }}
+                >
                   Local Database & Terminal Diagnostics
                 </h2>
                 <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
@@ -703,146 +818,187 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                 </p>
 
                 {dbInfo && (
-                  <div style={{ backgroundColor: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                    }}
+                  >
                     <div>
-                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Database File:</span>
-                      <div style={{ fontFamily: 'Consolas, monospace', fontSize: '12px', marginTop: '4px', padding: '8px', backgroundColor: '#f8fafc', borderRadius: '4px' }}>
+                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                        Database File:
+                      </span>
+                      <div
+                        style={{
+                          fontFamily: 'Consolas, monospace',
+                          fontSize: '12px',
+                          marginTop: '4px',
+                          padding: '8px',
+                          backgroundColor: '#f8fafc',
+                          borderRadius: '4px',
+                        }}
+                      >
                         {dbInfo.dbPath}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '20px', marginTop: '6px' }}>
                       <div>
-                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Schema Version:</span>
-                        <div style={{ fontWeight: 700, color: '#2563eb' }}>v{dbInfo.schemaVersion}</div>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                          Schema Version:
+                        </span>
+                        <div style={{ fontWeight: 700, color: '#2563eb' }}>
+                          v{dbInfo.schemaVersion}
+                        </div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Journal Mode:</span>
-                        <div style={{ fontWeight: 700, color: '#166534' }}>{dbInfo.journalMode.toUpperCase()}</div>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                          Journal Mode:
+                        </span>
+                        <div style={{ fontWeight: 700, color: '#166534' }}>
+                          {dbInfo.journalMode.toUpperCase()}
+                        </div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Foreign Keys:</span>
-                        <div style={{ fontWeight: 700, color: dbInfo.foreignKeys ? '#166534' : '#dc2626' }}>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                          Foreign Keys:
+                        </span>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: dbInfo.foreignKeys ? '#166534' : '#dc2626',
+                          }}
+                        >
                           {dbInfo.foreignKeys ? 'ENABLED' : 'DISABLED'}
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
+
+                {/* Live IPC Role Guard Testing Panel */}
+                <div
+                  style={{
+                    marginTop: '24px',
+                    padding: '20px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                        IPC Layer Role Guard Live Verification
+                      </h3>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                        Test real-time IPC protection in the Electron main process for your current role (
+                        <strong>{userRole}</strong>).
+                      </p>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        padding: '3px 8px',
+                        backgroundColor: '#f1f5f9',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      requireRole() Guard
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      disabled={testingRole}
+                      onClick={() => handleTestRole('cashier')}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Test Cashier Action (Sell)
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={testingRole}
+                      onClick={() => handleTestRole('pharmacist')}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Test Pharmacist Action (Manage Stock)
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={testingRole}
+                      onClick={() => handleTestRole('owner')}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Test Owner Action (Manage Users)
+                    </button>
+                  </div>
+
+                  {roleTestResult && (
+                    <div
+                      style={{
+                        marginTop: '14px',
+                        padding: '12px 16px',
+                        borderRadius: '6px',
+                        backgroundColor: roleTestResult.success ? '#f0fdf4' : '#fef2f2',
+                        border: `1px solid ${roleTestResult.success ? '#bbf7d0' : '#fecaca'}`,
+                        color: roleTestResult.success ? '#166534' : '#b91c1c',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                      }}
+                    >
+                      <strong>IPC Result:</strong> {roleTestResult.message}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </Suspense>
-
-          {/* Live IPC Role Guard Testing Panel */}
-          <div
-            style={{
-              marginTop: '32px',
-              padding: '20px',
-              backgroundColor: '#ffffff',
-              borderRadius: '10px',
-              border: '1px solid #e2e8f0',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                  IPC Layer Role Guard Live Verification
-                </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                  Test real-time IPC protection in the Electron main process for your current role (<strong>{userRole}</strong>).
-                </p>
-              </div>
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  padding: '3px 8px',
-                  backgroundColor: '#f1f5f9',
-                  borderRadius: '4px',
-                }}
-              >
-                requireRole() Guard
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                disabled={testingRole}
-                onClick={() => handleTestRole('cashier')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Test Cashier Action (Sell)
-              </button>
-
-              <button
-                type="button"
-                disabled={testingRole}
-                onClick={() => handleTestRole('pharmacist')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Test Pharmacist Action (Manage Stock)
-              </button>
-
-              <button
-                type="button"
-                disabled={testingRole}
-                onClick={() => handleTestRole('owner')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Test Owner Action (Manage Users)
-              </button>
-            </div>
-
-            {roleTestResult && (
-              <div
-                style={{
-                  marginTop: '14px',
-                  padding: '12px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: roleTestResult.success ? '#f0fdf4' : '#fef2f2',
-                  border: `1px solid ${roleTestResult.success ? '#bbf7d0' : '#fecaca'}`,
-                  color: roleTestResult.success ? '#166534' : '#b91c1c',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                }}
-              >
-                <strong>IPC Result:</strong> {roleTestResult.message}
-              </div>
-            )}
-          </div>
         </main>
       </div>
 
       {/* Sync Status & Exceptions Modal */}
       {isSyncModalOpen && (
-        <SyncStatusModal
-          session={session}
-          onClose={() => setIsSyncModalOpen(false)}
-        />
+        <SyncStatusModal session={session} onClose={() => setIsSyncModalOpen(false)} />
       )}
     </div>
   );

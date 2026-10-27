@@ -1,10 +1,10 @@
-# POS Monorepo
+# HexaPharm POS Monorepo
 
-Point of Sale system built as a TypeScript monorepo with `pnpm` workspaces.
+HexaPharm Clinical Pharmacy Point of Sale system built as a TypeScript monorepo with `pnpm` workspaces.
 
 ## Structure
 
-- `apps/desktop`: Electron + React + Vite Windows counter application (`@pos/desktop`)
+- `apps/desktop`: HexaPharm Electron + React + Vite Windows counter application (`@pos/desktop`)
 - `apps/server`: Fastify API backend for cloud synchronization (`@pos/server`)
 - `packages/shared`: Shared TypeScript definitions and logic (`@pos/shared`)
 - `docs/`: System documentation (`RULES.md`, `ARCHITECTURE.md`, `SPEC.md`)

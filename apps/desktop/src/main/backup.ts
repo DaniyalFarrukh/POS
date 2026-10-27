@@ -20,7 +20,7 @@ export interface RestoreResult {
 
 /**
  * Returns the default directory for database backups.
- * Located at %APPDATA%/POS Counter/backups
+ * Located at %APPDATA%/HexaPharm/backups
  */
 export function getBackupDirectory(customDir?: string): string {
   if (customDir) return customDir;
@@ -29,7 +29,7 @@ export function getBackupDirectory(customDir?: string): string {
   if (app && typeof app.getPath === 'function') {
     baseDir = app.getPath('userData');
   } else if (process.env.APPDATA) {
-    baseDir = path.join(process.env.APPDATA, 'POS Counter');
+    baseDir = path.join(process.env.APPDATA, 'HexaPharm');
   } else {
     baseDir = path.join(process.cwd(), 'backups');
   }
@@ -77,7 +77,9 @@ export function enforceBackupRetention(backupDir: string, maxBackups = 14): void
     for (const item of toRemove) {
       try {
         fs.unlinkSync(item.fullPath);
-        console.log(`[Backup] Removed expired backup to retain last ${maxBackups}: ${item.filename}`);
+        console.log(
+          `[Backup] Removed expired backup to retain last ${maxBackups}: ${item.filename}`
+        );
       } catch (err) {
         console.warn(`[Backup] Failed to remove expired backup: ${item.filename}`, err);
       }
@@ -89,11 +91,13 @@ export function enforceBackupRetention(backupDir: string, maxBackups = 14): void
  * Safe local database backup using better-sqlite3 native online backup API.
  * This runs safe transactional page copies while WAL is active and accepts writes.
  */
-export async function createDatabaseBackup(options: {
-  db?: DatabaseInstance;
-  backupDir?: string;
-  isPreRestore?: boolean;
-} = {}): Promise<BackupInfo> {
+export async function createDatabaseBackup(
+  options: {
+    db?: DatabaseInstance;
+    backupDir?: string;
+    isPreRestore?: boolean;
+  } = {}
+): Promise<BackupInfo> {
   const db = options.db ?? getDatabase();
   const backupDir = getBackupDirectory(options.backupDir);
   const timestamp = getTimestampString();
@@ -121,7 +125,9 @@ export async function createDatabaseBackup(options: {
     enforceBackupRetention(backupDir, 14);
   }
 
-  console.log(`[Backup] Safe SQLite backup created successfully: ${destPath} (${stats.size} bytes)`);
+  console.log(
+    `[Backup] Safe SQLite backup created successfully: ${destPath} (${stats.size} bytes)`
+  );
   return info;
 }
 
@@ -154,11 +160,13 @@ export function listDatabaseBackups(customDir?: string): BackupInfo[] {
 /**
  * Checks if a daily backup is needed and triggers it in the background if the newest backup > 24 hours old.
  */
-export async function checkAndRunDailyBackup(options: {
-  db?: DatabaseInstance;
-  backupDir?: string;
-  customDir?: string;
-} = {}): Promise<BackupInfo | null> {
+export async function checkAndRunDailyBackup(
+  options: {
+    db?: DatabaseInstance;
+    backupDir?: string;
+    customDir?: string;
+  } = {}
+): Promise<BackupInfo | null> {
   const dir = options.backupDir || options.customDir;
   const backups = listDatabaseBackups(dir).filter((b) => !b.isPreRestore);
   const now = Date.now();

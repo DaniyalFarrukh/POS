@@ -197,10 +197,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // Update schema_version in app_meta
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '2')
-      `).run();
+      `
+      ).run();
     },
   },
   {
@@ -275,10 +277,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // Update schema_version in app_meta
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '3')
-      `).run();
+      `
+      ).run();
     },
   },
   {
@@ -355,10 +359,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // Update schema_version in app_meta
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '4')
-      `).run();
+      `
+      ).run();
     },
   },
   {
@@ -505,10 +511,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // Update schema_version in app_meta
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '5')
-      `).run();
+      `
+      ).run();
     },
   },
   {
@@ -618,10 +626,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // Update schema_version in app_meta
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '6')
-      `).run();
+      `
+      ).run();
     },
   },
   {
@@ -668,7 +678,9 @@ export const MIGRATIONS: Migration[] = [
 
       // 3. Backfill device_seq contiguously in created order for any unsequenced rows
       const unsequencedRows = db
-        .prepare('SELECT id FROM outbox WHERE device_seq IS NULL ORDER BY created_at ASC, rowid ASC')
+        .prepare(
+          'SELECT id FROM outbox WHERE device_seq IS NULL ORDER BY created_at ASC, rowid ASC'
+        )
         .all() as Array<{ id: string }>;
 
       const maxSeqRow = db
@@ -697,10 +709,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // Initialize default pull_cursor if not present
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR IGNORE INTO sync_state (key, value)
         VALUES ('pull_cursor', '0')
-      `).run();
+      `
+      ).run();
 
       // 6. Create sync_exceptions table per docs/SYNC_CLIENT.md
       db.exec(`
@@ -721,10 +735,12 @@ export const MIGRATIONS: Migration[] = [
       `);
 
       // 7. Update schema_version in app_meta
-      db.prepare(`
+      db.prepare(
+        `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '7')
-      `).run();
+      `
+      ).run();
     },
   },
 ];
@@ -764,7 +780,7 @@ export function initDatabase(customPath?: string): DbMetadata {
       }
       dbPath = path.join(userDataDir, 'pharmacy.db');
     } else if (process.env.APPDATA) {
-      const userDataDir = path.join(process.env.APPDATA, 'POS Counter');
+      const userDataDir = path.join(process.env.APPDATA, 'HexaPharm');
       if (!fs.existsSync(userDataDir)) {
         fs.mkdirSync(userDataDir, { recursive: true });
       }
@@ -803,7 +819,9 @@ export function initDatabase(customPath?: string): DbMetadata {
   const integrityResult = db.pragma('integrity_check', { simple: true }) as string;
   if (integrityResult !== 'ok') {
     console.error(`[Database] FATAL: PRAGMA integrity_check failed: ${integrityResult}`);
-    throw new Error(`SQLite Database Integrity Failure: PRAGMA integrity_check returned '${integrityResult}'`);
+    throw new Error(
+      `SQLite Database Integrity Failure: PRAGMA integrity_check returned '${integrityResult}'`
+    );
   }
   console.log('[Database] PRAGMA integrity_check: ok');
 
@@ -900,7 +918,7 @@ export function getDbPath(): string {
   if (app && typeof app.getPath === 'function') {
     return path.join(app.getPath('userData'), 'pharmacy.db');
   } else if (process.env.APPDATA) {
-    return path.join(process.env.APPDATA, 'POS Counter', 'pharmacy.db');
+    return path.join(process.env.APPDATA, 'HexaPharm', 'pharmacy.db');
   }
   return ':memory:';
 }
@@ -936,7 +954,9 @@ export function getStockByBatch(
       mrpPaisa: schema.batches.mrpPaisa,
       brandName: schema.products.brandName,
       genericName: schema.products.genericName,
-      balance: sql<number>`COALESCE(SUM(${schema.stockMovements.quantitySigned}), 0)`.mapWith(Number),
+      balance: sql<number>`COALESCE(SUM(${schema.stockMovements.quantitySigned}), 0)`.mapWith(
+        Number
+      ),
     })
     .from(schema.stockMovements)
     .innerJoin(schema.batches, eq(schema.stockMovements.batchId, schema.batches.id))

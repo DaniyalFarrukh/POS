@@ -15,7 +15,7 @@
 }
 
 :root {
-  /* Design Tokens: Color Palette (Zendenta Clinical Royal Blue) */
+  /* Design Tokens: Color Palette (HexaPharm Clinical Royal Blue) */
   --primary-50: #eff6ff;
   --primary-100: #dbeafe;
   --primary-200: #bfdbfe;
@@ -61,7 +61,8 @@
   --slate-950: #020617;
 
   /* Typography */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans:
+    'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', Consolas, 'SF Mono', monospace;
 
   /* Elevations */
@@ -83,7 +84,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -151,7 +153,11 @@ html, body {
 
 /* Interactive Button Hover & Press Dynamics */
 .interactive-btn {
-  transition: transform 0.12s var(--ease-spring), box-shadow 0.15s var(--ease-smooth), background-color 0.15s var(--ease-smooth), border-color 0.15s var(--ease-smooth);
+  transition:
+    transform 0.12s var(--ease-spring),
+    box-shadow 0.15s var(--ease-smooth),
+    background-color 0.15s var(--ease-smooth),
+    border-color 0.15s var(--ease-smooth);
   cursor: pointer;
 }
 
@@ -175,7 +181,9 @@ html, body {
   background: #ffffff;
   color: var(--slate-800);
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 1px 2px rgba(15, 23, 42, 0.03);
   transition: all 0.12s var(--ease-spring);
   user-select: none;
   display: flex;
@@ -229,7 +237,9 @@ html, body {
   display: flex;
   flex-direction: column;
   transform: scale(1) translateY(0);
-  transition: transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
+  transition:
+    transform 0.25s var(--ease-spring),
+    opacity 0.2s var(--ease-smooth);
 }
 
 @starting-style {
@@ -244,7 +254,8 @@ html, body {
 
 /* Micro-Pulse for Live Sync Dot */
 @keyframes statusGlow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
@@ -282,9 +293,18 @@ html, body {
 
 /* Shake Animation for Invalid PIN or Error */
 @keyframes errorShake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
 }
 
 .shake-animation {
@@ -293,7 +313,9 @@ html, body {
 
 /* Cart Table Row Hover & Selection */
 .cart-row {
-  transition: background-color 0.12s var(--ease-smooth), border-left-color 0.12s var(--ease-smooth);
+  transition:
+    background-color 0.12s var(--ease-smooth),
+    border-left-color 0.12s var(--ease-smooth);
   border-left: 3px solid transparent;
 }
 
@@ -308,56 +330,96 @@ html, body {
 
 /* Hero Grand Total Glow Animation */
 .pay-btn-hero {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: #ffffff;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 16px 0 rgba(37, 99, 235, 0.35);
   transition: all 0.15s var(--ease-spring);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .pay-btn-hero:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.45);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 6px 22px 0 rgba(37, 99, 235, 0.45);
   transform: translateY(-1px);
 }
 
 .pay-btn-hero:active:not(:disabled) {
   transform: scale(0.98) translateY(1px);
-  box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px 0 rgba(37, 99, 235, 0.3);
 }
 
 .pay-btn-hero:disabled {
-  background: var(--slate-300);
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
   box-shadow: none;
   cursor: not-allowed;
+  transform: none;
+}
+
+/* POS Tactile Keyboard Keycaps & Shortcut Chips */
+.pos-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  min-width: 22px;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(15, 23, 42, 0.06);
+  line-height: 1.2;
+}
+
+.pos-shortcut-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.pos-shortcut-chip:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
 }
 
 /* RTL layout support for Urdu */
-[dir="rtl"] {
+[dir='rtl'] {
   font-family: 'Noto Nastaliq Urdu', var(--font-sans);
   letter-spacing: normal;
 }
 
-[dir="rtl"] input,
-[dir="rtl"] textarea {
+[dir='rtl'] input,
+[dir='rtl'] textarea {
   text-align: right;
 }
 
 /* Specific elements that must stay LTR even in Urdu mode */
-[dir="rtl"] input[type="number"],
-[dir="rtl"] input[type="password"],
-[dir="rtl"] .ltr-override,
-[dir="rtl"] .barcode-input,
-[dir="rtl"] .code-font,
-[dir="rtl"] .tabular-nums {
+[dir='rtl'] input[type='number'],
+[dir='rtl'] input[type='password'],
+[dir='rtl'] .ltr-override,
+[dir='rtl'] .barcode-input,
+[dir='rtl'] .code-font,
+[dir='rtl'] .tabular-nums {
   direction: ltr;
   text-align: left;
 }
 
-/* Zendenta Modern Clinical SaaS Components */
+/* HexaPharm Modern Clinical SaaS Components */
 .search-pill {
   background-color: #f1f5f9;
   border: 1px solid #e2e8f0;
@@ -380,7 +442,7 @@ html, body {
   color: #94a3b8;
 }
 
-/* Zendenta Underline Sub-Tabs */
+/* HexaPharm Underline Sub-Tabs */
 .tab-underline {
   position: relative;
   padding: 10px 18px;
@@ -414,7 +476,7 @@ html, body {
   border-radius: 2px 2px 0 0;
 }
 
-/* Zendenta Pastel Status Badges */
+/* HexaPharm Pastel Status Badges */
 .badge-teal {
   background-color: #ccfbf1;
   color: #0f766e;
@@ -539,7 +601,9 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *,
+  ::before,
+  ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

@@ -1,0 +1,16 @@
+{
+  "files.watcherExclude": {
+    "**/release/**": true,
+    "**/dist-release/**": true,
+    "**/dist/**": true,
+    "**/dist-electron/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true
+  },
+  "search.exclude": {
+    "**/release/**": true,
+    "**/dist-release/**": true,
+    "**/node_modules": true
+  }
+}

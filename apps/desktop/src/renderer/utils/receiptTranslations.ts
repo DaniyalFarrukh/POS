@@ -57,7 +57,7 @@ export interface ReceiptStrings {
 
 export const RECEIPT_TRANSLATIONS: Record<'en' | 'ur', ReceiptStrings> = {
   en: {
-    pharmacyDefaultName: 'MEDICINE CORNER PHARMACY',
+    pharmacyDefaultName: 'HEXAPHARM PHARMACY',
     pharmacyDefaultAddress: 'Commercial Area, Main Boulevard, Karachi',
     phone: 'Tel: +92 21 34567890',
     taxId: 'STRN / NTN: 1234567-8',
@@ -110,7 +110,7 @@ export const RECEIPT_TRANSLATIONS: Record<'en' | 'ur', ReceiptStrings> = {
     managerSignature: 'Manager Signature: __________________',
   },
   ur: {
-    pharmacyDefaultName: 'میڈیسن کارنر فارمیسی',
+    pharmacyDefaultName: 'ہیکسا فارم فارمیسی',
     pharmacyDefaultAddress: 'کمرشل ایریا، مین بلیوارڈ، کراچی',
     phone: 'فون: 34567890 21 92+',
     taxId: 'این ٹی این: 8-1234567',

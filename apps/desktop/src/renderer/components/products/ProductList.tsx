@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type {
-  ProductWithTax,
-  ProductSortBy,
-  SortOrder,
-  TaxCategory,
-} from '@pos/shared';
+import type { ProductWithTax, ProductSortBy, SortOrder, TaxCategory } from '@pos/shared';
 import { ProductForm } from './ProductForm';
 import { ProductCsvWizard } from './ProductCsvWizard';
 
@@ -144,7 +139,7 @@ export const ProductList: React.FC = () => {
 
   return (
     <div>
-      {/* Zendenta Underline Sub-Tabs */}
+      {/* HexaPharm Underline Sub-Tabs */}
       <div
         style={{
           display: 'flex',
@@ -328,7 +323,16 @@ export const ProductList: React.FC = () => {
         }}
       >
         <div style={{ flex: 1, position: 'relative' }}>
-          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '13px' }}>
+          <span
+            style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#94a3b8',
+              fontSize: '13px',
+            }}
+          >
             🔍
           </span>
           <input
@@ -348,7 +352,15 @@ export const ProductList: React.FC = () => {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#64748b' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '12.5px',
+            color: '#64748b',
+          }}
+        >
           <span>Show:</span>
           <select
             value={pageSize}
@@ -373,7 +385,7 @@ export const ProductList: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Table: Zendenta Treatments Aesthetic */}
+      {/* Main Table: HexaPharm Treatments Aesthetic */}
       <div
         style={{
           backgroundColor: '#ffffff',
@@ -384,7 +396,14 @@ export const ProductList: React.FC = () => {
         }}
       >
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '13px',
+            }}
+          >
             <thead>
               <tr
                 style={{
@@ -399,36 +418,52 @@ export const ProductList: React.FC = () => {
                 <th style={{ padding: '12px 16px', width: '36px' }}>
                   <input
                     type="checkbox"
-                    checked={displayedProducts.length > 0 && selectedIds.size === displayedProducts.length}
+                    checked={
+                      displayedProducts.length > 0 && selectedIds.size === displayedProducts.length
+                    }
                     onChange={handleToggleAll}
-                    style={{ accentColor: '#2563eb', cursor: 'pointer', width: '15px', height: '15px' }}
+                    style={{
+                      accentColor: '#2563eb',
+                      cursor: 'pointer',
+                      width: '15px',
+                      height: '15px',
+                    }}
                   />
                 </th>
                 <th
                   onClick={() => handleSort('brand_name')}
-                  style={{ padding: '12px 16px', fontWeight: 700, cursor: 'pointer', userSelect: 'none' }}
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
                 >
                   TREATMENT NAME{getSortIcon('brand_name')}
                 </th>
                 <th
                   onClick={() => handleSort('mrp_paisa')}
-                  style={{ padding: '12px 16px', fontWeight: 700, cursor: 'pointer', userSelect: 'none' }}
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
                 >
                   PRICE{getSortIcon('mrp_paisa')}
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>
-                  ESTIMATE DURATION ⇅
-                </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>
-                  TYPE OF VISIT
-                </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>
-                  RATING ⇅
-                </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>
-                  REVIEW ⇅
-                </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700, width: '40px', textAlign: 'center' }}>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>ESTIMATE DURATION ⇅</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>TYPE OF VISIT</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>RATING ⇅</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>REVIEW ⇅</th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 700,
+                    width: '40px',
+                    textAlign: 'center',
+                  }}
+                >
                   ⋮
                 </th>
               </tr>
@@ -436,14 +471,21 @@ export const ProductList: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                  <td
+                    colSpan={8}
+                    style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
+                  >
                     Loading treatments records...
                   </td>
                 </tr>
               ) : displayedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                    No treatments matched your criteria in &quot;{activeTab === 'active' ? 'Active' : 'Inactive'}&quot;.
+                  <td
+                    colSpan={8}
+                    style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
+                  >
+                    No treatments matched your criteria in &quot;
+                    {activeTab === 'active' ? 'Active' : 'Inactive'}&quot;.
                   </td>
                 </tr>
               ) : (
@@ -457,9 +499,10 @@ export const ProductList: React.FC = () => {
                     idx % 2 === 1;
 
                   // Deterministic pseudo-rating based on name hash for visual parity
-                  const ratingSeed = (p.brandName.charCodeAt(0) + (p.brandName.charCodeAt(1) || 0)) % 10;
+                  const ratingSeed =
+                    (p.brandName.charCodeAt(0) + (p.brandName.charCodeAt(1) || 0)) % 10;
                   const ratingVal = (3.5 + (ratingSeed / 10) * 1.5).toFixed(1);
-                  const reviewCount = ((p.brandName.length * 13) + ratingSeed * 7) % 240;
+                  const reviewCount = (p.brandName.length * 13 + ratingSeed * 7) % 240;
 
                   return (
                     <tr
@@ -482,7 +525,12 @@ export const ProductList: React.FC = () => {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleSelect(p.id)}
-                          style={{ accentColor: '#2563eb', cursor: 'pointer', width: '15px', height: '15px' }}
+                          style={{
+                            accentColor: '#2563eb',
+                            cursor: 'pointer',
+                            width: '15px',
+                            height: '15px',
+                          }}
                         />
                       </td>
 
@@ -517,14 +565,23 @@ export const ProductList: React.FC = () => {
                       {/* Price */}
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ fontSize: '12.5px', color: '#475569' }}>
-                          <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '4px' }}>Start from</span>
+                          <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '4px' }}>
+                            Start from
+                          </span>
                           <strong style={{ color: '#0f172a' }}>Rs. {rupees}</strong>
                         </div>
                       </td>
 
                       {/* Estimate Duration / Strength */}
                       <td style={{ padding: '12px 16px', color: '#475569' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12.5px' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            fontSize: '12.5px',
+                          }}
+                        >
                           <span style={{ color: '#94a3b8' }}>⏱</span>
                           <span>{p.strength || '1.0 hour(s)'}</span>
                           <span style={{ color: '#cbd5e1' }}>•</span>
@@ -535,17 +592,11 @@ export const ProductList: React.FC = () => {
                       {/* Type of Visit Pastel Badges */}
                       <td style={{ padding: '12px 16px' }}>
                         {p.isControlled ? (
-                          <span className="badge-rose">
-                            CONTROLLED
-                          </span>
+                          <span className="badge-rose">CONTROLLED</span>
                         ) : isMultipleVisit ? (
-                          <span className="badge-purple">
-                            MULTIPLE VISIT
-                          </span>
+                          <span className="badge-purple">MULTIPLE VISIT</span>
                         ) : (
-                          <span className="badge-teal">
-                            SINGLE VISIT
-                          </span>
+                          <span className="badge-teal">SINGLE VISIT</span>
                         )}
                       </td>
 
@@ -590,7 +641,7 @@ export const ProductList: React.FC = () => {
           </table>
         </div>
 
-        {/* Zendenta Pagination Controls */}
+        {/* HexaPharm Pagination Controls */}
         <div
           style={{
             padding: '12px 20px',
@@ -602,8 +653,8 @@ export const ProductList: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', color: '#64748b' }}>
-            Showing <strong>{totalCount > 0 ? startRecord : 0}</strong> to <strong>{endRecord}</strong> of{' '}
-            <strong>{totalCount.toLocaleString()}</strong> records
+            Showing <strong>{totalCount > 0 ? startRecord : 0}</strong> to{' '}
+            <strong>{endRecord}</strong> of <strong>{totalCount.toLocaleString()}</strong> records
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

@@ -1,7 +1,7 @@
 # Architecture
 
 ## Monorepo (pnpm workspaces, TypeScript)
-- apps/desktop   : Electron + React + Vite (counter app, Windows)
+- apps/desktop   : HexaPharm Electron + React + Vite (counter app, Windows)
 - apps/server    : Fastify API + PostgreSQL (cloud, sync endpoints)
 - apps/web       : React owner dashboard (later phase)
 - packages/shared: types, zod schemas, money/tax utils, sync protocol types

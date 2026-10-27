@@ -63,10 +63,7 @@ import {
   roleGuardedSearchInvoices,
   roleGuardedGetInvoiceById,
 } from './invoices';
-import {
-  roleGuardedProcessReturn,
-  roleGuardedGetReturnableLines,
-} from './returns';
+import { roleGuardedProcessReturn, roleGuardedGetReturnableLines } from './returns';
 import {
   roleGuardedOpenShift,
   roleGuardedCloseShift,
@@ -81,11 +78,7 @@ import {
   restoreDatabaseBackup,
   checkAndRunDailyBackup,
 } from './backup';
-import {
-  logError,
-  exportDiagnosticsZip,
-  gatherDiagnosticsMetadata,
-} from './logger';
+import { logError, exportDiagnosticsZip, gatherDiagnosticsMetadata } from './logger';
 import { initAutoUpdater, checkForUpdates, getUpdaterStatus } from './updater';
 
 // Process-level unhandled exception hooks
@@ -97,8 +90,8 @@ process.on('unhandledRejection', (reason) => {
   logError('Process', `Unhandled Promise Rejection in Main: ${reason}`);
 });
 
-// Explicitly set application name so userData resolves cleanly to %APPDATA%\POS Counter (no @ or slashes)
-app.setName('POS Counter');
+// Explicitly set application name so userData resolves cleanly to %APPDATA%\HexaPharm (no @ or slashes)
+app.setName('HexaPharm');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -128,8 +121,11 @@ let win: BrowserWindow | null = null;
 let syncWorker: SyncWorker | null = null;
 
 function createWindow(): void {
+  const appRoot = process.env.APP_ROOT || path.join(__dirname, '..');
+  const iconPath = path.join(appRoot, 'src/renderer/assets/hexalogic-icon.png');
   win = new BrowserWindow({
-    title: 'POS Counter Terminal',
+    title: 'HexaPharm Terminal',
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
     width: 1366,
     height: 768,
     minWidth: 1024,
@@ -262,13 +258,19 @@ function createWindow(): void {
     return seedDatabase();
   });
 
-  ipcMain.handle('products:search-pos-catalog', async (_event, query: string, branchId?: string) => {
-    return searchPosCatalog(query, branchId);
-  });
+  ipcMain.handle(
+    'products:search-pos-catalog',
+    async (_event, query: string, branchId?: string) => {
+      return searchPosCatalog(query, branchId);
+    }
+  );
 
-  ipcMain.handle('products:get-substitutes', async (_event, genericName: string, excludeProductId?: string, branchId?: string) => {
-    return getSubstitutes(genericName, excludeProductId, branchId);
-  });
+  ipcMain.handle(
+    'products:get-substitutes',
+    async (_event, genericName: string, excludeProductId?: string, branchId?: string) => {
+      return getSubstitutes(genericName, excludeProductId, branchId);
+    }
+  );
 
   // Purchasing & Suppliers Handlers
   ipcMain.handle('purchasing:get-suppliers', async () => {
@@ -283,9 +285,12 @@ function createWindow(): void {
     return roleGuardedCreateSupplier(input);
   });
 
-  ipcMain.handle('purchasing:update-supplier', async (_event, id: string, input: UpdateSupplierInput) => {
-    return roleGuardedUpdateSupplier(id, input);
-  });
+  ipcMain.handle(
+    'purchasing:update-supplier',
+    async (_event, id: string, input: UpdateSupplierInput) => {
+      return roleGuardedUpdateSupplier(id, input);
+    }
+  );
 
   ipcMain.handle('purchasing:delete-supplier', async (_event, id: string) => {
     return roleGuardedDeleteSupplier(id);
@@ -341,9 +346,12 @@ function createWindow(): void {
     return roleGuardedGetInvoiceById(invoiceId);
   });
 
-  ipcMain.handle('invoices:print-receipt', async (_event, htmlContent: string, options?: PrintReceiptOptions) => {
-    return printReceiptHtml(htmlContent, options);
-  });
+  ipcMain.handle(
+    'invoices:print-receipt',
+    async (_event, htmlContent: string, options?: PrintReceiptOptions) => {
+      return printReceiptHtml(htmlContent, options);
+    }
+  );
 
   // Returns & Credit Notes Handlers
   ipcMain.handle('returns:get-returnable', async (_event, invoiceId: string) => {

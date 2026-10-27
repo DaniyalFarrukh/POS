@@ -18,6 +18,7 @@ import { SubstitutesModal } from './SubstitutesModal';
 import { CustomerNotesModal } from './CustomerNotesModal';
 import { HeldCartsModal } from './HeldCartsModal';
 import { PaymentModal, type PaymentDetails } from './PaymentModal';
+import { TrashIcon, InvoiceIcon } from '../common/Icons';
 
 interface PosCheckoutScreenProps {
   session: AuthSession;
@@ -451,10 +452,12 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 120px)', // Fit 1366x768 comfortably without vertical clipping
-        minHeight: '620px',
+        flex: 1,
+        height: '100%',
+        minHeight: 0,
         backgroundColor: '#f8fafc',
         position: 'relative',
+        overflow: 'hidden',
       }}
     >
       {/* ALT Key HUD Overlay */}
@@ -494,11 +497,12 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         style={{
           backgroundColor: '#ffffff',
           border: '1px solid rgba(226, 232, 240, 0.9)',
-          borderRadius: '14px',
+          borderRadius: '12px',
           padding: '12px 18px',
-          marginBottom: '12px',
+          margin: '14px 20px 10px 20px',
           boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
           position: 'relative',
+          flexShrink: 0,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -798,8 +802,10 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         style={{
           flex: 1,
           backgroundColor: '#ffffff',
-          borderRadius: '14px',
+          borderRadius: '12px',
           border: '1px solid rgba(226, 232, 240, 0.9)',
+          margin: '0 20px 10px 20px',
+          minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -1174,94 +1180,301 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         </div>
       </div>
 
-      {/* BOTTOM SECTION: Fixed Totals & Pay Command Bar */}
+      {/* BOTTOM SECTION: Fixed Totals & Pay Command Dock */}
       <div
         style={{
-          marginTop: '12px',
           backgroundColor: '#ffffff',
-          borderRadius: '14px',
-          border: '1px solid rgba(226, 232, 240, 0.9)',
-          padding: '14px 22px',
-          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
+          borderTop: '1px solid #e2e8f0',
+          padding: '12px 24px',
+          boxShadow: '0 -4px 20px rgba(15, 23, 42, 0.04)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexShrink: 0,
+          zIndex: 20,
+          boxSizing: 'border-box',
+          minHeight: '74px',
         }}
       >
-        {/* Left Side: Cart Utilities & Keyboard Reminders */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Left Side: Cart Actions & Keyboard Shortcuts */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Clear Cart Button */}
           <button
             type="button"
             className="interactive-btn"
             disabled={cartLines.length === 0}
             onClick={() => setShowClearConfirm(true)}
+            title={cartLines.length > 0 ? 'Clear all items in cart' : 'Cart is empty'}
             style={{
-              padding: '8px 16px',
+              padding: '8px 14px',
               backgroundColor: cartLines.length > 0 ? '#fff1f2' : '#f8fafc',
               border: `1px solid ${cartLines.length > 0 ? '#fecdd3' : '#e2e8f0'}`,
-              color: cartLines.length > 0 ? '#be123c' : '#94a3b8',
+              color: cartLines.length > 0 ? '#e11d48' : '#94a3b8',
               borderRadius: '8px',
               fontSize: '12px',
               fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
               cursor: cartLines.length > 0 ? 'pointer' : 'not-allowed',
+              transition: 'all 0.15s ease',
             }}
           >
-            Clear Cart
+            <TrashIcon size={14} color={cartLines.length > 0 ? '#e11d48' : '#94a3b8'} />
+            <span>Clear Cart</span>
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b' }}>
-            <span style={{ fontWeight: 700, marginRight: '4px' }}>Shortcuts:</span>
-            <kbd className="kbd-cap">F2 Pay</kbd>
-            <kbd className="kbd-cap">F3 Scan</kbd>
-            <kbd className="kbd-cap">F4 Hold</kbd>
-            <kbd className="kbd-cap">F6 Notes</kbd>
-            <kbd className="kbd-cap">Del Line</kbd>
-            <span style={{ color: '#4f46e5', fontWeight: 700, marginLeft: '6px' }}>• Hold [Alt] HUD</span>
+          {/* Separator Line */}
+          <div style={{ width: '1px', height: '26px', backgroundColor: '#e2e8f0' }} />
+
+          {/* Keyboard Shortcuts Strip */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#475569',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                marginRight: '2px',
+              }}
+            >
+              Shortcuts:
+            </span>
+
+            {/* F2 Pay */}
+            <div
+              className="pos-shortcut-chip"
+              onClick={() => {
+                if (cartLines.length > 0) handleOpenPay();
+              }}
+              title="Open Payment Modal (F2)"
+            >
+              <kbd className="pos-kbd">F2</kbd>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#334155' }}>Pay</span>
+            </div>
+
+            {/* F3 Scan */}
+            <div
+              className="pos-shortcut-chip"
+              onClick={() => searchInputRef.current?.focus()}
+              title="Focus Barcode / Search Box (F3)"
+            >
+              <kbd className="pos-kbd">F3</kbd>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#334155' }}>Scan</span>
+            </div>
+
+            {/* F4 Hold */}
+            <div
+              className="pos-shortcut-chip"
+              onClick={() => setShowHeldCartsModal(true)}
+              title="Park or Retrieve Held Carts (F4)"
+            >
+              <kbd className="pos-kbd">F4</kbd>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#334155' }}>
+                Hold {heldCarts.length > 0 ? `(${heldCarts.length})` : ''}
+              </span>
+            </div>
+
+            {/* F6 Customer / Rx */}
+            <div
+              className="pos-shortcut-chip"
+              onClick={handleOpenCustomer}
+              title="Customer, Rx & Notes (F6)"
+            >
+              <kbd className="pos-kbd">F6</kbd>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#334155' }}>Rx / Cust</span>
+            </div>
+
+            {/* Del Line */}
+            <div
+              className="pos-shortcut-chip"
+              onClick={handleDeleteSelectedLine}
+              title="Remove Selected Item (Del)"
+            >
+              <kbd className="pos-kbd" style={{ fontSize: '10px' }}>Del</kbd>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#334155' }}>Line</span>
+            </div>
+
+            {/* Alt HUD Indicator */}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                backgroundColor: '#eff6ff',
+                color: '#2563eb',
+                fontSize: '11px',
+                fontWeight: 700,
+                border: '1px solid #dbeafe',
+                marginLeft: '4px',
+              }}
+              title="Hold Alt key to reveal on-screen keyboard shortcuts"
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#2563eb',
+                }}
+              />
+              Hold [Alt] HUD
+            </span>
           </div>
         </div>
 
-        {/* Right Side: Totals & Large Pay Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-          {/* Subtotals Breakdown */}
-          <div style={{ display: 'flex', gap: '22px', alignItems: 'center', fontSize: '13px' }}>
-            <div>
-              <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Subtotal</div>
-              <div className="tabular-nums" style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>
+        {/* Right Side: Totals Pod & Large Action Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {/* Financial Breakdown Pod */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '6px 16px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+            }}
+          >
+            {/* Subtotal */}
+            <div style={{ textAlign: 'right' }}>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                  fontWeight: 800,
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.2,
+                }}
+              >
+                Subtotal
+              </div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  color: '#334155',
+                  fontSize: '13px',
+                  fontVariantNumeric: 'tabular-nums',
+                  marginTop: '1px',
+                }}
+              >
                 {formatPKR(invoiceTotals.netTotalPaisa)}
               </div>
             </div>
 
+            {/* Discount (if any) */}
             {invoiceTotals.totalDiscountPaisa > 0 && (
-              <div>
-                <div style={{ fontSize: '10px', color: '#059669', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Discount</div>
-                <div className="tabular-nums" style={{ fontWeight: 700, color: '#059669', fontSize: '14px' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    color: '#059669',
+                    textTransform: 'uppercase',
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  Saved
+                </div>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    color: '#059669',
+                    fontSize: '13px',
+                    fontVariantNumeric: 'tabular-nums',
+                    marginTop: '1px',
+                  }}
+                >
                   -{formatPKR(invoiceTotals.totalDiscountPaisa)}
                 </div>
               </div>
             )}
 
-            <div>
-              <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>Tax (GST)</div>
-              <div className="tabular-nums" style={{ fontWeight: 700, color: '#334155', fontSize: '14px' }}>
+            {/* Tax */}
+            <div style={{ textAlign: 'right' }}>
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                  fontWeight: 800,
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.2,
+                }}
+              >
+                Tax (GST)
+              </div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  color: '#334155',
+                  fontSize: '13px',
+                  fontVariantNumeric: 'tabular-nums',
+                  marginTop: '1px',
+                }}
+              >
                 {formatPKR(invoiceTotals.totalTaxPaisa)}
               </div>
             </div>
+          </div>
 
-            <div style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '22px' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.06em' }}>
-                Grand Total
-              </div>
-              <div
-                className="tabular-nums"
-                style={{
-                  fontSize: '26px',
-                  fontWeight: 900,
-                  color: '#0f172a',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {formatPKR(invoiceTotals.grandTotalPaisa)}
-              </div>
+          {/* Grand Total Hero Card */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              padding: '0 4px',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '11px',
+                color: '#64748b',
+                textTransform: 'uppercase',
+                fontWeight: 800,
+                letterSpacing: '0.06em',
+                lineHeight: 1.2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
+              <span>Grand Total</span>
+              {cartLines.length > 0 && (
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    backgroundColor: '#dbeafe',
+                    color: '#1d4ed8',
+                    padding: '1px 5px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {cartLines.length} {cartLines.length === 1 ? 'item' : 'items'}
+                </span>
+              )}
+            </div>
+            <div
+              style={{
+                fontSize: '28px',
+                fontWeight: 900,
+                color: cartLines.length > 0 ? '#0f172a' : '#475569',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1,
+                marginTop: '2px',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {formatPKR(invoiceTotals.grandTotalPaisa)}
             </div>
           </div>
 
@@ -1272,20 +1485,29 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
             disabled={cartLines.length === 0}
             onClick={handleOpenPay}
             style={{
-              padding: '12px 28px',
+              height: '48px',
+              padding: '0 24px',
               fontWeight: 800,
-              fontSize: '16px',
+              fontSize: '15px',
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
+              whiteSpace: 'nowrap',
             }}
           >
+            <InvoiceIcon size={18} color={cartLines.length > 0 ? '#ffffff' : '#94a3b8'} />
             <span>Pay & Print</span>
             <kbd
-              className="kbd-cap-dark"
               style={{
-                fontSize: '12px',
+                fontSize: '11px',
+                fontWeight: 800,
+                fontFamily: 'var(--font-mono)',
                 padding: '2px 7px',
+                borderRadius: '5px',
+                backgroundColor: cartLines.length > 0 ? 'rgba(255, 255, 255, 0.22)' : '#e2e8f0',
+                color: cartLines.length > 0 ? '#ffffff' : '#64748b',
+                border: cartLines.length > 0 ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #cbd5e1',
+                boxShadow: cartLines.length > 0 ? '0 1px 2px rgba(0, 0, 0, 0.15)' : 'none',
               }}
             >
               F2
