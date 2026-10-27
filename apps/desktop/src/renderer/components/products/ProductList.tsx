@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { ProductWithTax, ProductSortBy, SortOrder, TaxCategory } from '@pos/shared';
+import {
+  formatPKR,
+  type ProductWithTax,
+  type ProductSortBy,
+  type SortOrder,
+  type TaxCategory,
+} from '@pos/shared';
 import { ProductForm } from './ProductForm';
 import { ProductCsvWizard } from './ProductCsvWizard';
 
@@ -153,18 +159,18 @@ export const ProductList: React.FC = () => {
           className={`tab-underline ${activeTab === 'active' ? 'active' : ''}`}
           onClick={() => setActiveTab('active')}
         >
-          Active Treatment
+          Active Medicines
         </button>
         <button
           type="button"
           className={`tab-underline ${activeTab === 'inactive' ? 'active' : ''}`}
           onClick={() => setActiveTab('inactive')}
         >
-          Inactive Treatment
+          Discontinued / Inactive
         </button>
       </div>
 
-      {/* Sub-Action Bar: Treatment Count Chip + Action Buttons */}
+      {/* Sub-Action Bar: Product Count Chip + Action Buttons */}
       <div
         style={{
           display: 'flex',
@@ -183,44 +189,23 @@ export const ProductList: React.FC = () => {
               alignItems: 'center',
               gap: '6px',
               padding: '6px 14px',
-              backgroundColor: '#f1f5f9',
+              backgroundColor: '#eff6ff',
               borderRadius: '9999px',
               fontSize: '13px',
               fontWeight: 700,
-              color: '#334155',
+              color: '#1d4ed8',
+              border: '1px solid #dbeafe',
             }}
           >
-            <span style={{ fontSize: '15px' }}>🩺</span>
+            <span style={{ fontSize: '15px' }}>💊</span>
             <span>
-              <strong>{displayedProducts.length}</strong> treatments
+              <strong>{displayedProducts.length}</strong> medicines
             </span>
           </div>
         </div>
 
         {/* Right Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            className="interactive-btn"
-            style={{
-              padding: '7px 14px',
-              backgroundColor: '#ffffff',
-              color: '#334155',
-              border: '1px solid #cbd5e1',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: 'var(--shadow-sm)',
-            }}
-          >
-            <span>⚙️</span>
-            <span>Filters</span>
-          </button>
-
           <button
             type="button"
             className="interactive-btn"
@@ -287,7 +272,7 @@ export const ProductList: React.FC = () => {
             }}
           >
             <span>+</span>
-            <span>Add Treatment</span>
+            <span>Add Product</span>
           </button>
         </div>
       </div>
@@ -340,7 +325,7 @@ export const ProductList: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search treatments by name, formula, or barcode... (Press '/' to focus)"
+            placeholder="Search medicines by brand name, generic formula, barcode, or manufacturer... (Press '/' to focus)"
             style={{
               width: '100%',
               padding: '7px 12px 7px 34px',
@@ -439,8 +424,12 @@ export const ProductList: React.FC = () => {
                     userSelect: 'none',
                   }}
                 >
-                  TREATMENT NAME{getSortIcon('brand_name')}
+                  PRODUCT & ACTIVE FORMULA{getSortIcon('brand_name')}
                 </th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>DOSAGE & FORM</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>MANUFACTURER</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>CATEGORY / TYPE</th>
+                <th style={{ padding: '12px 16px', fontWeight: 700 }}>TAX STATUS</th>
                 <th
                   onClick={() => handleSort('mrp_paisa')}
                   style={{
@@ -448,14 +437,11 @@ export const ProductList: React.FC = () => {
                     fontWeight: 700,
                     cursor: 'pointer',
                     userSelect: 'none',
+                    textAlign: 'right',
                   }}
                 >
-                  PRICE{getSortIcon('mrp_paisa')}
+                  RETAIL PRICE (MRP){getSortIcon('mrp_paisa')}
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>ESTIMATE DURATION ⇅</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>TYPE OF VISIT</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>RATING ⇅</th>
-                <th style={{ padding: '12px 16px', fontWeight: 700 }}>REVIEW ⇅</th>
                 <th
                   style={{
                     padding: '12px 16px',
@@ -475,7 +461,7 @@ export const ProductList: React.FC = () => {
                     colSpan={8}
                     style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
                   >
-                    Loading treatments records...
+                    Loading medicine catalog...
                   </td>
                 </tr>
               ) : displayedProducts.length === 0 ? (
@@ -484,25 +470,13 @@ export const ProductList: React.FC = () => {
                     colSpan={8}
                     style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
                   >
-                    No treatments matched your criteria in &quot;
+                    No medicines matched your criteria in &quot;
                     {activeTab === 'active' ? 'Active' : 'Inactive'}&quot;.
                   </td>
                 </tr>
               ) : (
-                displayedProducts.map((p, idx) => {
-                  const rupees = (p.mrpPaisa / 100).toFixed(2);
+                displayedProducts.map((p) => {
                   const isSelected = selectedIds.has(p.id);
-                  const isMultipleVisit =
-                    p.form?.toLowerCase().includes('syrup') ||
-                    p.form?.toLowerCase().includes('inject') ||
-                    p.form?.toLowerCase().includes('drop') ||
-                    idx % 2 === 1;
-
-                  // Deterministic pseudo-rating based on name hash for visual parity
-                  const ratingSeed =
-                    (p.brandName.charCodeAt(0) + (p.brandName.charCodeAt(1) || 0)) % 10;
-                  const ratingVal = (3.5 + (ratingSeed / 10) * 1.5).toFixed(1);
-                  const reviewCount = (p.brandName.length * 13 + ratingSeed * 7) % 240;
 
                   return (
                     <tr
@@ -534,89 +508,111 @@ export const ProductList: React.FC = () => {
                         />
                       </td>
 
-                      {/* Treatment Name */}
+                      {/* Product & Active Formula */}
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '13px' }}>
+                          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>
                             {p.brandName}
                           </span>
-                          {idx < 2 && (
+                          {p.barcode && (
                             <span
+                              className="tabular-nums"
                               style={{
-                                fontSize: '9px',
-                                fontWeight: 800,
-                                color: '#94a3b8',
+                                fontSize: '10px',
+                                color: '#64748b',
                                 backgroundColor: '#f1f5f9',
                                 border: '1px solid #e2e8f0',
                                 padding: '1px 5px',
                                 borderRadius: '4px',
-                                letterSpacing: '0.04em',
+                                letterSpacing: '0.02em',
                               }}
                             >
-                              SAMPLE
+                              #{p.barcode}
                             </span>
                           )}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                        <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
                           {p.genericName}
                         </div>
                       </td>
 
-                      {/* Price */}
+                      {/* Dosage & Form */}
                       <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontSize: '12.5px', color: '#475569' }}>
-                          <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '4px' }}>
-                            Start from
-                          </span>
-                          <strong style={{ color: '#0f172a' }}>Rs. {rupees}</strong>
-                        </div>
-                      </td>
-
-                      {/* Estimate Duration / Strength */}
-                      <td style={{ padding: '12px 16px', color: '#475569' }}>
                         <div
                           style={{
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
                             gap: '5px',
-                            fontSize: '12.5px',
+                            fontSize: '12px',
+                            padding: '3px 8px',
+                            backgroundColor: '#f8fafc',
+                            borderRadius: '6px',
+                            border: '1px solid #e2e8f0',
+                            color: '#334155',
+                            fontWeight: 600,
                           }}
                         >
-                          <span style={{ color: '#94a3b8' }}>⏱</span>
-                          <span>{p.strength || '1.0 hour(s)'}</span>
+                          <span>{p.strength || 'Standard'}</span>
                           <span style={{ color: '#cbd5e1' }}>•</span>
-                          <span style={{ color: '#64748b', fontSize: '11.5px' }}>{p.form}</span>
+                          <span style={{ color: '#64748b', textTransform: 'capitalize' }}>
+                            {p.form}
+                          </span>
                         </div>
                       </td>
 
-                      {/* Type of Visit Pastel Badges */}
+                      {/* Manufacturer */}
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ fontSize: '12.5px', color: '#334155', fontWeight: 600 }}>
+                          {p.manufacturer || '—'}
+                        </div>
+                      </td>
+
+                      {/* Category / Regulation Type */}
                       <td style={{ padding: '12px 16px' }}>
                         {p.isControlled ? (
-                          <span className="badge-rose">CONTROLLED</span>
-                        ) : isMultipleVisit ? (
-                          <span className="badge-purple">MULTIPLE VISIT</span>
+                          <span
+                            className="badge-rose"
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              letterSpacing: '0.04em',
+                            }}
+                          >
+                            Rx CONTROLLED
+                          </span>
                         ) : (
-                          <span className="badge-teal">SINGLE VISIT</span>
+                          <span
+                            className="badge-teal"
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            OTC GENERAL
+                          </span>
                         )}
                       </td>
 
-                      {/* Rating */}
+                      {/* Tax Status */}
                       <td style={{ padding: '12px 16px' }}>
-                        {ratingSeed > 7 ? (
-                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>No Rating</span>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <span style={{ color: '#eab308', fontSize: '13px' }}>★</span>
-                            <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '12.5px' }}>
-                              {ratingVal}
-                            </span>
-                          </div>
-                        )}
+                        <div style={{ fontSize: '12px', color: '#475569', fontWeight: 500 }}>
+                          {p.taxCategoryName || 'Standard GST'} (
+                          {((p.taxRateBp || 0) / 100).toFixed(0)}%)
+                        </div>
                       </td>
 
-                      {/* Review */}
-                      <td style={{ padding: '12px 16px', fontSize: '12px', color: '#64748b' }}>
-                        {ratingSeed > 7 ? '0 Review(s)' : `${reviewCount} Review(s)`}
+                      {/* Retail Price (MRP) */}
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                        <strong
+                          className="tabular-nums"
+                          style={{ color: '#0f172a', fontSize: '13.5px', fontWeight: 800 }}
+                        >
+                          {formatPKR(p.mrpPaisa)}
+                        </strong>
                       </td>
 
                       {/* Action Kebab */}
@@ -628,7 +624,7 @@ export const ProductList: React.FC = () => {
                             setEditingProduct(p);
                             setIsFormOpen(true);
                           }}
-                          title="Treatment Options & Edit"
+                          title="Product Details & Edit"
                         >
                           ⋮
                         </button>
@@ -693,7 +689,7 @@ export const ProductList: React.FC = () => {
                     height: '30px',
                     borderRadius: '6px',
                     border: isActive ? 'none' : '1px solid #e2e8f0',
-                    backgroundColor: isActive ? '#06b6d4' : '#ffffff',
+                    backgroundColor: isActive ? '#2563eb' : '#ffffff',
                     color: isActive ? '#ffffff' : '#475569',
                     fontSize: '12px',
                     fontWeight: 700,

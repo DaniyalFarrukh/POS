@@ -234,11 +234,11 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ session, dbInfo, onLoc
       case 'pos':
         return 'POS Checkout & Terminal';
       case 'invoices':
-        return 'Reservations & Invoices';
+        return 'Invoices & Sales History';
       case 'shifts':
         return 'Shift & Day-End Report';
       case 'products':
-        return 'Treatments & Product Catalog';
+        return 'Medicine & Product Catalog';
       case 'purchasing':
         return 'Purchases & Receiving';
       case 'stock':
@@ -252,7 +252,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ session, dbInfo, onLoc
       case 'diagnostics':
         return 'Engine Diagnostics & WAL';
       default:
-        return 'Treatments';
+        return 'HexaPharm';
     }
   };
 
