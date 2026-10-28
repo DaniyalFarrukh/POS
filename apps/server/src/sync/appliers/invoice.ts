@@ -1,4 +1,4 @@
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { generateUuidV7, InvoiceCreatedPayloadSchema } from '@pos/shared';
 import {
   invoices,
@@ -10,10 +10,11 @@ import {
   counters,
   users,
   stockAlerts,
-  changeLog,
 } from '../../db/schema';
 import { SyncRejectedError, SyncRetryLaterError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
+import { verifyTenantEntity, verifyTenantEntities } from './common';
+import { insertChangeLog } from '../change-log';
 
 export async function applyInvoiceCreated(
   tx: DbClient,
@@ -48,7 +49,14 @@ export async function applyInvoiceCreated(
     );
   }
 
-  // 2. Verify Counter exists for this pharmacy
+  // 2. Device alignment & Counter verification
+  if (ctx.counterId && payload.counterId !== ctx.counterId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device counterId (${ctx.counterId}) does not match payload counterId (${payload.counterId})`
+    );
+  }
+
   const counterRows = await tx
     .select({ id: counters.id, branchId: counters.branchId })
     .from(counters)
@@ -62,80 +70,46 @@ export async function applyInvoiceCreated(
 
   const counter = counterRows[0];
   if (!counter) {
+    const [crossCounter] = await tx
+      .select({ id: counters.id })
+      .from(counters)
+      .where(eq(counters.id, payload.counterId))
+      .limit(1);
+
+    if (crossCounter) {
+      throw new SyncRejectedError(
+        'CROSS_TENANT_REFERENCE',
+        `Referenced counter ${payload.counterId} belongs to another pharmacy tenant`
+      );
+    }
+
     throw new SyncRetryLaterError(
       'UNKNOWN_COUNTER',
       `Counter ${payload.counterId} not found for pharmacy ${ctx.pharmacyId}`
     );
   }
+
+  if (ctx.branchId && counter.branchId !== ctx.branchId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device branchId (${ctx.branchId}) does not match counter branchId (${counter.branchId})`
+    );
+  }
+
   const branchId = counter.branchId;
 
-  // 3. Verify Cashier User exists for this pharmacy
-  const cashierRows = await tx
-    .select({ id: users.id })
-    .from(users)
-    .where(
-      and(
-        eq(users.id, payload.cashierUserId),
-        eq(users.pharmacyId, ctx.pharmacyId)
-      )
-    )
-    .limit(1);
+  // 3. Verify Cashier User belongs to this pharmacy
+  await verifyTenantEntity(tx, users, payload.cashierUserId, ctx.pharmacyId, 'UNKNOWN_USER', 'user');
 
-  if (!cashierRows[0]) {
-    throw new SyncRetryLaterError(
-      'UNKNOWN_USER',
-      `User ${payload.cashierUserId} not found for pharmacy ${ctx.pharmacyId}`
-    );
-  }
+  // 4. Verify referenced products belong to this pharmacy
+  const productIds = payload.lines.map((l) => l.productId);
+  await verifyTenantEntities(tx, products, productIds, ctx.pharmacyId, 'UNKNOWN_PRODUCT', 'product');
 
-  // 4. Verify referenced products exist for this pharmacy
-  const productIds = Array.from(new Set(payload.lines.map((l) => l.productId)));
-  const productRows = await tx
-    .select({ id: products.id })
-    .from(products)
-    .where(
-      and(
-        eq(products.pharmacyId, ctx.pharmacyId),
-        inArray(products.id, productIds)
-      )
-    );
-
-  const foundProductIds = new Set(productRows.map((p) => p.id));
-  for (const pid of productIds) {
-    if (!foundProductIds.has(pid)) {
-      throw new SyncRetryLaterError(
-        'UNKNOWN_PRODUCT',
-        `Referenced product ${pid} does not exist for pharmacy ${ctx.pharmacyId}`
-      );
-    }
-  }
-
-  // 5. Verify referenced batches exist for this pharmacy
-  const batchIds = Array.from(
-    new Set(payload.lines.map((l) => l.batchId).filter((id): id is string => Boolean(id)))
-  );
-
-  if (batchIds.length > 0) {
-    const batchRows = await tx
-      .select({ id: batches.id })
-      .from(batches)
-      .where(
-        and(
-          eq(batches.pharmacyId, ctx.pharmacyId),
-          inArray(batches.id, batchIds)
-        )
-      );
-
-    const foundBatchIds = new Set(batchRows.map((b) => b.id));
-    for (const bid of batchIds) {
-      if (!foundBatchIds.has(bid)) {
-        throw new SyncRetryLaterError(
-          'UNKNOWN_BATCH',
-          `Referenced batch ${bid} does not exist for pharmacy ${ctx.pharmacyId}`
-        );
-      }
-    }
-  }
+  // 5. Verify referenced batches belong to this pharmacy
+  const batchIds = payload.lines
+    .map((l) => l.batchId)
+    .filter((id): id is string => Boolean(id));
+  await verifyTenantEntities(tx, batches, batchIds, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
 
   // 6. Insert Invoice Header
   await tx.insert(invoices).values({
@@ -154,7 +128,7 @@ export async function applyInvoiceCreated(
     createdAt: payload.createdAt,
   });
 
-  await tx.insert(changeLog).values({
+  await insertChangeLog(tx, {
     pharmacyId: ctx.pharmacyId,
     entity: 'invoice',
     entityId: payload.id,
@@ -183,7 +157,7 @@ export async function applyInvoiceCreated(
       lineTotalPaisa: line.lineTotalPaisa,
     });
 
-    await tx.insert(changeLog).values({
+    await insertChangeLog(tx, {
       pharmacyId: ctx.pharmacyId,
       entity: 'invoice_line',
       entityId: line.id,
@@ -212,8 +186,9 @@ export async function applyInvoiceCreated(
 
       await tx.insert(stockMovements).values(movementData);
 
-      await tx.insert(changeLog).values({
+      await insertChangeLog(tx, {
         pharmacyId: ctx.pharmacyId,
+        branchId,
         entity: 'stock_movement',
         entityId: movementId,
         op: 'upsert',
@@ -262,7 +237,7 @@ export async function applyInvoiceCreated(
       amountPaisa: payment.amountPaisa,
     });
 
-    await tx.insert(changeLog).values({
+    await insertChangeLog(tx, {
       pharmacyId: ctx.pharmacyId,
       entity: 'payment',
       entityId: payment.id,

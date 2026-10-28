@@ -17,13 +17,16 @@ import crypto from 'node:crypto';
 
 describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
   let isAvailable = false;
-  let ctx: TestDatabaseContext | null = null;
+  let ctx: TestDatabaseContext;
 
   beforeAll(async () => {
     isAvailable = await isPostgresReachable();
-    if (isAvailable) {
-      ctx = await createTestContext();
+    if (!isAvailable) {
+      throw new Error(
+        'PostgreSQL is required for this test suite. Ensure Docker is running with "docker compose up -d".'
+      );
     }
+    ctx = await createTestContext();
   });
 
   afterAll(async () => {
@@ -33,22 +36,11 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
   });
 
   it('verifies whether PostgreSQL / Docker is running', () => {
-    if (!isAvailable) {
-      console.warn(
-        '\n[NOTICE] Docker / PostgreSQL is not currently running. ' +
-          'To execute live tests against PostgreSQL 16, start Docker Desktop and run: ' +
-          '"docker compose up -d" in Windows PowerShell.\n'
-      );
-    }
-    expect(typeof isAvailable).toBe('boolean');
+    expect(isAvailable).toBe(true);
   });
 
   describe('When PostgreSQL is running', () => {
-    it('applies all 20 migrations cleanly on an empty database/schema', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('applies all 20 migrations cleanly on an empty database/schema', async () => {
 
       // Check that all 20 tables exist in this isolated schema
       const res = await ctx.client.query<{ table_name: string }>(`
@@ -82,11 +74,7 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       expect(tableNames.length).toBeGreaterThanOrEqual(20);
     });
 
-    it('enforces UNIQUE (pharmacy_id, event_id) on processed_events to guarantee idempotency', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('enforces UNIQUE (pharmacy_id, event_id) on processed_events to guarantee idempotency', async () => {
 
       const pharmacyId = crypto.randomUUID();
       const eventId = crypto.randomUUID();
@@ -96,6 +84,7 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       await ctx.db.insert(pharmacies).values({
         id: pharmacyId,
         name: 'Apex Health Pharmacy',
+        code: 'APEX',
         createdAt: now,
         updatedAt: now,
       });
@@ -121,6 +110,7 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       await ctx.db.insert(pharmacies).values({
         id: pharmacy2Id,
         name: 'City Care Pharmacy',
+        code: 'CITY',
         createdAt: now,
         updatedAt: now,
       });
@@ -134,11 +124,7 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       ).resolves.not.toThrow();
     });
 
-    it('enforces UNIQUE (pharmacy_id, invoice_number) on invoices', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('enforces UNIQUE (pharmacy_id, invoice_number) on invoices', async () => {
 
       const pharmacy1Id = crypto.randomUUID();
       const pharmacy2Id = crypto.randomUUID();
@@ -152,8 +138,8 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
 
       // Create two pharmacies, branches, counters, and users
       await ctx.db.insert(pharmacies).values([
-        { id: pharmacy1Id, name: 'Pharma One', createdAt: now, updatedAt: now },
-        { id: pharmacy2Id, name: 'Pharma Two', createdAt: now, updatedAt: now },
+        { id: pharmacy1Id, name: 'Pharma One', code: 'P1', createdAt: now, updatedAt: now },
+        { id: pharmacy2Id, name: 'Pharma Two', code: 'P2', createdAt: now, updatedAt: now },
       ]);
 
       await ctx.db.insert(branches).values([
@@ -226,11 +212,7 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       ).resolves.not.toThrow();
     });
 
-    it('guarantees change_log.seq increases monotonically on successive inserts', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('guarantees change_log.seq increases monotonically on successive inserts', async () => {
 
       const pharmacyId = crypto.randomUUID();
       const now = new Date().toISOString();
@@ -238,6 +220,7 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       await ctx.db.insert(pharmacies).values({
         id: pharmacyId,
         name: 'Delta Pharmacy',
+        code: 'DELTA',
         createdAt: now,
         updatedAt: now,
       });

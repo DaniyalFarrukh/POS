@@ -13,6 +13,7 @@ HexaPharm Clinical Pharmacy Point of Sale system built as a TypeScript monorepo 
 
 - Node.js >= 22.0.0 (tested on Node v24.19.0)
 - pnpm >= 9.0.0 (tested on pnpm v12.15.0)
+- Docker Desktop (PostgreSQL 16 is required for running server and integration tests)
 - Windows PowerShell
 
 ## Getting Started (PowerShell)
@@ -25,15 +26,26 @@ pnpm install
 
 ### 2. Run quality checks
 
+> **Note:** `pnpm test` requires PostgreSQL to be running. Start the container before running tests:
+> ```powershell
+> docker compose up -d
+> ```
+
 ```powershell
+# Start PostgreSQL container (required for tests)
+docker compose up -d
+
 # Typecheck all packages
 pnpm typecheck
 
 # Run linter
 pnpm lint
 
-# Run all unit tests
+# Run all unit and integration tests (requires Postgres)
 pnpm test
+
+# Check dependency vulnerabilities
+pnpm audit
 
 # Check code formatting
 pnpm format:check

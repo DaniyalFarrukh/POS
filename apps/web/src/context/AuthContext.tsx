@@ -6,7 +6,7 @@ interface AuthContextType {
   user: UserContext | null;
   token: string | null;
   isLoading: boolean;
-  login: (name: string, pin: string) => Promise<void>;
+  login: (pharmacyCode: string, name: string, pin: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isOwner: boolean;
@@ -55,10 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [token]);
 
-  const login = async (name: string, pin: string) => {
+  const login = async (pharmacyCode: string, name: string, pin: string) => {
     const res = await apiFetch<{ token: string; user: UserContext }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ name, pin }),
+      body: JSON.stringify({ pharmacyCode, name, pin }),
     });
 
     setToken(res.token);

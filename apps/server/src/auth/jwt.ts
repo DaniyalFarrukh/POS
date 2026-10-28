@@ -8,7 +8,20 @@ export interface DeviceTokenPayload {
 }
 
 export function getJwtSecret(): string {
-  return process.env.JWT_SECRET || 'dev_pos_jwt_secret_change_in_production';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const secret = process.env.JWT_SECRET;
+  const DEV_DEFAULT = 'dev_pos_jwt_secret_change_in_production';
+
+  if (isProduction) {
+    if (!secret) {
+      throw new Error('FATAL: JWT_SECRET environment variable is required in production');
+    }
+    if (secret === DEV_DEFAULT) {
+      throw new Error('FATAL: Production JWT_SECRET cannot use default development secret');
+    }
+  }
+
+  return secret || DEV_DEFAULT;
 }
 
 /**

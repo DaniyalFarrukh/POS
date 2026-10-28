@@ -49,32 +49,32 @@ describe('Local Authentication & IPC Role Guard', () => {
   });
 
   describe('bcryptjs PIN Hashing', () => {
-    it('correctly hashes and validates numeric PINs', () => {
-      const pin = '1234';
-      const hash = hashPin(pin);
+    it('correctly hashes and validates numeric PINs', async () => {
+      const pin = '123456';
+      const hash = await hashPin(pin);
 
       expect(hash).toBeDefined();
       expect(hash).not.toBe(pin);
       expect(hash.startsWith('$2a$') || hash.startsWith('$2b$')).toBe(true);
 
-      expect(verifyPin('1234', hash)).toBe(true);
-      expect(verifyPin('9999', hash)).toBe(false);
-      expect(verifyPin('12345', hash)).toBe(false);
+      expect(await verifyPin('123456', hash)).toBe(true);
+      expect(await verifyPin('999999', hash)).toBe(false);
+      expect(await verifyPin('1234567', hash)).toBe(false);
     });
   });
 
   describe('First-run Setup', () => {
-    it('detects fresh setup requirement and creates branch, counter, and owner in one transaction', () => {
+    it('detects fresh setup requirement and creates branch, counter, and owner in one transaction', async () => {
       // 1. Initially needs setup
       expect(getSetupStatus(rawDb)).toEqual({ needsSetup: true });
 
       // 2. Complete setup
-      const session = completeSetup(
+      const session = await completeSetup(
         {
           branchName: 'City Pharmacy - Saddar',
           counterName: 'Counter 01',
           ownerName: 'Dr. Tariq',
-          pin: '7890',
+          pin: '12345678',
         },
         rawDb
       );
@@ -100,7 +100,7 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect(counterRow.name).toBe('Counter 01');
       expect(userRow.name).toBe('Dr. Tariq');
       expect(userRow.role).toBe('owner');
-      expect(verifyPin('7890', userRow.pin_hash)).toBe(true);
+      expect(await verifyPin('12345678', userRow.pin_hash)).toBe(true);
 
       // 5. Rule 6: getUsers() never returns pin_hash
       const users = getUsers(rawDb);
@@ -120,7 +120,7 @@ describe('Local Authentication & IPC Role Guard', () => {
     let pharmacistId: string;
     let cashierId: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       const now = new Date().toISOString();
       const branchId = generateUuidV7();
       const counterId = generateUuidV7();
@@ -139,39 +139,39 @@ describe('Local Authentication & IPC Role Guard', () => {
 
       rawDb
         .prepare(
-          'INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)'
+          'INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)'
         )
-        .run(ownerId, 'Owner User', 'owner', hashPin('1111'), now, now);
+        .run(ownerId, 'Owner User', 'owner', await hashPin('11112222'), now, now);
 
       rawDb
         .prepare(
-          'INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)'
+          'INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)'
         )
-        .run(pharmacistId, 'Pharmacist User', 'pharmacist', hashPin('2222'), now, now);
+        .run(pharmacistId, 'Pharmacist User', 'pharmacist', await hashPin('222233'), now, now);
 
       rawDb
         .prepare(
-          'INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)'
+          'INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)'
         )
-        .run(cashierId, 'Cashier User', 'cashier', hashPin('3333'), now, now);
+        .run(cashierId, 'Cashier User', 'cashier', await hashPin('333344'), now, now);
     });
 
-    it('logs in successfully with valid PIN and updates active session', () => {
-      const session = login(cashierId, '3333', rawDb);
+    it('logs in successfully with valid PIN and updates active session', async () => {
+      const session = await login(cashierId, '333344', rawDb);
       expect(session.user.id).toBe(cashierId);
       expect(session.user.role).toBe('cashier');
       expect(session.isLocked).toBe(false);
       expect(getSession()?.user.id).toBe(cashierId);
     });
 
-    it('rejects invalid PIN with AuthError', () => {
-      expect(() => login(cashierId, '9999', rawDb)).toThrow(AuthError);
-      expect(() => login(cashierId, '9999', rawDb)).toThrow(/Invalid PIN/);
+    it('rejects invalid PIN with AuthError', async () => {
+      await expect(login(cashierId, '999999', rawDb)).rejects.toThrow(AuthError);
+      await expect(login(cashierId, '999999', rawDb)).rejects.toThrow(/Invalid PIN/);
       expect(getSession()).toBeNull();
     });
 
-    it('locks and unlocks session with user PIN', () => {
-      login(pharmacistId, '2222', rawDb);
+    it('locks and unlocks session with user PIN', async () => {
+      await login(pharmacistId, '222233', rawDb);
       expect(getSession()?.isLocked).toBe(false);
 
       // Lock session
@@ -179,11 +179,11 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect(getSession()?.isLocked).toBe(true);
 
       // Attempt unlocking with wrong PIN
-      expect(() => unlockSession('0000', rawDb)).toThrow(/Invalid PIN/);
+      await expect(unlockSession('000000', rawDb)).rejects.toThrow(/Invalid PIN/);
       expect(getSession()?.isLocked).toBe(true);
 
       // Unlock with correct PIN
-      const unlocked = unlockSession('2222', rawDb);
+      const unlocked = await unlockSession('222233', rawDb);
       expect(unlocked.isLocked).toBe(false);
       expect(getSession()?.isLocked).toBe(false);
     });
@@ -292,15 +292,15 @@ describe('Local Authentication & IPC Role Guard', () => {
   });
 
   describe('Staff & Roles Management', () => {
-    let ownerSession: ReturnType<typeof completeSetup>;
+    let ownerSession: Awaited<ReturnType<typeof completeSetup>>;
 
-    beforeEach(() => {
-      ownerSession = completeSetup(
+    beforeEach(async () => {
+      ownerSession = await completeSetup(
         {
           branchName: 'City Pharmacy - Saddar',
           counterName: 'Counter 01',
           ownerName: 'Dr. Tariq',
-          pin: '7890',
+          pin: '12345678',
         },
         rawDb
       );
@@ -316,12 +316,12 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect((staff[0] as unknown as { pin_hash?: string }).pin_hash).toBeUndefined();
     });
 
-    it('creates new cashier and pharmacist staff members with hashed PIN', () => {
-      const cashier = createStaffMember(
+    it('creates new cashier and pharmacist staff members with hashed PIN', async () => {
+      const cashier = await createStaffMember(
         {
           name: 'Bilal Cashier',
           role: 'cashier',
-          pin: '1234',
+          pin: '123456',
         },
         ownerSession,
         rawDb
@@ -332,11 +332,11 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect(cashier.role).toBe('cashier');
       expect(cashier.isActive).toBe(true);
 
-      const pharmacist = createStaffMember(
+      const pharmacist = await createStaffMember(
         {
           name: 'Sara Pharmacist',
           role: 'pharmacist',
-          pin: '5678',
+          pin: '567890',
         },
         ownerSession,
         rawDb
@@ -349,28 +349,28 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect(all).toHaveLength(3);
 
       // Verify created cashier can log in
-      const cashierSession = login(cashier.id, '1234', rawDb);
+      const cashierSession = await login(cashier.id, '123456', rawDb);
       expect(cashierSession.user.name).toBe('Bilal Cashier');
       expect(cashierSession.user.role).toBe('cashier');
     });
 
-    it('updates staff member role and PIN', () => {
-      const staff = createStaffMember(
+    it('updates staff member role and PIN', async () => {
+      const staff = await createStaffMember(
         {
           name: 'Kamran Ali',
           role: 'cashier',
-          pin: '1122',
+          pin: '112233',
         },
         ownerSession,
         rawDb
       );
 
       // Promote to pharmacist and update PIN
-      const updated = updateStaffMember(
+      const updated = await updateStaffMember(
         staff.id,
         {
           role: 'pharmacist',
-          pin: '9988',
+          pin: '998877',
         },
         ownerSession,
         rawDb
@@ -379,32 +379,32 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect(updated.role).toBe('pharmacist');
 
       // Old PIN fails, new PIN succeeds
-      expect(() => login(staff.id, '1122', rawDb)).toThrow(AuthError);
-      const newSession = login(staff.id, '9988', rawDb);
+      await expect(login(staff.id, '112233', rawDb)).rejects.toThrow(AuthError);
+      const newSession = await login(staff.id, '998877', rawDb);
       expect(newSession.user.role).toBe('pharmacist');
     });
 
-    it('prevents owner from deactivating or demoting their own active account', () => {
-      expect(() =>
+    it('prevents owner from deactivating or demoting their own active account', async () => {
+      await expect(
         updateStaffMember(
           ownerSession.user.id,
           { isActive: false },
           ownerSession,
           rawDb
         )
-      ).toThrow(AuthError);
+      ).rejects.toThrow(AuthError);
 
-      expect(() =>
+      await expect(
         updateStaffMember(
           ownerSession.user.id,
           { role: 'cashier' },
           ownerSession,
           rawDb
         )
-      ).toThrow(AuthError);
+      ).rejects.toThrow(AuthError);
     });
 
-    it('forbids cashier or pharmacist from managing staff accounts', () => {
+    it('forbids cashier or pharmacist from managing staff accounts', async () => {
       const cashierSession = {
         user: { id: generateUuidV7(), name: 'Cashier 1', role: 'cashier' as const, isActive: true },
         branch: { id: generateUuidV7(), name: 'B1' },
@@ -414,13 +414,13 @@ describe('Local Authentication & IPC Role Guard', () => {
       };
 
       expect(() => getStaffList(cashierSession, rawDb)).toThrow(ForbiddenError);
-      expect(() =>
+      await expect(
         createStaffMember(
-          { name: 'Test', role: 'cashier', pin: '1234' },
+          { name: 'Test', role: 'cashier', pin: '123456' },
           cashierSession,
           rawDb
         )
-      ).toThrow(ForbiddenError);
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 });

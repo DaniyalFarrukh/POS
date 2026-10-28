@@ -14,10 +14,10 @@ describe('Auth Zod Schemas & Permissions', () => {
       branchName: 'Saddar Branch',
       counterName: 'Counter 1',
       ownerName: 'Dr. Tariq',
-      pin: '1234',
+      pin: '12345678',
     };
     const parsed = SetupInputSchema.parse(valid);
-    expect(parsed.pin).toBe('1234');
+    expect(parsed.pin).toBe('12345678');
     expect(parsed.ownerName).toBe('Dr. Tariq');
   });
 
@@ -26,7 +26,7 @@ describe('Auth Zod Schemas & Permissions', () => {
       branchName: 'Main',
       counterName: 'C1',
       ownerName: 'Owner',
-      pin: '12', // less than 4 digits
+      pin: '1234567', // less than 8 digits for owner setup
     };
     expect(() => SetupInputSchema.parse(tooShort)).toThrow();
 
@@ -34,7 +34,7 @@ describe('Auth Zod Schemas & Permissions', () => {
       branchName: 'Main',
       counterName: 'C1',
       ownerName: 'Owner',
-      pin: 'abcd', // letters not allowed
+      pin: 'abcdefgh', // letters not allowed
     };
     expect(() => SetupInputSchema.parse(nonNumeric)).toThrow();
   });
@@ -47,9 +47,9 @@ describe('Auth Zod Schemas & Permissions', () => {
     expect(LoginInputSchema.parse(validLogin).pin).toBe('987654');
 
     const validUnlock = {
-      pin: '4321',
+      pin: '654321',
     };
-    expect(UnlockInputSchema.parse(validUnlock).pin).toBe('4321');
+    expect(UnlockInputSchema.parse(validUnlock).pin).toBe('654321');
   });
 
   it('enforces that PublicUserSchema does not contain pinHash', () => {

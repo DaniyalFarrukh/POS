@@ -1,8 +1,17 @@
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { generateUuidV7, PurchaseReceivedPayloadSchema } from '@pos/shared';
-import { batches, stockMovements, products, changeLog } from '../../db/schema';
-import { SyncRejectedError, SyncRetryLaterError } from '../errors';
+import {
+  batches,
+  stockMovements,
+  products,
+  branches,
+  suppliers,
+  users,
+} from '../../db/schema';
+import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
+import { verifyTenantEntity, verifyTenantEntities } from './common';
+import { insertChangeLog } from '../change-log';
 
 export async function applyPurchaseReceived(
   tx: DbClient,
@@ -20,33 +29,61 @@ export async function applyPurchaseReceived(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Verify referenced products exist for this pharmacy
-  const productIds = Array.from(
-    new Set([
-      ...payload.batches.map((b) => b.productId),
-      ...payload.lines.map((l) => l.productId),
-    ])
+  // 1. Device alignment
+  if (ctx.branchId && payload.purchase.branchId !== ctx.branchId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device branchId (${ctx.branchId}) does not match purchase branchId (${payload.purchase.branchId})`
+    );
+  }
+
+  // 2. Verify Branch belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    branches,
+    payload.purchase.branchId,
+    ctx.pharmacyId,
+    'UNKNOWN_BRANCH',
+    'branch'
   );
 
-  const existingProducts = await tx
-    .select({ id: products.id })
-    .from(products)
-    .where(
-      and(
-        eq(products.pharmacyId, ctx.pharmacyId),
-        inArray(products.id, productIds)
-      )
+  // 3. Verify Supplier belongs to this pharmacy if specified
+  if (payload.purchase.supplierId) {
+    await verifyTenantEntity(
+      tx,
+      suppliers,
+      payload.purchase.supplierId,
+      ctx.pharmacyId,
+      'UNKNOWN_SUPPLIER',
+      'supplier'
     );
-
-  const foundProductIds = new Set(existingProducts.map((p) => p.id));
-  for (const pid of productIds) {
-    if (!foundProductIds.has(pid)) {
-      throw new SyncRetryLaterError(
-        'UNKNOWN_PRODUCT',
-        `Referenced product ${pid} does not exist for pharmacy ${ctx.pharmacyId}`
-      );
-    }
   }
+
+  // 4. Verify CreatedBy User belongs to this pharmacy if specified
+  if (payload.purchase.createdByUserId) {
+    await verifyTenantEntity(
+      tx,
+      users,
+      payload.purchase.createdByUserId,
+      ctx.pharmacyId,
+      'UNKNOWN_USER',
+      'user'
+    );
+  }
+
+  // 5. Verify referenced products exist for this pharmacy
+  const productIds = [
+    ...payload.batches.map((b) => b.productId),
+    ...payload.lines.map((l) => l.productId),
+  ];
+  await verifyTenantEntities(
+    tx,
+    products,
+    productIds,
+    ctx.pharmacyId,
+    'UNKNOWN_PRODUCT',
+    'product'
+  );
 
   // 2. Insert or update Batches
   for (const b of payload.batches) {
@@ -69,7 +106,7 @@ export async function applyPurchaseReceived(
         updatedAt: b.createdAt || now,
       });
 
-      await tx.insert(changeLog).values({
+      await insertChangeLog(tx, {
         pharmacyId: ctx.pharmacyId,
         entity: 'batch',
         entityId: b.id,
@@ -100,8 +137,9 @@ export async function applyPurchaseReceived(
 
     await tx.insert(stockMovements).values(movementData);
 
-    await tx.insert(changeLog).values({
+    await insertChangeLog(tx, {
       pharmacyId: ctx.pharmacyId,
+      branchId: payload.purchase.branchId,
       entity: 'stock_movement',
       entityId: movementId,
       op: 'upsert',

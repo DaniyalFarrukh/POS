@@ -12,6 +12,10 @@ import { recordMasterDataChange } from '../sync/change-log';
 dotenv.config();
 
 export async function seedProductsDemo() {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Seed scripts must not run in production');
+  }
+
   const db = getDb();
   const now = new Date().toISOString();
 
@@ -32,6 +36,7 @@ export async function seedProductsDemo() {
       .values({
         id: pharmacyId,
         name: 'Apex Health Pharmacy (Dev)',
+        code: 'DEV',
         createdAt: now,
         updatedAt: now,
       })
@@ -54,26 +59,30 @@ export async function seedProductsDemo() {
   let taxCategory = existingTax[0];
   if (!taxCategory) {
     const taxCatId = generateUuidV7();
-    const inserted = await db
-      .insert(taxCategories)
-      .values({
-        id: taxCatId,
-        pharmacyId: pharmacy.id,
-        name: 'Medicine Exempt 0%',
-        rateBp: 0,
-        isExempt: true,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning();
-    taxCategory = inserted[0]!;
+    taxCategory = await db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(taxCategories)
+        .values({
+          id: taxCatId,
+          pharmacyId: pharmacy.id,
+          name: 'Medicine Exempt 0%',
+          rateBp: 0,
+          isExempt: true,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+      const cat = inserted[0]!;
 
-    await recordMasterDataChange(db, {
-      pharmacyId: pharmacy.id,
-      entity: 'tax_category',
-      entityId: taxCategory.id,
-      op: 'upsert',
-      data: taxCategory,
+      await recordMasterDataChange(tx, {
+        pharmacyId: pharmacy.id,
+        entity: 'tax_category',
+        entityId: cat.id,
+        op: 'upsert',
+        data: cat,
+      });
+
+      return cat;
     });
   }
 
@@ -123,85 +132,115 @@ export async function seedProductsDemo() {
   const createdProducts: Array<{ name: string; id: string; mrpPaisa: number; seq: number }> = [];
 
   for (const p of demoProducts) {
-    const existing = await db
-      .select()
-      .from(products)
-      .where(
-        and(
-          eq(products.pharmacyId, pharmacy.id),
-          eq(products.brandName, p.brandName)
+    const item = await db.transaction(async (tx) => {
+      const existing = await tx
+        .select()
+        .from(products)
+        .where(
+          and(
+            eq(products.pharmacyId, pharmacy.id),
+            eq(products.brandName, p.brandName)
+          )
         )
-      )
-      .limit(1);
+        .limit(1);
 
-    let productId = existing[0]?.id;
-    if (!productId) {
-      productId = generateUuidV7();
-      await db.insert(products).values({
-        id: productId,
+      let fullProduct = existing[0];
+      if (!fullProduct) {
+        const productId = generateUuidV7();
+        const inserted = await tx
+          .insert(products)
+          .values({
+            id: productId,
+            pharmacyId: pharmacy.id,
+            brandName: p.brandName,
+            genericName: p.genericName,
+            strength: p.strength,
+            form: p.form,
+            manufacturer: p.manufacturer,
+            barcode: p.barcode,
+            taxCategoryId: taxCategory.id,
+            mrpPaisa: p.mrpPaisa,
+            isControlled: false,
+            isActive: true,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .returning();
+        fullProduct = inserted[0]!;
+      }
+
+      const seq = await recordMasterDataChange(tx, {
         pharmacyId: pharmacy.id,
-        brandName: p.brandName,
-        genericName: p.genericName,
-        strength: p.strength,
-        form: p.form,
-        manufacturer: p.manufacturer,
-        barcode: p.barcode,
-        taxCategoryId: taxCategory.id,
-        mrpPaisa: p.mrpPaisa,
-        isControlled: false,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
+        entity: 'product',
+        entityId: fullProduct.id,
+        op: 'upsert',
+        data: {
+          id: fullProduct.id,
+          brandName: fullProduct.brandName,
+          genericName: fullProduct.genericName,
+          strength: fullProduct.strength,
+          form: fullProduct.form,
+          manufacturer: fullProduct.manufacturer,
+          barcode: fullProduct.barcode,
+          taxCategoryId: fullProduct.taxCategoryId,
+          mrpPaisa: fullProduct.mrpPaisa,
+          isControlled: fullProduct.isControlled,
+          isActive: fullProduct.isActive,
+          createdAt: fullProduct.createdAt,
+          updatedAt: fullProduct.updatedAt,
+        },
       });
-    }
 
-    const seq = await recordMasterDataChange(db, {
-      pharmacyId: pharmacy.id,
-      entity: 'product',
-      entityId: productId,
-      op: 'upsert',
-      data: {
-        id: productId,
-        brandName: p.brandName,
-        genericName: p.genericName,
+      return {
+        name: p.brandName,
+        id: fullProduct.id,
         mrpPaisa: p.mrpPaisa,
-        taxCategoryId: taxCategory.id,
-      },
+        seq,
+      };
     });
 
-    createdProducts.push({
-      name: p.brandName,
-      id: productId,
-      mrpPaisa: p.mrpPaisa,
-      seq,
-    });
+    createdProducts.push(item);
 
-    console.log(`+ Product: ${p.brandName} (MRP: ${(p.mrpPaisa / 100).toFixed(2)} PKR) -> change_log seq #${seq}`);
+    console.log(`+ Product: ${p.brandName} (MRP: ${(p.mrpPaisa / 100).toFixed(2)} PKR) -> change_log seq #${item.seq}`);
   }
 
   // 4. Update price on first product (demonstrating price update for pull)
   const productToUpdate = createdProducts[0]!;
   const newPricePaisa = 7200; // 72.00 PKR
 
-  await db
-    .update(products)
-    .set({
-      mrpPaisa: newPricePaisa,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(eq(products.id, productToUpdate.id));
+  const updateSeq = await db.transaction(async (tx) => {
+    const updated = await tx
+      .update(products)
+      .set({
+        mrpPaisa: newPricePaisa,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(products.id, productToUpdate.id))
+      .returning();
 
-  const updateSeq = await recordMasterDataChange(db, {
-    pharmacyId: pharmacy.id,
-    entity: 'product',
-    entityId: productToUpdate.id,
-    op: 'upsert',
-    data: {
-      id: productToUpdate.id,
-      brandName: productToUpdate.name,
-      mrpPaisa: newPricePaisa,
-      updatedAt: new Date().toISOString(),
-    },
+    const fullUpdated = updated[0]!;
+
+    return recordMasterDataChange(tx, {
+      pharmacyId: pharmacy.id,
+      entity: 'product',
+      entityId: fullUpdated.id,
+      op: 'upsert',
+      data: {
+        id: fullUpdated.id,
+        brandName: fullUpdated.brandName,
+        genericName: fullUpdated.genericName,
+        strength: fullUpdated.strength,
+        form: fullUpdated.form,
+        manufacturer: fullUpdated.manufacturer,
+        barcode: fullUpdated.barcode,
+        taxCategoryId: fullUpdated.taxCategoryId,
+        mrpPaisa: fullUpdated.mrpPaisa,
+        isControlled: fullUpdated.isControlled,
+        isActive: fullUpdated.isActive,
+        createdAt: fullUpdated.createdAt,
+        updatedAt: fullUpdated.updatedAt,
+      },
+    });
   });
 
   console.log(`\n↻ Price Update: ${productToUpdate.name} MRP updated to ${(newPricePaisa / 100).toFixed(2)} PKR -> change_log seq #${updateSeq}`);

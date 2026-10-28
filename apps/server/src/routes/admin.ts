@@ -13,6 +13,7 @@ import {
 import { requireUserAuth } from '../auth/user-auth';
 import { hashRegistrationCode, generatePlainRegistrationCode } from '../auth/jwt';
 import { getDb } from '../db';
+import { insertChangeLog } from '../sync/change-log';
 
 interface CreateUserBody {
   name: string;
@@ -86,33 +87,37 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     if (!role || !['owner', 'pharmacist', 'cashier'].includes(role)) {
       return reply.status(400).send({ statusCode: 400, message: 'Invalid role' });
     }
-    if (!pin || pin.trim().length < 4) {
-      return reply.status(400).send({ statusCode: 400, message: 'PIN must be at least 4 digits' });
+    const pinRegex = role === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
+    if (!pin || !pinRegex.test(pin.trim())) {
+      const msg = role === 'owner' ? 'Owner PIN must be exactly 8 digits' : 'PIN must be between 6 and 8 digits';
+      return reply.status(400).send({ statusCode: 400, message: msg });
     }
 
     const db = request.server.db || getDb();
     const userId = generateUuidV7();
     const now = new Date().toISOString();
-    const pinHash = bcrypt.hashSync(pin.trim(), 10);
+    const pinHash = await bcrypt.hash(pin.trim(), 10);
 
-    await db.insert(users).values({
-      id: userId,
-      pharmacyId: userContext.pharmacyId,
-      name: name.trim(),
-      role,
-      pinHash,
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+    await db.transaction(async (tx) => {
+      await tx.insert(users).values({
+        id: userId,
+        pharmacyId: userContext.pharmacyId,
+        name: name.trim(),
+        role,
+        pinHash,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      });
 
-    await db.insert(changeLog).values({
-      pharmacyId: userContext.pharmacyId,
-      entity: 'user',
-      entityId: userId,
-      op: 'upsert',
-      data: { id: userId, name: name.trim(), role, isActive: true },
-      createdAt: now,
+      await insertChangeLog(tx, {
+        pharmacyId: userContext.pharmacyId,
+        entity: 'user',
+        entityId: userId,
+        op: 'upsert',
+        data: { id: userId, name: name.trim(), role, pinHash, isActive: true },
+        createdAt: now,
+      });
     });
 
     return reply.status(201).send({
@@ -139,12 +144,70 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       updateFields.isActive = isActive;
     }
 
-    await db
-      .update(users)
-      .set(updateFields)
-      .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)));
+    const updatedUser = await db.transaction(async (tx) => {
+      const updatedUsers = await tx
+        .update(users)
+        .set(updateFields)
+        .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
+        .returning({
+          id: users.id,
+          name: users.name,
+          role: users.role,
+          isActive: users.isActive,
+          pinHash: users.pinHash,
+        });
+
+      if (updatedUsers.length === 0) {
+        return null;
+      }
+
+      const u = updatedUsers[0]!;
+      await insertChangeLog(tx, {
+        pharmacyId: userContext.pharmacyId,
+        entity: 'user',
+        entityId: u.id,
+        op: 'upsert',
+        data: {
+          id: u.id,
+          name: u.name,
+          role: u.role,
+          isActive: u.isActive,
+          pinHash: u.pinHash,
+        },
+        createdAt: now,
+      });
+
+      return u;
+    });
+
+    if (!updatedUser) {
+      return reply.status(404).send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
+    }
 
     return reply.status(200).send({ ok: true });
+  });
+
+  fastify.post<{ Params: { id: string } }>('/users/:id/unlock', async (request, reply) => {
+    const userContext = request.userContext!;
+    const { id } = request.params;
+    const db = request.server.db || getDb();
+    const now = new Date().toISOString();
+
+    const updatedUsers = await db
+      .update(users)
+      .set({
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        updatedAt: now,
+      })
+      .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
+      .returning({ id: users.id });
+
+    if (updatedUsers.length === 0) {
+      return reply.status(404).send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
+    }
+
+    return reply.status(200).send({ ok: true, message: 'User account unlocked' });
   });
 
   // -------------------------------------------------------------------------
@@ -181,23 +244,25 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const branchId = generateUuidV7();
     const now = new Date().toISOString();
 
-    await db.insert(branches).values({
-      id: branchId,
-      pharmacyId: userContext.pharmacyId,
-      name: name.trim(),
-      address: address?.trim() ?? null,
-      phone: phone?.trim() ?? null,
-      createdAt: now,
-      updatedAt: now,
-    });
+    await db.transaction(async (tx) => {
+      await tx.insert(branches).values({
+        id: branchId,
+        pharmacyId: userContext.pharmacyId,
+        name: name.trim(),
+        address: address?.trim() ?? null,
+        phone: phone?.trim() ?? null,
+        createdAt: now,
+        updatedAt: now,
+      });
 
-    await db.insert(changeLog).values({
-      pharmacyId: userContext.pharmacyId,
-      entity: 'branch',
-      entityId: branchId,
-      op: 'upsert',
-      data: { id: branchId, name: name.trim() },
-      createdAt: now,
+      await insertChangeLog(tx, {
+        pharmacyId: userContext.pharmacyId,
+        entity: 'branch',
+        entityId: branchId,
+        op: 'upsert',
+        data: { id: branchId, name: name.trim() },
+        createdAt: now,
+      });
     });
 
     return reply.status(201).send({ id: branchId, name: name.trim() });
@@ -238,26 +303,46 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const now = new Date().toISOString();
     const codeVal = code?.trim().toUpperCase() || 'C1';
 
-    await db.insert(counters).values({
-      id: counterId,
-      pharmacyId: userContext.pharmacyId,
-      branchId,
-      name: name.trim(),
-      code: codeVal,
-      lastInvoiceSeq: 0,
-      lastCreditNoteSeq: 0,
-      createdAt: now,
-      updatedAt: now,
+    const created = await db.transaction(async (tx) => {
+      // Verify branch belongs to caller's pharmacy tenant
+      const [branch] = await tx
+        .select({ id: branches.id })
+        .from(branches)
+        .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+        .limit(1);
+
+      if (!branch) {
+        return null;
+      }
+
+      await tx.insert(counters).values({
+        id: counterId,
+        pharmacyId: userContext.pharmacyId,
+        branchId,
+        name: name.trim(),
+        code: codeVal,
+        lastInvoiceSeq: 0,
+        lastCreditNoteSeq: 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      await insertChangeLog(tx, {
+        pharmacyId: userContext.pharmacyId,
+        branchId,
+        entity: 'counter',
+        entityId: counterId,
+        op: 'upsert',
+        data: { id: counterId, branchId, name: name.trim(), code: codeVal },
+        createdAt: now,
+      });
+
+      return counterId;
     });
 
-    await db.insert(changeLog).values({
-      pharmacyId: userContext.pharmacyId,
-      entity: 'counter',
-      entityId: counterId,
-      op: 'upsert',
-      data: { id: counterId, branchId, name: name.trim(), code: codeVal },
-      createdAt: now,
-    });
+    if (!created) {
+      return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+    }
 
     return reply.status(201).send({ id: counterId, name: name.trim(), code: codeVal });
   });
@@ -299,10 +384,15 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const db = request.server.db || getDb();
     const now = new Date().toISOString();
 
-    await db
+    const updatedDevices = await db
       .update(devices)
       .set({ isRevoked: Boolean(isRevoked), updatedAt: now })
-      .where(and(eq(devices.id, id), eq(devices.pharmacyId, userContext.pharmacyId)));
+      .where(and(eq(devices.id, id), eq(devices.pharmacyId, userContext.pharmacyId)))
+      .returning({ id: devices.id });
+
+    if (updatedDevices.length === 0) {
+      return reply.status(404).send({ statusCode: 404, message: 'Device not found or belongs to another pharmacy' });
+    }
 
     return reply.status(200).send({ ok: true, isRevoked: Boolean(isRevoked) });
   });
@@ -315,13 +405,42 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.status(400).send({ statusCode: 400, message: 'branchId and counterId are required' });
     }
 
+    const db = request.server.db || getDb();
+
+    // Verify branch belongs to caller's pharmacy tenant
+    const [branch] = await db
+      .select({ id: branches.id })
+      .from(branches)
+      .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+      .limit(1);
+
+    if (!branch) {
+      return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+    }
+
+    // Verify counter belongs to caller's pharmacy tenant and to the specified branch
+    const [counter] = await db
+      .select({ id: counters.id })
+      .from(counters)
+      .where(
+        and(
+          eq(counters.id, counterId),
+          eq(counters.pharmacyId, userContext.pharmacyId),
+          eq(counters.branchId, branchId)
+        )
+      )
+      .limit(1);
+
+    if (!counter) {
+      return reply.status(404).send({ statusCode: 404, message: 'Counter not found or does not belong to specified branch' });
+    }
+
     const plainCode = generatePlainRegistrationCode();
     const codeHash = hashRegistrationCode(plainCode);
     const codeId = generateUuidV7();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 3600000).toISOString();
 
-    const db = request.server.db || getDb();
     await db.insert(deviceRegistrationCodes).values({
       id: codeId,
       pharmacyId: userContext.pharmacyId,

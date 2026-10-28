@@ -182,6 +182,58 @@ export const SyncPushResponseSchema = z.object({
 export type SyncPushResponse = z.infer<typeof SyncPushResponseSchema>;
 
 // GET /sync/pull schemas (docs/SYNC.md)
+export const SyncProductChangeDataSchema = z.preprocess((val) => {
+  if (val && typeof val === 'object') {
+    const obj = val as Record<string, unknown>;
+    return {
+      id: obj.id,
+      brandName: obj.brandName ?? obj.brand_name ?? obj.name,
+      genericName: obj.genericName ?? obj.generic_name ?? '',
+      strength: obj.strength ?? '',
+      form: obj.form ?? '',
+      manufacturer: obj.manufacturer ?? '',
+      barcode: obj.barcode !== undefined ? obj.barcode : null,
+      taxCategoryId: obj.taxCategoryId ?? obj.tax_category_id,
+      mrpPaisa:
+        obj.mrpPaisa !== undefined
+          ? Number(obj.mrpPaisa)
+          : obj.mrp_paisa !== undefined
+          ? Number(obj.mrp_paisa)
+          : undefined,
+      isControlled:
+        obj.isControlled !== undefined
+          ? Boolean(obj.isControlled)
+          : obj.is_controlled !== undefined
+          ? Boolean(obj.is_controlled)
+          : false,
+      isActive:
+        obj.isActive !== undefined
+          ? Boolean(obj.isActive)
+          : obj.is_active !== undefined
+          ? Boolean(obj.is_active)
+          : true,
+      createdAt: obj.createdAt ?? obj.created_at,
+      updatedAt: obj.updatedAt ?? obj.updated_at,
+    };
+  }
+  return val;
+}, z.object({
+  id: z.string().min(1),
+  brandName: z.string().min(1),
+  genericName: z.string().optional().default(''),
+  strength: z.string().optional().default(''),
+  form: z.string().optional().default(''),
+  manufacturer: z.string().optional().default(''),
+  barcode: z.string().nullable().optional(),
+  taxCategoryId: z.string().optional(),
+  mrpPaisa: z.number().int().min(0),
+  isControlled: z.boolean().optional().default(false),
+  isActive: z.boolean().optional().default(true),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+}));
+export type SyncProductChangeData = z.infer<typeof SyncProductChangeDataSchema>;
+
 export const SyncPullQuerySchema = z.object({
   cursor: z.coerce.number().int().min(0, 'Cursor must be >= 0').default(0),
   limit: z.coerce.number().int().min(1, 'Limit must be >= 1').max(500, 'Limit cannot exceed 500').default(200),

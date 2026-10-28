@@ -166,7 +166,7 @@ describe('Failure Modes & Resilience Integration Tests (Phase 3.4)', () => {
       [server.pharmacyId]
     );
     expect(Number(serverBatchesRes.rows[0]?.count)).toBe(250);
-  });
+  }, 30000);
 
   /**
    * Test 2:

@@ -28,15 +28,15 @@ import { eq, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 
 describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () => {
-  let isAvailable = false;
-  let ctx: TestDatabaseContext | undefined;
-  let app: FastifyInstance | undefined;
+  let ctx: TestDatabaseContext;
+  let app: FastifyInstance;
 
   beforeAll(async () => {
-    isAvailable = await isPostgresReachable();
+    const isAvailable = await isPostgresReachable();
     if (!isAvailable) {
-      console.warn('PostgreSQL is not reachable. Skipping server E2E test suite.');
-      return;
+      throw new Error(
+        'PostgreSQL is required for this test suite. Ensure Docker is running with "docker compose up -d".'
+      );
     }
 
     ctx = await createTestContext();
@@ -66,6 +66,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
     await ctx.db.insert(pharmacies).values({
       id: pharmacyId,
       name,
+      code: name.replace(/[^A-Za-z0-9]/g, '_').toUpperCase() + '_' + pharmacyId.slice(0, 8),
       createdAt: now,
       updatedAt: now,
     });
@@ -172,11 +173,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Register two devices in the same pharmacy, push events from both, pull from both:
    * both see the same batches and stock movements, and stock balance equals the sum of movements.
    */
-  it('Scenario 1: Two devices in the same pharmacy push and pull; both see identical batches/movements and stock balance equals sum of movements', async (context) => {
-    if (!isAvailable || !ctx || !app) {
-      context.skip();
-      return;
-    }
+  it('Scenario 1: Two devices in the same pharmacy push and pull; both see identical batches/movements and stock balance equals sum of movements', async () => {
 
     // 1. Setup Pharmacy with two registration codes for two devices in the same branch
     const tenant = await setupTenant('City Central Pharmacy', 'D101');
@@ -406,11 +403,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Scenario 2:
    * Replay the same push batch 3 times: results become duplicate, row counts unchanged.
    */
-  it('Scenario 2: Replaying the same push batch 3 times results in "duplicate" and leaves database row counts unchanged', async (context) => {
-    if (!isAvailable || !ctx || !app) {
-      context.skip();
-      return;
-    }
+  it('Scenario 2: Replaying the same push batch 3 times results in "duplicate" and leaves database row counts unchanged', async () => {
 
     const tenant = await setupTenant('Replay Pharmacy', 'R201');
     const dev = await registerDevice(tenant.plainCode, 'Replay Device');
@@ -605,11 +598,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Scenario 3:
    * Send 100 events including one invalid one in the middle: the others are accepted.
    */
-  it('Scenario 3: 100 events with 1 invalid event in the middle: 99 accepted and 1 rejected into rejected_events', async (context) => {
-    if (!isAvailable || !ctx || !app) {
-      context.skip();
-      return;
-    }
+  it('Scenario 3: 100 events with 1 invalid event in the middle: 99 accepted and 1 rejected into rejected_events', async () => {
 
     const tenant = await setupTenant('Bulk 100 Pharmacy', 'B301');
     const dev = await registerDevice(tenant.plainCode, 'Bulk Device');
@@ -743,11 +732,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Scenario 4:
    * Revoked device token rejected on push and pull.
    */
-  it('Scenario 4: Revoked device token is rejected with HTTP 403 on both push and pull', async (context) => {
-    if (!isAvailable || !ctx || !app) {
-      context.skip();
-      return;
-    }
+  it('Scenario 4: Revoked device token is rejected with HTTP 403 on both push and pull', async () => {
 
     const tenant = await setupTenant('Revocation Pharmacy', 'RV401');
     const dev = await registerDevice(tenant.plainCode, 'Terminal To Revoke');
@@ -800,11 +785,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Scenario 5:
    * Device from pharmacy A can never read or write pharmacy B data.
    */
-  it('Scenario 5: Multi-tenant isolation: Device from Pharmacy A can never read or write Pharmacy B data', async (context) => {
-    if (!isAvailable || !ctx || !app) {
-      context.skip();
-      return;
-    }
+  it('Scenario 5: Multi-tenant isolation: Device from Pharmacy A can never read or write Pharmacy B data', async () => {
 
     // 1. Setup Pharmacy A and Pharmacy B
     const tenantA = await setupTenant('Tenant Alpha', 'A501');
@@ -936,9 +917,9 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
       results: Array<{ eventId: string; status: string; code?: string }>;
     };
 
-    // Must be rejected or retry_later (cannot access unowned product/batch)
-    expect(maliciousBody.results[0]?.status).toBe('retry_later');
-    expect(maliciousBody.results[0]?.code).toBe('UNKNOWN_PRODUCT');
+    // Must be rejected with CROSS_TENANT_REFERENCE under C-09 remediation
+    expect(maliciousBody.results[0]?.status).toBe('rejected');
+    expect(maliciousBody.results[0]?.code).toBe('CROSS_TENANT_REFERENCE');
 
     // 6. Verify Pharmacy B's stock movements and batches remain strictly unmodified
     const betaMovements = await ctx.db

@@ -8,6 +8,20 @@
       "when": 1793009193472,
       "tag": "0000_orange_hex",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793180921460,
+      "tag": "0001_naive_natasha_romanoff",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793185664987,
+      "tag": "0002_goofy_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { eq, and } from 'drizzle-orm';
 import { requireUserAuth } from '../auth/user-auth';
 import {
   getSalesReport,
@@ -6,6 +7,7 @@ import {
   getProfitPerBatchReport,
   getSupplierLedgerReport,
 } from '../reports/queries';
+import { branches, users } from '../db/schema';
 import { getDb } from '../db';
 
 interface SalesQuery {
@@ -30,13 +32,38 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
+      const { startDate, endDate, branchId, cashierUserId } = request.query;
+
+      if (branchId) {
+        const [branch] = await db
+          .select({ id: branches.id })
+          .from(branches)
+          .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+          .limit(1);
+
+        if (!branch) {
+          return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+        }
+      }
+
+      if (cashierUserId) {
+        const [user] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.id, cashierUserId), eq(users.pharmacyId, userContext.pharmacyId)))
+          .limit(1);
+
+        if (!user) {
+          return reply.status(404).send({ statusCode: 404, message: 'Cashier user not found or belongs to another pharmacy' });
+        }
+      }
 
       const result = await getSalesReport(db, {
         pharmacyId: userContext.pharmacyId,
-        startDate: request.query.startDate,
-        endDate: request.query.endDate,
-        branchId: request.query.branchId,
-        cashierUserId: request.query.cashierUserId,
+        startDate,
+        endDate,
+        branchId,
+        cashierUserId,
       });
 
       return reply.status(200).send(result);
@@ -53,11 +80,24 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
+      const { branchId } = request.query;
+
+      if (branchId) {
+        const [branch] = await db
+          .select({ id: branches.id })
+          .from(branches)
+          .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+          .limit(1);
+
+        if (!branch) {
+          return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+        }
+      }
 
       const result = await getStockAndExpiryReport(
         db,
         userContext.pharmacyId,
-        request.query.branchId
+        branchId
       );
 
       return reply.status(200).send({ items: result });

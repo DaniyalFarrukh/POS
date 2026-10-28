@@ -23,6 +23,7 @@ function createSyncPullMockDb() {
   interface ChangeRow {
     seq: number;
     pharmacyId: string;
+    branchId?: string | null;
     entity: string;
     entityId: string;
     op: string;
@@ -105,8 +106,20 @@ function createSyncPullMockDb() {
                 minSeq = tokens[seqIdx + 1] as number;
               }
 
+              const targetBranchId = tokens.find(
+                (t) =>
+                  typeof t === 'string' &&
+                  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(t) &&
+                  t !== targetPharmId
+              ) as string | undefined;
+
               return store.changeLog
-                .filter((r) => (!targetPharmId || r.pharmacyId === targetPharmId) && r.seq > minSeq)
+                .filter(
+                  (r) =>
+                    (!targetPharmId || r.pharmacyId === targetPharmId) &&
+                    r.seq > minSeq &&
+                    (!targetBranchId || !r.branchId || r.branchId === targetBranchId)
+                )
                 .sort((a, b) => a.seq - b.seq);
             }
 
@@ -499,14 +512,16 @@ describe('GET /sync/pull (Phase 3)', () => {
   });
 
   describe('PostgreSQL Live Integration (when PostgreSQL is active)', () => {
-    let isAvailable = false;
-    let ctx: TestDatabaseContext | null = null;
+    let ctx: TestDatabaseContext;
 
     beforeAll(async () => {
-      isAvailable = await isPostgresReachable();
-      if (isAvailable) {
-        ctx = await createTestContext();
+      const isAvailable = await isPostgresReachable();
+      if (!isAvailable) {
+        throw new Error(
+          'PostgreSQL is required for this test suite. Ensure Docker is running with "docker compose up -d".'
+        );
       }
+      ctx = await createTestContext();
     });
 
     afterAll(async () => {
@@ -515,11 +530,7 @@ describe('GET /sync/pull (Phase 3)', () => {
       }
     });
 
-    it('executes pullChangeLog against live PostgreSQL schema', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('executes pullChangeLog against live PostgreSQL schema', async () => {
 
       const pharmacyId = generateUuidV7();
       const branchId = generateUuidV7();
@@ -530,6 +541,7 @@ describe('GET /sync/pull (Phase 3)', () => {
       await ctx.db.insert(pharmacies).values({
         id: pharmacyId,
         name: 'Live Pull Pharmacy',
+        code: 'LIVE_PULL',
         createdAt: now,
         updatedAt: now,
       });

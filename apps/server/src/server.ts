@@ -1,4 +1,8 @@
 import { buildApp } from './app';
+import { getJwtSecret } from './auth/jwt';
+
+// Ensure JWT_SECRET is properly configured on startup (fails fast in production)
+getJwtSecret();
 
 const server = buildApp();
 const port = 3001;

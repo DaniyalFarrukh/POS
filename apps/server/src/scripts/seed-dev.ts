@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import { eq, and } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -28,6 +28,10 @@ export interface SeedResult {
  * and generates a single-use hashed device registration code.
  */
 export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Promise<SeedResult> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Refusing to run seedDevEnvironment in production');
+  }
+
   const now = new Date().toISOString();
 
   // 1. Get or create Dev Pharmacy
@@ -45,11 +49,19 @@ export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Pro
       .values({
         id: pharmacyId,
         name: 'Apex Health Pharmacy (Dev)',
+        code: 'DEV',
         createdAt: now,
         updatedAt: now,
       })
       .returning();
     pharmacy = inserted[0]!;
+  } else if (!pharmacy.code) {
+    const [updated] = await db
+      .update(pharmacies)
+      .set({ code: 'DEV', updatedAt: now })
+      .where(eq(pharmacies.id, pharmacy.id))
+      .returning();
+    pharmacy = updated!;
   }
 
   // 2. Get or create Dev Branch
@@ -120,7 +132,7 @@ export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Pro
   let owner = existingOwners[0];
   if (!owner) {
     const ownerId = generateUuidV7();
-    const pinHash = crypto.createHash('sha256').update('1234').digest('hex');
+    const pinHash = await bcrypt.hash('12345678', 10);
     const inserted = await db
       .insert(users)
       .values({
@@ -135,6 +147,14 @@ export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Pro
       })
       .returning();
     owner = inserted[0]!;
+  } else if (!owner.pinHash.startsWith('$2')) {
+    const pinHash = await bcrypt.hash('12345678', 10);
+    const [updated] = await db
+      .update(users)
+      .set({ pinHash, updatedAt: now })
+      .where(eq(users.id, owner.id))
+      .returning();
+    owner = updated!;
   }
 
   // 5. Generate a fresh one-time device registration code

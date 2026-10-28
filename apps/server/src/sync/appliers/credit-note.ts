@@ -1,16 +1,20 @@
-import { eq, and, inArray } from 'drizzle-orm';
 import { generateUuidV7, CreditNoteCreatedPayloadSchema } from '@pos/shared';
 import {
   creditNotes,
   creditNoteLines,
   stockMovements,
   invoices,
+  invoiceLines,
   products,
   batches,
-  changeLog,
+  branches,
+  counters,
+  users,
 } from '../../db/schema';
-import { SyncRejectedError, SyncRetryLaterError } from '../errors';
+import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
+import { verifyTenantEntity, verifyTenantEntities } from './common';
+import { insertChangeLog } from '../change-log';
 
 export async function applyCreditNoteCreated(
   tx: DbClient,
@@ -28,7 +32,21 @@ export async function applyCreditNoteCreated(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Totals validation (Rule 1 & docs/SYNC.md)
+  // 1. Device alignment
+  if (ctx.branchId && payload.branchId !== ctx.branchId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device branchId (${ctx.branchId}) does not match credit note branchId (${payload.branchId})`
+    );
+  }
+  if (ctx.counterId && payload.counterId !== ctx.counterId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device counterId (${ctx.counterId}) does not match credit note counterId (${payload.counterId})`
+    );
+  }
+
+  // 2. Totals validation (Rule 1 & docs/SYNC.md)
   const lineSum = payload.lines.reduce((sum, l) => sum + l.lineTotalPaisa, 0);
   if (lineSum !== payload.totalPaisa) {
     throw new SyncRejectedError(
@@ -37,73 +55,80 @@ export async function applyCreditNoteCreated(
     );
   }
 
-  // 2. Verify original invoice exists for this pharmacy
-  const invoiceRows = await tx
-    .select({ id: invoices.id })
-    .from(invoices)
-    .where(
-      and(
-        eq(invoices.id, payload.originalInvoiceId),
-        eq(invoices.pharmacyId, ctx.pharmacyId)
-      )
-    )
-    .limit(1);
-
-  if (!invoiceRows[0]) {
-    throw new SyncRetryLaterError(
-      'UNKNOWN_INVOICE',
-      `Original invoice ${payload.originalInvoiceId} does not exist for pharmacy ${ctx.pharmacyId}`
-    );
-  }
-
-  // 3. Verify referenced products exist for this pharmacy
-  const productIds = Array.from(new Set(payload.lines.map((l) => l.productId)));
-  const productRows = await tx
-    .select({ id: products.id })
-    .from(products)
-    .where(
-      and(
-        eq(products.pharmacyId, ctx.pharmacyId),
-        inArray(products.id, productIds)
-      )
-    );
-
-  const foundProductIds = new Set(productRows.map((p) => p.id));
-  for (const pid of productIds) {
-    if (!foundProductIds.has(pid)) {
-      throw new SyncRetryLaterError(
-        'UNKNOWN_PRODUCT',
-        `Referenced product ${pid} does not exist for pharmacy ${ctx.pharmacyId}`
-      );
-    }
-  }
-
-  // 4. Verify referenced batches exist for this pharmacy
-  const batchIds = Array.from(
-    new Set(payload.lines.map((l) => l.batchId).filter((id): id is string => Boolean(id)))
+  // 3. Verify Branch belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    branches,
+    payload.branchId,
+    ctx.pharmacyId,
+    'UNKNOWN_BRANCH',
+    'branch'
   );
 
-  if (batchIds.length > 0) {
-    const batchRows = await tx
-      .select({ id: batches.id })
-      .from(batches)
-      .where(
-        and(
-          eq(batches.pharmacyId, ctx.pharmacyId),
-          inArray(batches.id, batchIds)
-        )
-      );
+  // 4. Verify Counter belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    counters,
+    payload.counterId,
+    ctx.pharmacyId,
+    'UNKNOWN_COUNTER',
+    'counter'
+  );
 
-    const foundBatchIds = new Set(batchRows.map((b) => b.id));
-    for (const bid of batchIds) {
-      if (!foundBatchIds.has(bid)) {
-        throw new SyncRetryLaterError(
-          'UNKNOWN_BATCH',
-          `Referenced batch ${bid} does not exist for pharmacy ${ctx.pharmacyId}`
-        );
-      }
-    }
-  }
+  // 5. Verify Cashier User belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    users,
+    payload.cashierUserId,
+    ctx.pharmacyId,
+    'UNKNOWN_USER',
+    'user'
+  );
+
+  // 6. Verify Original Invoice belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    invoices,
+    payload.originalInvoiceId,
+    ctx.pharmacyId,
+    'UNKNOWN_INVOICE',
+    'invoice'
+  );
+
+  // 7. Verify Original Invoice Lines belong to this pharmacy
+  const origLineIds = payload.lines.map((l) => l.originalInvoiceLineId);
+  await verifyTenantEntities(
+    tx,
+    invoiceLines,
+    origLineIds,
+    ctx.pharmacyId,
+    'UNKNOWN_INVOICE_LINE',
+    'invoice line'
+  );
+
+  // 8. Verify referenced products exist for this pharmacy
+  const productIds = payload.lines.map((l) => l.productId);
+  await verifyTenantEntities(
+    tx,
+    products,
+    productIds,
+    ctx.pharmacyId,
+    'UNKNOWN_PRODUCT',
+    'product'
+  );
+
+  // 9. Verify referenced batches exist for this pharmacy
+  const batchIds = payload.lines
+    .map((l) => l.batchId)
+    .filter((id): id is string => Boolean(id));
+  await verifyTenantEntities(
+    tx,
+    batches,
+    batchIds,
+    ctx.pharmacyId,
+    'UNKNOWN_BATCH',
+    'batch'
+  );
 
   // 5. Insert Credit Note Header
   await tx.insert(creditNotes).values({
@@ -124,7 +149,7 @@ export async function applyCreditNoteCreated(
     createdAt: payload.createdAt,
   });
 
-  await tx.insert(changeLog).values({
+  await insertChangeLog(tx, {
     pharmacyId: ctx.pharmacyId,
     entity: 'credit_note',
     entityId: payload.id,
@@ -153,7 +178,7 @@ export async function applyCreditNoteCreated(
       lineTotalPaisa: line.lineTotalPaisa,
     });
 
-    await tx.insert(changeLog).values({
+    await insertChangeLog(tx, {
       pharmacyId: ctx.pharmacyId,
       entity: 'credit_note_line',
       entityId: line.id,
@@ -182,8 +207,9 @@ export async function applyCreditNoteCreated(
 
       await tx.insert(stockMovements).values(movementData);
 
-      await tx.insert(changeLog).values({
+      await insertChangeLog(tx, {
         pharmacyId: ctx.pharmacyId,
+        branchId: payload.branchId,
         entity: 'stock_movement',
         entityId: movementId,
         op: 'upsert',

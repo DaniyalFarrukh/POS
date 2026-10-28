@@ -16,6 +16,7 @@ import {
 export const pharmacies = pgTable('pharmacies', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
+  code: text('code').notNull().unique(),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull(),
 });
@@ -112,10 +113,15 @@ export const users = pgTable(
     role: text('role', { enum: ['owner', 'pharmacist', 'cashier'] }).notNull(),
     pinHash: text('pin_hash').notNull(),
     isActive: boolean('is_active').notNull().default(true),
+    failedLoginAttempts: integer('failed_login_attempts').notNull().default(0),
+    lockedUntil: timestamp('locked_until', { withTimezone: true, mode: 'string' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull(),
   },
-  (table) => [index('idx_users_pharmacy').on(table.pharmacyId)]
+  (table) => [
+    index('idx_users_pharmacy').on(table.pharmacyId),
+    unique('uq_users_pharmacy_name').on(table.pharmacyId, table.name),
+  ]
 );
 
 // 7. Tax Categories
@@ -450,11 +456,15 @@ export const changeLog = pgTable(
     pharmacyId: uuid('pharmacy_id')
       .notNull()
       .references(() => pharmacies.id, { onDelete: 'cascade' }),
+    branchId: uuid('branch_id'),
     entity: text('entity').notNull(),
     entityId: uuid('entity_id').notNull(),
     op: text('op', { enum: ['upsert', 'delete'] }).notNull(),
     data: jsonb('data').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
   },
-  (table) => [index('idx_change_log_pharmacy_seq').on(table.pharmacyId, table.seq)]
+  (table) => [
+    index('idx_change_log_pharmacy_seq').on(table.pharmacyId, table.seq),
+    index('idx_change_log_pharmacy_branch_seq').on(table.pharmacyId, table.branchId, table.seq),
+  ]
 );

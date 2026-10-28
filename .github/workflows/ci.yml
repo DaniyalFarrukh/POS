@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint, Typecheck & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pos
+          POSTGRES_PASSWORD: pos_dev_secret
+          POSTGRES_DB: pos_server
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://pos:pos_dev_secret@localhost:5432/pos_server
+      JWT_SECRET: dev_pos_jwt_secret_change_in_production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linter
+        run: pnpm lint
+
+      - name: Run typecheck
+        run: pnpm typecheck
+
+      - name: Check dependency vulnerabilities
+        run: pnpm audit
+
+      - name: Run database migrations
+        run: pnpm --filter @pos/server migrate
+        env:
+          DATABASE_URL: postgresql://pos:pos_dev_secret@localhost:5432/pos_server
+
+      - name: Run test suite
+        run: pnpm test
+        env:
+          DATABASE_URL: postgresql://pos:pos_dev_secret@localhost:5432/pos_server
+

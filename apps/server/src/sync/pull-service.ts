@@ -1,7 +1,9 @@
-import { eq, and, gt, asc } from 'drizzle-orm';
+import { eq, and, gt, asc, isNull, or } from 'drizzle-orm';
 import { changeLog } from '../db/schema';
 import type { DbClient } from './types';
 import type { SyncChangeItem, SyncPullResponse } from '@pos/shared';
+
+export const CURSOR_OVERLAP = 50;
 
 export interface PullContext {
   pharmacyId: string;
@@ -11,12 +13,15 @@ export interface PullContext {
 export interface PullParams {
   cursor: number;
   limit: number;
+  overlap?: number;
 }
 
 /**
  * Reads changes from change_log for the authenticated pharmacy and cursor.
  * - Filters by pharmacy_id (Rule: never include data from another pharmacy).
- * - Filters branch-scoped entities by the device's branch where applicable.
+ * - Filters branch-scoped entities by the device's branch directly in SQL before limit.
+ * - Under concurrent PostgreSQL transactions, sequence numbers may commit out-of-order.
+ *   Uses a CURSOR_OVERLAP safety window to capture any out-of-order commits.
  * - Orders by seq ascending.
  * - Computes nextCursor and hasMore gap-free.
  */
@@ -25,7 +30,24 @@ export async function pullChangeLog(
   ctx: PullContext,
   params: PullParams
 ): Promise<SyncPullResponse> {
-  const { cursor, limit } = params;
+  const { cursor, limit, overlap = 0 } = params;
+
+  // docs/SYNC.md & PostgreSQL sequence commit ordering:
+  // Under PostgreSQL concurrent transactions, rows can be assigned a `bigserial` sequence number
+  // out of order with respect to their commit times. An earlier sequence number might commit slightly
+  // after a higher sequence number. To guarantee that no changes are missed due to commit order skew,
+  // the client reads with a safety overlap: Math.max(0, cursor - CURSOR_OVERLAP).
+  // The client deduplicates and idempotently applies changes in monotonic seq order.
+  const effectiveCursor = Math.max(0, cursor - overlap);
+
+  const conditions = [
+    eq(changeLog.pharmacyId, ctx.pharmacyId),
+    gt(changeLog.seq, effectiveCursor),
+  ];
+
+  if (ctx.branchId) {
+    conditions.push(or(isNull(changeLog.branchId), eq(changeLog.branchId, ctx.branchId))!);
+  }
 
   // Query limit + 1 to reliably determine hasMore without extra roundtrips
   const rawRows = await db
@@ -38,36 +60,14 @@ export async function pullChangeLog(
       createdAt: changeLog.createdAt,
     })
     .from(changeLog)
-    .where(
-      and(
-        eq(changeLog.pharmacyId, ctx.pharmacyId),
-        gt(changeLog.seq, cursor)
-      )
-    )
+    .where(and(...conditions))
     .orderBy(asc(changeLog.seq))
     .limit(limit + 1);
 
   const hasMore = rawRows.length > limit;
   const pageRows = hasMore ? rawRows.slice(0, limit) : rawRows;
 
-  // Filter branch-scoped records by the device's branch
-  const filteredChanges = pageRows.filter((r) => {
-    if (!ctx.branchId) {
-      return true;
-    }
-    const data = r.data as Record<string, unknown> | null;
-    if (!data) {
-      return true;
-    }
-    // Check branchId / branch_id if present on the entity
-    const entityBranchId = data.branchId || data.branch_id;
-    if (entityBranchId && typeof entityBranchId === 'string' && entityBranchId !== ctx.branchId) {
-      return false;
-    }
-    return true;
-  });
-
-  const changes: SyncChangeItem[] = filteredChanges.map((r) => ({
+  const changes: SyncChangeItem[] = pageRows.map((r) => ({
     seq: Number(r.seq),
     entity: r.entity,
     entityId: r.entityId,

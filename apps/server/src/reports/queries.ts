@@ -152,10 +152,17 @@ export async function getDashboardOverview(
       revenuePaisa: sql<number>`COALESCE(SUM(${invoiceLines.lineTotalPaisa}), 0)`,
     })
     .from(invoiceLines)
-    .innerJoin(invoices, eq(invoiceLines.invoiceId, invoices.id))
-    .innerJoin(products, eq(invoiceLines.productId, products.id))
+    .innerJoin(
+      invoices,
+      and(eq(invoiceLines.invoiceId, invoices.id), eq(invoices.pharmacyId, pharmacyId))
+    )
+    .innerJoin(
+      products,
+      and(eq(invoiceLines.productId, products.id), eq(products.pharmacyId, pharmacyId))
+    )
     .where(
       and(
+        eq(invoiceLines.pharmacyId, pharmacyId),
         eq(invoices.pharmacyId, pharmacyId),
         gte(invoices.createdAt, startOfDay),
         lte(invoices.createdAt, endOfDay)
@@ -176,8 +183,14 @@ export async function getDashboardOverview(
       currentStock: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`,
     })
     .from(batches)
-    .innerJoin(products, eq(batches.productId, products.id))
-    .leftJoin(stockMovements, eq(batches.id, stockMovements.batchId))
+    .innerJoin(
+      products,
+      and(eq(batches.productId, products.id), eq(products.pharmacyId, pharmacyId))
+    )
+    .leftJoin(
+      stockMovements,
+      and(eq(batches.id, stockMovements.batchId), eq(stockMovements.pharmacyId, pharmacyId))
+    )
     .where(
       and(
         eq(batches.pharmacyId, pharmacyId),
@@ -197,7 +210,10 @@ export async function getDashboardOverview(
       currentStock: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`,
     })
     .from(products)
-    .leftJoin(stockMovements, eq(products.id, stockMovements.productId))
+    .leftJoin(
+      stockMovements,
+      and(eq(products.id, stockMovements.productId), eq(stockMovements.pharmacyId, pharmacyId))
+    )
     .where(
       and(
         eq(products.pharmacyId, pharmacyId),
@@ -286,8 +302,14 @@ export async function getSalesReport(
       totalPaisa: sql<number>`COALESCE(SUM(${invoices.totalPaisa}), 0)`,
     })
     .from(invoices)
-    .innerJoin(counters, eq(invoices.counterId, counters.id))
-    .innerJoin(branches, eq(counters.branchId, branches.id))
+    .innerJoin(
+      counters,
+      and(eq(invoices.counterId, counters.id), eq(counters.pharmacyId, params.pharmacyId))
+    )
+    .innerJoin(
+      branches,
+      and(eq(counters.branchId, branches.id), eq(branches.pharmacyId, params.pharmacyId))
+    )
     .where(and(...conditions));
 
   // By Day
@@ -298,7 +320,10 @@ export async function getSalesReport(
       totalPaisa: sql<number>`COALESCE(SUM(${invoices.totalPaisa}), 0)`,
     })
     .from(invoices)
-    .innerJoin(counters, eq(invoices.counterId, counters.id))
+    .innerJoin(
+      counters,
+      and(eq(invoices.counterId, counters.id), eq(counters.pharmacyId, params.pharmacyId))
+    )
     .where(and(...conditions))
     .groupBy(sql`TO_CHAR(${invoices.createdAt}, 'YYYY-MM-DD')`)
     .orderBy(desc(sql`TO_CHAR(${invoices.createdAt}, 'YYYY-MM-DD')`));
@@ -312,8 +337,14 @@ export async function getSalesReport(
       totalPaisa: sql<number>`COALESCE(SUM(${invoices.totalPaisa}), 0)`,
     })
     .from(invoices)
-    .innerJoin(counters, eq(invoices.counterId, counters.id))
-    .innerJoin(branches, eq(counters.branchId, branches.id))
+    .innerJoin(
+      counters,
+      and(eq(invoices.counterId, counters.id), eq(counters.pharmacyId, params.pharmacyId))
+    )
+    .innerJoin(
+      branches,
+      and(eq(counters.branchId, branches.id), eq(branches.pharmacyId, params.pharmacyId))
+    )
     .where(and(...conditions))
     .groupBy(branches.id, branches.name)
     .orderBy(desc(sql`SUM(${invoices.totalPaisa})`));
@@ -327,8 +358,14 @@ export async function getSalesReport(
       totalPaisa: sql<number>`COALESCE(SUM(${invoices.totalPaisa}), 0)`,
     })
     .from(invoices)
-    .innerJoin(users, eq(invoices.cashierUserId, users.id))
-    .innerJoin(counters, eq(invoices.counterId, counters.id))
+    .innerJoin(
+      users,
+      and(eq(invoices.cashierUserId, users.id), eq(users.pharmacyId, params.pharmacyId))
+    )
+    .innerJoin(
+      counters,
+      and(eq(invoices.counterId, counters.id), eq(counters.pharmacyId, params.pharmacyId))
+    )
     .where(and(...conditions))
     .groupBy(invoices.cashierUserId, users.name)
     .orderBy(desc(sql`SUM(${invoices.totalPaisa})`));
@@ -395,9 +432,18 @@ export async function getStockAndExpiryReport(
       mrpPaisa: batches.mrpPaisa,
     })
     .from(stockMovements)
-    .innerJoin(products, eq(stockMovements.productId, products.id))
-    .innerJoin(batches, eq(stockMovements.batchId, batches.id))
-    .innerJoin(branches, eq(stockMovements.branchId, branches.id))
+    .innerJoin(
+      products,
+      and(eq(stockMovements.productId, products.id), eq(products.pharmacyId, pharmacyId))
+    )
+    .innerJoin(
+      batches,
+      and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+    )
+    .innerJoin(
+      branches,
+      and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId))
+    )
     .where(and(...conditions))
     .groupBy(
       stockMovements.productId,
@@ -455,11 +501,21 @@ export async function getProfitPerBatchReport(
       revenuePaisa: sql<number>`COALESCE(SUM(${invoiceLines.lineTotalPaisa}), 0)`,
     })
     .from(invoiceLines)
-    .innerJoin(invoices, eq(invoiceLines.invoiceId, invoices.id))
-    .innerJoin(products, eq(invoiceLines.productId, products.id))
-    .innerJoin(batches, eq(invoiceLines.batchId, batches.id))
+    .innerJoin(
+      invoices,
+      and(eq(invoiceLines.invoiceId, invoices.id), eq(invoices.pharmacyId, pharmacyId))
+    )
+    .innerJoin(
+      products,
+      and(eq(invoiceLines.productId, products.id), eq(products.pharmacyId, pharmacyId))
+    )
+    .innerJoin(
+      batches,
+      and(eq(invoiceLines.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+    )
     .where(
       and(
+        eq(invoiceLines.pharmacyId, pharmacyId),
         eq(invoices.pharmacyId, pharmacyId),
         sql`${invoiceLines.batchId} IS NOT NULL`
       )
@@ -515,7 +571,10 @@ export async function getSupplierLedgerReport(
       costPaisa: sql<number>`COALESCE(SUM(${batches.costPaisa} * ${stockMovements.quantitySigned}), 0)`,
     })
     .from(stockMovements)
-    .innerJoin(batches, eq(stockMovements.batchId, batches.id))
+    .innerJoin(
+      batches,
+      and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+    )
     .where(
       and(
         eq(stockMovements.pharmacyId, pharmacyId),

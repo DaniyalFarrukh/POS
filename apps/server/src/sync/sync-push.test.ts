@@ -23,6 +23,7 @@ import {
   stockAlerts,
   changeLog,
   devices,
+  branches,
 } from '../db/schema';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
@@ -188,6 +189,9 @@ function createSyncMockDb() {
                 return res;
               };
 
+              if (table === branches) {
+                return filterList(Array.from(currentStore.branches.values()));
+              }
               if (table === devices) {
                 return filterList(Array.from(currentStore.devices.values()));
               }
@@ -205,6 +209,9 @@ function createSyncMockDb() {
               }
               if (table === invoices) {
                 return filterList(Array.from(currentStore.invoices.values()));
+              }
+              if (table === invoiceLines) {
+                return filterList(currentStore.invoiceLines);
               }
               if (table === stockMovements) {
                 if (fields && typeof fields === 'object' && 'balance' in fields) {
@@ -1035,8 +1042,8 @@ describe('POST /sync/push (Phase 3)', () => {
 
       expect(res.statusCode).toBe(200);
       const data = res.json<SyncPushResponse>();
-      expect(data.results[0]!.status).toBe('retry_later');
-      expect(data.results[0]!.code).toBe('UNKNOWN_BATCH');
+      expect(data.results[0]!.status).toBe('rejected');
+      expect(data.results[0]!.code).toBe('CROSS_TENANT_REFERENCE');
     });
 
     it('7. total mismatch rejected: invoice with mismatching lines/payments and header total is rejected and stored in rejected_events', async () => {
@@ -1224,13 +1231,16 @@ describe('POST /sync/push (Phase 3)', () => {
 
   describe('PostgreSQL Live Integration (when PostgreSQL is active)', () => {
     let isAvailable = false;
-    let ctx: TestDatabaseContext | null = null;
+    let ctx: TestDatabaseContext;
 
     beforeAll(async () => {
       isAvailable = await isPostgresReachable();
-      if (isAvailable) {
-        ctx = await createTestContext();
+      if (!isAvailable) {
+        throw new Error(
+          'PostgreSQL is required for this test suite. Ensure Docker is running with "docker compose up -d".'
+        );
       }
+      ctx = await createTestContext();
     });
 
     afterAll(async () => {
@@ -1239,11 +1249,7 @@ describe('POST /sync/push (Phase 3)', () => {
       }
     });
 
-    it('applies events end-to-end against live PostgreSQL container', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('applies events end-to-end against live PostgreSQL container', async () => {
 
       const tenant = setupMockTenant(createSyncMockDb(), 'Live');
       expect(tenant.pharmacyId).toBeDefined();

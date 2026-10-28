@@ -1,8 +1,16 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { generateUuidV7, StockAdjustmentCreatedPayloadSchema } from '@pos/shared';
-import { stockMovements, products, batches, stockAlerts, changeLog } from '../../db/schema';
-import { SyncRejectedError, SyncRetryLaterError } from '../errors';
+import {
+  stockMovements,
+  products,
+  batches,
+  branches,
+  stockAlerts,
+} from '../../db/schema';
+import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
+import { verifyTenantEntity } from './common';
+import { insertChangeLog } from '../change-log';
 
 export async function applyStockAdjustmentCreated(
   tx: DbClient,
@@ -20,43 +28,43 @@ export async function applyStockAdjustmentCreated(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Verify referenced product exists
-  const productRows = await tx
-    .select({ id: products.id })
-    .from(products)
-    .where(
-      and(
-        eq(products.id, payload.productId),
-        eq(products.pharmacyId, ctx.pharmacyId)
-      )
-    )
-    .limit(1);
-
-  if (!productRows[0]) {
-    throw new SyncRetryLaterError(
-      'UNKNOWN_PRODUCT',
-      `Referenced product ${payload.productId} does not exist for pharmacy ${ctx.pharmacyId}`
+  // 1. Device alignment
+  if (ctx.branchId && payload.branchId !== ctx.branchId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device branchId (${ctx.branchId}) does not match stock adjustment branchId (${payload.branchId})`
     );
   }
 
-  // 2. Verify referenced batch exists
-  const batchRows = await tx
-    .select({ id: batches.id })
-    .from(batches)
-    .where(
-      and(
-        eq(batches.id, payload.batchId),
-        eq(batches.pharmacyId, ctx.pharmacyId)
-      )
-    )
-    .limit(1);
+  // 2. Verify Branch belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    branches,
+    payload.branchId,
+    ctx.pharmacyId,
+    'UNKNOWN_BRANCH',
+    'branch'
+  );
 
-  if (!batchRows[0]) {
-    throw new SyncRetryLaterError(
-      'UNKNOWN_BATCH',
-      `Referenced batch ${payload.batchId} does not exist for pharmacy ${ctx.pharmacyId}`
-    );
-  }
+  // 3. Verify referenced product belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    products,
+    payload.productId,
+    ctx.pharmacyId,
+    'UNKNOWN_PRODUCT',
+    'product'
+  );
+
+  // 4. Verify referenced batch belongs to this pharmacy
+  await verifyTenantEntity(
+    tx,
+    batches,
+    payload.batchId,
+    ctx.pharmacyId,
+    'UNKNOWN_BATCH',
+    'batch'
+  );
 
   // 3. Insert stock movement row
   const movementId = payload.movementId || payload.id || generateUuidV7();
@@ -77,8 +85,9 @@ export async function applyStockAdjustmentCreated(
 
   await tx.insert(stockMovements).values(movementData);
 
-  await tx.insert(changeLog).values({
+  await insertChangeLog(tx, {
     pharmacyId: ctx.pharmacyId,
+    branchId: payload.branchId,
     entity: 'stock_movement',
     entityId: movementId,
     op: 'upsert',

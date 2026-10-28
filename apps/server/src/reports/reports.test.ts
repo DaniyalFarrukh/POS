@@ -52,7 +52,9 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   beforeAll(async () => {
     isAvailable = await isPostgresReachable();
     if (!isAvailable) {
-      return;
+      throw new Error(
+        'PostgreSQL is required for this test suite. Ensure Docker is running with "docker compose up -d".'
+      );
     }
 
     ctx = await createTestContext();
@@ -65,6 +67,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     await ctx.db.insert(pharmacies).values({
       id: pharmacyId,
       name: 'MediCare Central',
+      code: 'MEDICARE',
       createdAt: nowIso,
       updatedAt: nowIso,
     });
@@ -127,7 +130,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     cashierAliceId = generateUuidV7();
     cashierBobId = generateUuidV7();
 
-    const pinHash1234 = bcrypt.hashSync('1234', 10);
+    const pinHash1234 = await bcrypt.hash('12345678', 10);
     await ctx.db.insert(users).values([
       {
         id: ownerId,
@@ -432,15 +435,15 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // 1. Authentication & Tenancy
   // =========================================================================
   describe('Authentication & Tenancy', () => {
-    it('authenticates valid user credentials and returns JWT token', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('authenticates valid user credentials and returns JWT token', async () => {
 
       const res = await app.inject({
         method: 'POST',
         url: '/api/auth/login',
         payload: {
+          pharmacyCode: 'MEDICARE',
           name: 'Dr. Tariq (Owner)',
-          pin: '1234',
+          pin: '12345678',
         },
       });
 
@@ -451,23 +454,22 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(body.user.pharmacyName).toBe('MediCare Central');
     });
 
-    it('rejects invalid credentials with 401', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('rejects invalid credentials with 401', async () => {
 
       const res = await app.inject({
         method: 'POST',
         url: '/api/auth/login',
         payload: {
+          pharmacyCode: 'MEDICARE',
           name: 'Dr. Tariq (Owner)',
-          pin: '9999', // Wrong pin
+          pin: '99999999', // Wrong pin
         },
       });
 
       expect(res.statusCode).toBe(401);
     });
 
-    it('returns 401 for unauthenticated requests', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('returns 401 for unauthenticated requests', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -482,8 +484,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // 2. Role-Based Access Control (RBAC)
   // =========================================================================
   describe('Role-Based Access Control (RBAC)', () => {
-    it('allows owner to access all reports and admin routes', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('allows owner to access all reports and admin routes', async () => {
 
       const resOverview = await app.inject({
         method: 'GET',
@@ -507,8 +508,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(resUsers.statusCode).toBe(200);
     });
 
-    it('allows pharmacist to access overview and sales, but denies profit and admin', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('allows pharmacist to access overview and sales, but denies profit and admin', async () => {
 
       // Allowed
       const resSales = await app.inject({
@@ -535,8 +535,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(resAdmin.statusCode).toBe(403);
     });
 
-    it('denies cashier access to dashboard overview, reports, and admin', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('denies cashier access to dashboard overview, reports, and admin', async () => {
 
       const resOverview = await app.inject({
         method: 'GET',
@@ -565,8 +564,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // 3. Known Fixtures & Report Calculations
   // =========================================================================
   describe('Report Queries with Known Fixtures', () => {
-    it('calculates exact sales report totals and breakdowns', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('calculates exact sales report totals and breakdowns', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -607,8 +605,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(bob?.totalPaisa).toBe(29500);
     });
 
-    it('filters sales report by branchId', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('filters sales report by branchId', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -625,8 +622,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(data.totals.totalPaisa).toBe(59000);
     });
 
-    it('calculates profit per batch strictly in integer paisa', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('calculates profit per batch strictly in integer paisa', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -658,8 +654,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(b1?.marginPercent).toBe(40); // 30,000 / 75,000 * 100 = 40%
     });
 
-    it('computes stock balance cross-branch and verifies expiry status (Rule 4)', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('computes stock balance cross-branch and verifies expiry status (Rule 4)', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -698,8 +693,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(westB3?.status).toBe('expired');
     });
 
-    it('summarizes supplier ledger purchases correctly', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('summarizes supplier ledger purchases correctly', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -730,8 +724,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(beta?.totalCostPaisa).toBe(246000); // (30 * 3200) + (10 * 15000) = 96,000 + 150,000 = 246,000
     });
 
-    it('delivers overview KPIs on /api/dashboard/overview', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('delivers overview KPIs on /api/dashboard/overview', async () => {
 
       const res = await app.inject({
         method: 'GET',
@@ -759,8 +752,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // 4. Admin Management Endpoints
   // =========================================================================
   describe('Admin Management Endpoints', () => {
-    it('creates a new cashier user and logs it to change_log', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('creates a new cashier user and logs it to change_log', async () => {
 
       const res = await app.inject({
         method: 'POST',
@@ -769,7 +761,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
         payload: {
           name: 'Usman Cashier',
           role: 'cashier',
-          pin: '7788',
+          pin: '778899',
         },
       });
 
@@ -782,8 +774,8 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       // Verify stored in DB with hashed PIN
       const [stored] = await ctx!.db.select().from(users).where(eq(users.id, body.id)).limit(1);
       expect(stored).toBeDefined();
-      expect(stored!.pinHash).not.toBe('7788');
-      expect(bcrypt.compareSync('7788', stored!.pinHash)).toBe(true);
+      expect(stored!.pinHash).not.toBe('778899');
+      expect(await bcrypt.compare('778899', stored!.pinHash)).toBe(true);
 
       // Verify change_log entry
       const logs = await ctx!.db.select().from(changeLog).where(eq(changeLog.entityId, body.id));
@@ -791,8 +783,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(logs[0]?.entity).toBe('user');
     });
 
-    it('creates branches and counters and retrieves them', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('creates branches and counters and retrieves them', async () => {
 
       const branchRes = await app.inject({
         method: 'POST',
@@ -833,8 +824,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(countersList.items.some((c) => c.code === 'CN1')).toBe(true);
     });
 
-    it('generates a registration code and lists registered devices', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('generates a registration code and lists registered devices', async () => {
 
       // Generate registration code
       const codeRes = await app.inject({
@@ -888,8 +878,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(revoked?.isRevoked).toBe(true);
     });
 
-    it('queries read-only audit logs with pagination', async (context) => {
-      if (!isAvailable) return context.skip();
+    it('queries read-only audit logs with pagination', async () => {
 
       const res = await app.inject({
         method: 'GET',

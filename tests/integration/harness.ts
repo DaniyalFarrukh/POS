@@ -132,6 +132,7 @@ export async function startTestServer(): Promise<TestServer> {
   await ctx.db.insert(pharmacies).values({
     id: pharmacyId,
     name: 'Integration Test Pharmacy',
+    code: 'INTEG_' + pharmacyId.slice(0, 8),
     createdAt: now,
     updatedAt: now,
   });

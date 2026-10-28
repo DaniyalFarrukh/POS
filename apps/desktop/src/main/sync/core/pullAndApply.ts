@@ -1,6 +1,12 @@
 import type { Database as DatabaseInstance } from 'better-sqlite3';
-import { SyncPullResponseSchema, type SyncChangeItem } from '@pos/shared';
+import {
+  SyncPullResponseSchema,
+  SyncProductChangeDataSchema,
+  type SyncChangeItem,
+} from '@pos/shared';
 import type { PullSummary } from './types';
+
+export const CURSOR_OVERLAP = 50;
 
 export interface PullAndApplyDependencies {
   db: DatabaseInstance;
@@ -48,23 +54,18 @@ export async function pullAndApply(
     currentCursor = 0;
   }
 
+  // Safety overlap on initial pull from stored cursor to handle out-of-order PostgreSQL sequence commits
+  let requestCursor = Math.max(0, currentCursor - CURSOR_OVERLAP);
+
   const pageLimit = Math.max(1, Math.min(params.limit ?? 200, 500));
   let hasMore = true;
   let pagesCount = 0;
   let changesAppliedTotal = 0;
 
-  // Ensure a default tax category exists in local db if a product doesn't provide one
   const defaultTaxCatRow = db
     .prepare<[], { id: string }>('SELECT id FROM tax_categories LIMIT 1')
     .get();
-  let fallbackTaxCatId = defaultTaxCatRow?.id;
-  if (!fallbackTaxCatId) {
-    fallbackTaxCatId = 'tax-cat-default';
-    db.prepare(`
-      INSERT OR IGNORE INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at)
-      VALUES ('tax-cat-default', 'Standard', 0, 0, ?, ?)
-    `).run(nowFn(), nowFn());
-  }
+  const defaultTaxCatId = defaultTaxCatRow?.id;
 
   // Prepare reusable statements for applying pulled entities (all parameter-bound)
   const upsertProductStmt = db.prepare(`
@@ -128,6 +129,7 @@ export async function pullAndApply(
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       role = excluded.role,
+      pin_hash = CASE WHEN excluded.pin_hash != '' THEN excluded.pin_hash ELSE users.pin_hash END,
       is_active = excluded.is_active,
       updated_at = excluded.updated_at
   `);
@@ -189,20 +191,39 @@ export async function pullAndApply(
         if (op === 'delete') {
           deleteProductStmt.run(now, change.entityId);
         } else {
+          const rawData =
+            typeof data === 'object' && data !== null
+              ? { id: change.entityId, ...data }
+              : data;
+          const parsed = SyncProductChangeDataSchema.safeParse(rawData);
+          if (!parsed.success) {
+            deps.logger?.warn?.(
+              `[PullAndApply] Incomplete or invalid product payload for entity ${change.entityId}: ${parsed.error.message}`
+            );
+            break;
+          }
+          const valid = parsed.data;
+          const taxCatId = valid.taxCategoryId || defaultTaxCatId;
+          if (!taxCatId) {
+            deps.logger?.warn?.(
+              `[PullAndApply] Cannot apply product ${valid.id} without a tax category in local database`
+            );
+            break;
+          }
           upsertProductStmt.run(
-            change.entityId,
-            (data.brandName || data.brand_name || data.name || '') as string,
-            (data.genericName || data.generic_name || '') as string,
-            (data.strength || '') as string,
-            (data.form || '') as string,
-            (data.manufacturer || '') as string,
-            (data.barcode ?? null) as string | null,
-            ((data.taxCategoryId || data.tax_category_id) || fallbackTaxCatId) as string,
-            Number(data.mrpPaisa || data.mrp_paisa || 0),
-            data.isControlled || data.is_controlled ? 1 : 0,
-            (data.isActive !== undefined ? data.isActive : data.is_active !== undefined ? data.is_active : true) ? 1 : 0,
-            (data.createdAt || data.created_at || now) as string,
-            (data.updatedAt || data.updated_at || now) as string
+            valid.id,
+            valid.brandName,
+            valid.genericName,
+            valid.strength,
+            valid.form,
+            valid.manufacturer,
+            valid.barcode ?? null,
+            taxCatId,
+            valid.mrpPaisa,
+            valid.isControlled ? 1 : 0,
+            valid.isActive ? 1 : 0,
+            valid.createdAt || now,
+            valid.updatedAt || now
           );
         }
         break;
@@ -373,7 +394,7 @@ export async function pullAndApply(
   while (hasMore) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15_000);
-    const pullUrl = `${params.serverUrl.replace(/\/+$/, '')}/sync/pull?cursor=${currentCursor}&limit=${pageLimit}`;
+    const pullUrl = `${params.serverUrl.replace(/\/+$/, '')}/sync/pull?cursor=${requestCursor}&limit=${pageLimit}`;
 
     let response: Response;
     try {
@@ -455,6 +476,10 @@ export async function pullAndApply(
     const { changes, nextCursor, hasMore: serverHasMore } = parseResult.data;
     const now = nowFn();
 
+    // Monotonic cursor progression per docs/SYNC.md: cursor = Math.max(oldCursor, nextCursor, lastSeqReceived)
+    const lastSeqReceived = changes.reduce((max, c) => Math.max(max, c.seq), 0);
+    const candidateCursor = Math.max(currentCursor, nextCursor, lastSeqReceived);
+
     // 3. Apply this page in ONE atomic database transaction
     try {
       const applyPageTx = db.transaction(() => {
@@ -465,7 +490,7 @@ export async function pullAndApply(
         }
 
         // Advance pull_cursor in the exact same transaction
-        updateCursorStmt.run(String(nextCursor));
+        updateCursorStmt.run(String(candidateCursor));
       });
 
       applyPageTx();
@@ -487,8 +512,18 @@ export async function pullAndApply(
 
     pagesCount++;
     changesAppliedTotal += changes.length;
-    currentCursor = nextCursor;
-    hasMore = serverHasMore;
+
+    // Guard against infinite loop if overlap rows exceed page limit and no forward progression is made
+    if (serverHasMore && candidateCursor <= currentCursor) {
+      deps.logger?.warn?.(
+        `[PullAndApply] No forward cursor progression (current: ${currentCursor}, candidate: ${candidateCursor}). Ending pagination loop.`
+      );
+      hasMore = false;
+    } else {
+      currentCursor = candidateCursor;
+      requestCursor = nextCursor;
+      hasMore = serverHasMore;
+    }
   }
 
   // 4. Update sync_state timestamps on success

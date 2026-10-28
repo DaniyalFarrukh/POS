@@ -29,15 +29,21 @@ export const counters = sqliteTable(
   (table) => [uniqueIndex('idx_counters_code').on(table.code)]
 );
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  role: text('role', { enum: ['owner', 'pharmacist', 'cashier'] }).notNull(),
-  pinHash: text('pin_hash').notNull(),
-  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
-  createdAt: text('created_at').notNull(),
-  updatedAt: text('updated_at').notNull(),
-});
+export const users = sqliteTable(
+  'users',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    role: text('role', { enum: ['owner', 'pharmacist', 'cashier'] }).notNull(),
+    pinHash: text('pin_hash').notNull(),
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+    failedLoginAttempts: integer('failed_login_attempts').notNull().default(0),
+    lockedUntil: text('locked_until'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [uniqueIndex('idx_users_name').on(table.name)]
+);
 
 export const taxCategories = sqliteTable('tax_categories', {
   id: text('id').primaryKey(),

@@ -11,6 +11,7 @@ import {
   UnlockInputSchema,
   UserRoleSchema,
   PinSchema,
+  OwnerPinSchema,
 } from '@pos/shared';
 import { getDatabase } from './db';
 
@@ -30,13 +31,12 @@ export class ForbiddenError extends Error {
 
 let activeSession: AuthSession | null = null;
 
-export function hashPin(pin: string): string {
-  const salt = bcrypt.genSaltSync(10);
-  return bcrypt.hashSync(pin, salt);
+export async function hashPin(pin: string): Promise<string> {
+  return bcrypt.hash(pin, 10);
 }
 
-export function verifyPin(pin: string, hash: string): boolean {
-  return bcrypt.compareSync(pin, hash);
+export async function verifyPin(pin: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(pin, hash);
 }
 
 export function getSetupStatus(dbInstance?: DatabaseInstance): { needsSetup: boolean } {
@@ -49,15 +49,22 @@ export function getSetupStatus(dbInstance?: DatabaseInstance): { needsSetup: boo
   };
 }
 
-export function completeSetup(data: SetupInput, dbInstance?: DatabaseInstance): AuthSession {
+export async function completeSetup(
+  data: SetupInput,
+  dbInstance?: DatabaseInstance
+): Promise<AuthSession> {
   const validated = SetupInputSchema.parse(data);
   const db = dbInstance ?? getDatabase();
+
+  if (!getSetupStatus(db).needsSetup) {
+    throw new AuthError('Initial setup has already been completed.');
+  }
 
   const now = new Date().toISOString();
   const branchId = generateUuidV7();
   const counterId = generateUuidV7();
   const ownerId = generateUuidV7();
-  const hashedPin = hashPin(validated.pin);
+  const hashedPin = await hashPin(validated.pin);
 
   // Rule 5: Any write that touches more than one table happens in ONE transaction
   const setupTx = db.transaction(() => {
@@ -75,8 +82,8 @@ export function completeSetup(data: SetupInput, dbInstance?: DatabaseInstance): 
 
     // 3. Insert Owner User
     db.prepare(`
-      INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
-      VALUES (?, ?, 'owner', ?, 1, ?, ?)
+      INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at)
+      VALUES (?, ?, 'owner', ?, 1, 0, NULL, ?, ?)
     `).run(ownerId, validated.ownerName, hashedPin, now, now);
   });
 
@@ -120,23 +127,66 @@ export function getUsers(dbInstance?: DatabaseInstance): PublicUser[] {
   }));
 }
 
-export function login(userId: string, pin: string, dbInstance?: DatabaseInstance): AuthSession {
+export async function login(
+  userId: string,
+  pin: string,
+  dbInstance?: DatabaseInstance
+): Promise<AuthSession> {
   LoginInputSchema.parse({ userId, pin });
   const db = dbInstance ?? getDatabase();
 
   const user = db
-    .prepare('SELECT id, name, role, pin_hash, is_active FROM users WHERE id = ?')
+    .prepare(
+      'SELECT id, name, role, pin_hash, is_active, failed_login_attempts, locked_until FROM users WHERE id = ?'
+    )
     .get(userId) as
-    | { id: string; name: string; role: UserRole; pin_hash: string; is_active: number }
+    | {
+        id: string;
+        name: string;
+        role: UserRole;
+        pin_hash: string;
+        is_active: number;
+        failed_login_attempts: number;
+        locked_until: string | null;
+      }
     | undefined;
 
   if (!user || user.is_active !== 1) {
     throw new AuthError('User not found or inactive');
   }
 
-  const isValid = verifyPin(pin, user.pin_hash);
+  // Check temporary account lockout
+  if (user.locked_until) {
+    const lockExpiration = new Date(user.locked_until).getTime();
+    if (lockExpiration > Date.now()) {
+      throw new AuthError(
+        'Account is temporarily locked due to too many failed attempts. Try again in 15 minutes or contact owner.'
+      );
+    }
+  }
+
+  const isValid = await verifyPin(pin, user.pin_hash);
   if (!isValid) {
+    const newAttempts = (user.failed_login_attempts || 0) + 1;
+    const now = new Date().toISOString();
+    if (newAttempts >= 5) {
+      const lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      db.prepare(
+        'UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?'
+      ).run(newAttempts, lockedUntil, now, userId);
+    } else {
+      db.prepare(
+        'UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?'
+      ).run(newAttempts, now, userId);
+    }
     throw new AuthError('Invalid PIN');
+  }
+
+  // Reset lockout on successful login
+  if (user.failed_login_attempts > 0 || user.locked_until !== null) {
+    db.prepare(
+      'UPDATE users SET failed_login_attempts = 0, locked_until = NULL, updated_at = ? WHERE id = ?'
+    ).run(new Date().toISOString(), userId);
   }
 
   // Retrieve active branch and counter
@@ -180,7 +230,10 @@ export function lockSession(): void {
   }
 }
 
-export function unlockSession(pin: string, dbInstance?: DatabaseInstance): AuthSession {
+export async function unlockSession(
+  pin: string,
+  dbInstance?: DatabaseInstance
+): Promise<AuthSession> {
   UnlockInputSchema.parse({ pin });
   if (!activeSession) {
     throw new AuthError('No active session to unlock');
@@ -195,12 +248,26 @@ export function unlockSession(pin: string, dbInstance?: DatabaseInstance): AuthS
     throw new AuthError('User account not found');
   }
 
-  if (!verifyPin(pin, user.pin_hash)) {
+  const isValid = await verifyPin(pin, user.pin_hash);
+  if (!isValid) {
     throw new AuthError('Invalid PIN');
   }
 
   activeSession.isLocked = false;
   return activeSession;
+}
+
+export function unlockUserAccount(
+  userId: string,
+  sessionOverride?: AuthSession | null,
+  dbInstance?: DatabaseInstance
+): void {
+  const session = sessionOverride !== undefined ? sessionOverride : activeSession;
+  assertRole(session, ['owner']);
+  const db = dbInstance ?? getDatabase();
+  db.prepare(
+    'UPDATE users SET failed_login_attempts = 0, locked_until = NULL, updated_at = ? WHERE id = ?'
+  ).run(new Date().toISOString(), userId);
 }
 
 export function logout(): void {
@@ -301,11 +368,11 @@ export function getStaffList(
   }));
 }
 
-export function createStaffMember(
+export async function createStaffMember(
   input: CreateStaffInput,
   sessionOverride?: AuthSession | null,
   dbInstance?: DatabaseInstance
-): StaffMember {
+): Promise<StaffMember> {
   const session = sessionOverride !== undefined ? sessionOverride : activeSession;
   assertRole(session, ['owner']);
 
@@ -315,16 +382,20 @@ export function createStaffMember(
   }
 
   UserRoleSchema.parse(input.role);
-  PinSchema.parse(input.pin);
+  if (input.role === 'owner') {
+    OwnerPinSchema.parse(input.pin);
+  } else {
+    PinSchema.parse(input.pin);
+  }
 
   const db = dbInstance ?? getDatabase();
   const id = generateUuidV7();
   const now = new Date().toISOString();
-  const hashedPin = hashPin(input.pin);
+  const hashedPin = await hashPin(input.pin);
 
   db.prepare(`
-    INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
-    VALUES (?, ?, ?, ?, 1, ?, ?)
+    INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at)
+    VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)
   `).run(id, trimmedName, input.role, hashedPin, now, now);
 
   return {
@@ -336,12 +407,12 @@ export function createStaffMember(
   };
 }
 
-export function updateStaffMember(
+export async function updateStaffMember(
   id: string,
   input: UpdateStaffInput,
   sessionOverride?: AuthSession | null,
   dbInstance?: DatabaseInstance
-): StaffMember {
+): Promise<StaffMember> {
   const session = sessionOverride !== undefined ? sessionOverride : activeSession;
   assertRole(session, ['owner']);
 
@@ -370,8 +441,13 @@ export function updateStaffMember(
     UserRoleSchema.parse(input.role);
   }
 
+  const effectiveRole = input.role || existing.role;
   if (input.pin) {
-    PinSchema.parse(input.pin);
+    if (effectiveRole === 'owner') {
+      OwnerPinSchema.parse(input.pin);
+    } else {
+      PinSchema.parse(input.pin);
+    }
   }
 
   const updates: string[] = [];
@@ -397,7 +473,7 @@ export function updateStaffMember(
 
   if (input.pin !== undefined) {
     updates.push('pin_hash = ?');
-    params.push(hashPin(input.pin));
+    params.push(await hashPin(input.pin));
   }
 
   if (updates.length === 0) {

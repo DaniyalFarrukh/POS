@@ -5,6 +5,9 @@ import { Building2, KeyRound, User, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
+  const [pharmacyCode, setPharmacyCode] = useState(
+    () => localStorage.getItem('pos_pharmacy_code') || ''
+  );
   const [name, setName] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -12,8 +15,8 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !pin.trim()) {
-      setError('Please provide both username and PIN.');
+    if (!pharmacyCode.trim() || !name.trim() || !pin.trim()) {
+      setError('Please provide pharmacy code, username and PIN.');
       return;
     }
 
@@ -21,7 +24,8 @@ export const LoginPage: React.FC = () => {
     setError(null);
 
     try {
-      await login(name.trim(), pin.trim());
+      await login(pharmacyCode.trim(), name.trim(), pin.trim());
+      localStorage.setItem('pos_pharmacy_code', pharmacyCode.trim().toUpperCase());
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -71,6 +75,21 @@ export const LoginPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                  Pharmacy Code
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g. DEV"
+                  value={pharmacyCode}
+                  onChange={(e) => setPharmacyCode(e.target.value.toUpperCase())}
+                  disabled={isLoading}
+                  autoFocus={!pharmacyCode}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-slate-400" />
                   Username / Staff Name
                 </label>
@@ -80,7 +99,7 @@ export const LoginPage: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
-                  autoFocus
+                  autoFocus={!!pharmacyCode}
                 />
               </div>
 

@@ -10,6 +10,12 @@ import { processSyncPushEvents } from '../sync/service';
 import { pullChangeLog } from '../sync/pull-service';
 import { getDb } from '../db';
 
+interface RouteErrorReply {
+  statusCode: number;
+  error: string;
+  message: string;
+}
+
 export const syncRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /sync/push
@@ -19,7 +25,7 @@ export const syncRoutes: FastifyPluginAsync = async (fastify) => {
    * - Each event processes in its own transaction (idempotency, appliers, change_log).
    * - Returns per-event results in the exact same order.
    */
-  fastify.post<{ Reply: SyncPushResponse }>(
+  fastify.post<{ Reply: SyncPushResponse | RouteErrorReply }>(
     '/push',
     {
       preHandler: [requireDeviceAuth],
@@ -28,7 +34,6 @@ export const syncRoutes: FastifyPluginAsync = async (fastify) => {
       const parseResult = SyncPushRequestSchema.safeParse(request.body);
       if (!parseResult.success) {
         return reply.status(400).send({
-          // @ts-expect-error custom error payload for 400
           statusCode: 400,
           error: 'Bad Request',
           message: parseResult.error.issues[0]?.message || 'Invalid sync push request payload',
@@ -44,6 +49,7 @@ export const syncRoutes: FastifyPluginAsync = async (fastify) => {
           pharmacyId: deviceCtx.pharmacyId,
           branchId: deviceCtx.branchId,
           deviceId: deviceCtx.deviceId,
+          counterId: deviceCtx.counterId,
         },
         parseResult.data.events
       );
@@ -62,7 +68,7 @@ export const syncRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get<{
     Querystring: { cursor?: string | number; limit?: string | number };
-    Reply: SyncPullResponse;
+    Reply: SyncPullResponse | RouteErrorReply;
   }>(
     '/pull',
     {
@@ -72,7 +78,6 @@ export const syncRoutes: FastifyPluginAsync = async (fastify) => {
       const parseResult = SyncPullQuerySchema.safeParse(request.query);
       if (!parseResult.success) {
         return reply.status(400).send({
-          // @ts-expect-error custom error payload for 400
           statusCode: 400,
           error: 'Bad Request',
           message: parseResult.error.issues[0]?.message || 'Invalid cursor or limit parameter',

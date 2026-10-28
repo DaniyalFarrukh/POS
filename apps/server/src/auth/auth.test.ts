@@ -452,14 +452,16 @@ describe('Device Registration & Authentication (Phase 3)', () => {
   });
 
   describe('PostgreSQL Live Integration (when PostgreSQL is active)', () => {
-    let isAvailable = false;
-    let ctx: TestDatabaseContext | null = null;
+    let ctx: TestDatabaseContext;
 
     beforeAll(async () => {
-      isAvailable = await isPostgresReachable();
-      if (isAvailable) {
-        ctx = await createTestContext();
+      const isAvailable = await isPostgresReachable();
+      if (!isAvailable) {
+        throw new Error(
+          'PostgreSQL is required for this test suite. Ensure Docker is running with "docker compose up -d".'
+        );
       }
+      ctx = await createTestContext();
     });
 
     afterAll(async () => {
@@ -468,11 +470,7 @@ describe('Device Registration & Authentication (Phase 3)', () => {
       }
     });
 
-    it('verifies live integration when PostgreSQL container is available', async (context) => {
-      if (!isAvailable || !ctx) {
-        context.skip();
-        return;
-      }
+    it('verifies live integration when PostgreSQL container is available', async () => {
 
       // 1. Seed dev environment in isolated schema
       const seedResult = await seedDevEnvironment(ctx.db);

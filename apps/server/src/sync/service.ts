@@ -115,11 +115,35 @@ export async function processSyncPushEvents(
           message: err.message,
         };
       } else {
+        // Unexpected exception (e.g. database constraint violation)
+        // Log full detailed error server-side only
+        console.error(`[Sync] Unexpected error processing event ${event.eventId}:`, err);
+
+        const sanitizedMessage = 'An unexpected internal error occurred';
+
+        // Transaction for event rolled back; log to rejected_events in its own isolated transaction
+        try {
+          await db.transaction(async (tx) => {
+            await tx.insert(rejectedEvents).values({
+              id: generateUuidV7(),
+              pharmacyId: ctx.pharmacyId,
+              deviceId: ctx.deviceId,
+              event: event as unknown as Record<string, unknown>,
+              code: 'INTERNAL_ERROR',
+              message: sanitizedMessage,
+              createdAt: new Date().toISOString(),
+            });
+          });
+        } catch (logErr) {
+          // Never let a logging failure crash or halt processing of the remaining batch
+          console.error('[Sync] Failed to record unexpected rejected event in database:', logErr);
+        }
+
         results[originalIndex] = {
           eventId: event.eventId,
           status: 'rejected',
           code: 'INTERNAL_ERROR',
-          message: err instanceof Error ? err.message : String(err),
+          message: sanitizedMessage,
         };
       }
     }

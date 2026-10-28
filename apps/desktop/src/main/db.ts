@@ -103,9 +103,13 @@ export const MIGRATIONS: Migration[] = [
           role TEXT NOT NULL CHECK(role IN ('owner', 'pharmacist', 'cashier')),
           pin_hash TEXT NOT NULL,
           is_active INTEGER NOT NULL DEFAULT 1,
+          failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+          locked_until TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
         );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users(name);
 
         CREATE TABLE IF NOT EXISTS tax_categories (
           id TEXT PRIMARY KEY,
@@ -739,6 +743,31 @@ export const MIGRATIONS: Migration[] = [
         `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '7')
+      `
+      ).run();
+    },
+  },
+  {
+    version: 8,
+    name: '0008_user_lockout_and_unique_name',
+    up: (db: DatabaseInstance): void => {
+      const userCols = new Set(
+        (db.pragma('table_info(users)') as Array<{ name: string }>).map((c) => c.name)
+      );
+
+      if (!userCols.has('failed_login_attempts')) {
+        db.exec('ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER NOT NULL DEFAULT 0;');
+      }
+      if (!userCols.has('locked_until')) {
+        db.exec('ALTER TABLE users ADD COLUMN locked_until TEXT;');
+      }
+
+      db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users(name);');
+
+      db.prepare(
+        `
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '8')
       `
       ).run();
     },

@@ -17,6 +17,8 @@ export interface BuildAppOptions {
   db?: NodePgDatabase<typeof schema>;
   deviceRateLimitMax?: number;
   deviceRateLimitWindow?: string | number;
+  loginRateLimitMax?: number;
+  loginRateLimitWindow?: string | number;
 }
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
@@ -60,7 +62,11 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   });
 
   // Phase 4 Web API routes
-  app.register(authRoutes, { prefix: '/api/auth' });
+  app.register(authRoutes, {
+    prefix: '/api/auth',
+    loginRateLimitMax: options.loginRateLimitMax,
+    loginRateLimitWindow: options.loginRateLimitWindow,
+  });
   app.register(dashboardRoutes, { prefix: '/api/dashboard' });
   app.register(reportRoutes, { prefix: '/api/reports' });
   app.register(adminRoutes, { prefix: '/api/admin' });

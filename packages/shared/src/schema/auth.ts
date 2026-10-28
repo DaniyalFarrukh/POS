@@ -3,14 +3,16 @@ import { z } from 'zod';
 export const UserRoleSchema = z.enum(['owner', 'pharmacist', 'cashier']);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
-// 4 to 8 numeric digits for offline terminal PIN
-export const PinSchema = z.string().regex(/^\d{4,8}$/, 'PIN must be between 4 and 8 digits');
+// 6 to 8 numeric digits for staff, strictly 8 digits for owner
+export const StaffPinSchema = z.string().regex(/^\d{6,8}$/, 'PIN must be between 6 and 8 digits');
+export const OwnerPinSchema = z.string().regex(/^\d{8}$/, 'Owner PIN must be exactly 8 digits');
+export const PinSchema = StaffPinSchema;
 
 export const SetupInputSchema = z.object({
   branchName: z.string().min(2, 'Branch name must be at least 2 characters'),
   counterName: z.string().min(2, 'Counter name must be at least 2 characters'),
   ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
-  pin: PinSchema,
+  pin: OwnerPinSchema,
 });
 export type SetupInput = z.infer<typeof SetupInputSchema>;
 
