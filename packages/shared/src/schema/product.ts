@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProductSchema, TaxCategorySchema, type Product, type TaxCategory } from './index';
+import type { Product } from './index';
 
 export const CreateProductInputSchema = z.object({
   brandName: z.string().min(1, 'Brand name is required'),
@@ -40,6 +40,7 @@ export const ProductSearchParamsSchema = z.object({
   sortOrder: SortOrderSchema.optional().default('asc'),
   page: z.number().int().min(1).optional().default(1),
   pageSize: z.number().int().min(1).max(200).optional().default(25),
+  isActive: z.boolean().optional(),
 });
 export type ProductSearchParams = z.input<typeof ProductSearchParamsSchema>;
 export type ProductSearchParamsOutput = z.infer<typeof ProductSearchParamsSchema>;
@@ -56,6 +57,3 @@ export interface ProductListResult {
   pageSize: number;
   totalPages: number;
 }
-
-export { ProductSchema, TaxCategorySchema };
-export type { Product, TaxCategory };

@@ -8,7 +8,6 @@ import {
   applyPercentDiscount,
   applyFlatDiscount,
   formatPKR,
-  roundPaisa,
   convertRupeesToPaisa,
   formatPaisaToRupees,
   calculateLineTotalPaisa,
@@ -171,30 +170,43 @@ describe('Rule 1: Money and Paisa Calculations', () => {
     it('handles numeric input', () => {
       expect(convertRupeesToPaisa(35.5)).toBe(3550);
       expect(convertRupeesToPaisa(100)).toBe(10000);
+      expect(convertRupeesToPaisa(0)).toBe(0);
     });
 
-    it('throws on invalid formats', () => {
+    it('preserves negative signs for returns, refunds, and negative amounts', () => {
+      expect(convertRupeesToPaisa('-35.50')).toBe(-3550);
+      expect(convertRupeesToPaisa('-Rs. 450.25')).toBe(-45025);
+      expect(convertRupeesToPaisa('Rs. -100')).toBe(-10000);
+      expect(convertRupeesToPaisa('-100')).toBe(-10000);
+      expect(convertRupeesToPaisa(-35.5)).toBe(-3550);
+      expect(convertRupeesToPaisa(-100)).toBe(-10000);
+    });
+
+    it('rejects more than 2 decimal places instead of truncating', () => {
+      expect(() => convertRupeesToPaisa('35.509')).toThrow(/decimal/i);
+      expect(() => convertRupeesToPaisa('10.123')).toThrow(/decimal/i);
+      expect(() => convertRupeesToPaisa('0.001')).toThrow(/decimal/i);
+      expect(() => convertRupeesToPaisa(35.509)).toThrow(/decimal/i);
+      expect(() => convertRupeesToPaisa(-10.999)).toThrow(/decimal/i);
+    });
+
+    it('throws on invalid formats, NaN, Infinity, and empty inputs', () => {
       expect(() => convertRupeesToPaisa('')).toThrow(/Empty monetary string/);
+      expect(() => convertRupeesToPaisa('   ')).toThrow(/Empty monetary string/);
       expect(() => convertRupeesToPaisa('abc')).toThrow(/Invalid monetary amount/);
-    });
-  });
-
-  describe('roundPaisa', () => {
-    it('rounds numbers to nearest integer paisa', () => {
-      expect(roundPaisa(100.4)).toBe(100);
-      expect(roundPaisa(100.5)).toBe(101);
-      expect(roundPaisa(100.6)).toBe(101);
-      expect(roundPaisa(0)).toBe(0);
+      expect(() => convertRupeesToPaisa('12.34.56')).toThrow(/Invalid monetary amount/);
+      expect(() => convertRupeesToPaisa(NaN)).toThrow(/valid finite number|Invalid monetary/);
+      expect(() => convertRupeesToPaisa(Infinity)).toThrow(/valid finite number|Invalid monetary/);
+      expect(() => convertRupeesToPaisa(-Infinity)).toThrow(/valid finite number|Invalid monetary/);
     });
 
-    it('handles negative paisa rounding', () => {
-      expect(roundPaisa(-50.2)).toBe(-50);
-      expect(roundPaisa(-50.8)).toBe(-51);
-    });
-
-    it('throws on NaN or infinite numbers', () => {
-      expect(() => roundPaisa(NaN)).toThrow(/Cannot round invalid paisa value/);
-      expect(() => roundPaisa(Infinity)).toThrow(/Cannot round invalid paisa value/);
+    it('Property: round-trip conversion holds for 1,000 randomized integer paisa amounts', () => {
+      for (let i = 0; i < 1000; i++) {
+        // Range from -1,000,000 to +1,000,000 paisa (-Rs. 10,000 to +Rs. 10,000)
+        const p = Math.floor(Math.random() * 2000001) - 1000000;
+        const formatted = formatPKR(p, { showPrefix: false });
+        expect(convertRupeesToPaisa(formatted)).toBe(p);
+      }
     });
   });
 });

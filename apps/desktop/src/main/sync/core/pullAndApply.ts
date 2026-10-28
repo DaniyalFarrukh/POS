@@ -150,7 +150,7 @@ export async function pullAndApply(
       updated_at = excluded.updated_at
   `);
   const deleteSupplierStmt = db.prepare(`
-    DELETE FROM suppliers WHERE id = ?
+    UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?
   `);
 
   // Batches and stock_movements are insert-only-if-missing (never overwrite locally-created data)
@@ -164,16 +164,6 @@ export async function pullAndApply(
     INSERT OR IGNORE INTO stock_movements (
       id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, reference_id, reason, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const findExistingMovementByRefStmt = db.prepare(`
-    SELECT id FROM stock_movements
-    WHERE reference_type = ? AND reference_id = ? AND batch_id = ? AND quantity_signed = ?
-    LIMIT 1
-  `);
-
-  const updateMovementIdStmt = db.prepare(`
-    UPDATE stock_movements SET id = ? WHERE id = ?
   `);
 
   const updateCursorStmt = db.prepare(`
@@ -297,7 +287,7 @@ export async function pullAndApply(
       case 'supplier':
       case 'suppliers': {
         if (op === 'delete') {
-          deleteSupplierStmt.run(change.entityId);
+          deleteSupplierStmt.run(now, change.entityId);
         } else {
           upsertSupplierStmt.run(
             change.entityId,
@@ -346,24 +336,6 @@ export async function pullAndApply(
           const createdAt = (data.createdAt || data.created_at || now) as string;
           const updatedAt = (data.updatedAt || data.updated_at || now) as string;
 
-          // Deduplicate own movements echoed back with server-assigned IDs (Rule 4 & docs/SYNC_CLIENT.md)
-          if (referenceType && referenceId && batchId) {
-            const existing = findExistingMovementByRefStmt.get(
-              referenceType,
-              referenceId,
-              batchId,
-              quantitySigned
-            ) as { id: string } | undefined;
-
-            if (existing) {
-              if (existing.id !== change.entityId) {
-                // Reconcile local movement ID with server canonical ID
-                updateMovementIdStmt.run(change.entityId, existing.id);
-              }
-              break;
-            }
-          }
-
           insertMovementIfMissingStmt.run(
             change.entityId,
             productId,
@@ -378,6 +350,21 @@ export async function pullAndApply(
             updatedAt
           );
         }
+        break;
+      }
+
+      case 'shift':
+      case 'shifts':
+      case 'invoice':
+      case 'invoices':
+      case 'invoice_line':
+      case 'invoice_lines':
+      case 'payment':
+      case 'payments':
+      case 'credit_note':
+      case 'credit_notes':
+      case 'credit_note_line':
+      case 'credit_note_lines': {
         break;
       }
 

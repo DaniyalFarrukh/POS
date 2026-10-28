@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { eq, and } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, formatPKR } from '@pos/shared';
 import { getDb, closePool } from '../db';
 import {
   pharmacies,
@@ -201,7 +201,7 @@ export async function seedProductsDemo() {
 
     createdProducts.push(item);
 
-    console.log(`+ Product: ${p.brandName} (MRP: ${(p.mrpPaisa / 100).toFixed(2)} PKR) -> change_log seq #${item.seq}`);
+    console.log(`+ Product: ${p.brandName} (MRP: ${formatPKR(p.mrpPaisa)} PKR) -> change_log seq #${item.seq}`);
   }
 
   // 4. Update price on first product (demonstrating price update for pull)
@@ -243,7 +243,7 @@ export async function seedProductsDemo() {
     });
   });
 
-  console.log(`\n↻ Price Update: ${productToUpdate.name} MRP updated to ${(newPricePaisa / 100).toFixed(2)} PKR -> change_log seq #${updateSeq}`);
+  console.log(`\n↻ Price Update: ${productToUpdate.name} MRP updated to ${formatPKR(newPricePaisa)} PKR -> change_log seq #${updateSeq}`);
   console.log('--------------------------------------------------');
   console.log('Demonstrate GET /sync/pull:');
   console.log(`curl http://localhost:3001/sync/pull?cursor=0&limit=50 -H "Authorization: Bearer <TOKEN>"`);

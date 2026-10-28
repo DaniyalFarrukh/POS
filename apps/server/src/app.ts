@@ -30,8 +30,14 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.decorate('db', db);
 
   // Enable CORS for web client
+  const corsOrigin = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
+    : process.env.NODE_ENV === 'production'
+      ? false
+      : true;
+
   app.register(cors, {
-    origin: true,
+    origin: corsOrigin,
     credentials: true,
   });
 
@@ -71,22 +77,24 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.register(reportRoutes, { prefix: '/api/reports' });
   app.register(adminRoutes, { prefix: '/api/admin' });
 
-  // Test protected endpoint to prove tenant identity is strictly read from JWT/deviceContext
-  app.post(
-    '/test/protected-action',
-    {
-      preHandler: [requireDeviceAuth],
-    },
-    async (request) => {
-      // Tenancy context strictly from authenticated deviceContext, NEVER from body
-      return {
-        ok: true,
-        authenticatedPharmacyId: request.deviceContext.pharmacyId,
-        authenticatedBranchId: request.deviceContext.branchId,
-        authenticatedDeviceId: request.deviceContext.deviceId,
-      };
-    }
-  );
+  // Test protected endpoint to prove tenant identity is strictly read from JWT/deviceContext (development/test only)
+  if (process.env.NODE_ENV !== 'production') {
+    app.post(
+      '/test/protected-action',
+      {
+        preHandler: [requireDeviceAuth],
+      },
+      async (request) => {
+        // Tenancy context strictly from authenticated deviceContext, NEVER from body
+        return {
+          ok: true,
+          authenticatedPharmacyId: request.deviceContext.pharmacyId,
+          authenticatedBranchId: request.deviceContext.branchId,
+          authenticatedDeviceId: request.deviceContext.deviceId,
+        };
+      }
+    );
+  }
 
   return app;
 }

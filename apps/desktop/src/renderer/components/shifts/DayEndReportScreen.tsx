@@ -50,7 +50,7 @@ export const DayEndReportScreen: React.FC<DayEndReportScreenProps> = ({ session 
       setShiftHistory(history);
       if (active) {
         // Pre-fill counted cash with expected cash for easy verification
-        setCountedCashInput((active.expectedCashPaisa / 100).toString());
+        setCountedCashInput(formatPKR(active.expectedCashPaisa, { showPrefix: false }));
       }
     } catch (err: unknown) {
       console.error('[DayEndReport] Failed to load shift data:', err);

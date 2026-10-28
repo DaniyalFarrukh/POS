@@ -1,4 +1,5 @@
-import { generateUuidV7, CreditNoteCreatedPayloadSchema } from '@pos/shared';
+import { eq, and, sql } from 'drizzle-orm';
+import { CreditNoteCreatedPayloadSchema } from '@pos/shared';
 import {
   creditNotes,
   creditNoteLines,
@@ -162,6 +163,21 @@ export async function applyCreditNoteCreated(
     createdAt: now,
   });
 
+  // Update counter lastCreditNoteSeq if parsed sequence is higher (M-08)
+  const seqMatch = payload.creditNoteNumber.match(/(\d+)$/);
+  if (seqMatch && typeof tx.update === 'function') {
+    const seq = parseInt(seqMatch[1]!, 10);
+    if (!isNaN(seq) && seq > 0) {
+      await tx
+        .update(counters)
+        .set({
+          lastCreditNoteSeq: sql`GREATEST(${counters.lastCreditNoteSeq}, ${seq})`,
+          updatedAt: now,
+        })
+        .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)));
+    }
+  }
+
   // 6. Insert Credit Note Lines & Positive Return Stock Movements
   for (const line of payload.lines) {
     await tx.insert(creditNoteLines).values({
@@ -187,9 +203,9 @@ export async function applyCreditNoteCreated(
       createdAt: now,
     });
 
-    // 7. Insert positive return stock movement (Rule 4)
+    // 7. Insert positive return stock movement (Rule 2 & Rule 4: preserve client movementId)
     if (line.batchId) {
-      const movementId = generateUuidV7();
+      const movementId = line.movementId ?? line.id;
       const movementData = {
         id: movementId,
         pharmacyId: ctx.pharmacyId,

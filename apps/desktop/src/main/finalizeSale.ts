@@ -8,6 +8,7 @@ import {
   multiplyByQuantity,
   roundHalfUp,
   assertIntegerPaisa,
+  getKarachiBusinessDate,
 } from '@pos/shared';
 
 export interface FinalizeSaleLineInput {
@@ -32,6 +33,7 @@ export interface FinalizeSaleInput {
 
 export interface FinalizedInvoiceLine {
   id: string;
+  movementId?: string;
   invoiceId: string;
   productId: string;
   batchId: string | null;
@@ -94,9 +96,13 @@ interface ProductDbRow {
   generic_name: string;
   strength: string;
   form: string;
+  manufacturer: string;
+  barcode: string | null;
   mrp_paisa: number;
+  is_controlled: number;
   is_active: number;
   tax_category_id: string;
+  created_at: string;
   rate_bp: number;
   is_exempt: number;
 }
@@ -105,6 +111,9 @@ interface BatchBalanceRow {
   batchId: string;
   expiryDate: string;
   batchNo: string;
+  costPaisa: number;
+  mrpPaisa: number;
+  createdAt: string;
   available: number;
 }
 
@@ -119,7 +128,10 @@ interface CounterDbRow {
 interface UserDbRow {
   id: string;
   name: string;
+  role: 'owner' | 'pharmacist' | 'cashier';
+  pin_hash: string;
   is_active: number;
+  created_at: string;
 }
 
 interface InvoiceDbRow {
@@ -246,7 +258,7 @@ export function finalizeSale(
 ): FinalizedInvoice {
   const db = options.db ?? getDatabase();
   const fiscalService = options.fiscalService ?? new NoOpFiscalService();
-  const today = options.today ?? new Date().toISOString().slice(0, 10);
+  const today = options.today ?? getKarachiBusinessDate();
 
   // Validate structural inputs
   if (!input.clientRequestId || typeof input.clientRequestId !== 'string') {
@@ -273,12 +285,12 @@ export function finalizeSale(
     'SELECT id, branch_id, name, code, last_invoice_seq FROM counters WHERE id = ?'
   );
   const selectCashierStmt = db.prepare<[string]>(
-    'SELECT id, name, is_active FROM users WHERE id = ?'
+    'SELECT id, name, role, pin_hash, is_active, created_at FROM users WHERE id = ?'
   );
   const selectProductStmt = db.prepare<[string]>(`
     SELECT
-      p.id, p.brand_name, p.generic_name, p.strength, p.form,
-      p.mrp_paisa, p.is_active, p.tax_category_id,
+      p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer, p.barcode,
+      p.mrp_paisa, p.is_controlled, p.is_active, p.tax_category_id, p.created_at,
       tc.rate_bp, tc.is_exempt
     FROM products p
     JOIN tax_categories tc ON p.tax_category_id = tc.id
@@ -289,6 +301,9 @@ export function finalizeSale(
       b.id as batchId,
       b.expiry_date as expiryDate,
       b.batch_no as batchNo,
+      b.cost_paisa as costPaisa,
+      b.mrp_paisa as mrpPaisa,
+      b.created_at as createdAt,
       COALESCE(SUM(sm.quantity_signed), 0) as available
     FROM batches b
     LEFT JOIN stock_movements sm ON b.id = sm.batch_id AND sm.branch_id = ?
@@ -386,6 +401,35 @@ export function finalizeSale(
     }
 
     const allocationItems: LineAllocationItem[] = [];
+    const productSnapshotsMap = new Map<
+      string,
+      {
+        id: string;
+        brandName: string;
+        genericName: string;
+        strength: string;
+        form: string;
+        manufacturer: string;
+        barcode: string | null;
+        taxCategoryId: string;
+        mrpPaisa: number;
+        isControlled: boolean;
+        isActive: boolean;
+        createdAt: string;
+      }
+    >();
+    const batchSnapshotsMap = new Map<
+      string,
+      {
+        id: string;
+        productId: string;
+        batchNo: string;
+        expiryDate: string;
+        costPaisa: number;
+        mrpPaisa: number;
+        createdAt: string;
+      }
+    >();
 
     for (let lineIdx = 0; lineIdx < input.lines.length; lineIdx++) {
       const line = input.lines[lineIdx]!;
@@ -418,6 +462,21 @@ export function finalizeSale(
           `Line ${lineIdx + 1}: product ${prod.brand_name} is inactive and cannot be sold`
         );
       }
+
+      productSnapshotsMap.set(prod.id, {
+        id: prod.id,
+        brandName: prod.brand_name,
+        genericName: prod.generic_name,
+        strength: prod.strength,
+        form: prod.form,
+        manufacturer: prod.manufacturer,
+        barcode: prod.barcode,
+        taxCategoryId: prod.tax_category_id,
+        mrpPaisa: prod.mrp_paisa,
+        isControlled: prod.is_controlled === 1,
+        isActive: prod.is_active === 1,
+        createdAt: prod.created_at,
+      });
 
       const unitPricePaisa = prod.mrp_paisa;
       const grossLinePaisa = multiplyByQuantity(unitPricePaisa, qty);
@@ -454,6 +513,17 @@ export function finalizeSale(
       for (let allocIdx = 0; allocIdx < allocations.length; allocIdx++) {
         const alloc = allocations[allocIdx]!;
         const matchingBatch = batchRows.find((b) => b.batchId === alloc.batchId);
+        if (matchingBatch) {
+          batchSnapshotsMap.set(matchingBatch.batchId, {
+            id: matchingBatch.batchId,
+            productId: line.productId,
+            batchNo: matchingBatch.batchNo,
+            expiryDate: matchingBatch.expiryDate,
+            costPaisa: matchingBatch.costPaisa,
+            mrpPaisa: matchingBatch.mrpPaisa,
+            createdAt: matchingBatch.createdAt,
+          });
+        }
 
         let allocDiscount = 0;
         if (discountPaisa > 0) {
@@ -560,9 +630,10 @@ export function finalizeSale(
         computedLine.lineTotalPaisa
       );
 
-      // Insert negative stock movement (Rule 4: signed quantity for sale)
+      // Insert negative stock movement (Rule 2 & Rule 4: preserve client movementId)
+      const movementId = generateUuidV7();
       insertMovementStmt.run(
-        generateUuidV7(),
+        movementId,
         item.productId,
         item.batchId,
         branchId,
@@ -575,6 +646,7 @@ export function finalizeSale(
 
       finalizedLines.push({
         id: lineId,
+        movementId,
         invoiceId,
         productId: item.productId,
         batchId: item.batchId,
@@ -632,7 +704,19 @@ export function finalizeSale(
       outboxEventId,
       outboxEventId,
       invoiceId,
-      JSON.stringify(finalizedInvoice),
+      JSON.stringify({
+        ...finalizedInvoice,
+        cashierUser: {
+          id: cashier.id,
+          name: cashier.name,
+          role: cashier.role,
+          pinHash: cashier.pin_hash,
+          isActive: cashier.is_active === 1,
+          createdAt: cashier.created_at,
+        },
+        products: Array.from(productSnapshotsMap.values()),
+        batches: Array.from(batchSnapshotsMap.values()),
+      }),
       now,
       now
     );

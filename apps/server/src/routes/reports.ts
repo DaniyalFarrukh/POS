@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and } from 'drizzle-orm';
+import { z } from '@pos/shared';
 import { requireUserAuth } from '../auth/user-auth';
 import {
   getSalesReport,
@@ -10,16 +11,19 @@ import {
 import { branches, users } from '../db/schema';
 import { getDb } from '../db';
 
-interface SalesQuery {
-  startDate?: string;
-  endDate?: string;
-  branchId?: string;
-  cashierUserId?: string;
-}
+const SalesQuerySchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid startDate format').optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid endDate format').optional(),
+  branchId: z.string().uuid('Invalid branchId format').optional(),
+  cashierUserId: z.string().uuid('Invalid cashierUserId format').optional(),
+});
 
-interface StockQuery {
-  branchId?: string;
-}
+const StockQuerySchema = z.object({
+  branchId: z.string().uuid('Invalid branchId format').optional(),
+});
+
+type SalesQuery = z.infer<typeof SalesQuerySchema>;
+type StockQuery = z.infer<typeof StockQuerySchema>;
 
 export const reportRoutes: FastifyPluginAsync = async (fastify) => {
   /**
@@ -30,9 +34,18 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
     '/sales',
     { preHandler: [requireUserAuth(['owner', 'pharmacist'])] },
     async (request, reply) => {
+      const parsedQuery = SalesQuerySchema.safeParse(request.query);
+      if (!parsedQuery.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsedQuery.error.issues[0]?.message || 'Invalid query parameters',
+        });
+      }
+
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
-      const { startDate, endDate, branchId, cashierUserId } = request.query;
+      const { startDate, endDate, branchId, cashierUserId } = parsedQuery.data;
 
       if (branchId) {
         const [branch] = await db
@@ -78,9 +91,18 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
     '/stock-and-expiry',
     { preHandler: [requireUserAuth(['owner', 'pharmacist'])] },
     async (request, reply) => {
+      const parsedQuery = StockQuerySchema.safeParse(request.query);
+      if (!parsedQuery.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsedQuery.error.issues[0]?.message || 'Invalid query parameters',
+        });
+      }
+
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
-      const { branchId } = request.query;
+      const { branchId } = parsedQuery.data;
 
       if (branchId) {
         const [branch] = await db

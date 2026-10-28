@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { getKarachiBusinessDate } from '@pos/shared';
 import { requireUserAuth } from '../auth/user-auth';
 import { getDashboardOverview } from '../reports/queries';
 import { getDb } from '../db';
@@ -15,7 +16,7 @@ export const dashboardRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getKarachiBusinessDate();
       const overview = await getDashboardOverview(db, userContext.pharmacyId, today);
 
       return reply.status(200).send(overview);

@@ -119,20 +119,13 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
       return;
     }
 
-    // Authenticate Owner PIN
-    try {
-      const unlockRes = await window.api.auth.unlockSession({ pin: ownerPinInput });
-      if (!unlockRes) {
-        setRestoreError('Invalid Owner PIN.');
-        return;
-      }
-    } catch (err: unknown) {
-      setRestoreError(`Authorization failed: ${String(err)}`);
+    if (!ownerPinInput || ownerPinInput.trim().length === 0) {
+      setRestoreError('Owner PIN is required.');
       return;
     }
 
     try {
-      const result = await window.api.backup.restore(restoreModalFile);
+      const result = await window.api.backup.restore(restoreModalFile, ownerPinInput);
       if (result.success) {
         alert(`${t.restoreSuccessMessage}\nSafety snapshot created: ${result.safetyBackupFile}`);
         setRestoreModalFile(null);

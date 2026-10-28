@@ -1,4 +1,4 @@
-import { safeStorage } from 'electron';
+import { safeStorage, app } from 'electron';
 import type { Database as DatabaseInstance } from 'better-sqlite3';
 import type { TokenStore } from '../core/registration';
 
@@ -46,6 +46,11 @@ export class SafeStorageTokenStore implements TokenStore {
       const encryptedBuffer = safeStorage.encryptString(token);
       storedValue = encryptedBuffer.toString('base64');
     } else {
+      if (app && app.isPackaged) {
+        console.warn(
+          '[SECURITY WARNING] Electron safeStorage encryption is unavailable on this OS/session. Storing device JWT in plaintext fallback.'
+        );
+      }
       // In headless test or unsupported environments, store with plain prefix
       storedValue = `plain:${token}`;
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { formatPKR, type Paisa } from '@pos/shared';
+import { formatPKR, convertRupeesToPaisa, type Paisa } from '@pos/shared';
 import type { CustomerInfo } from './types';
 
 export interface PaymentMethodEntry {
@@ -38,10 +38,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [singleMethod, setSingleMethod] = useState<'cash' | 'card' | 'wallet'>('cash');
 
   // Single cash tender state (Rupees)
-  const initialRupees =
-    grandTotalPaisa % 100 === 0
-      ? (grandTotalPaisa / 100).toFixed(0)
-      : (grandTotalPaisa / 100).toFixed(2);
+  const initialRupees = formatPKR(grandTotalPaisa, { showPrefix: false });
   const [singleTenderedRupees, setSingleTenderedRupees] = useState(initialRupees);
 
   // Split payment state (Rupees)
@@ -61,14 +58,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   }, [singleMethod, isSplitMode]);
 
   // Compute Single Mode Totals
-  const singleTenderedPaisa = Math.round(Number(singleTenderedRupees || 0) * 100);
+  let singleTenderedPaisa = 0;
+  try {
+    singleTenderedPaisa = singleTenderedRupees.trim() ? convertRupeesToPaisa(singleTenderedRupees) : 0;
+  } catch {
+    singleTenderedPaisa = 0;
+  }
   const singleChangePaisa = singleTenderedPaisa - grandTotalPaisa;
 
   // Compute Split Mode Totals
-  const splitCashPaisa = Math.max(0, Math.round(Number(splitCashRupees || 0) * 100));
-  const splitCashTenderedPaisa = Math.max(0, Math.round(Number(splitCashTenderedRupees || splitCashRupees || 0) * 100));
-  const splitCardPaisa = Math.max(0, Math.round(Number(splitCardRupees || 0) * 100));
-  const splitWalletPaisa = Math.max(0, Math.round(Number(splitWalletRupees || 0) * 100));
+  const parsePaisaSafe = (val: string): number => {
+    try {
+      return val.trim() ? Math.max(0, convertRupeesToPaisa(val)) : 0;
+    } catch {
+      return 0;
+    }
+  };
+  const splitCashPaisa = parsePaisaSafe(splitCashRupees);
+  const splitCashTenderedPaisa = parsePaisaSafe(splitCashTenderedRupees || splitCashRupees);
+  const splitCardPaisa = parsePaisaSafe(splitCardRupees);
+  const splitWalletPaisa = parsePaisaSafe(splitWalletRupees);
 
   const splitTotalAllocatedPaisa = splitCashPaisa + splitCardPaisa + splitWalletPaisa;
   const splitRemainingPaisa = grandTotalPaisa - splitTotalAllocatedPaisa;
@@ -109,10 +118,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     if (target === 'wallet') currentOthers = splitCashPaisa + splitCardPaisa;
 
     const remainingToTargetPaisa = Math.max(0, grandTotalPaisa - currentOthers);
-    const targetRupees =
-      remainingToTargetPaisa % 100 === 0
-        ? (remainingToTargetPaisa / 100).toFixed(0)
-        : (remainingToTargetPaisa / 100).toFixed(2);
+    const targetRupees = formatPKR(remainingToTargetPaisa, { showPrefix: false });
 
     if (target === 'cash') {
       setSplitCashRupees(targetRupees);
@@ -348,8 +354,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               onClick={() => {
                 setIsSplitMode(true);
                 if (!splitCashRupees && !splitCardRupees && !splitWalletRupees) {
-                  setSplitCashRupees((grandTotalPaisa / 100).toFixed(0));
-                  setSplitCashTenderedRupees((grandTotalPaisa / 100).toFixed(0));
+                  const initialSplit = formatPKR(grandTotalPaisa, { showPrefix: false });
+                  setSplitCashRupees(initialSplit);
+                  setSplitCashTenderedRupees(initialSplit);
                 }
               }}
               style={{

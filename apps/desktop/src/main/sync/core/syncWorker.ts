@@ -301,6 +301,18 @@ export class SyncWorker extends EventEmitter {
         return this.getStatus();
       }
 
+      if (retryPushSummary.clientBug) {
+        this.transitionTo('error', 'Push retry rejected with HTTP 400 (client bug)');
+        this.scheduleBackoffRetry();
+        return this.getStatus();
+      }
+
+      if (retryPushSummary.failedRequest) {
+        this.transitionTo('error', 'Push retry failed: server or network error');
+        this.scheduleBackoffRetry();
+        return this.getStatus();
+      }
+
       if (retryPushSummary.sent > 0 && retryPushSummary.acked > 0) {
         this.writeStateKey('last_push_ok_at', this.clock.now().toISOString());
       }

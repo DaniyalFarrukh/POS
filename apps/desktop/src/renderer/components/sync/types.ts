@@ -1,3 +1,4 @@
+import { formatPKR } from '@pos/shared';
 import type {
   SyncConnectionState,
   OfflineWarningLevel,
@@ -189,7 +190,7 @@ export function summarizePayload(
   if (invoiceNumber) {
     const formattedTotal =
       typeof totalPaisa === 'number'
-        ? `Rs. ${(totalPaisa / 100).toFixed(2)}`
+        ? formatPKR(totalPaisa, { useGrouping: false })
         : 'Unknown';
     return {
       type: 'Invoice Event',

@@ -772,6 +772,26 @@ export const MIGRATIONS: Migration[] = [
       ).run();
     },
   },
+  {
+    version: 9,
+    name: '0009_supplier_soft_delete',
+    up: (db: DatabaseInstance): void => {
+      const supplierCols = new Set(
+        (db.pragma('table_info(suppliers)') as Array<{ name: string }>).map((c) => c.name)
+      );
+
+      if (!supplierCols.has('is_active')) {
+        db.exec('ALTER TABLE suppliers ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;');
+      }
+
+      db.prepare(
+        `
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '9')
+      `
+      ).run();
+    },
+  },
 ];
 
 let dbInstance: DatabaseInstance | null = null;

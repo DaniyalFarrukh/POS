@@ -113,13 +113,21 @@ export function computeInvoiceTotals(lines: InvoiceLineInput[]): InvoiceTotals {
 
     // 2. Compute discount (percent discount + flat discount)
     let percentDiscountPaisa = 0;
-    if (line.discountBp && line.discountBp > 0) {
-      percentDiscountPaisa = calculateDiscountAmount(grossAmountPaisa, line.discountBp);
+    if (line.discountBp !== undefined && line.discountBp !== null) {
+      if (typeof line.discountBp !== 'number' || !Number.isFinite(line.discountBp) || line.discountBp < 0) {
+        throw new RangeError(`line[${idx}].discountBp must be non-negative, received: ${line.discountBp}`);
+      }
+      if (line.discountBp > 0) {
+        percentDiscountPaisa = calculateDiscountAmount(grossAmountPaisa, line.discountBp);
+      }
     }
 
     let flatDiscountPaisa = 0;
-    if (line.flatDiscountPaisa && line.flatDiscountPaisa > 0) {
+    if (line.flatDiscountPaisa !== undefined && line.flatDiscountPaisa !== null) {
       assertIntegerPaisa(line.flatDiscountPaisa, `line[${idx}].flatDiscountPaisa`);
+      if (line.flatDiscountPaisa < 0) {
+        throw new RangeError(`line[${idx}].flatDiscountPaisa must be non-negative, received: ${line.flatDiscountPaisa}`);
+      }
       flatDiscountPaisa = line.flatDiscountPaisa;
     }
 

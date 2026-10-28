@@ -39,13 +39,27 @@ export async function verifyPin(pin: string, hash: string): Promise<boolean> {
   return bcrypt.compare(pin, hash);
 }
 
-export function getSetupStatus(dbInstance?: DatabaseInstance): { needsSetup: boolean } {
+export function getSetupStatus(dbInstance?: DatabaseInstance): {
+  needsSetup: boolean;
+  isRepairState?: boolean;
+} {
   const db = dbInstance ?? getDatabase();
-  const userRow = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+  const ownerRow = db
+    .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'")
+    .get() as { count: number };
+  const ownerCount = ownerRow?.count ?? 0;
+
+  if (ownerCount === 0) {
+    return { needsSetup: true };
+  }
+
   const branchRow = db.prepare('SELECT COUNT(*) as count FROM branches').get() as { count: number };
+  const counterRow = db.prepare('SELECT COUNT(*) as count FROM counters').get() as { count: number };
+  const isRepairState = branchRow.count === 0 || counterRow.count === 0;
 
   return {
-    needsSetup: userRow.count === 0 || branchRow.count === 0,
+    needsSetup: false,
+    ...(isRepairState ? { isRepairState: true } : {}),
   };
 }
 
@@ -56,7 +70,10 @@ export async function completeSetup(
   const validated = SetupInputSchema.parse(data);
   const db = dbInstance ?? getDatabase();
 
-  if (!getSetupStatus(db).needsSetup) {
+  const ownerCheck = db
+    .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'")
+    .get() as { count: number };
+  if ((ownerCheck?.count ?? 0) > 0) {
     throw new AuthError('Initial setup has already been completed.');
   }
 
@@ -68,6 +85,13 @@ export async function completeSetup(
 
   // Rule 5: Any write that touches more than one table happens in ONE transaction
   const setupTx = db.transaction(() => {
+    const existingOwners = db
+      .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'")
+      .get() as { count: number };
+    if ((existingOwners?.count ?? 0) > 0) {
+      throw new AuthError('Initial setup has already been completed.');
+    }
+
     // 1. Insert Branch
     db.prepare(`
       INSERT INTO branches (id, name, created_at, updated_at)

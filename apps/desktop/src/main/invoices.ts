@@ -3,6 +3,9 @@ import { getDatabase } from './db';
 import {
   generateUuidV7,
   computeInvoiceTotals,
+  getKarachiBusinessDate,
+  getKarachiDayStartUtc,
+  getKarachiDayEndUtc,
   type AuthSession,
   type CreateInvoiceInput,
   CreateInvoiceInputSchema,
@@ -33,7 +36,7 @@ export function createInvoice(
   const counterId = session.counter.id;
   const userId = session.user.id;
   const now = new Date().toISOString();
-  const dateKey = now.slice(0, 10); // YYYY-MM-DD
+  const dateKey = getKarachiBusinessDate(now); // YYYY-MM-DD in Asia/Karachi
 
   // 1. Calculate invoice monetary totals via @pos/shared
   const computed = computeInvoiceTotals(
@@ -75,7 +78,7 @@ export function createInvoice(
       JOIN counters c ON i.counter_id = c.id
       WHERE c.branch_id = ? AND i.created_at >= ?
     `)
-    .get(branchId, `${dateKey}T00:00:00.000Z`) as { count: number } | undefined;
+    .get(branchId, getKarachiDayStartUtc(dateKey)) as { count: number } | undefined;
   const seq = (countRow?.count ?? 0) + 1;
   const compactDate = dateKey.replace(/-/g, '');
   const invoiceNumber = `INV-${compactDate}-${String(seq).padStart(4, '0')}`;
@@ -135,7 +138,7 @@ export function createInvoice(
       now
     );
 
-    const createdLines: InvoiceLineRecord[] = [];
+    const createdLines: (InvoiceLineRecord & { movementId?: string })[] = [];
 
     // Insert invoice lines & stock movements
     const insertLineStmt = db.prepare(`
@@ -203,10 +206,11 @@ export function createInvoice(
         lineComputed.lineTotalPaisa
       );
 
-      // Insert negative stock movement (Rule 4: signed movement for sale)
+      // Insert negative stock movement (Rule 2 & Rule 4: preserve client movementId)
+      const movementId = generateUuidV7();
       if (batchId) {
         insertMovementStmt.run(
-          generateUuidV7(),
+          movementId,
           lineInput.productId,
           batchId,
           branchId,
@@ -229,6 +233,7 @@ export function createInvoice(
 
       createdLines.push({
         id: lineId,
+        movementId,
         invoiceId,
         productId: lineInput.productId,
         batchId,
@@ -321,8 +326,43 @@ export function createInvoice(
       counterName: session.counter.name,
     };
 
-    // Insert outbox event for offline cloud sync (Rule 5 & 7)
+    // Insert outbox event for offline cloud sync matching InvoiceCreatedPayloadSchema (Rule 5 & 7)
     const outboxEventId = generateUuidV7();
+    const outboxPayload = {
+      id: invoiceId,
+      counterId,
+      cashierUserId: userId,
+      invoiceNumber,
+      clientRequestId,
+      status: 'finalized' as const,
+      subtotalPaisa: computed.netTotalPaisa,
+      discountPaisa: computed.totalDiscountPaisa,
+      taxPaisa: computed.totalTaxPaisa,
+      totalPaisa: grandTotalPaisa,
+      notes: data.notes ?? data.customerName ?? null,
+      createdAt: now,
+      lines: createdLines.map((l) => ({
+        id: l.id,
+        movementId: l.movementId,
+        invoiceId: l.invoiceId,
+        productId: l.productId,
+        batchId: l.batchId ?? null,
+        quantity: l.quantity,
+        unitPricePaisa: l.unitPricePaisa,
+        discountPaisa: l.discountPaisa,
+        taxRateBp: l.taxRateBp,
+        taxPaisa: l.taxPaisa,
+        lineTotalPaisa: l.lineTotalPaisa,
+      })),
+      payments: [
+        {
+          id: paymentId,
+          invoiceId,
+          method: paymentMethod,
+          amountPaisa,
+        },
+      ],
+    };
     db.prepare(`
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at, synced_at
@@ -333,7 +373,7 @@ export function createInvoice(
       outboxEventId,
       outboxEventId,
       invoiceRecord.id,
-      JSON.stringify(invoiceRecord),
+      JSON.stringify(outboxPayload),
       now,
       now
     );
@@ -548,12 +588,12 @@ export function searchInvoices(
 
   if (params?.dateFrom) {
     whereClauses.push('i.created_at >= ?');
-    queryParams.push(`${params.dateFrom}T00:00:00.000Z`);
+    queryParams.push(getKarachiDayStartUtc(params.dateFrom));
   }
 
   if (params?.dateTo) {
     whereClauses.push('i.created_at <= ?');
-    queryParams.push(`${params.dateTo}T23:59:59.999Z`);
+    queryParams.push(getKarachiDayEndUtc(params.dateTo));
   }
 
   const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -630,8 +670,8 @@ export async function roleGuardedFinalizeSale(
 
   const fullInput: CoreFinalizeSaleInput = {
     clientRequestId: validated.clientRequestId,
-    counterId: validated.counterId || session.counter.id,
-    cashierUserId: validated.cashierUserId || session.user.id,
+    counterId: session.counter.id,
+    cashierUserId: session.user.id,
     lines: validated.lines.map((l) => ({
       productId: l.productId,
       quantity: l.quantity,

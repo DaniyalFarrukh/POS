@@ -21,4 +21,6 @@ export * from './schema/purchasing';
 export * from './csv/parser';
 export * from './csv/validator';
 export * from './fefo';
+export * from './time';
 export * from './schema/sync';
+export { z } from 'zod';

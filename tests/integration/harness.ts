@@ -510,6 +510,7 @@ export async function createTestCounter(
 
       const linesPayload: Array<{
         id: string;
+        movementId: string;
         productId: string;
         batchId: string;
         quantity: number;
@@ -527,6 +528,7 @@ export async function createTestCounter(
             .get(line.productId, line.batchNo) as { id: string } | undefined;
 
           const batchId = existing ? existing.id : generateUuidV7();
+          const movementId = generateUuidV7();
           batchIds.push(batchId);
 
           insertBatchStmt.run(
@@ -541,7 +543,7 @@ export async function createTestCounter(
           );
 
           insertMovementStmt.run(
-            generateUuidV7(),
+            movementId,
             line.productId,
             batchId,
             counter.branchId,
@@ -565,6 +567,7 @@ export async function createTestCounter(
 
           linesPayload.push({
             id: generateUuidV7(),
+            movementId,
             productId: line.productId,
             batchId,
             quantity: line.quantity,

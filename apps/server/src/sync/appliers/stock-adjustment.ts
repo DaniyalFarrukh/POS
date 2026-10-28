@@ -15,7 +15,8 @@ import { insertChangeLog } from '../change-log';
 export async function applyStockAdjustmentCreated(
   tx: DbClient,
   ctx: ApplierContext,
-  rawPayload: unknown
+  rawPayload: unknown,
+  envelopeEntityId?: string
 ): Promise<void> {
   const parseResult = StockAdjustmentCreatedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -66,8 +67,14 @@ export async function applyStockAdjustmentCreated(
     'batch'
   );
 
-  // 3. Insert stock movement row
-  const movementId = payload.movementId || payload.id || generateUuidV7();
+  // 3. Insert stock movement row (Rule 2: preserve client-generated movementId)
+  const movementId = payload.movementId || payload.id || envelopeEntityId;
+  if (!movementId) {
+    throw new SyncRejectedError(
+      'INVALID_PAYLOAD',
+      'stock_adjustment.created requires client-generated movementId or id'
+    );
+  }
   const movementData = {
     id: movementId,
     pharmacyId: ctx.pharmacyId,

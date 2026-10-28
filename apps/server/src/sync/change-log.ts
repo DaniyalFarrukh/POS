@@ -18,6 +18,7 @@ export const BRANCH_SCOPED_ENTITIES = new Set<string>([
   'counter',
   'device',
   'stock_alert',
+  'shift',
 ]);
 
 /**

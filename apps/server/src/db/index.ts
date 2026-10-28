@@ -20,6 +20,9 @@ export function getDatabaseUrl(): string {
 export function getPool(connectionString?: string): pg.Pool {
   const url = connectionString || getDatabaseUrl();
   if (!globalPool || (connectionString && globalPool)) {
+    if (globalPool) {
+      globalPool.end().catch(() => {});
+    }
     globalPool = new Pool({
       connectionString: url,
       max: 10,

@@ -30,6 +30,10 @@ export const ProductList: React.FC = () => {
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
 
+  // Tab state: Active Treatment vs Inactive Treatment
+  const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Debounce search input by 300ms
@@ -60,6 +64,7 @@ export const ProductList: React.FC = () => {
         sortOrder,
         page,
         pageSize,
+        isActive: activeTab === 'active',
       });
       setProducts(res.products);
       setTotalCount(res.totalCount);
@@ -69,7 +74,7 @@ export const ProductList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, sortBy, sortOrder, page, pageSize]);
+  }, [debouncedSearch, sortBy, sortOrder, page, pageSize, activeTab]);
 
   useEffect(() => {
     loadProducts();
@@ -86,10 +91,6 @@ export const ProductList: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  // Tab state: Active Treatment vs Inactive Treatment
-  const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active');
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const handleSort = (column: ProductSortBy) => {
     if (sortBy === column) {
@@ -118,10 +119,7 @@ export const ProductList: React.FC = () => {
     return sortOrder === 'asc' ? ' ↑' : ' ↓';
   };
 
-  const displayedProducts = products.filter((p) => {
-    if (activeTab === 'active') return p.isActive !== false;
-    return p.isActive === false;
-  });
+  const displayedProducts = products;
 
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -157,14 +155,22 @@ export const ProductList: React.FC = () => {
         <button
           type="button"
           className={`tab-underline ${activeTab === 'active' ? 'active' : ''}`}
-          onClick={() => setActiveTab('active')}
+          onClick={() => {
+            setActiveTab('active');
+            setPage(1);
+            setSelectedIds(new Set());
+          }}
         >
           Active Medicines
         </button>
         <button
           type="button"
           className={`tab-underline ${activeTab === 'inactive' ? 'active' : ''}`}
-          onClick={() => setActiveTab('inactive')}
+          onClick={() => {
+            setActiveTab('inactive');
+            setPage(1);
+            setSelectedIds(new Set());
+          }}
         >
           Discontinued / Inactive
         </button>

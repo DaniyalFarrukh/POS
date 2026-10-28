@@ -798,5 +798,60 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       expect(resAdjust.status).toBe('rejected');
       expect(resAdjust.code).toBe('CROSS_TENANT_REFERENCE');
     });
+
+    it('shift.opened and shift.closed reject foreign counterId and cashierUserId with CROSS_TENANT_REFERENCE', async () => {
+      const now = new Date().toISOString();
+      const shiftId = generateUuidV7();
+
+      const crossShiftRes = await app.inject({
+        method: 'POST',
+        url: '/sync/push',
+        headers: { authorization: `Bearer ${tenantA.deviceToken}` },
+        payload: {
+          events: [
+            {
+              eventId: generateUuidV7(),
+              deviceSeq: 501,
+              type: 'shift.opened',
+              entityId: shiftId,
+              occurredAt: now,
+              schemaVersion: 1,
+              payload: {
+                shiftId,
+                counterId: tenantB.counterId, // Foreign counter!
+                cashierUserId: tenantA.cashierId,
+                openingCashPaisa: 5000,
+                openedAt: now,
+              },
+            },
+            {
+              eventId: generateUuidV7(),
+              deviceSeq: 502,
+              type: 'shift.closed',
+              entityId: shiftId,
+              occurredAt: now,
+              schemaVersion: 1,
+              payload: {
+                shiftId,
+                counterId: tenantA.counterId,
+                cashierUserId: tenantB.cashierId, // Foreign cashier!
+                openedAt: now,
+                closedAt: now,
+                openingCashPaisa: 5000,
+                countedCashPaisa: 5000,
+                expectedCashPaisa: 5000,
+                differencePaisa: 0,
+              },
+            },
+          ],
+        },
+      });
+
+      const results = crossShiftRes.json().results;
+      expect(results[0].status).toBe('rejected');
+      expect(results[0].code).toBe('CROSS_TENANT_REFERENCE');
+      expect(results[1].status).toBe('rejected');
+      expect(results[1].code).toBe('CROSS_TENANT_REFERENCE');
+    });
   });
 });

@@ -58,20 +58,25 @@ export function getProducts(
   const pageSize = Math.max(1, Math.min(200, validated.pageSize));
   const offset = (page - 1) * pageSize;
 
-  let whereClause = '';
+  const conditions: string[] = [];
   const queryParams: unknown[] = [];
 
   if (search.length > 0) {
-    whereClause = `
-      WHERE (
-        p.brand_name LIKE ? OR
-        p.generic_name LIKE ? OR
-        p.barcode LIKE ?
-      )
-    `;
+    conditions.push(`(
+      p.brand_name LIKE ? OR
+      p.generic_name LIKE ? OR
+      p.barcode LIKE ?
+    )`);
     const wildcard = `%${search}%`;
     queryParams.push(wildcard, wildcard, `${search}%`);
   }
+
+  if (validated.isActive !== undefined) {
+    conditions.push('p.is_active = ?');
+    queryParams.push(validated.isActive ? 1 : 0);
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   // Whitelist sort columns to prevent SQL injection
   const sortColumnMap: Record<string, string> = {

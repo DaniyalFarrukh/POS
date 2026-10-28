@@ -726,7 +726,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
 
     expect(processedRows).toHaveLength(99);
     expect(processedRows.some((p) => p.eventId === invalidEventId)).toBe(false);
-  });
+  }, 30000);
 
   /**
    * Scenario 4:

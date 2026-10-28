@@ -25,17 +25,6 @@ export function assertIntegerPaisa(paisa: number, paramName = 'amount'): void {
 }
 
 /**
- * Rounds an amount in paisa to the nearest integer.
- * Ensures the result is always an integer.
- */
-export function roundPaisa(paisa: number): Paisa {
-  if (typeof paisa !== 'number' || isNaN(paisa) || !isFinite(paisa)) {
-    throw new Error(`Cannot round invalid paisa value: ${paisa}`);
-  }
-  return Math.round(paisa);
-}
-
-/**
  * Integer addition of two paisa amounts.
  */
 export function add(a: Paisa, b: Paisa): Paisa {
@@ -72,14 +61,31 @@ export function multiplyByQuantity(unitPrice: Paisa, quantity: number): Paisa {
  * roundHalfUp(N, D) = floor((N + floor(D / 2)) / D) for positive N, D.
  */
 export function roundHalfUp(numerator: number, denominator: number): number {
+  if (
+    typeof numerator !== 'number' ||
+    typeof denominator !== 'number' ||
+    !Number.isFinite(numerator) ||
+    !Number.isFinite(denominator) ||
+    !Number.isInteger(numerator) ||
+    !Number.isInteger(denominator)
+  ) {
+    throw new TypeError(
+      `numerator and denominator must be finite integers, received: (${numerator}, ${denominator})`
+    );
+  }
   if (denominator <= 0) {
     throw new Error(`Denominator must be positive, received: ${denominator}`);
   }
+  if (numerator === 0) {
+    return 0;
+  }
   if (numerator < 0) {
-    return -roundHalfUp(-numerator, denominator);
+    const res = -roundHalfUp(-numerator, denominator);
+    return res === 0 ? 0 : res;
   }
   const half = Math.floor(denominator / 2);
-  return Math.floor((numerator + half) / denominator);
+  const res = Math.floor((numerator + half) / denominator);
+  return res === 0 ? 0 : res;
 }
 
 /**
@@ -129,9 +135,9 @@ export function applyFlatDiscount(amount: Paisa, flatDiscount: Paisa): Paisa {
  */
 export function formatPKR(
   paisa: Paisa,
-  options: { showPrefix?: boolean; showDecimals?: boolean } = {}
+  options: { showPrefix?: boolean; showDecimals?: boolean; useGrouping?: boolean } = {}
 ): string {
-  const { showPrefix = true, showDecimals = true } = options;
+  const { showPrefix = true, showDecimals = true, useGrouping = true } = options;
   assertIntegerPaisa(paisa, 'paisa');
 
   const isNegative = paisa < 0;
@@ -139,7 +145,7 @@ export function formatPKR(
   const rupees = Math.floor(absPaisa / 100);
   const remainingPaisa = absPaisa % 100;
 
-  const formattedRupees = rupees.toLocaleString('en-US');
+  const formattedRupees = useGrouping ? rupees.toLocaleString('en-US') : rupees.toString();
   let formatted = formattedRupees;
 
   if (showDecimals) {
@@ -162,10 +168,24 @@ export function formatPaisaToRupees(paisa: Paisa, includePrefix = true): string 
 /**
  * Converts a string or numeric representation of Rupees into integer paisa.
  * E.g., '35.50' -> 3550, 'Rs. 450.25' -> 45025, 100 -> 10000.
+ * Preserves signs for negative numbers and returns.
+ * Rejects inputs with more than 2 decimal places, NaN, Infinity, and empty inputs.
  */
 export function convertRupeesToPaisa(rupees: string | number): Paisa {
   if (typeof rupees === 'number') {
-    return roundPaisa(rupees * 100);
+    if (isNaN(rupees) || !isFinite(rupees)) {
+      throw new TypeError(`Monetary amount must be a valid finite number, received: ${rupees}`);
+    }
+    const scaled = Math.abs(rupees * 100);
+    const roundedScaled = Math.round(scaled);
+    if (Math.abs(scaled - roundedScaled) > 1e-4) {
+      throw new Error(`Monetary amount cannot have more than 2 decimal places: ${rupees}`);
+    }
+    return rupees < 0 ? -roundedScaled : roundedScaled;
+  }
+
+  if (typeof rupees !== 'string') {
+    throw new TypeError(`Monetary amount must be a string or number, received: ${typeof rupees}`);
   }
 
   const trimmed = rupees.trim();
@@ -173,28 +193,40 @@ export function convertRupeesToPaisa(rupees: string | number): Paisa {
     throw new Error('Empty monetary string');
   }
 
-  // Strip commas (e.g. '1,250.50' -> '1250.50')
-  const stripped = trimmed.replace(/,/g, '');
+  // Detect negative sign: leading '-', or '-Rs.', or 'Rs. -'
+  const isNegative = /^([-\u2212]|(?:Rs\.?|PKR)\s*([-\u2212])|([-\u2212])\s*(?:Rs\.?|PKR))/i.test(trimmed);
 
-  // Extract clean numeric part (e.g., 'Rs. 450.25' -> '450.25')
-  const match = stripped.match(/^[^0-9]*([0-9]+(?:\.[0-9]+)?)[^0-9]*$/);
-  if (!match || !match[1]) {
+  // Remove commas, currency prefixes, whitespace, and negative signs
+  let cleaned = trimmed.replace(/,/g, '');
+  cleaned = cleaned.replace(/^(?:Rs\.?|PKR)\s*|\s*(?:Rs\.?|PKR)$/gi, '').trim();
+  cleaned = cleaned.replace(/^([-\u2212+])\s*/, '').trim();
+  cleaned = cleaned.replace(/^(?:Rs\.?|PKR)\s*/gi, '').trim();
+
+  // Validate clean number format: one or more digits, optional decimal point with digits
+  if (!/^\d+(\.\d+)?$/.test(cleaned)) {
     throw new Error(`Invalid monetary amount: "${rupees}"`);
   }
 
-  const parts = match[1].split('.');
-  const wholePart = parseInt(parts[0] ?? '0', 10);
+  const parts = cleaned.split('.');
+  const wholeStr = parts[0]!;
+  const decStr = parts[1];
+
+  if (decStr !== undefined && decStr.length > 2) {
+    throw new Error(`Monetary amount cannot have more than 2 decimal places: "${rupees}"`);
+  }
+
+  const wholePart = parseInt(wholeStr, 10);
   if (isNaN(wholePart)) {
     throw new Error(`Invalid monetary amount: "${rupees}"`);
   }
 
   let decimalPart = 0;
-  if (parts.length > 1 && parts[1]) {
-    const decStr = (parts[1] + '00').slice(0, 2);
-    decimalPart = parseInt(decStr, 10);
+  if (decStr !== undefined) {
+    decimalPart = parseInt((decStr + '00').slice(0, 2), 10);
   }
 
-  return wholePart * 100 + decimalPart;
+  const totalPaisa = wholePart * 100 + decimalPart;
+  return isNegative ? -totalPaisa : totalPaisa;
 }
 
 /**

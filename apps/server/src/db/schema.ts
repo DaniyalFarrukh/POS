@@ -183,6 +183,7 @@ export const suppliers = pgTable(
     phone: text('phone'),
     email: text('email'),
     address: text('address'),
+    isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull(),
   },

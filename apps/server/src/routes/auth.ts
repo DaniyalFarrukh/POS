@@ -191,6 +191,7 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
         token,
         user: {
           id: user.id,
+          userId: user.id,
           name: user.name,
           role: user.role,
           pharmacyId: user.pharmacyId,
@@ -219,6 +220,7 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
 
       return reply.status(200).send({
         user: {
+          id: userContext.userId,
           ...userContext,
           pharmacyName: pharmacy?.name ?? 'Pharmacy',
         },

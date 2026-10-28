@@ -5,6 +5,7 @@ import {
   type OpenShiftInput,
   type CloseShiftInput,
   type ShiftRecord,
+  type UserRole,
   OpenShiftInputSchema,
   CloseShiftInputSchema,
 } from '@pos/shared';
@@ -366,6 +367,7 @@ export function closeShift(
   input: CloseShiftInput,
   options?: {
     cashierUserId?: string;
+    userRole?: UserRole;
     rawDb?: DatabaseInstance;
   }
 ): ShiftRecord {
@@ -394,6 +396,15 @@ export function closeShift(
 
     if (row.status !== 'open') {
       throw new Error(`Shift is already ${row.status}.`);
+    }
+
+    // Role ownership check: cashier may only close their own shift
+    if (
+      options?.cashierUserId &&
+      options?.userRole === 'cashier' &&
+      row.cashier_user_id !== options.cashierUserId
+    ) {
+      throw new Error('Unauthorized: Cashier may only close their own shift.');
     }
 
     const now = new Date().toISOString();
@@ -628,6 +639,7 @@ export function roleGuardedCloseShift(input: CloseShiftInput): ShiftRecord {
   const session = assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
   return closeShift(input, {
     cashierUserId: session.user.id,
+    userRole: session.user.role,
   });
 }
 
@@ -643,9 +655,11 @@ export function roleGuardedGetShiftHistory(options?: {
   offset?: number;
 }): ShiftRecord[] {
   const session = assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
+  const isOwner = session.user.role === 'owner';
   return getShiftHistory({
-    branchId: session.branch.id,
-    counterId: session.counter.id,
-    ...options,
+    limit: options?.limit,
+    offset: options?.offset,
+    branchId: isOwner && options?.branchId ? options.branchId : session.branch.id,
+    counterId: isOwner && options?.counterId ? options.counterId : session.counter.id,
   });
 }

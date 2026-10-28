@@ -6,7 +6,7 @@ import type {
   RefundMethod,
   CreditNoteRecord,
 } from '@pos/shared';
-import { formatPKR, generateUuidV7 } from '@pos/shared';
+import { formatPKR, generateUuidV7, roundHalfUp } from '@pos/shared';
 
 interface ReturnModalProps {
   invoice: InvoiceRecord;
@@ -78,8 +78,8 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
   returnableLines.forEach((line) => {
     const returnQty = returnQuantities[line.invoiceLineId] || 0;
     if (returnQty > 0 && line.soldQuantity > 0) {
-      const lineUnitTotal = Math.round(line.lineTotalPaisa / line.soldQuantity);
-      estimatedRefundPaisa += lineUnitTotal * returnQty;
+      const lineRefund = roundHalfUp(line.lineTotalPaisa * returnQty, line.soldQuantity);
+      estimatedRefundPaisa += lineRefund;
     }
   });
 
@@ -287,7 +287,7 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                       const qty = returnQuantities[line.invoiceLineId] || 0;
                       const isFullyReturned = line.returnableQuantity <= 0;
                       const unitNetPaisa =
-                        line.soldQuantity > 0 ? Math.round(line.lineTotalPaisa / line.soldQuantity) : 0;
+                        line.soldQuantity > 0 ? roundHalfUp(line.lineTotalPaisa, line.soldQuantity) : 0;
 
                       return (
                         <tr

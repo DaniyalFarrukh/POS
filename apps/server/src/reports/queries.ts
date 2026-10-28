@@ -1,5 +1,6 @@
 import { eq, and, sql, gte, lte, desc, asc } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { getKarachiDayStartUtc, getKarachiDayEndUtc } from '@pos/shared';
 import * as schema from '../db/schema';
 import {
   invoices,
@@ -125,8 +126,8 @@ export async function getDashboardOverview(
   pharmacyId: string,
   todayIsoDate: string // YYYY-MM-DD
 ): Promise<DashboardOverviewResult> {
-  const startOfDay = `${todayIsoDate}T00:00:00.000Z`;
-  const endOfDay = `${todayIsoDate}T23:59:59.999Z`;
+  const startOfDay = getKarachiDayStartUtc(todayIsoDate);
+  const endOfDay = getKarachiDayEndUtc(todayIsoDate);
 
   // (a) Today's sales and invoice count
   const [salesSummary] = await db
@@ -280,10 +281,10 @@ export async function getSalesReport(
   const conditions = [eq(invoices.pharmacyId, params.pharmacyId)];
 
   if (params.startDate) {
-    conditions.push(gte(invoices.createdAt, `${params.startDate}T00:00:00.000Z`));
+    conditions.push(gte(invoices.createdAt, getKarachiDayStartUtc(params.startDate)));
   }
   if (params.endDate) {
-    conditions.push(lte(invoices.createdAt, `${params.endDate}T23:59:59.999Z`));
+    conditions.push(lte(invoices.createdAt, getKarachiDayEndUtc(params.endDate)));
   }
   if (params.branchId) {
     conditions.push(eq(counters.branchId, params.branchId));
@@ -315,7 +316,7 @@ export async function getSalesReport(
   // By Day
   const byDayRaw = await db
     .select({
-      date: sql<string>`TO_CHAR(${invoices.createdAt}, 'YYYY-MM-DD')`,
+      date: sql<string>`TO_CHAR(${invoices.createdAt} AT TIME ZONE 'Asia/Karachi', 'YYYY-MM-DD')`,
       invoiceCount: sql<number>`COUNT(${invoices.id})`,
       totalPaisa: sql<number>`COALESCE(SUM(${invoices.totalPaisa}), 0)`,
     })
@@ -325,8 +326,8 @@ export async function getSalesReport(
       and(eq(invoices.counterId, counters.id), eq(counters.pharmacyId, params.pharmacyId))
     )
     .where(and(...conditions))
-    .groupBy(sql`TO_CHAR(${invoices.createdAt}, 'YYYY-MM-DD')`)
-    .orderBy(desc(sql`TO_CHAR(${invoices.createdAt}, 'YYYY-MM-DD')`));
+    .groupBy(sql`TO_CHAR(${invoices.createdAt} AT TIME ZONE 'Asia/Karachi', 'YYYY-MM-DD')`)
+    .orderBy(desc(sql`TO_CHAR(${invoices.createdAt} AT TIME ZONE 'Asia/Karachi', 'YYYY-MM-DD')`));
 
   // By Branch
   const byBranchRaw = await db

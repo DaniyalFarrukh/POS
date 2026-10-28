@@ -9,6 +9,7 @@ import {
   batches,
   counters,
   users,
+  taxCategories,
   stockAlerts,
 } from '../../db/schema';
 import { SyncRejectedError, SyncRetryLaterError } from '../errors';
@@ -98,14 +99,174 @@ export async function applyInvoiceCreated(
 
   const branchId = counter.branchId;
 
-  // 3. Verify Cashier User belongs to this pharmacy
+  // 3. Verify Cashier User belongs to this pharmacy (or sync local cashier snapshot if new)
+  if (payload.cashierUser && payload.cashierUser.id === payload.cashierUserId) {
+    const [existingTenantUser] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.id, payload.cashierUserId), eq(users.pharmacyId, ctx.pharmacyId)))
+      .limit(1);
+
+    if (!existingTenantUser) {
+      const [crossUser] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, payload.cashierUserId))
+        .limit(1);
+
+      if (crossUser) {
+        throw new SyncRejectedError(
+          'CROSS_TENANT_REFERENCE',
+          `Referenced user ${payload.cashierUserId} belongs to another pharmacy tenant`
+        );
+      }
+
+      const uCreatedAt = payload.cashierUser.createdAt || now;
+      await tx.insert(users).values({
+        id: payload.cashierUser.id,
+        pharmacyId: ctx.pharmacyId,
+        name: payload.cashierUser.name,
+        role: payload.cashierUser.role,
+        pinHash: payload.cashierUser.pinHash || '$2b$10$localplaceholderhash0000000000000000000000000000',
+        isActive: payload.cashierUser.isActive ?? true,
+        createdAt: uCreatedAt,
+        updatedAt: uCreatedAt,
+      });
+
+      await insertChangeLog(tx, {
+        pharmacyId: ctx.pharmacyId,
+        entity: 'user',
+        entityId: payload.cashierUser.id,
+        op: 'upsert',
+        data: {
+          id: payload.cashierUser.id,
+          name: payload.cashierUser.name,
+          role: payload.cashierUser.role,
+          pinHash: payload.cashierUser.pinHash || '',
+          isActive: payload.cashierUser.isActive ?? true,
+          createdAt: uCreatedAt,
+          updatedAt: uCreatedAt,
+        },
+        createdAt: now,
+      });
+    }
+  }
   await verifyTenantEntity(tx, users, payload.cashierUserId, ctx.pharmacyId, 'UNKNOWN_USER', 'user');
 
-  // 4. Verify referenced products belong to this pharmacy
+  // 4. Verify referenced products belong to this pharmacy (or sync local product snapshots if new)
+  if (payload.products && payload.products.length > 0) {
+    for (const prod of payload.products) {
+      const [existingProd] = await tx
+        .select({ id: products.id })
+        .from(products)
+        .where(and(eq(products.id, prod.id), eq(products.pharmacyId, ctx.pharmacyId)))
+        .limit(1);
+
+      if (!existingProd) {
+        const [crossProd] = await tx
+          .select({ id: products.id })
+          .from(products)
+          .where(eq(products.id, prod.id))
+          .limit(1);
+
+        if (crossProd) {
+          throw new SyncRejectedError(
+            'CROSS_TENANT_REFERENCE',
+            `Referenced product ${prod.id} belongs to another pharmacy tenant`
+          );
+        }
+
+        if (prod.taxCategoryId) {
+          await verifyTenantEntity(
+            tx,
+            taxCategories,
+            prod.taxCategoryId,
+            ctx.pharmacyId,
+            'UNKNOWN_TAX_CATEGORY',
+            'tax category'
+          );
+        }
+
+        const pCreatedAt = prod.createdAt || now;
+        const prodRow = {
+          id: prod.id,
+          pharmacyId: ctx.pharmacyId,
+          brandName: prod.brandName,
+          genericName: prod.genericName ?? '',
+          strength: prod.strength ?? '',
+          form: prod.form ?? '',
+          manufacturer: prod.manufacturer ?? '',
+          barcode: prod.barcode ?? null,
+          taxCategoryId: prod.taxCategoryId ?? null,
+          mrpPaisa: prod.mrpPaisa,
+          isControlled: prod.isControlled ?? false,
+          isActive: prod.isActive ?? true,
+          createdAt: pCreatedAt,
+          updatedAt: pCreatedAt,
+        };
+        await tx.insert(products).values(prodRow);
+
+        await insertChangeLog(tx, {
+          pharmacyId: ctx.pharmacyId,
+          entity: 'product',
+          entityId: prod.id,
+          op: 'upsert',
+          data: prodRow,
+          createdAt: now,
+        });
+      }
+    }
+  }
   const productIds = payload.lines.map((l) => l.productId);
   await verifyTenantEntities(tx, products, productIds, ctx.pharmacyId, 'UNKNOWN_PRODUCT', 'product');
 
-  // 5. Verify referenced batches belong to this pharmacy
+  // 5. Verify referenced batches belong to this pharmacy (or sync local batch snapshots if new)
+  if (payload.batches && payload.batches.length > 0) {
+    for (const b of payload.batches) {
+      const [existingBatch] = await tx
+        .select({ id: batches.id })
+        .from(batches)
+        .where(and(eq(batches.id, b.id), eq(batches.pharmacyId, ctx.pharmacyId)))
+        .limit(1);
+
+      if (!existingBatch) {
+        const [crossBatch] = await tx
+          .select({ id: batches.id })
+          .from(batches)
+          .where(eq(batches.id, b.id))
+          .limit(1);
+
+        if (crossBatch) {
+          throw new SyncRejectedError(
+            'CROSS_TENANT_REFERENCE',
+            `Referenced batch ${b.id} belongs to another pharmacy tenant`
+          );
+        }
+
+        const bCreatedAt = b.createdAt || now;
+        await tx.insert(batches).values({
+          id: b.id,
+          pharmacyId: ctx.pharmacyId,
+          productId: b.productId,
+          batchNo: b.batchNo,
+          expiryDate: b.expiryDate,
+          costPaisa: b.costPaisa,
+          mrpPaisa: b.mrpPaisa,
+          createdAt: bCreatedAt,
+          updatedAt: bCreatedAt,
+        });
+
+        await insertChangeLog(tx, {
+          pharmacyId: ctx.pharmacyId,
+          entity: 'batch',
+          entityId: b.id,
+          op: 'upsert',
+          data: b,
+          createdAt: now,
+        });
+      }
+    }
+  }
   const batchIds = payload.lines
     .map((l) => l.batchId)
     .filter((id): id is string => Boolean(id));
@@ -141,6 +302,21 @@ export async function applyInvoiceCreated(
     createdAt: now,
   });
 
+  // Update counter lastInvoiceSeq if parsed sequence is higher (M-08)
+  const seqMatch = payload.invoiceNumber.match(/(\d+)$/);
+  if (seqMatch && typeof tx.update === 'function') {
+    const seq = parseInt(seqMatch[1]!, 10);
+    if (!isNaN(seq) && seq > 0) {
+      await tx
+        .update(counters)
+        .set({
+          lastInvoiceSeq: sql`GREATEST(${counters.lastInvoiceSeq}, ${seq})`,
+          updatedAt: now,
+        })
+        .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)));
+    }
+  }
+
   // 7. Insert Invoice Lines
   for (const line of payload.lines) {
     await tx.insert(invoiceLines).values({
@@ -166,9 +342,9 @@ export async function applyInvoiceCreated(
       createdAt: now,
     });
 
-    // 8. Insert Negative Stock Movement for sale (Rule 4)
+    // 8. Insert Negative Stock Movement for sale (Rule 2 & Rule 4: preserve client movementId)
     if (line.batchId) {
-      const movementId = generateUuidV7();
+      const movementId = line.movementId ?? line.id;
       const movementData = {
         id: movementId,
         pharmacyId: ctx.pharmacyId,

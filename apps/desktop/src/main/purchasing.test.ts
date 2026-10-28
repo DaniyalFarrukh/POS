@@ -312,7 +312,7 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
 
       // Verify outbox rows for adjustments
       const adjEvents = rawDb.prepare(
-        "SELECT COUNT(*) as count FROM outbox WHERE event_type = 'stock.adjusted'"
+        "SELECT COUNT(*) as count FROM outbox WHERE event_type = 'stock_adjustment.created'"
       ).get() as { count: number };
       expect(adjEvents.count).toBe(3);
     });
@@ -357,6 +357,73 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
           reason: 'No change',
         })
       ).toThrow(/Adjustment quantity cannot be zero/);
+    });
+
+    it('enqueues stock_adjustment.created as both type and event_type in outbox (L-03)', () => {
+      const grn = receiveGrn({
+        supplierId: testSupplierId,
+        supplierInvoiceNo: 'INV-ADJ-OUTBOX',
+        invoiceDate: '2026-10-26',
+        lines: [
+          {
+            productId: testProduct1Id,
+            batchNo: 'BN-ADJ-OUTBOX',
+            expiryDate: '2027-10-01',
+            quantity: 10,
+            costPaisa: 1000,
+            mrpPaisa: 2000,
+          },
+        ],
+      });
+      const batchId = grn.lines![0]!.batchId;
+
+      adjustStock({
+        productId: testProduct1Id,
+        batchId,
+        quantitySigned: -2,
+        reasonType: 'damage',
+        reason: 'Broken bottle on shelf',
+      });
+
+      const outboxRow = rawDb.prepare(
+        "SELECT type, event_type FROM outbox WHERE type = 'stock_adjustment.created' ORDER BY created_at DESC LIMIT 1"
+      ).get() as { type: string; event_type: string };
+
+      expect(outboxRow).toBeDefined();
+      expect(outboxRow.type).toBe('stock_adjustment.created');
+      expect(outboxRow.event_type).toBe('stock_adjustment.created');
+    });
+
+    it('filters stock overview products and batches using parameterized bindings (M-01)', () => {
+      receiveGrn({
+        supplierId: testSupplierId,
+        supplierInvoiceNo: 'INV-M01-FILTER',
+        invoiceDate: '2026-10-26',
+        lines: [
+          {
+            productId: testProduct1Id,
+            batchNo: 'BN-EXP-60',
+            expiryDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
+            quantity: 15,
+            costPaisa: 1000,
+            mrpPaisa: 2000,
+          },
+          {
+            productId: testProduct2Id,
+            batchNo: 'BN-EXPIRED',
+            expiryDate: '2020-01-01',
+            quantity: 5,
+            costPaisa: 1000,
+            mrpPaisa: 2000,
+          },
+        ],
+      });
+
+      const res60 = getStockOverviewByProduct({ branchId: testBranchId, filter: 'expiring_60' });
+      expect(res60.items.some((i) => i.productId === testProduct1Id)).toBe(true);
+
+      const resExpired = getStockOverviewByBatch({ branchId: testBranchId, filter: 'expired' });
+      expect(resExpired.items.some((b) => b.batchNo === 'BN-EXPIRED')).toBe(true);
     });
   });
 

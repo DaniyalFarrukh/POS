@@ -101,6 +101,19 @@ describe('Product Management & CSV Bulk Import', () => {
       expect(filtered.products[0]?.barcode).toBe(barcode);
     });
 
+    it('filters accurately by isActive in SQL pagination (M-12)', () => {
+      // Deactivate 5 products
+      rawDb.prepare('UPDATE products SET is_active = 0 WHERE id IN (SELECT id FROM products LIMIT 5)').run();
+
+      const activeOnly = getProducts({ isActive: true, page: 1, pageSize: 200 }, rawDb);
+      expect(activeOnly.totalCount).toBe(195);
+      expect(activeOnly.products.every((p) => p.isActive === true)).toBe(true);
+
+      const inactiveOnly = getProducts({ isActive: false, page: 1, pageSize: 200 }, rawDb);
+      expect(inactiveOnly.totalCount).toBe(5);
+      expect(inactiveOnly.products.every((p) => p.isActive === false)).toBe(true);
+    });
+
     it('sorts by mrp_paisa ASC and DESC', () => {
       const asc = getProducts({ sortBy: 'mrp_paisa', sortOrder: 'asc', pageSize: 10 }, rawDb);
       const firstAsc = asc.products[0];

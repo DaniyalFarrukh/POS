@@ -5,6 +5,8 @@ export const SyncEventTypeSchema = z.enum([
   'invoice.created',
   'credit_note.created',
   'stock_adjustment.created',
+  'shift.opened',
+  'shift.closed',
 ]);
 export type SyncEventType = z.infer<typeof SyncEventTypeSchema>;
 
@@ -45,6 +47,7 @@ export type PurchaseBatchInput = z.infer<typeof PurchaseBatchInputSchema>;
 
 export const PurchaseLineInputItemSchema = z.object({
   id: z.string().uuid(),
+  movementId: z.string().uuid().optional(),
   productId: z.string().uuid(),
   batchId: z.string().uuid(),
   quantity: z.number().int().min(1),
@@ -52,6 +55,17 @@ export const PurchaseLineInputItemSchema = z.object({
   mrpPaisa: z.number().int().min(0),
 });
 export type PurchaseLineInputItem = z.infer<typeof PurchaseLineInputItemSchema>;
+
+export const PurchaseSupplierSnapshotSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  contactPerson: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  createdAt: z.string().optional(),
+});
+export type PurchaseSupplierSnapshot = z.infer<typeof PurchaseSupplierSnapshotSchema>;
 
 export const PurchaseReceivedPayloadSchema = z.object({
   purchase: z.object({
@@ -64,6 +78,7 @@ export const PurchaseReceivedPayloadSchema = z.object({
     createdByUserId: z.string().uuid().optional(),
     createdAt: z.string().optional(),
   }),
+  supplier: PurchaseSupplierSnapshotSchema.optional(),
   batches: z.array(PurchaseBatchInputSchema).min(1),
   lines: z.array(PurchaseLineInputItemSchema).min(1),
 });
@@ -72,6 +87,7 @@ export type PurchaseReceivedPayload = z.infer<typeof PurchaseReceivedPayloadSche
 // 2. invoice.created Payload Schema
 export const InvoiceCreatedLineSchema = z.object({
   id: z.string().uuid(),
+  movementId: z.string().uuid().optional(),
   invoiceId: z.string().uuid().optional(),
   productId: z.string().uuid(),
   batchId: z.string().uuid().nullable().optional(),
@@ -92,6 +108,32 @@ export const InvoiceCreatedPaymentSchema = z.object({
 });
 export type InvoiceCreatedPayment = z.infer<typeof InvoiceCreatedPaymentSchema>;
 
+export const InvoiceCashierSnapshotSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  role: z.enum(['owner', 'pharmacist', 'cashier']),
+  pinHash: z.string().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string().optional(),
+});
+export type InvoiceCashierSnapshot = z.infer<typeof InvoiceCashierSnapshotSchema>;
+
+export const InvoiceProductSnapshotSchema = z.object({
+  id: z.string().uuid(),
+  brandName: z.string().min(1),
+  genericName: z.string().optional(),
+  strength: z.string().optional(),
+  form: z.string().optional(),
+  manufacturer: z.string().optional(),
+  barcode: z.string().nullable().optional(),
+  taxCategoryId: z.string().uuid().nullable().optional(),
+  mrpPaisa: z.number().int().min(0),
+  isControlled: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string().optional(),
+});
+export type InvoiceProductSnapshot = z.infer<typeof InvoiceProductSnapshotSchema>;
+
 export const InvoiceCreatedPayloadSchema = z.object({
   id: z.string().uuid(),
   counterId: z.string().uuid(),
@@ -107,12 +149,16 @@ export const InvoiceCreatedPayloadSchema = z.object({
   createdAt: z.string(),
   lines: z.array(InvoiceCreatedLineSchema).min(1, 'Invoice must contain at least 1 line item'),
   payments: z.array(InvoiceCreatedPaymentSchema).min(1, 'Invoice must contain at least 1 payment'),
+  cashierUser: InvoiceCashierSnapshotSchema.optional(),
+  products: z.array(InvoiceProductSnapshotSchema).optional(),
+  batches: z.array(PurchaseBatchInputSchema).optional(),
 });
 export type InvoiceCreatedPayload = z.infer<typeof InvoiceCreatedPayloadSchema>;
 
 // 3. credit_note.created Payload Schema
 export const CreditNoteCreatedLineSchema = z.object({
   id: z.string().uuid(),
+  movementId: z.string().uuid().optional(),
   creditNoteId: z.string().uuid().optional(),
   originalInvoiceLineId: z.string().uuid(),
   productId: z.string().uuid(),
@@ -161,6 +207,37 @@ export const StockAdjustmentCreatedPayloadSchema = z.object({
 export type StockAdjustmentCreatedPayload = z.infer<
   typeof StockAdjustmentCreatedPayloadSchema
 >;
+
+// 5. shift.opened & shift.closed Payload Schemas
+export const ShiftOpenedPayloadSchema = z.object({
+  shiftId: z.string().uuid(),
+  branchId: z.string().uuid().optional(),
+  counterId: z.string().uuid(),
+  cashierUserId: z.string().uuid(),
+  openingCashPaisa: z.number().int().min(0),
+  openedAt: z.string(),
+  notes: z.string().nullable().optional(),
+});
+export type ShiftOpenedPayload = z.infer<typeof ShiftOpenedPayloadSchema>;
+
+export const ShiftClosedPayloadSchema = z.object({
+  shiftId: z.string().uuid(),
+  branchId: z.string().uuid().optional(),
+  counterId: z.string().uuid(),
+  cashierUserId: z.string().uuid(),
+  openedAt: z.string(),
+  closedAt: z.string(),
+  openingCashPaisa: z.number().int().min(0),
+  countedCashPaisa: z.number().int().min(0),
+  expectedCashPaisa: z.number().int(),
+  differencePaisa: z.number().int(),
+  salesCashPaisa: z.number().int().min(0).default(0),
+  salesCardPaisa: z.number().int().min(0).default(0),
+  salesWalletPaisa: z.number().int().min(0).default(0),
+  returnsCashPaisa: z.number().int().min(0).default(0),
+  notes: z.string().nullable().optional(),
+});
+export type ShiftClosedPayload = z.infer<typeof ShiftClosedPayloadSchema>;
 
 // Request & Response envelope schemas
 export const SyncPushRequestSchema = z.object({

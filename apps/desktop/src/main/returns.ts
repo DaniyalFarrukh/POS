@@ -139,7 +139,22 @@ function loadCreditNote(
       WHERE cnl.credit_note_id = ?
       ORDER BY cnl.rowid ASC
     `)
-    .all(row.id) as (CreditNoteLineRecord & { brand_name?: string; generic_name?: string })[];
+    .all(row.id) as {
+    id: string;
+    credit_note_id: string;
+    original_invoice_line_id: string;
+    product_id: string;
+    batch_id: string | null;
+    batch_no: string | null;
+    expiry_date: string | null;
+    quantity: number;
+    unit_price_paisa: number;
+    tax_rate_bp: number;
+    tax_paisa: number;
+    line_total_paisa: number;
+    brand_name: string | null;
+    generic_name: string | null;
+  }[];
 
   return {
     id: row.id,
@@ -161,19 +176,19 @@ function loadCreditNote(
     counterName: row.counter_name ?? undefined,
     lines: lines.map((l) => ({
       id: l.id,
-      creditNoteId: l.creditNoteId,
-      originalInvoiceLineId: l.originalInvoiceLineId,
-      productId: l.productId,
-      batchId: l.batchId,
-      batchNo: l.batchNo,
-      expiryDate: l.expiryDate,
+      creditNoteId: l.credit_note_id,
+      originalInvoiceLineId: l.original_invoice_line_id,
+      productId: l.product_id,
+      batchId: l.batch_id,
+      batchNo: l.batch_no ?? undefined,
+      expiryDate: l.expiry_date ?? undefined,
       quantity: l.quantity,
-      unitPricePaisa: l.unitPricePaisa,
-      taxRateBp: l.taxRateBp,
-      taxPaisa: l.taxPaisa,
-      lineTotalPaisa: l.lineTotalPaisa,
-      brandName: l.brandName,
-      genericName: l.genericName,
+      unitPricePaisa: l.unit_price_paisa,
+      taxRateBp: l.tax_rate_bp,
+      taxPaisa: l.tax_paisa,
+      lineTotalPaisa: l.line_total_paisa,
+      brandName: l.brand_name ?? undefined,
+      genericName: l.generic_name ?? undefined,
     })),
   };
 }
@@ -396,10 +411,11 @@ export function processReturn(
     );
 
     // 6. Insert Credit Note lines & POSITIVE stock movements back to original batch
-    const createdLines: CreditNoteLineRecord[] = [];
+    const createdLines: (CreditNoteLineRecord & { movementId?: string })[] = [];
 
     for (const cl of computedLines) {
       const lineId = generateUuidV7();
+      const movementId = generateUuidV7();
 
       // Insert credit note line
       insertCreditLineStmt.run(
@@ -415,9 +431,9 @@ export function processReturn(
         cl.lineTotalPaisa
       );
 
-      // Insert positive stock movement (Rule 4: return increases stock)
+      // Insert positive stock movement (Rule 2 & Rule 4: preserve client movementId)
       insertMovementStmt.run(
-        generateUuidV7(),
+        movementId,
         cl.productId,
         cl.batchId,
         branchId,
@@ -430,6 +446,7 @@ export function processReturn(
 
       createdLines.push({
         id: lineId,
+        movementId,
         creditNoteId,
         originalInvoiceLineId: cl.originalLineId,
         productId: cl.productId,
@@ -490,6 +507,9 @@ export async function roleGuardedProcessReturn(
   rawDb?: DatabaseInstance
 ): Promise<CreditNoteRecord> {
   const session = assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
+  console.log(
+    `[Return] User ${session.user.name} (${session.user.id}, role: ${session.user.role}) processing return for invoice ${input.originalInvoiceId}`
+  );
   return processReturn(input, {
     db: rawDb,
     counterId: session.counter.id,

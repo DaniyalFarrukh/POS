@@ -18,5 +18,19 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
     },
+  },
+  {
+    files: ['apps/desktop/src/main/**/*.ts'],
+    ignores: ['apps/desktop/src/main/ipc/wrapper.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.object.name='ipcMain'][callee.property.name='handle']",
+          message:
+            'Direct ipcMain.handle is forbidden outside apps/desktop/src/main/ipc/wrapper.ts. Use registerSecureIpcHandler.',
+        },
+      ],
+    },
   }
 );

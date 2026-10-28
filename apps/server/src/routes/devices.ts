@@ -1,19 +1,18 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, isNull } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, z } from '@pos/shared';
 import { deviceRegistrationCodes, devices } from '../db/schema';
 import { hashRegistrationCode, signDeviceToken } from '../auth/jwt';
 import { requireDeviceAuth } from '../auth/device-auth';
 import { getDb } from '../db';
 
-interface RegisterDeviceBody {
-  code?: string;
-  deviceName?: string;
-  deviceFingerprint?: string;
-  // If a malicious client passes pharmacyId or branchId in the body, it must be ignored!
-  pharmacyId?: string;
-  branchId?: string;
-}
+const RegisterDeviceSchema = z.object({
+  code: z.string().min(1, 'Registration code is required'),
+  deviceName: z.string().min(1, 'Device name is required'),
+  deviceFingerprint: z.string().optional(),
+});
+
+type RegisterDeviceBody = z.infer<typeof RegisterDeviceSchema>;
 
 export interface DeviceRoutesOptions {
   registerRateLimitMax?: number;
@@ -44,23 +43,15 @@ export const deviceRoutes: FastifyPluginAsync<DeviceRoutesOptions> = async (
       },
     },
     async (request, reply) => {
-      const { code, deviceName, deviceFingerprint } = request.body || {};
-
-      if (!code || typeof code !== 'string' || !code.trim()) {
+      const parsed = RegisterDeviceSchema.safeParse(request.body);
+      if (!parsed.success) {
         return reply.status(400).send({
           statusCode: 400,
           error: 'Bad Request',
-          message: 'Registration code is required',
+          message: parsed.error.issues[0]?.message || 'Invalid registration input',
         });
       }
-
-      if (!deviceName || typeof deviceName !== 'string' || !deviceName.trim()) {
-        return reply.status(400).send({
-          statusCode: 400,
-          error: 'Bad Request',
-          message: 'Device name is required',
-        });
-      }
+      const { code, deviceName, deviceFingerprint } = parsed.data;
 
       const db = request.server.db || getDb();
       const codeHash = hashRegistrationCode(code);

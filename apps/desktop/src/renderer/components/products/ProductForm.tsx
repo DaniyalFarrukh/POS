@@ -4,7 +4,7 @@ import type {
   ProductWithTax,
   TaxCategory,
 } from '@pos/shared';
-import { CreateProductInputSchema } from '@pos/shared';
+import { CreateProductInputSchema, formatPKR, convertRupeesToPaisa } from '@pos/shared';
 
 interface ProductFormProps {
   product?: ProductWithTax | null;
@@ -44,7 +44,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setManufacturer(product.manufacturer);
       setBarcode(product.barcode ?? '');
       setTaxCategoryId(product.taxCategoryId);
-      setMrpRupees((product.mrpPaisa / 100).toFixed(2));
+      setMrpRupees(formatPKR(product.mrpPaisa, { showPrefix: false }));
       setIsControlled(product.isControlled);
       setIsActive(product.isActive);
     } else {
@@ -65,20 +65,28 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   if (!isOpen) return null;
 
   // Live integer paisa calculation (Rule 1)
-  const parsedPrice = parseFloat(mrpRupees);
-  const calculatedPaisa = !isNaN(parsedPrice) && parsedPrice >= 0 ? Math.round(parsedPrice * 100) : 0;
+  let calculatedPaisa = 0;
+  try {
+    calculatedPaisa = mrpRupees.trim() ? convertRupeesToPaisa(mrpRupees) : 0;
+    if (calculatedPaisa < 0) calculatedPaisa = 0;
+  } catch {
+    calculatedPaisa = 0;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const priceNum = parseFloat(mrpRupees);
-    if (isNaN(priceNum) || priceNum < 0) {
-      setError('Please enter a valid MRP price in Rupees.');
+    let mrpPaisa = 0;
+    try {
+      mrpPaisa = convertRupeesToPaisa(mrpRupees);
+      if (mrpPaisa < 0) {
+        throw new Error('negative');
+      }
+    } catch {
+      setError('Please enter a valid non-negative MRP price in Rupees (e.g. 50.00).');
       return;
     }
-
-    const mrpPaisa = Math.round(priceNum * 100);
 
     const rawInput: CreateProductInput = {
       brandName: brandName.trim(),

@@ -5,6 +5,7 @@ import { applyPurchaseReceived } from './appliers/purchase';
 import { applyInvoiceCreated } from './appliers/invoice';
 import { applyCreditNoteCreated } from './appliers/credit-note';
 import { applyStockAdjustmentCreated } from './appliers/stock-adjustment';
+import { applyShiftOpened, applyShiftClosed } from './appliers/shift';
 import type { ApplierContext, DbClient } from './types';
 
 export async function processSyncPushEvents(
@@ -67,7 +68,13 @@ export async function processSyncPushEvents(
             await applyCreditNoteCreated(tx, ctx, event.payload);
             break;
           case 'stock_adjustment.created':
-            await applyStockAdjustmentCreated(tx, ctx, event.payload);
+            await applyStockAdjustmentCreated(tx, ctx, event.payload, event.entityId);
+            break;
+          case 'shift.opened':
+            await applyShiftOpened(tx, ctx, event.payload);
+            break;
+          case 'shift.closed':
+            await applyShiftClosed(tx, ctx, event.payload);
             break;
           default:
             throw new SyncRejectedError(

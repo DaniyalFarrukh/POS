@@ -76,7 +76,6 @@ const api: DesktopApi = {
       ipcRenderer.invoke('stock:get-batches-for-product', productId),
   },
   invoices: {
-    createInvoice: (input) => ipcRenderer.invoke('invoices:create', input),
     getRecentInvoices: (limit) => ipcRenderer.invoke('invoices:get-recent', limit),
     searchInvoices: (params) => ipcRenderer.invoke('invoices:search', params),
     getInvoice: (id) => ipcRenderer.invoke('invoices:get-one', id),
@@ -119,7 +118,8 @@ const api: DesktopApi = {
   backup: {
     create: () => ipcRenderer.invoke('backup:create'),
     list: () => ipcRenderer.invoke('backup:list'),
-    restore: (filename: string) => ipcRenderer.invoke('backup:restore', filename),
+    restore: (filename: string, ownerPin: string) =>
+      ipcRenderer.invoke('backup:restore', { filename, ownerPin }),
   },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),

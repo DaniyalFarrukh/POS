@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, z } from '@pos/shared';
 import {
   users,
   branches,
@@ -15,34 +15,41 @@ import { hashRegistrationCode, generatePlainRegistrationCode } from '../auth/jwt
 import { getDb } from '../db';
 import { insertChangeLog } from '../sync/change-log';
 
-interface CreateUserBody {
-  name: string;
-  role: 'owner' | 'pharmacist' | 'cashier';
-  pin: string;
-}
+const IdParamSchema = z.object({
+  id: z.string().uuid('Invalid ID format'),
+});
 
-interface UpdateUserBody {
-  role?: 'owner' | 'pharmacist' | 'cashier';
-  isActive?: boolean;
-}
+const CreateUserSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  role: z.enum(['owner', 'pharmacist', 'cashier']),
+  pin: z.string().min(6).max(8),
+});
 
-interface CreateBranchBody {
-  name: string;
-  address?: string;
-  phone?: string;
-}
+const UpdateUserSchema = z.object({
+  role: z.enum(['owner', 'pharmacist', 'cashier']).optional(),
+  isActive: z.boolean().optional(),
+});
 
-interface CreateCounterBody {
-  branchId: string;
-  name: string;
-  code?: string;
-}
+const CreateBranchSchema = z.object({
+  name: z.string().min(1, 'Branch name is required'),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+});
 
-interface CreateRegCodeBody {
-  branchId: string;
-  counterId: string;
-  expiresInHours?: number;
-}
+const CreateCounterSchema = z.object({
+  branchId: z.string().uuid('Valid branchId is required'),
+  name: z.string().min(1, 'Counter name is required'),
+  code: z.string().optional(),
+});
+
+const CreateRegCodeSchema = z.object({
+  branchId: z.string().uuid('Valid branchId is required'),
+  counterId: z.string().uuid('Valid counterId is required'),
+  expiresInHours: z.number().int().positive().optional().default(24),
+});
+
+type CreateUserBody = z.infer<typeof CreateUserSchema>;
+type CreateBranchBody = z.infer<typeof CreateBranchSchema>;
 
 interface AuditLogQuery {
   page?: string;
@@ -51,8 +58,13 @@ interface AuditLogQuery {
 }
 
 export const adminRoutes: FastifyPluginAsync = async (fastify) => {
-  // All admin routes strictly enforce owner role
-  fastify.addHook('preHandler', requireUserAuth(['owner']));
+  // All admin routes enforce owner role; GET /branches permits pharmacist for report filtering (M-10)
+  fastify.addHook('preHandler', async (request, reply) => {
+    const isBranchesGet =
+      request.method === 'GET' && request.url.includes('/branches');
+    const allowedRoles: ('owner' | 'pharmacist')[] = isBranchesGet ? ['owner', 'pharmacist'] : ['owner'];
+    return requireUserAuth(allowedRoles)(request, reply);
+  });
 
   // -------------------------------------------------------------------------
   // 1. User Management
@@ -79,16 +91,17 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post<{ Body: CreateUserBody }>('/users', async (request, reply) => {
     const userContext = request.userContext!;
-    const { name, role, pin } = request.body || {};
+    const parsed = CreateUserSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        statusCode: 400,
+        message: parsed.error.issues[0]?.message || 'Invalid user input',
+      });
+    }
+    const { name, role, pin } = parsed.data;
 
-    if (!name || !name.trim()) {
-      return reply.status(400).send({ statusCode: 400, message: 'Name is required' });
-    }
-    if (!role || !['owner', 'pharmacist', 'cashier'].includes(role)) {
-      return reply.status(400).send({ statusCode: 400, message: 'Invalid role' });
-    }
     const pinRegex = role === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
-    if (!pin || !pinRegex.test(pin.trim())) {
+    if (!pinRegex.test(pin.trim())) {
       const msg = role === 'owner' ? 'Owner PIN must be exactly 8 digits' : 'PIN must be between 6 and 8 digits';
       return reply.status(400).send({ statusCode: 400, message: msg });
     }
@@ -128,10 +141,22 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     });
   });
 
-  fastify.patch<{ Params: { id: string }; Body: UpdateUserBody }>('/users/:id', async (request, reply) => {
+  fastify.patch<{ Params: { id: string }; Body: { role?: 'owner' | 'pharmacist' | 'cashier'; isActive?: boolean } }>('/users/:id', async (request, reply) => {
     const userContext = request.userContext!;
-    const { id } = request.params;
-    const { role, isActive } = request.body || {};
+    const paramParsed = IdParamSchema.safeParse(request.params);
+    if (!paramParsed.success) {
+      return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+    }
+    const { id } = paramParsed.data;
+
+    const bodyParsed = UpdateUserSchema.safeParse(request.body);
+    if (!bodyParsed.success) {
+      return reply.status(400).send({
+        statusCode: 400,
+        message: bodyParsed.error.issues[0]?.message || 'Invalid update input',
+      });
+    }
+    const { role, isActive } = bodyParsed.data;
 
     const db = request.server.db || getDb();
     const now = new Date().toISOString();
@@ -189,7 +214,11 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post<{ Params: { id: string } }>('/users/:id/unlock', async (request, reply) => {
     const userContext = request.userContext!;
-    const { id } = request.params;
+    const paramParsed = IdParamSchema.safeParse(request.params);
+    if (!paramParsed.success) {
+      return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+    }
+    const { id } = paramParsed.data;
     const db = request.server.db || getDb();
     const now = new Date().toISOString();
 
@@ -234,11 +263,14 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post<{ Body: CreateBranchBody }>('/branches', async (request, reply) => {
     const userContext = request.userContext!;
-    const { name, address, phone } = request.body || {};
-
-    if (!name || !name.trim()) {
-      return reply.status(400).send({ statusCode: 400, message: 'Branch name is required' });
+    const parsed = CreateBranchSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({
+        statusCode: 400,
+        message: parsed.error.issues[0]?.message || 'Invalid branch input',
+      });
     }
+    const { name, address, phone } = parsed.data;
 
     const db = request.server.db || getDb();
     const branchId = generateUuidV7();
@@ -283,20 +315,23 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         createdAt: counters.createdAt,
       })
       .from(counters)
-      .innerJoin(branches, eq(counters.branchId, branches.id))
+      .innerJoin(
+        branches,
+        and(eq(counters.branchId, branches.id), eq(branches.pharmacyId, userContext.pharmacyId))
+      )
       .where(eq(counters.pharmacyId, userContext.pharmacyId))
       .orderBy(asc(counters.name));
 
     return reply.status(200).send({ items: counterList });
   });
 
-  fastify.post<{ Body: CreateCounterBody }>('/counters', async (request, reply) => {
+  fastify.post<{ Body: { branchId: string; name: string; code?: string } }>('/counters', async (request, reply) => {
     const userContext = request.userContext!;
-    const { branchId, name, code } = request.body || {};
-
-    if (!branchId || !name || !name.trim()) {
-      return reply.status(400).send({ statusCode: 400, message: 'Branch ID and counter name are required' });
+    const parsed = CreateCounterSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ statusCode: 400, message: parsed.error.issues[0]?.message || 'Invalid counter input' });
     }
+    const { branchId, name, code } = parsed.data;
 
     const db = request.server.db || getDb();
     const counterId = generateUuidV7();
@@ -368,8 +403,14 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         createdAt: devices.createdAt,
       })
       .from(devices)
-      .leftJoin(branches, eq(devices.branchId, branches.id))
-      .leftJoin(counters, eq(devices.counterId, counters.id))
+      .leftJoin(
+        branches,
+        and(eq(devices.branchId, branches.id), eq(branches.pharmacyId, userContext.pharmacyId))
+      )
+      .leftJoin(
+        counters,
+        and(eq(devices.counterId, counters.id), eq(counters.pharmacyId, userContext.pharmacyId))
+      )
       .where(eq(devices.pharmacyId, userContext.pharmacyId))
       .orderBy(desc(devices.createdAt));
 
@@ -378,7 +419,11 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.patch<{ Params: { id: string }; Body: { isRevoked: boolean } }>('/devices/:id/revoke', async (request, reply) => {
     const userContext = request.userContext!;
-    const { id } = request.params;
+    const paramParsed = IdParamSchema.safeParse(request.params);
+    if (!paramParsed.success) {
+      return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+    }
+    const { id } = paramParsed.data;
     const { isRevoked } = request.body || {};
 
     const db = request.server.db || getDb();
@@ -397,13 +442,13 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.status(200).send({ ok: true, isRevoked: Boolean(isRevoked) });
   });
 
-  fastify.post<{ Body: CreateRegCodeBody }>('/registration-codes', async (request, reply) => {
+  fastify.post<{ Body: { branchId: string; counterId: string; expiresInHours?: number } }>('/registration-codes', async (request, reply) => {
     const userContext = request.userContext!;
-    const { branchId, counterId, expiresInHours = 24 } = request.body || {};
-
-    if (!branchId || !counterId) {
-      return reply.status(400).send({ statusCode: 400, message: 'branchId and counterId are required' });
+    const parsed = CreateRegCodeSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ statusCode: 400, message: parsed.error.issues[0]?.message || 'Invalid registration code input' });
     }
+    const { branchId, counterId, expiresInHours } = parsed.data;
 
     const db = request.server.db || getDb();
 

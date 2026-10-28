@@ -1,5 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import { generateUuidV7, PurchaseReceivedPayloadSchema } from '@pos/shared';
+import { PurchaseReceivedPayloadSchema } from '@pos/shared';
 import {
   batches,
   stockMovements,
@@ -47,16 +47,77 @@ export async function applyPurchaseReceived(
     'branch'
   );
 
-  // 3. Verify Supplier belongs to this pharmacy if specified
+  // 3. Verify Supplier belongs to this pharmacy if specified (or upsert if locally created on counter)
   if (payload.purchase.supplierId) {
-    await verifyTenantEntity(
-      tx,
-      suppliers,
-      payload.purchase.supplierId,
-      ctx.pharmacyId,
-      'UNKNOWN_SUPPLIER',
-      'supplier'
-    );
+    const [existingTenantSupplier] = await tx
+      .select({ id: suppliers.id })
+      .from(suppliers)
+      .where(
+        and(
+          eq(suppliers.id, payload.purchase.supplierId),
+          eq(suppliers.pharmacyId, ctx.pharmacyId)
+        )
+      )
+      .limit(1);
+
+    if (!existingTenantSupplier) {
+      const [crossSupplier] = await tx
+        .select({ id: suppliers.id })
+        .from(suppliers)
+        .where(eq(suppliers.id, payload.purchase.supplierId))
+        .limit(1);
+
+      if (crossSupplier) {
+        throw new SyncRejectedError(
+          'CROSS_TENANT_REFERENCE',
+          `Referenced supplier ${payload.purchase.supplierId} belongs to another pharmacy tenant`
+        );
+      }
+
+      if (payload.supplier && payload.supplier.id === payload.purchase.supplierId) {
+        const supCreatedAt = payload.supplier.createdAt || now;
+        await tx.insert(suppliers).values({
+          id: payload.supplier.id,
+          pharmacyId: ctx.pharmacyId,
+          name: payload.supplier.name,
+          contactPerson: payload.supplier.contactPerson ?? null,
+          phone: payload.supplier.phone ?? null,
+          email: payload.supplier.email ?? null,
+          address: payload.supplier.address ?? null,
+          isActive: true,
+          createdAt: supCreatedAt,
+          updatedAt: supCreatedAt,
+        });
+
+        await insertChangeLog(tx, {
+          pharmacyId: ctx.pharmacyId,
+          entity: 'supplier',
+          entityId: payload.supplier.id,
+          op: 'upsert',
+          data: {
+            id: payload.supplier.id,
+            name: payload.supplier.name,
+            contactPerson: payload.supplier.contactPerson ?? null,
+            phone: payload.supplier.phone ?? null,
+            email: payload.supplier.email ?? null,
+            address: payload.supplier.address ?? null,
+            isActive: true,
+            createdAt: supCreatedAt,
+            updatedAt: supCreatedAt,
+          },
+          createdAt: now,
+        });
+      } else {
+        await verifyTenantEntity(
+          tx,
+          suppliers,
+          payload.purchase.supplierId,
+          ctx.pharmacyId,
+          'UNKNOWN_SUPPLIER',
+          'supplier'
+        );
+      }
+    }
   }
 
   // 4. Verify CreatedBy User belongs to this pharmacy if specified
@@ -117,9 +178,9 @@ export async function applyPurchaseReceived(
     }
   }
 
-  // 3. Insert Purchase Stock Movements (Rule 4: signed quantity for purchase)
+  // 3. Insert Purchase Stock Movements (Rule 2 & Rule 4: preserve client-generated movementId)
   for (const line of payload.lines) {
-    const movementId = generateUuidV7();
+    const movementId = line.movementId ?? line.id;
     const movementData = {
       id: movementId,
       pharmacyId: ctx.pharmacyId,

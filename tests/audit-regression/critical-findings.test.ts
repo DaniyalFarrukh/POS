@@ -290,6 +290,28 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
         db
       )
     ).rejects.toThrow();
+
+    // Repair state test: If an owner exists but counters/branches are missing,
+    // needsSetup MUST remain false and completeSetup MUST refuse to run (not public wizard).
+    db.prepare('DELETE FROM outbox').run();
+    db.prepare('DELETE FROM counters').run();
+    db.prepare('DELETE FROM branches').run();
+
+    const repairStatus = getSetupStatus(db);
+    expect(repairStatus.needsSetup).toBe(false);
+    expect(repairStatus.isRepairState).toBe(true);
+
+    await expect(
+      completeSetup(
+        {
+          branchName: 'Takeover Branch',
+          counterName: 'Takeover Counter',
+          ownerName: 'Takeover Owner',
+          pin: '88888888',
+        },
+        db
+      )
+    ).rejects.toThrow(/Initial setup has already been completed/);
   });
 
   it('C-04: POST /api/auth/login requires pharmacyCode, isolates identical usernames, and returns generic 401', async () => {

@@ -6,6 +6,7 @@ import {
   generatePlainRegistrationCode,
   signDeviceToken,
   verifyDeviceToken,
+  signUserToken,
 } from './jwt';
 import { buildApp } from '../app';
 import {
@@ -530,6 +531,46 @@ describe('Device Registration & Authentication (Phase 3)', () => {
       }>();
       expect(meBody.deviceContext.pharmacyId).toBe(seedResult.pharmacy.id);
       expect(meBody.deviceContext.deviceId).toBe(regBody.deviceId);
+
+      // 6. M-10: Verify pharmacist can fetch branches from admin routes
+      const pharmacistId = generateUuidV7();
+      const now = new Date().toISOString();
+      await ctx.db.insert(schema.users).values({
+        id: pharmacistId,
+        pharmacyId: seedResult.pharmacy.id,
+        name: 'Dr. Pharmacist Test',
+        role: 'pharmacist',
+        pinHash: 'dummy',
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const pharmacistToken = signUserToken({
+        userId: pharmacistId,
+        pharmacyId: seedResult.pharmacy.id,
+        role: 'pharmacist',
+        name: 'Dr. Pharmacist Test',
+      });
+
+      const branchesRes = await app.inject({
+        method: 'GET',
+        url: '/api/admin/branches',
+        headers: { authorization: `Bearer ${pharmacistToken}` },
+      });
+      expect(branchesRes.statusCode).toBe(200);
+
+      // 7. M-11: Verify GET /api/auth/me returns user object with both id and userId
+      const meUserRes = await app.inject({
+        method: 'GET',
+        url: '/api/auth/me',
+        headers: { authorization: `Bearer ${pharmacistToken}` },
+      });
+      expect(meUserRes.statusCode).toBe(200);
+      const meUserData = meUserRes.json<{ user: { id: string; userId: string; role: string } }>();
+      expect(meUserData.user.id).toBeDefined();
+      expect(meUserData.user.userId).toBe(meUserData.user.id);
+      expect(meUserData.user.role).toBe('pharmacist');
     });
   });
 });

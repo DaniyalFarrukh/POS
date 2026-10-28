@@ -306,9 +306,9 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     );
   });
 
-  it('H-02: convertRupeesToPaisa preserves negative sign on string input and rounds >2 decimal places consistently', () => {
+  it('H-02: convertRupeesToPaisa preserves negative sign on string input and rejects >2 decimal places', () => {
     expect(convertRupeesToPaisa('-35.50')).toBe(-3550);
-    expect(convertRupeesToPaisa('35.509')).toBe(3551);
+    expect(() => convertRupeesToPaisa('35.509')).toThrow(/decimal/i);
   });
 
   it('H-03: processReturn idempotent replay returns populated camelCase line fields from loadCreditNote', () => {
@@ -397,30 +397,214 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     expect(replayReturn.lines[0]?.lineTotalPaisa).toBe(firstReturn.lines[0]?.lineTotalPaisa);
   });
 
-  it('H-04: desktop backup:restore IPC handler checks session.isLocked and blocks restore when terminal is locked', () => {
-    const mainIndexSource = fs.readFileSync(
-      path.join(REPO_ROOT, 'apps/desktop/src/main/index.ts'),
-      'utf8'
+  it('H-04: desktop IPC handlers enforce wrapper with role-guards, sender validation, context injection, and sanitization', async () => {
+    const { registerAllIpcHandlers } = await import('../../apps/desktop/src/main/index');
+    const { registerSyncIpc } = await import('../../apps/desktop/src/main/sync/adapters/syncIpc');
+    const { createTokenStore } = await import('../../apps/desktop/src/main/sync/adapters/tokenStore');
+    const { createSyncWorker } = await import('../../apps/desktop/src/main/sync/core/syncWorker');
+    const { getRegisteredIpcHandlers, sanitizeIpcOutput, validateSenderFrame } = await import(
+      '../../apps/desktop/src/main/ipc/wrapper'
     );
+    const { roleGuardedFinalizeSale } = await import('../../apps/desktop/src/main/invoices');
+    const { openShift, closeShift } = await import('../../apps/desktop/src/main/shifts');
 
-    // Extract the backup:restore IPC handler block in apps/desktop/src/main/index.ts
-    const restoreHandlerMatch = mainIndexSource.match(
-      /ipcMain\.handle\('backup:restore'[\s\S]*?restoreDatabaseBackup[\s\S]*?\}\);/
-    );
-    expect(restoreHandlerMatch).not.toBeNull();
+    // Register handlers for testing
+    const tenant = await seedServerTenant('H04 Pharmacy');
+    const db = resetDesktopDbWithTenant(tenant);
+    const tokenStore = createTokenStore(db);
+    const worker = createSyncWorker({ db, fetch: globalThis.fetch, tokenStore, logger: console });
+
+    registerAllIpcHandlers();
+    registerSyncIpc({ db, syncWorker: worker, tokenStore });
+
+    // 1. Dynamic IPC Registry test: all channels must be registered in the central wrapper
+    const registry = getRegisteredIpcHandlers();
+    expect(registry.size).toBeGreaterThan(25);
+
+    // Legacy un-prefixed duplicates must be removed
+    const legacyAliases = ['getSyncStatus', 'syncNow', 'registerDevice', 'listSyncExceptions', 'retryException', 'dismissException'];
+    for (const alias of legacyAliases) {
+      expect(registry.has(alias)).toBe(false);
+    }
+    // Deprecated invoices:create must be removed (only sales:finalize is allowed)
+    expect(registry.has('invoices:create')).toBe(false);
+
+    // Staff management and device registration must be owner-only
+    const createStaff = registry.get('auth:create-staff-member');
+    expect(createStaff).toBeDefined();
+    expect(createStaff?.roles).toEqual(['owner']);
+
+    const updateStaff = registry.get('auth:update-staff-member');
+    expect(updateStaff).toBeDefined();
+    expect(updateStaff?.roles).toEqual(['owner']);
+
+    const registerDev = registry.get('sync:registerDevice');
+    expect(registerDev).toBeDefined();
+    expect(registerDev?.roles).toEqual(['owner']);
+
+    // Destructive operations must require owner and destructive flag
+    const restoreHandler = registry.get('backup:restore');
+    expect(restoreHandler).toBeDefined();
+    expect(restoreHandler?.roles).toEqual(['owner']);
+    expect(restoreHandler?.isDestructive).toBe(true);
+
+    // Public handlers must have an explicit publicReason
+    const publicChannels = ['ping', 'get-db-info', 'auth:get-setup-status', 'auth:complete-setup', 'auth:get-users', 'auth:login', 'auth:unlock-session', 'auth:get-session'];
+    for (const channel of publicChannels) {
+      const handler = registry.get(channel);
+      expect(handler).toBeDefined();
+      expect(handler?.isPublic).toBe(true);
+      expect(typeof handler?.publicReason).toBe('string');
+      expect(handler?.publicReason?.length).toBeGreaterThan(5);
+    }
+
+    // 2. Lockout guard: locked session blocks secured handler
+    const now = new Date().toISOString();
+    const cashierUser = { id: generateUuidV7(), name: 'Cashier 1', role: 'cashier' as const, isActive: true };
+    db.prepare(`
+      INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 1, ?, ?)
+    `).run(cashierUser.id, cashierUser.name, cashierUser.role, '$2b$10$dummyhashfortest000000', now, now);
 
     setSessionForTesting({
-      user: { id: generateUuidV7(), name: 'Owner', role: 'owner', isActive: true },
-      branch: { id: generateUuidV7(), name: 'Main Branch' },
-      counter: { id: generateUuidV7(), name: 'Counter 1' },
+      user: cashierUser,
+      branch: { id: tenant.branchId, name: 'Main Branch' },
+      counter: { id: tenant.counterId, name: 'Counter 1' },
       isLocked: false,
       idleTimeoutMinutes: 5,
     });
     lockSession();
 
-    // Verify whether the backup:restore guard in index.ts checks session.isLocked or uses assertRole/requireRole
-    const restoreBlock = restoreHandlerMatch![0];
-    expect(restoreBlock).toMatch(/isLocked|assertRole|requireRole/);
+    const getAllProducts = registry.get('products:get-all');
+    expect(getAllProducts).toBeDefined();
+    await expect(
+      getAllProducts!.handler({} as Electron.IpcMainInvokeEvent, {})
+    ).rejects.toThrow(/locked/i);
+
+    // 3. Context Injection: caller passing spoofed cashierUserId has it overridden with session user
+    setSessionForTesting({
+      user: cashierUser,
+      branch: { id: tenant.branchId, name: 'Main Branch' },
+      counter: { id: tenant.counterId, name: 'Counter 1' },
+      isLocked: false,
+      idleTimeoutMinutes: 5,
+    });
+
+    const spoofedCashierId = generateUuidV7();
+    const spoofedCounterId = generateUuidV7();
+
+    const supplier = createSupplier({ name: 'H04 Supplier' });
+    receiveGrn({
+      supplierId: supplier.id,
+      supplierInvoiceNo: 'GRN-H04',
+      invoiceDate: '2026-10-28',
+      lines: [
+        {
+          productId: tenant.productId,
+          batchNo: 'B-H04-1',
+          expiryDate: '2028-12-31',
+          quantity: 10,
+          costPaisa: 3000,
+          mrpPaisa: 5000,
+        },
+      ],
+    });
+
+    const saleResult = await roleGuardedFinalizeSale(
+      {
+        clientRequestId: generateUuidV7(),
+        cashierUserId: spoofedCashierId,
+        counterId: spoofedCounterId,
+        lines: [
+          {
+            productId: tenant.productId,
+            quantity: 1,
+            discountPaisa: 0,
+          },
+        ],
+        payments: [
+          {
+            method: 'cash',
+            amountPaisa: 5000,
+          },
+        ],
+      },
+      db
+    );
+
+    // Verified: invoice MUST record the session user & counter, NOT the attacker-supplied IDs
+    expect(saleResult.cashierUserId).toBe(cashierUser.id);
+    expect(saleResult.cashierUserId).not.toBe(spoofedCashierId);
+    expect(saleResult.counterId).toBe(tenant.counterId);
+    expect(saleResult.counterId).not.toBe(spoofedCounterId);
+
+    // 4. Shift close ownership check: cashier cannot close another cashier's shift
+    const otherCashierId = generateUuidV7();
+    db.prepare(`
+      INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 1, ?, ?)
+    `).run(otherCashierId, 'Other Cashier', 'cashier', '$2b$10$dummyhashfortest000000', now, now);
+
+    const otherShift = openShift(
+      { openingCashPaisa: 5000 },
+      { branchId: tenant.branchId, counterId: tenant.counterId, cashierUserId: otherCashierId, rawDb: db }
+    );
+
+    // Current session is cashierUser (not otherCashierId) -> closing otherShift must throw
+    expect(() =>
+      closeShift(
+        { shiftId: otherShift.id, countedCashPaisa: 5000 },
+        { cashierUserId: cashierUser.id, userRole: 'cashier', rawDb: db }
+      )
+    ).toThrow(/Cashier may only close their own shift/);
+
+    // Pharmacist or Owner can close any shift
+    const closedShift = closeShift(
+      { shiftId: otherShift.id, countedCashPaisa: 5000 },
+      { cashierUserId: tenant.ownerId, userRole: 'owner', rawDb: db }
+    );
+    expect(closedShift.status).toBe('closed');
+
+    // 5. Sensitive data stripping: pin_hash, pinHash, password_hash, tokens are purged
+    const sanitized = sanitizeIpcOutput({
+      id: generateUuidV7(),
+      name: 'Test Safe User',
+      pin_hash: '$2b$10$supersecretstring',
+      pinHash: '$2b$10$supersecretstring',
+      token: 'jwt.token.secret',
+      nested: {
+        pin_hash: 'nested secret',
+        keepMe: 'safe value',
+      },
+    });
+    expect((sanitized as Record<string, unknown>).pin_hash).toBeUndefined();
+    expect((sanitized as Record<string, unknown>).pinHash).toBeUndefined();
+    expect((sanitized as Record<string, unknown>).token).toBeUndefined();
+    expect((sanitized as { nested: Record<string, unknown> }).nested.pin_hash).toBeUndefined();
+    expect((sanitized as { nested: Record<string, unknown> }).nested.keepMe).toBe('safe value');
+
+    // 6. Sender Frame validation: rejects untrusted frame URLs or child frames
+    expect(() =>
+      validateSenderFrame({
+        sender: {} as Electron.WebContents,
+        senderFrame: {
+          parent: {} as Electron.WebFrameMain, // child frame
+          url: 'http://localhost:5173',
+        } as unknown as Electron.WebFrameMain,
+      } as Electron.IpcMainInvokeEvent)
+    ).toThrow(/Child frames and iframes are forbidden/);
+
+    expect(() =>
+      validateSenderFrame({
+        sender: {} as Electron.WebContents,
+        senderFrame: {
+          parent: null,
+          url: 'https://malicious-site.com/exploit.html',
+        } as unknown as Electron.WebFrameMain,
+      } as Electron.IpcMainInvokeEvent)
+    ).toThrow(/Untrusted origin/);
+
+    worker.stop();
   });
 
   it('H-05: POST /api/auth/login enforces rate limiting against brute-force PIN attempts', async () => {
@@ -1095,11 +1279,14 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
       mainIndexSource.indexOf('app.whenReady()')
     );
 
-    // ipcMain.handle inside createWindow crashes Electron on window re-creation unless handlers are registered once outside createWindow or cleaned up with removeHandler
-    const registersIpcInsideCreateWindow = createWindowSection.includes("ipcMain.handle('ping'");
-    const removesHandlersBeforeRegistering = createWindowSection.includes('ipcMain.removeHandler');
+    // No IPC registrations should happen inside createWindow
+    const registersIpcInsideCreateWindow = createWindowSection.includes("ipcMain.handle") ||
+      createWindowSection.includes("registerSecureIpcHandler");
+    expect(registersIpcInsideCreateWindow).toBe(false);
 
-    expect(registersIpcInsideCreateWindow && !removesHandlersBeforeRegistering).toBe(false);
+    // Handlers must be registered via registerAllIpcHandlers outside createWindow
+    expect(mainIndexSource).toMatch(/function registerAllIpcHandlers|const registerAllIpcHandlers/);
+    expect(mainIndexSource).toContain('registerAllIpcHandlers()');
   });
 
   it('H-13: desktop and web index.html do not load external Google Fonts CDNs (Rule 10 offline requirement)', () => {

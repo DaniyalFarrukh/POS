@@ -46,10 +46,19 @@ describe('Tax & Invoice Calculation Utilities (Phase 2)', () => {
       expect(roundHalfUp(50000, 10000)).toBe(5);
     });
 
-    it('handles negative numbers symmetrically', () => {
+    it('handles negative numbers symmetrically and avoids -0', () => {
       expect(roundHalfUp(-5000, 10000)).toBe(-1);
-      expect(roundHalfUp(-4999, 10000)).toBe(-0);
+      expect(roundHalfUp(-4999, 10000)).toBe(0);
+      expect(Object.is(roundHalfUp(-4999, 10000), 0)).toBe(true);
       expect(roundHalfUp(-15000, 10000)).toBe(-2);
+    });
+
+    it('rejects non-integer, NaN, and Infinity in numerator and denominator', () => {
+      expect(() => roundHalfUp(NaN, 10000)).toThrow(/must be finite integers/);
+      expect(() => roundHalfUp(100, NaN)).toThrow(/must be finite integers/);
+      expect(() => roundHalfUp(Infinity, 10000)).toThrow(/must be finite integers/);
+      expect(() => roundHalfUp(10.5, 10000)).toThrow(/must be finite integers/);
+      expect(() => roundHalfUp(100, 10.5)).toThrow(/must be finite integers/);
     });
 
     it('throws if denominator is non-positive', () => {
@@ -190,6 +199,32 @@ describe('Tax & Invoice Calculation Utilities (Phase 2)', () => {
       expect(totals.totalTaxPaisa).toBe(0);
       expect(totals.grandTotalPaisa).toBe(0);
       expect(totals.lines).toHaveLength(0);
+    });
+
+    it('rejects negative discountBp and negative flatDiscountPaisa', () => {
+      expect(() =>
+        computeInvoiceTotals([
+          {
+            unitPricePaisa: 1000,
+            quantity: 1,
+            discountBp: -100,
+            taxRateBp: 0,
+            isTaxExempt: true,
+          },
+        ])
+      ).toThrow(/discountBp/i);
+
+      expect(() =>
+        computeInvoiceTotals([
+          {
+            unitPricePaisa: 1000,
+            quantity: 1,
+            flatDiscountPaisa: -50,
+            taxRateBp: 0,
+            isTaxExempt: true,
+          },
+        ])
+      ).toThrow(/flatDiscountPaisa/i);
     });
   });
 

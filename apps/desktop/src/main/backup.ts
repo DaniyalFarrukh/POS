@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { app } from 'electron';
-import type { Database as DatabaseInstance } from 'better-sqlite3';
+import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
 import { getDatabase, getDbPath, closeDatabase, initDatabase } from './db';
 
 export interface BackupInfo {
@@ -199,6 +199,7 @@ export async function restoreDatabaseBackup(
     customDir?: string;
     targetDbPath?: string;
     onBeforeRestore?: () => void;
+    shouldRelaunch?: boolean;
   } = {}
 ): Promise<RestoreResult> {
   if (userRole !== 'owner') {
@@ -216,7 +217,32 @@ export async function restoreDatabaseBackup(
 
   console.log(`[Backup] Initiating safe database restore from: ${backupFilePath}`);
 
-  // 1. Create safety pre-restore backup of current DB if it exists
+  // (b) Restore into temporary file
+  const tempDbPath = `${targetDbPath}.restore-tmp`;
+  if (fs.existsSync(tempDbPath)) {
+    try {
+      fs.unlinkSync(tempDbPath);
+    } catch {
+      // Ignore
+    }
+  }
+  fs.copyFileSync(backupFilePath, tempDbPath);
+
+  // (c) Execute PRAGMA integrity_check on temporary file
+  let tempDb: DatabaseInstance | null = null;
+  try {
+    tempDb = new Database(tempDbPath, { readonly: true, fileMustExist: true });
+    const checkResult = tempDb.pragma('integrity_check', { simple: true }) as string;
+    if (checkResult !== 'ok') {
+      throw new Error(`Restored database failed integrity check: ${checkResult}`);
+    }
+  } finally {
+    if (tempDb) {
+      tempDb.close();
+    }
+  }
+
+  // (a) Create automated safety backup of current active DB
   let safetyBackupFile: string | undefined;
   if (fs.existsSync(targetDbPath)) {
     try {
@@ -235,7 +261,7 @@ export async function restoreDatabaseBackup(
     options.onBeforeRestore();
   }
 
-  // 2. Close active database connection to release WAL and lock handles
+  // Close active database connection to release WAL and lock handles
   closeDatabase();
 
   // Remove existing WAL and SHM journal files if present
@@ -256,19 +282,32 @@ export async function restoreDatabaseBackup(
     }
   }
 
-  // 3. Overwrite active database file with backup copy
-  fs.copyFileSync(backupFilePath, targetDbPath);
-
-  // 4. Re-open database and verify integrity
-  initDatabase(targetDbPath);
-  const newDb = getDatabase();
-  const integrity = newDb.pragma('integrity_check', { simple: true }) as string;
-
-  if (integrity !== 'ok') {
-    throw new Error(`Restored database failed integrity check: ${integrity}`);
+  // (d) Swap file
+  fs.copyFileSync(tempDbPath, targetDbPath);
+  try {
+    fs.unlinkSync(tempDbPath);
+  } catch {
+    // Ignore
   }
 
+  // Re-open active database
+  initDatabase(targetDbPath);
   console.log(`[Backup] Database restored and verified successfully from '${backupFilename}'`);
+
+  // (e) Restart app if requested and in app environment
+  if (
+    options.shouldRelaunch !== false &&
+    app &&
+    typeof app.relaunch === 'function' &&
+    process.env.NODE_ENV !== 'test'
+  ) {
+    try {
+      app.relaunch();
+      app.exit(0);
+    } catch {
+      // Ignore in non-electron runner
+    }
+  }
 
   return {
     success: true,

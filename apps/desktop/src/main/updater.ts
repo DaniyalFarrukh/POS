@@ -1,6 +1,5 @@
 import { app, type BrowserWindow } from 'electron';
 import electronUpdater from 'electron-updater';
-const { autoUpdater } = electronUpdater;
 import { logInfo, logWarn, logError } from './logger';
 
 export interface UpdateCheckResult {
@@ -16,11 +15,27 @@ export type UpdateStatus = 'idle' | 'checking' | 'available' | 'not-available' |
 let currentStatus: UpdateStatus = 'idle';
 let lastCheckedAt: string | undefined;
 
+function getAutoUpdater() {
+  if (app && typeof app.getVersion === 'function') {
+    try {
+      return electronUpdater.autoUpdater;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 /**
  * Initializes electron-updater pointing to the configured releases endpoint.
  * Note: Uses placeholder endpoint for production distribution updates.
  */
 export function initAutoUpdater(mainWindow?: BrowserWindow): void {
+  const autoUpdater = getAutoUpdater();
+  if (!autoUpdater) {
+    return;
+  }
+
   // Never auto-download updates without explicit confirmation
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
@@ -77,7 +92,14 @@ export function initAutoUpdater(mainWindow?: BrowserWindow): void {
  * Manually checks for updates and returns result to the renderer.
  */
 export async function checkForUpdates(): Promise<UpdateCheckResult> {
-  const currentVersion = app ? app.getVersion() : '0.1.0';
+  const currentVersion = app && typeof app.getVersion === 'function' ? app.getVersion() : '0.1.0';
+  const autoUpdater = getAutoUpdater();
+  if (!autoUpdater) {
+    return {
+      updateAvailable: false,
+      currentVersion,
+    };
+  }
 
   // If in packaged mode or test mode
   try {

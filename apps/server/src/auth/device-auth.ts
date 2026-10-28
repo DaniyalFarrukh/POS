@@ -98,6 +98,17 @@ export async function requireDeviceAuth(
       counterId: device.counterId,
       deviceName: device.deviceName,
     };
+
+    // Update lastSeenAt asynchronously (M-09)
+    if (typeof db.update === 'function') {
+      const now = new Date().toISOString();
+      db.update(devices)
+        .set({ lastSeenAt: now, updatedAt: now })
+        .where(eq(devices.id, device.id))
+        .catch((err) => {
+          request.log.error(err, 'Failed to update device lastSeenAt');
+        });
+    }
   } catch (err) {
     request.log.error(err, 'Failed to authenticate device');
     reply.status(500).send({

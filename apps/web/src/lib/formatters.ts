@@ -1,13 +1,11 @@
+import { formatPKR } from '@pos/shared';
+
 /**
  * Rule 1: Money is always integer paisa.
  * Formats integer paisa as PKR currency string: "Rs. 1,250.00"
  */
 export function formatPaisa(paisa: number): string {
-  const rupees = (paisa || 0) / 100;
-  return `Rs. ${rupees.toLocaleString('en-PK', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return formatPKR(paisa);
 }
 
 /**

@@ -17,7 +17,6 @@ import type {
   PurchaseRecord,
   StockAdjustmentInput,
   StockFilterParams,
-  CreateInvoiceInput,
   InvoiceRecord,
   FinalizeSaleInput,
   InvoiceSearchParams,
@@ -145,7 +144,6 @@ export interface SalesApi {
 }
 
 export interface InvoiceApi {
-  createInvoice: (input: CreateInvoiceInput) => Promise<InvoiceRecord>;
   getRecentInvoices: (limit?: number) => Promise<InvoiceRecord[]>;
   searchInvoices: (params?: InvoiceSearchParams) => Promise<InvoiceRecord[]>;
   getInvoice: (id: string) => Promise<InvoiceRecord | null>;
@@ -202,7 +200,7 @@ export interface BackupRecord {
 export interface BackupApi {
   create: () => Promise<{ success: boolean; filename: string; path: string; sizeBytes: number }>;
   list: () => Promise<BackupRecord[]>;
-  restore: (filename: string) => Promise<{ success: boolean; safetyBackupFile: string }>;
+  restore: (filename: string, ownerPin: string) => Promise<{ success: boolean; safetyBackupFile: string }>;
 }
 
 export interface UpdaterApi {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Supplier, ProductWithTax, PurchaseRecord } from '@pos/shared';
-import { convertRupeesToPaisa, formatPaisaToRupees, calculateLineTotalPaisa } from '@pos/shared';
+import { convertRupeesToPaisa, formatPaisaToRupees, calculateLineTotalPaisa, roundHalfUp, formatPKR } from '@pos/shared';
 
 interface GrnLineItem {
   id: string; // client temporary line id
@@ -170,9 +170,9 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
   };
 
   const handleSelectProduct = (lineId: string, p: ProductWithTax) => {
-    const costRupees = (p.mrpPaisa * 0.8 / 100).toFixed(2); // standard 20% trade discount preview
-    const costPaisa = Math.round(p.mrpPaisa * 0.8);
-    const mrpRupees = (p.mrpPaisa / 100).toFixed(2);
+    const costPaisa = roundHalfUp(p.mrpPaisa * 8, 10); // standard 20% trade discount preview
+    const costRupees = formatPKR(costPaisa, { showPrefix: false });
+    const mrpRupees = formatPKR(p.mrpPaisa, { showPrefix: false });
 
     updateLine(lineId, {
       productId: p.id,

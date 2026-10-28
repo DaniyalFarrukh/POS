@@ -3,7 +3,8 @@ import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
 import { MIGRATIONS, setDatabaseForTesting } from './db';
 import { finalizeSale } from './finalizeSale';
 import { processReturn, getReturnableInvoiceLines } from './returns';
-import { openShift, closeShift, getCurrentShift, getShiftHistory } from './shifts';
+import { openShift, closeShift, getCurrentShift, getShiftHistory, roleGuardedGetShiftHistory } from './shifts';
+import { setSessionForTesting } from './auth';
 import { generateUuidV7 } from '@pos/shared';
 
 describe('Returns & Shift Closing (Phase 2)', () => {
@@ -550,6 +551,37 @@ describe('Returns & Shift Closing (Phase 2)', () => {
       expect(eventTypes).toContain('invoice.created');
       expect(eventTypes).toContain('credit_note.created');
       expect(eventTypes).toContain('shift.closed');
+    });
+
+    it('enforces caller session branch and counter for non-owner in roleGuardedGetShiftHistory (L-04)', () => {
+      const otherCounterId = generateUuidV7();
+      const otherBranchId = generateUuidV7();
+
+      // Open shift on counterId
+      openShift(
+        { openingCashPaisa: 5000 },
+        { counterId, cashierUserId, branchId, rawDb: db }
+      );
+
+      // Set cashier session bound to counterId / branchId
+      setSessionForTesting({
+        user: { id: cashierUserId, name: 'Cashier 1', role: 'cashier', isActive: true },
+        branch: { id: branchId, name: 'Main Branch' },
+        counter: { id: counterId, name: 'Counter 1' },
+        idleTimeoutMinutes: 15,
+        isLocked: false,
+      });
+
+      // Cashier tries to query otherCounterId / otherBranchId via options
+      const history = roleGuardedGetShiftHistory({
+        counterId: otherCounterId,
+        branchId: otherBranchId,
+      });
+
+      // All returned shifts must belong to the session counter and branch
+      expect(history.length).toBe(1);
+      expect(history[0]!.counterId).toBe(counterId);
+      expect(history[0]!.branchId).toBe(branchId);
     });
   });
 });

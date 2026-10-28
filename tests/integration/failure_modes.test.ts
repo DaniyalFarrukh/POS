@@ -36,7 +36,9 @@ describe('Failure Modes & Resilience Integration Tests (Phase 3.4)', () => {
    * (no duplicates, no gaps), in order of deviceSeq, the outbox is fully acked, and backoff delays
    * were applied (use fake timers).
    */
-  it('1. Server outage mid-push: queue 250 events, drop response after first 100, then restore network with backoff', async () => {
+  it(
+    '1. Server outage mid-push: queue 250 events, drop response after first 100, then restore network with backoff',
+    async () => {
     // 1. Queue 250 purchase events on Counter A (each creates 1 batch + 1 movement + 1 outbox event)
     const totalEvents = 250;
     const batchIds: string[] = [];

@@ -1,5 +1,5 @@
 import { getDatabase } from './db';
-import { generateUuidV7, roundPaisa } from '@pos/shared';
+import { generateUuidV7, multiplyByQuantity } from '@pos/shared';
 import type {
   Supplier,
   CreateSupplierInput,
@@ -47,25 +47,34 @@ function getActiveContext(): { branchId: string; userId: string } {
 // ---------------------------------------------------------------------------
 // 1. Suppliers CRUD
 // ---------------------------------------------------------------------------
-export function getSuppliers(): Supplier[] {
+export function getSuppliers(includeInactive = false): Supplier[] {
   const db = getDatabase();
-  const rows = db.prepare(`
-    SELECT id, name, contact_person as contactPerson, phone, email, address,
-           created_at as createdAt, updated_at as updatedAt
-    FROM suppliers
-    ORDER BY name ASC
-  `).all() as Supplier[];
+  const query = includeInactive
+    ? `SELECT id, name, contact_person as contactPerson, phone, email, address, is_active as isActive,
+              created_at as createdAt, updated_at as updatedAt
+       FROM suppliers
+       ORDER BY name ASC`
+    : `SELECT id, name, contact_person as contactPerson, phone, email, address, is_active as isActive,
+              created_at as createdAt, updated_at as updatedAt
+       FROM suppliers
+       WHERE is_active = 1
+       ORDER BY name ASC`;
+  const rows = db.prepare(query).all() as Supplier[];
   return rows;
 }
 
-export function getSupplier(id: string): Supplier | null {
+export function getSupplier(id: string, includeInactive = false): Supplier | null {
   const db = getDatabase();
-  const row = db.prepare(`
-    SELECT id, name, contact_person as contactPerson, phone, email, address,
+  const query = includeInactive
+    ? `SELECT id, name, contact_person as contactPerson, phone, email, address, is_active as isActive,
            created_at as createdAt, updated_at as updatedAt
     FROM suppliers
-    WHERE id = ?
-  `).get(id) as Supplier | undefined;
+    WHERE id = ?`
+    : `SELECT id, name, contact_person as contactPerson, phone, email, address, is_active as isActive,
+           created_at as createdAt, updated_at as updatedAt
+    FROM suppliers
+    WHERE id = ? AND is_active = 1`;
+  const row = db.prepare(query).get(id) as Supplier | undefined;
   return row ?? null;
 }
 
@@ -96,6 +105,7 @@ export function createSupplier(input: CreateSupplierInput): Supplier {
     phone: validated.phone ?? null,
     email: validated.email ?? null,
     address: validated.address ?? null,
+    isActive: true,
     createdAt: now,
     updatedAt: now,
   };
@@ -143,7 +153,16 @@ export function deleteSupplier(id: string): { success: boolean } {
     throw new Error(`Cannot delete supplier: ${usage.count} purchase record(s) exist`);
   }
 
-  const res = db.prepare('DELETE FROM suppliers WHERE id = ?').run(id);
+  const now = new Date().toISOString();
+  // Soft delete (deactivate) so supplier is marked inactive without destroying relational data
+  const res = db.prepare('UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?').run(now, id);
+  return { success: res.changes > 0 };
+}
+
+export function deactivateSupplier(id: string): { success: boolean } {
+  const db = getDatabase();
+  const now = new Date().toISOString();
+  const res = db.prepare('UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?').run(now, id);
   return { success: res.changes > 0 };
 }
 
@@ -210,10 +229,31 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
   const purchaseId = generateUuidV7();
   let totalCostPaisa = 0;
   for (const line of validated.lines) {
-    totalCostPaisa += roundPaisa(line.quantity * line.costPaisa);
+    totalCostPaisa += multiplyByQuantity(line.costPaisa, line.quantity);
   }
 
   const createdLines: PurchaseLineRecord[] = [];
+  const batchesMap = new Map<
+    string,
+    {
+      id: string;
+      productId: string;
+      batchNo: string;
+      expiryDate: string;
+      costPaisa: number;
+      mrpPaisa: number;
+      createdAt: string;
+    }
+  >();
+  const linesForPayload: Array<{
+    id: string;
+    movementId: string;
+    productId: string;
+    batchId: string;
+    quantity: number;
+    costPaisa: number;
+    mrpPaisa: number;
+  }> = [];
 
   // Rule 5: Writes touching multiple rows happen in ONE database transaction.
   const receiveTx = db.transaction(() => {
@@ -241,6 +281,15 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
       if (existingBatch) {
         // Reuse existing batch ID (merging batch per requirement!)
         batchId = existingBatch.id;
+        batchesMap.set(batchId, {
+          id: batchId,
+          productId: line.productId,
+          batchNo: line.batchNo,
+          expiryDate: existingBatch.expiry_date,
+          costPaisa: existingBatch.cost_paisa,
+          mrpPaisa: existingBatch.mrp_paisa,
+          createdAt: now,
+        });
       } else {
         // Create new batch
         batchId = generateUuidV7();
@@ -254,6 +303,15 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
           now,
           now
         );
+        batchesMap.set(batchId, {
+          id: batchId,
+          productId: line.productId,
+          batchNo: line.batchNo,
+          expiryDate: line.expiryDate,
+          costPaisa: line.costPaisa,
+          mrpPaisa: line.mrpPaisa,
+          createdAt: now,
+        });
       }
 
       // Insert purchase line
@@ -299,20 +357,46 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
         createdAt: now,
         updatedAt: now,
       });
+
+      linesForPayload.push({
+        id: lineId,
+        movementId,
+        productId: line.productId,
+        batchId,
+        quantity: line.quantity,
+        costPaisa: line.costPaisa,
+        mrpPaisa: line.mrpPaisa,
+      });
     }
 
-    // 3. Write outbox event in same transaction (Rule 5)
+    // 3. Write outbox event in same transaction (Rule 5) matching PurchaseReceivedPayloadSchema
     const outboxEventId = generateUuidV7();
     insertOutboxStmt.run(
       outboxEventId,
       outboxEventId,
       purchaseId,
       JSON.stringify({
-        purchaseId,
-        supplierId: validated.supplierId,
-        supplierInvoiceNo: validated.supplierInvoiceNo,
-        totalCostPaisa,
-        lineCount: validated.lines.length,
+        purchase: {
+          id: purchaseId,
+          branchId,
+          supplierId: validated.supplierId,
+          supplierInvoiceNo: validated.supplierInvoiceNo,
+          invoiceDate: validated.invoiceDate,
+          totalCostPaisa,
+          createdByUserId: userId,
+          createdAt: now,
+        },
+        supplier: {
+          id: supplier.id,
+          name: supplier.name,
+          contactPerson: supplier.contactPerson ?? null,
+          phone: supplier.phone ?? null,
+          email: supplier.email ?? null,
+          address: supplier.address ?? null,
+          createdAt: supplier.createdAt,
+        },
+        batches: Array.from(batchesMap.values()),
+        lines: linesForPayload,
       }),
       now,
       now
@@ -375,22 +459,27 @@ export function getStockOverviewByProduct(rawParams: StockFilterParams): StockOv
 
   // Filter application on computed balance or expiry
   let filterHaving = '';
+  const filterArgs: unknown[] = [];
   const today = new Date().toISOString().slice(0, 10);
-  const d60 = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
-  const d90 = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+  const now = Date.now();
+  const d60 = new Date(now + 60 * 86400000).toISOString().slice(0, 10);
+  const d90 = new Date(now + 90 * 86400000).toISOString().slice(0, 10);
 
   if (params.filter === 'low_stock') {
     filterHaving = 'AND COALESCE(sm.total_balance, 0) <= 10';
   } else if (params.filter === 'expiring_60') {
-    filterHaving = `AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= '${d60}' AND b.earliest_expiry >= '${today}'`;
+    filterHaving = 'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= ? AND b.earliest_expiry >= ?';
+    filterArgs.push(d60, today);
   } else if (params.filter === 'expiring_90') {
-    filterHaving = `AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= '${d90}' AND b.earliest_expiry >= '${today}'`;
+    filterHaving = 'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= ? AND b.earliest_expiry >= ?';
+    filterArgs.push(d90, today);
   } else if (params.filter === 'expired') {
-    filterHaving = `AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry < '${today}'`;
+    filterHaving = 'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry < ?';
+    filterArgs.push(today);
   }
 
   const countSql = `SELECT COUNT(*) as count ${baseSql} ${filterHaving}`;
-  const totalRow = db.prepare(countSql).get(...queryArgs) as { count: number };
+  const totalRow = db.prepare(countSql).get(...queryArgs, ...filterArgs) as { count: number };
   const total = totalRow.count;
 
   const offset = (params.page - 1) * params.pageSize;
@@ -415,7 +504,7 @@ export function getStockOverviewByProduct(rawParams: StockFilterParams): StockOv
     isControlled: number;
   };
 
-  const rows = db.prepare(dataSql).all(...queryArgs, params.pageSize, offset) as RawProductOverviewRow[];
+  const rows = db.prepare(dataSql).all(...queryArgs, ...filterArgs, params.pageSize, offset) as RawProductOverviewRow[];
   const items: StockOverviewProduct[] = rows.map((r) => ({
     productId: r.productId,
     brandName: r.brandName,
@@ -453,17 +542,21 @@ export function getStockOverviewByBatch(rawParams: StockFilterParams): StockOver
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const d60 = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
-  const d90 = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+  const now = Date.now();
+  const d60 = new Date(now + 60 * 86400000).toISOString().slice(0, 10);
+  const d90 = new Date(now + 90 * 86400000).toISOString().slice(0, 10);
 
   if (params.filter === 'low_stock') {
     conditions.push('COALESCE(sm.balance, 0) <= 10');
   } else if (params.filter === 'expiring_60') {
-    conditions.push(`b.expiry_date <= '${d60}' AND b.expiry_date >= '${today}'`);
+    conditions.push('b.expiry_date <= ? AND b.expiry_date >= ?');
+    queryArgs.push(d60, today);
   } else if (params.filter === 'expiring_90') {
-    conditions.push(`b.expiry_date <= '${d90}' AND b.expiry_date >= '${today}'`);
+    conditions.push('b.expiry_date <= ? AND b.expiry_date >= ?');
+    queryArgs.push(d90, today);
   } else if (params.filter === 'expired') {
-    conditions.push(`b.expiry_date < '${today}'`);
+    conditions.push('b.expiry_date < ?');
+    queryArgs.push(today);
   }
 
   const whereClause = `WHERE ${conditions.join(' AND ')}`;
@@ -592,20 +685,22 @@ export function adjustStock(input: StockAdjustmentInput): {
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
       ) VALUES (
-        ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'stock_adjustment.created', 'stock.adjusted', ?, ?, ?, 'pending', 0, ?
+        ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'stock_adjustment.created', 'stock_adjustment.created', ?, ?, ?, 'pending', 0, ?
       )
     `).run(
       outboxEventId,
       outboxEventId,
       movementId,
       JSON.stringify({
+        id: movementId,
         movementId,
         productId: validated.productId,
         batchId: validated.batchId,
         branchId,
         quantitySigned: validated.quantitySigned,
         reasonType: validated.reasonType,
-        reason: validated.reason,
+        reason: formattedReason,
+        createdAt: now,
       }),
       now,
       now

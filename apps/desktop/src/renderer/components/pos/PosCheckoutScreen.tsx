@@ -5,6 +5,7 @@ import { computeLineWarning } from './types';
 import {
   computeInvoiceTotals,
   formatPKR,
+  convertRupeesToPaisa,
   generateUuidV7,
   roundHalfUp,
   type InvoiceLineInput,
@@ -285,7 +286,12 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
         const bp = Math.max(0, Math.min(10000, Math.round(value * 100))); // e.g. 10% -> 1000 bp
         updated[idx] = { ...target, discountType: 'percent', discountBp: bp, flatDiscountPaisa: 0 };
       } else if (type === 'flat') {
-        const paisa = Math.max(0, Math.round(value * 100)); // Rupees -> paisa
+        let paisa = 0;
+        try {
+          paisa = Math.max(0, convertRupeesToPaisa(value));
+        } catch {
+          paisa = 0;
+        }
         updated[idx] = { ...target, discountType: 'flat', discountBp: 0, flatDiscountPaisa: paisa };
       }
       return updated;

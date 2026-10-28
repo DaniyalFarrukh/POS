@@ -14,6 +14,7 @@ export type UpdateSupplierInput = z.infer<typeof UpdateSupplierInputSchema>;
 
 export const SupplierSchema = SupplierInputSchema.extend({
   id: z.string().uuid(),
+  isActive: z.boolean().or(z.number()).transform((v) => Boolean(v)).default(true),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
