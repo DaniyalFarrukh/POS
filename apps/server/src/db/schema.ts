@@ -110,7 +110,9 @@ export const users = pgTable(
       .notNull()
       .references(() => pharmacies.id, { onDelete: 'restrict' }),
     name: text('name').notNull(),
-    role: text('role', { enum: ['owner', 'pharmacist', 'cashier'] }).notNull(),
+    role: text('role', {
+      enum: ['owner', 'manager', 'accountant', 'pharmacist', 'cashier'],
+    }).notNull(),
     pinHash: text('pin_hash').notNull(),
     isActive: boolean('is_active').notNull().default(true),
     failedLoginAttempts: integer('failed_login_attempts').notNull().default(0),

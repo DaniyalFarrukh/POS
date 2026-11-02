@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { getSharedInfo } from '@pos/shared';
+import { getSharedInfo, type AppPermission } from '@pos/shared';
 import * as schema from './db/schema';
 import { getDb } from './db';
 import cors from '@fastify/cors';
@@ -11,6 +11,7 @@ import { authRoutes } from './routes/auth';
 import { dashboardRoutes } from './routes/dashboard';
 import { reportRoutes } from './routes/reports';
 import { adminRoutes } from './routes/admin';
+import { financeRoutes } from './routes/finance';
 import { requireDeviceAuth } from './auth/device-auth';
 
 export interface BuildAppOptions {
@@ -46,6 +47,22 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     global: false,
   });
 
+  // Global onRoute hook to associate declared permissions from preHandlers to route configs
+  app.addHook('onRoute', (routeOptions) => {
+    if (routeOptions.preHandler) {
+      const handlers = Array.isArray(routeOptions.preHandler)
+        ? routeOptions.preHandler
+        : [routeOptions.preHandler];
+      for (const h of handlers) {
+        const handlerWithPerm = h as unknown as { requiredPermission?: AppPermission };
+        if (handlerWithPerm?.requiredPermission) {
+          routeOptions.config = routeOptions.config || {};
+          routeOptions.config.requiredPermission = handlerWithPerm.requiredPermission;
+        }
+      }
+    }
+  });
+
   // Health check route
   app.get('/health', async () => {
     return {
@@ -76,6 +93,7 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.register(dashboardRoutes, { prefix: '/api/dashboard' });
   app.register(reportRoutes, { prefix: '/api/reports' });
   app.register(adminRoutes, { prefix: '/api/admin' });
+  app.register(financeRoutes, { prefix: '/api/finance' });
 
   // Test protected endpoint to prove tenant identity is strictly read from JWT/deviceContext (development/test only)
   if (process.env.NODE_ENV !== 'production') {

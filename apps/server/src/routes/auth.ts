@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { users, pharmacies } from '../db/schema';
 import { signUserToken } from '../auth/jwt';
-import { requireUserAuth } from '../auth/user-auth';
+import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 
 interface LoginBody {
@@ -207,7 +207,7 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
    */
   fastify.get(
     '/me',
-    { preHandler: [requireUserAuth(['owner', 'pharmacist', 'cashier'])] },
+    { preHandler: [requirePermission('auth.me.view')] },
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();

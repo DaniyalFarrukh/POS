@@ -313,6 +313,14 @@ export function setSessionForTesting(session: AuthSession | null): void {
  * 2. Session must not be locked (otherwise throws AuthError).
  * 3. Session user's role must be in allowedRoles (otherwise throws ForbiddenError).
  */
+/**
+ * Role mapping for desktop counter app (per docs/ERP_SPEC.md):
+ * - 'owner': full counter and back-office administrative access.
+ * - 'manager': operational supervisor (counter sales, stock, purchasing, shifts).
+ * - 'pharmacist': clinical supervisor (counter dispensing, batch/expiry, inventory).
+ * - 'cashier': counter sales, receipts, shifts, cash count.
+ * - 'accountant': counter read-only (sales viewing, financial reports).
+ */
 export function assertRole(
   session: AuthSession | null,
   allowedRoles: UserRole[]

@@ -34,7 +34,9 @@ export const users = sqliteTable(
   {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
-    role: text('role', { enum: ['owner', 'pharmacist', 'cashier'] }).notNull(),
+    role: text('role', {
+      enum: ['owner', 'manager', 'accountant', 'pharmacist', 'cashier'],
+    }).notNull(),
     pinHash: text('pin_hash').notNull(),
     isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
     failedLoginAttempts: integer('failed_login_attempts').notNull().default(0),

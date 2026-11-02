@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
+import type { UserRole } from '@pos/shared';
 
 export interface DeviceTokenPayload {
   pharmacyId: string;
@@ -113,7 +114,7 @@ export function verifyDeviceToken(
 export interface UserTokenPayload {
   userId: string;
   pharmacyId: string;
-  role: 'owner' | 'pharmacist' | 'cashier';
+  role: UserRole;
   name: string;
 }
 
@@ -173,7 +174,7 @@ export function verifyUserToken(
   return {
     userId,
     pharmacyId,
-    role: role as 'owner' | 'pharmacist' | 'cashier',
+    role: role as UserRole,
     name,
   };
 }

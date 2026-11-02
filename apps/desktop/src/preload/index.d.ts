@@ -1,4 +1,5 @@
 import type {
+  UserRole,
   SetupInput,
   LoginInput,
   UnlockInput,
@@ -104,20 +105,20 @@ export interface StockApi {
 export interface StaffMember {
   id: string;
   name: string;
-  role: 'owner' | 'pharmacist' | 'cashier';
+  role: UserRole;
   isActive: boolean;
   createdAt?: string;
 }
 
 export interface CreateStaffInput {
   name: string;
-  role: 'owner' | 'pharmacist' | 'cashier';
+  role: UserRole;
   pin: string;
 }
 
 export interface UpdateStaffInput {
   name?: string;
-  role?: 'owner' | 'pharmacist' | 'cashier';
+  role?: UserRole;
   pin?: string;
   isActive?: boolean;
 }

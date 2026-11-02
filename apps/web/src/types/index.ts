@@ -1,7 +1,9 @@
+import type { UserRole } from '@pos/shared';
+
 export interface UserContext {
   id: string;
   name: string;
-  role: 'owner' | 'pharmacist' | 'cashier';
+  role: UserRole;
   pharmacyId: string;
   pharmacyName: string;
 }

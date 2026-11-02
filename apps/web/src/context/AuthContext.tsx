@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { hasPermission, type AppPermission } from '@pos/shared';
 import type { UserContext } from '../types';
 import { apiFetch } from '../lib/api';
 
@@ -10,6 +11,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isOwner: boolean;
+  can: (permission: AppPermission) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,6 +76,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('pos_user_context');
   };
 
+  const can = (permission: AppPermission): boolean => {
+    if (!user) return false;
+    return hasPermission(user.role, permission);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -84,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         isAuthenticated: !!token && !!user,
         isOwner: user?.role === 'owner',
+        can,
       }}
     >
       {children}

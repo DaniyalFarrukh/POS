@@ -100,7 +100,7 @@ export const MIGRATIONS: Migration[] = [
         CREATE TABLE IF NOT EXISTS users (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
-          role TEXT NOT NULL CHECK(role IN ('owner', 'pharmacist', 'cashier')),
+          role TEXT NOT NULL CHECK(role IN ('owner', 'manager', 'accountant', 'pharmacist', 'cashier')),
           pin_hash TEXT NOT NULL,
           is_active INTEGER NOT NULL DEFAULT 1,
           failed_login_attempts INTEGER NOT NULL DEFAULT 0,
@@ -788,6 +788,39 @@ export const MIGRATIONS: Migration[] = [
         `
         INSERT OR REPLACE INTO app_meta (key, value)
         VALUES ('schema_version', '9')
+      `
+      ).run();
+    },
+  },
+  {
+    version: 10,
+    name: '0010_expand_user_roles',
+    up: (db: DatabaseInstance): void => {
+      db.pragma('foreign_keys = OFF');
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS users_new (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('owner', 'manager', 'accountant', 'pharmacist', 'cashier')),
+          pin_hash TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+          locked_until TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        INSERT OR IGNORE INTO users_new (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at)
+        SELECT id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at FROM users;
+        DROP TABLE users;
+        ALTER TABLE users_new RENAME TO users;
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_name ON users(name);
+      `);
+      db.pragma('foreign_keys = ON');
+
+      db.prepare(
+        `
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '10')
       `
       ).run();
     },

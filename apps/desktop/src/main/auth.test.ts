@@ -404,6 +404,26 @@ describe('Local Authentication & IPC Role Guard', () => {
       ).rejects.toThrow(AuthError);
     });
 
+    it('allows owner to create staff with manager and accountant roles', async () => {
+      const manager = await createStaffMember(
+        { name: 'Branch Manager', role: 'manager', pin: '654321' },
+        ownerSession,
+        rawDb
+      );
+      expect(manager.role).toBe('manager');
+
+      const accountant = await createStaffMember(
+        { name: 'Head Accountant', role: 'accountant', pin: '765432' },
+        ownerSession,
+        rawDb
+      );
+      expect(accountant.role).toBe('accountant');
+
+      const list = getStaffList(ownerSession, rawDb);
+      expect(list.some((s) => s.role === 'manager')).toBe(true);
+      expect(list.some((s) => s.role === 'accountant')).toBe(true);
+    });
+
     it('forbids cashier or pharmacist from managing staff accounts', async () => {
       const cashierSession = {
         user: { id: generateUuidV7(), name: 'Cashier 1', role: 'cashier' as const, isActive: true },

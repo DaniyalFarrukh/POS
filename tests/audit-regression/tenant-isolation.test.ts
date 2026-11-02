@@ -314,6 +314,11 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       'PATCH /api/admin/devices/:id/revoke',
       'POST /api/admin/registration-codes',
       'GET /api/admin/audit-logs',
+      'GET /api/finance/journals',
+      'POST /api/finance/journals',
+      'POST /api/finance/journals/:id/post',
+      'GET /api/finance/coa',
+      'GET /api/finance/reports/trial-balance',
     ]);
 
     const activeRoutes = capturedRoutes.filter((r) => r.method !== 'OPTIONS' && r.url !== '/*');
@@ -458,6 +463,25 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       expect(dataA.todaySalesPaisa).toBe(5000);
       expect(dataA.todayInvoiceCount).toBe(1);
       expect(dataA.topProducts[0]?.productId).toBe(tenantA.productId);
+    });
+
+    it('GET /api/finance/journals and /api/finance/coa strictly scope queries to the authenticated tenant', async () => {
+      const resA = await app.inject({
+        method: 'GET',
+        url: '/api/finance/journals',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resA.statusCode).toBe(200);
+      expect(resA.json().pharmacyId).toBe(tenantA.pharmacyId);
+
+      const resB = await app.inject({
+        method: 'GET',
+        url: '/api/finance/journals',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(resB.statusCode).toBe(200);
+      expect(resB.json().pharmacyId).toBe(tenantB.pharmacyId);
+      expect(resB.json().pharmacyId).not.toBe(tenantA.pharmacyId);
     });
   });
 

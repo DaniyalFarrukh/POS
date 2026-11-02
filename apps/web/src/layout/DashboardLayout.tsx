@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { AppPermission } from '@pos/shared';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
@@ -28,6 +29,30 @@ export type NavItem =
   | 'admin-devices'
   | 'audit-log';
 
+export const NAV_PERMISSIONS: Record<NavItem, AppPermission> = {
+  overview: 'reports.view',
+  'reports-sales': 'reports.sales.view',
+  'reports-stock': 'reports.stock.view',
+  'reports-profit': 'reports.profit.view',
+  'reports-supplier': 'reports.supplier_ledger.view',
+  'admin-users': 'admin.users.manage',
+  'admin-branches': 'settings.branches.view',
+  'admin-devices': 'settings.devices.view',
+  'audit-log': 'admin.audit_log.view',
+};
+
+interface NavEntry {
+  id: NavItem;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  permission: AppPermission;
+}
+
+interface NavSection {
+  title: string;
+  items: NavEntry[];
+}
+
 interface DashboardLayoutProps {
   currentTab: NavItem;
   onTabChange: (tab: NavItem) => void;
@@ -39,7 +64,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   onTabChange,
   children,
 }) => {
-  const { user, logout, isOwner } = useAuth();
+  const { user, logout, can } = useAuth();
   const [karachiTime, setKarachiTime] = useState<string>('');
 
   useEffect(() => {
@@ -60,15 +85,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const navSections = [
+  const navSections: NavSection[] = [
     {
       title: 'Main',
       items: [
         {
-          id: 'overview' as NavItem,
+          id: 'overview',
           label: 'Overview',
           icon: LayoutDashboard,
-          requiresOwner: false,
+          permission: NAV_PERMISSIONS.overview,
         },
       ],
     },
@@ -76,28 +101,28 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       title: 'Reports & Intelligence',
       items: [
         {
-          id: 'reports-sales' as NavItem,
+          id: 'reports-sales',
           label: 'Sales Report',
           icon: ReceiptText,
-          requiresOwner: false,
+          permission: NAV_PERMISSIONS['reports-sales'],
         },
         {
-          id: 'reports-stock' as NavItem,
+          id: 'reports-stock',
           label: 'Stock & Expiry',
           icon: Boxes,
-          requiresOwner: false,
+          permission: NAV_PERMISSIONS['reports-stock'],
         },
         {
-          id: 'reports-profit' as NavItem,
+          id: 'reports-profit',
           label: 'Profit per Batch',
           icon: TrendingUp,
-          requiresOwner: true,
+          permission: NAV_PERMISSIONS['reports-profit'],
         },
         {
-          id: 'reports-supplier' as NavItem,
+          id: 'reports-supplier',
           label: 'Supplier Ledger',
           icon: Truck,
-          requiresOwner: true,
+          permission: NAV_PERMISSIONS['reports-supplier'],
         },
       ],
     },
@@ -105,28 +130,28 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       title: 'Administration',
       items: [
         {
-          id: 'admin-users' as NavItem,
+          id: 'admin-users',
           label: 'Users & Roles',
           icon: Users,
-          requiresOwner: true,
+          permission: NAV_PERMISSIONS['admin-users'],
         },
         {
-          id: 'admin-branches' as NavItem,
+          id: 'admin-branches',
           label: 'Branches & Counters',
           icon: Store,
-          requiresOwner: true,
+          permission: NAV_PERMISSIONS['admin-branches'],
         },
         {
-          id: 'admin-devices' as NavItem,
+          id: 'admin-devices',
           label: 'Registered Devices',
           icon: MonitorSmartphone,
-          requiresOwner: true,
+          permission: NAV_PERMISSIONS['admin-devices'],
         },
         {
-          id: 'audit-log' as NavItem,
+          id: 'audit-log',
           label: 'Audit Log Viewer',
           icon: ShieldAlert,
-          requiresOwner: true,
+          permission: NAV_PERMISSIONS['audit-log'],
         },
       ],
     },
@@ -154,9 +179,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {/* Navigation List */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
           {navSections.map((sec) => {
-            const visibleItems = sec.items.filter(
-              (item) => !item.requiresOwner || isOwner
-            );
+            const visibleItems = sec.items.filter((item) => can(item.permission));
             if (visibleItems.length === 0) return null;
 
             return (

@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { getKarachiBusinessDate } from '@pos/shared';
-import { requireUserAuth } from '../auth/user-auth';
+import { requirePermission } from '../auth/user-auth';
 import { getDashboardOverview } from '../reports/queries';
 import { getDb } from '../db';
 
@@ -11,7 +11,7 @@ export const dashboardRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get(
     '/overview',
-    { preHandler: [requireUserAuth(['owner', 'pharmacist'])] },
+    { preHandler: [requirePermission('reports.view')] },
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();

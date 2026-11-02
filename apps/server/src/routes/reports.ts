@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and } from 'drizzle-orm';
 import { z } from '@pos/shared';
-import { requireUserAuth } from '../auth/user-auth';
+import { requirePermission } from '../auth/user-auth';
 import {
   getSalesReport,
   getStockAndExpiryReport,
@@ -32,7 +32,7 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get<{ Querystring: SalesQuery }>(
     '/sales',
-    { preHandler: [requireUserAuth(['owner', 'pharmacist'])] },
+    { preHandler: [requirePermission('reports.sales.view')] },
     async (request, reply) => {
       const parsedQuery = SalesQuerySchema.safeParse(request.query);
       if (!parsedQuery.success) {
@@ -89,7 +89,7 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get<{ Querystring: StockQuery }>(
     '/stock-and-expiry',
-    { preHandler: [requireUserAuth(['owner', 'pharmacist'])] },
+    { preHandler: [requirePermission('reports.stock.view')] },
     async (request, reply) => {
       const parsedQuery = StockQuerySchema.safeParse(request.query);
       if (!parsedQuery.success) {
@@ -133,7 +133,7 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get(
     '/profit-per-batch',
-    { preHandler: [requireUserAuth(['owner'])] },
+    { preHandler: [requirePermission('reports.profit.view')] },
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
@@ -151,7 +151,7 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get(
     '/supplier-ledger',
-    { preHandler: [requireUserAuth(['owner'])] },
+    { preHandler: [requirePermission('reports.supplier_ledger.view')] },
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();

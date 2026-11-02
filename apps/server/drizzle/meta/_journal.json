@@ -29,6 +29,13 @@
       "when": 1793263200000,
       "tag": "0003_immutable_finalized_records",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793300000000,
+      "tag": "0004_expand_user_roles",
+      "breakpoints": true
     }
   ]
 }

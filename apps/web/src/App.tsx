@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DashboardLayout, type NavItem } from './layout/DashboardLayout';
+import { DashboardLayout, NAV_PERMISSIONS, type NavItem } from './layout/DashboardLayout';
 import { LoginPage } from './pages/LoginPage';
 import { OverviewPage } from './pages/OverviewPage';
 import { SalesReportPage } from './pages/reports/SalesReportPage';
@@ -11,10 +11,11 @@ import { UsersPage } from './pages/admin/UsersPage';
 import { BranchesCountersPage } from './pages/admin/BranchesCountersPage';
 import { DevicesPage } from './pages/admin/DevicesPage';
 import { AuditLogPage } from './pages/admin/AuditLogPage';
+import { ForbiddenPage } from './pages/ForbiddenPage';
 import { RefreshCw } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
-  const { isAuthenticated, isLoading, isOwner } = useAuth();
+  const { isAuthenticated, isLoading, can } = useAuth();
   const [currentTab, setCurrentTab] = useState<NavItem>('overview');
 
   if (isLoading) {
@@ -33,6 +34,16 @@ const MainAppContent: React.FC = () => {
   }
 
   const renderActiveView = () => {
+    const requiredPermission = NAV_PERMISSIONS[currentTab];
+    if (requiredPermission && !can(requiredPermission)) {
+      return (
+        <ForbiddenPage
+          requiredPermission={requiredPermission}
+          onGoBack={() => setCurrentTab('overview')}
+        />
+      );
+    }
+
     switch (currentTab) {
       case 'overview':
         return <OverviewPage />;
@@ -41,17 +52,17 @@ const MainAppContent: React.FC = () => {
       case 'reports-stock':
         return <StockExpiryReportPage />;
       case 'reports-profit':
-        return isOwner ? <ProfitPerBatchReportPage /> : <OverviewPage />;
+        return <ProfitPerBatchReportPage />;
       case 'reports-supplier':
-        return isOwner ? <SupplierLedgerPage /> : <OverviewPage />;
+        return <SupplierLedgerPage />;
       case 'admin-users':
-        return isOwner ? <UsersPage /> : <OverviewPage />;
+        return <UsersPage />;
       case 'admin-branches':
-        return isOwner ? <BranchesCountersPage /> : <OverviewPage />;
+        return <BranchesCountersPage />;
       case 'admin-devices':
-        return isOwner ? <DevicesPage /> : <OverviewPage />;
+        return <DevicesPage />;
       case 'audit-log':
-        return isOwner ? <AuditLogPage /> : <OverviewPage />;
+        return <AuditLogPage />;
       default:
         return <OverviewPage />;
     }
