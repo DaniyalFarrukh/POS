@@ -5,6 +5,10 @@ import { applyPurchaseReceived } from './appliers/purchase';
 import { applyInvoiceCreated } from './appliers/invoice';
 import { applyCreditNoteCreated } from './appliers/credit-note';
 import { applyStockAdjustmentCreated } from './appliers/stock-adjustment';
+import {
+  applyStockTransferDispatched,
+  applyStockTransferReceived,
+} from './appliers/stock-transfer';
 import { applyShiftOpened, applyShiftClosed } from './appliers/shift';
 import type { ApplierContext, DbClient } from './types';
 
@@ -69,6 +73,12 @@ export async function processSyncPushEvents(
             break;
           case 'stock_adjustment.created':
             await applyStockAdjustmentCreated(tx, ctx, event.payload, event.entityId);
+            break;
+          case 'stock_transfer.dispatched':
+            await applyStockTransferDispatched(tx, ctx, event.payload);
+            break;
+          case 'stock_transfer.received':
+            await applyStockTransferReceived(tx, ctx, event.payload);
             break;
           case 'shift.opened':
             await applyShiftOpened(tx, ctx, event.payload);

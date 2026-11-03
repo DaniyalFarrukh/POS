@@ -12,6 +12,7 @@ import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
 import { verifyTenantEntity, verifyTenantEntities } from './common';
 import { insertChangeLog } from '../change-log';
+import { postPurchaseReceived } from '../../ledger/posting-engine';
 
 export async function applyPurchaseReceived(
   tx: DbClient,
@@ -206,6 +207,15 @@ export async function applyPurchaseReceived(
       op: 'upsert',
       data: movementData,
       createdAt: now,
+    });
+  }
+
+  // 4. Auto-post balanced journal entry inside the same transaction
+  if (typeof (tx as { execute?: unknown }).execute === 'function') {
+    await postPurchaseReceived(tx, {
+      pharmacyId: ctx.pharmacyId,
+      createdBy: payload.purchase.createdByUserId ?? null,
+      payload,
     });
   }
 }

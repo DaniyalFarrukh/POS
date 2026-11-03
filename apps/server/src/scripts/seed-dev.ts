@@ -7,6 +7,7 @@ import * as schema from '../db/schema';
 import { pharmacies, branches, counters, users, deviceRegistrationCodes } from '../db/schema';
 import { getDb, closePool } from '../db';
 import { generatePlainRegistrationCode, hashRegistrationCode } from '../auth/jwt';
+import { seedDefaultChartOfAccounts } from '../ledger/coa-seed';
 
 dotenv.config();
 
@@ -63,6 +64,9 @@ export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Pro
       .returning();
     pharmacy = updated!;
   }
+
+  // Ensure default Chart of Accounts is seeded for the pharmacy (idempotent)
+  await seedDefaultChartOfAccounts(db, pharmacy.id);
 
   // 2. Get or create Dev Branch
   const existingBranches = await db

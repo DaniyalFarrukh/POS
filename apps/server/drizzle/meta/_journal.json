@@ -36,6 +36,48 @@
       "when": 1793300000000,
       "tag": "0004_expand_user_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793708000000,
+      "tag": "0005_ledger_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793715000000,
+      "tag": "0006_account_mappings",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793720000000,
+      "tag": "0007_suppliers_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793725000000,
+      "tag": "0008_purchase_orders",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793730000000,
+      "tag": "0009_warehouses_and_transfers",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793735000000,
+      "tag": "0010_stock_counts_and_supplier_returns",
+      "breakpoints": true
     }
   ]
 }

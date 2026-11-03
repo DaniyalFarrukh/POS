@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
 import { MIGRATIONS } from './db';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import {
   searchInvoices,
   getInvoiceById,
@@ -24,7 +24,7 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
   let productId: string;
   let batchId: string;
 
-  const TODAY = new Date().toISOString().slice(0, 10);
+  const TODAY = getKarachiBusinessDate();
 
   beforeEach(() => {
     db = new Database(':memory:');

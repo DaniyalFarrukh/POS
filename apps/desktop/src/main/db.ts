@@ -825,6 +825,39 @@ export const MIGRATIONS: Migration[] = [
       ).run();
     },
   },
+  {
+    version: 11,
+    name: '0011_stock_locations_and_transfers',
+    up: (db: DatabaseInstance): void => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS stock_locations (
+          id TEXT PRIMARY KEY,
+          branch_id TEXT NOT NULL REFERENCES branches(id) ON DELETE RESTRICT,
+          name TEXT NOT NULL,
+          code TEXT,
+          is_default INTEGER NOT NULL DEFAULT 0,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_stock_locations_branch ON stock_locations(branch_id);
+      `);
+
+      const smCols = new Set(
+        (db.pragma('table_info(stock_movements)') as Array<{ name: string }>).map((c) => c.name)
+      );
+      if (!smCols.has('location_id')) {
+        db.exec('ALTER TABLE stock_movements ADD COLUMN location_id TEXT;');
+      }
+
+      db.prepare(
+        `
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '11')
+      `
+      ).run();
+    },
+  },
 ];
 
 let dbInstance: DatabaseInstance | null = null;

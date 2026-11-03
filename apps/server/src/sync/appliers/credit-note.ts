@@ -16,6 +16,7 @@ import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
 import { verifyTenantEntity, verifyTenantEntities } from './common';
 import { insertChangeLog } from '../change-log';
+import { postCreditNoteCreated } from '../../ledger/posting-engine';
 
 export async function applyCreditNoteCreated(
   tx: DbClient,
@@ -233,5 +234,14 @@ export async function applyCreditNoteCreated(
         createdAt: now,
       });
     }
+  }
+
+  // 8. Auto-post balanced journal entry inside the same transaction
+  if (typeof (tx as { execute?: unknown }).execute === 'function') {
+    await postCreditNoteCreated(tx, {
+      pharmacyId: ctx.pharmacyId,
+      createdBy: payload.cashierUserId,
+      creditNote: payload,
+    });
   }
 }

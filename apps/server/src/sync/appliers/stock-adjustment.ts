@@ -11,6 +11,7 @@ import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
 import { verifyTenantEntity } from './common';
 import { insertChangeLog } from '../change-log';
+import { postStockAdjustmentCreated } from '../../ledger/posting-engine';
 
 export async function applyStockAdjustmentCreated(
   tx: DbClient,
@@ -128,6 +129,20 @@ export async function applyStockAdjustmentCreated(
       severity: 'warning',
       message: `Negative stock balance (${resultingBalance}) for batch ${payload.batchId} after adjustment: ${payload.reason}`,
       createdAt: now,
+    });
+  }
+
+  // 5. Auto-post balanced journal entry inside the same transaction
+  if (typeof (tx as { execute?: unknown }).execute === 'function') {
+    await postStockAdjustmentCreated(tx, {
+      pharmacyId: ctx.pharmacyId,
+      movementId,
+      branchId: payload.branchId,
+      productId: payload.productId,
+      batchId: payload.batchId,
+      quantitySigned: payload.quantitySigned,
+      reason: payload.reason,
+      createdAt: payload.createdAt || now,
     });
   }
 }

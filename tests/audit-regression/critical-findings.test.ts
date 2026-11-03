@@ -13,6 +13,7 @@ import {
   devices,
   taxCategories,
   products,
+  batches,
   invoices,
   invoiceLines,
 } from '../../apps/server/src/db/schema';
@@ -68,6 +69,7 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     const deviceId = generateUuidV7();
     const taxCategoryId = generateUuidV7();
     const productId = generateUuidV7();
+    const batchId = generateUuidV7();
 
     const ownerPinHash = await hashPin('12345678');
     const pharmacyCode = name.replace(/[^A-Za-z0-9]/g, '_').toUpperCase() + '_' + pharmacyId.slice(0, 8);
@@ -148,6 +150,18 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
       updatedAt: now,
     });
 
+    await ctx.db.insert(batches).values({
+      id: batchId,
+      pharmacyId,
+      productId,
+      batchNo: 'BATCH-PAN-01',
+      expiryDate: '2028-12-31',
+      costPaisa: 3500,
+      mrpPaisa: 5000,
+      createdAt: now,
+      updatedAt: now,
+    });
+
     const deviceToken = signDeviceToken({ pharmacyId, branchId, deviceId });
     const ownerToken = signUserToken({
       userId: ownerId,
@@ -164,6 +178,7 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
       deviceId,
       taxCategoryId,
       productId,
+      batchId,
       deviceToken,
       ownerToken,
     };
@@ -175,6 +190,7 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     ownerId: string;
     taxCategoryId: string;
     productId: string;
+    batchId: string;
   }) {
     closeDatabase();
     initDatabase(':memory:');
@@ -202,6 +218,11 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
         tax_category_id, mrp_paisa, is_controlled, is_active, created_at, updated_at
       ) VALUES (?, 'Panadol 500mg', 'Paracetamol', '500mg', 'Tablet', 'GSK', NULL, ?, 5000, 0, 1, ?, ?)`
     ).run(tenant.productId, tenant.taxCategoryId, now, now);
+    db.prepare(
+      `INSERT INTO batches (
+        id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at
+      ) VALUES (?, ?, 'BATCH-PAN-01', '2028-12-31', 3500, 5000, ?, ?)`
+    ).run(tenant.batchId, tenant.productId, now, now);
 
     setSessionForTesting({
       user: { id: tenant.ownerId, name: 'Owner', role: 'owner', isActive: true },

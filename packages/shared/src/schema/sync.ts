@@ -5,6 +5,8 @@ export const SyncEventTypeSchema = z.enum([
   'invoice.created',
   'credit_note.created',
   'stock_adjustment.created',
+  'stock_transfer.dispatched',
+  'stock_transfer.received',
   'shift.opened',
   'shift.closed',
 ]);
@@ -75,6 +77,7 @@ export const PurchaseReceivedPayloadSchema = z.object({
     supplierInvoiceNo: z.string().min(1),
     invoiceDate: z.string(),
     totalCostPaisa: z.number().int().min(0),
+    taxPaisa: z.number().int().min(0).optional().default(0),
     createdByUserId: z.string().uuid().optional(),
     createdAt: z.string().optional(),
   }),
@@ -207,6 +210,50 @@ export const StockAdjustmentCreatedPayloadSchema = z.object({
 export type StockAdjustmentCreatedPayload = z.infer<
   typeof StockAdjustmentCreatedPayloadSchema
 >;
+
+// 4b. stock_transfer.dispatched & stock_transfer.received Payload Schemas
+export const StockTransferDispatchedLineSchema = z.object({
+  id: z.string().uuid(),
+  productId: z.string().uuid(),
+  batchId: z.string().uuid(),
+  quantityDispatched: z.number().int().min(1),
+  dispatchMovementId: z.string().uuid().optional(),
+});
+export type StockTransferDispatchedLine = z.infer<typeof StockTransferDispatchedLineSchema>;
+
+export const StockTransferDispatchedPayloadSchema = z.object({
+  transferId: z.string().uuid(),
+  transferNumber: z.string().min(1),
+  sourceBranchId: z.string().uuid(),
+  sourceLocationId: z.string().uuid().nullable().optional(),
+  destinationBranchId: z.string().uuid(),
+  destinationLocationId: z.string().uuid().nullable().optional(),
+  dispatchedAt: z.string(),
+  dispatchedByUserId: z.string().uuid().optional(),
+  notes: z.string().nullable().optional(),
+  lines: z.array(StockTransferDispatchedLineSchema).min(1, 'Transfer must have at least 1 line item'),
+});
+export type StockTransferDispatchedPayload = z.infer<typeof StockTransferDispatchedPayloadSchema>;
+
+export const StockTransferReceivedLineSchema = z.object({
+  lineId: z.string().uuid(),
+  productId: z.string().uuid(),
+  batchId: z.string().uuid(),
+  quantityReceived: z.number().int().min(0),
+  shortageQuantity: z.number().int().min(0).default(0),
+  shortageReason: z.string().nullable().optional(),
+  receiveMovementId: z.string().uuid().optional(),
+  shortageMovementId: z.string().uuid().optional(),
+});
+export type StockTransferReceivedLine = z.infer<typeof StockTransferReceivedLineSchema>;
+
+export const StockTransferReceivedPayloadSchema = z.object({
+  transferId: z.string().uuid(),
+  receivedAt: z.string(),
+  receivedByUserId: z.string().uuid().optional(),
+  lines: z.array(StockTransferReceivedLineSchema).min(1, 'Receipt must have at least 1 line item'),
+});
+export type StockTransferReceivedPayload = z.infer<typeof StockTransferReceivedPayloadSchema>;
 
 // 5. shift.opened & shift.closed Payload Schemas
 export const ShiftOpenedPayloadSchema = z.object({

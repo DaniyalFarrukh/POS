@@ -11,7 +11,9 @@
     "db:generate": "drizzle-kit generate",
     "migrate": "tsx src/db/migrate.ts",
     "seed:dev": "tsx src/scripts/seed-dev.ts",
-    "seed:products": "tsx src/scripts/seed-products.ts"
+    "seed:products": "tsx src/scripts/seed-products.ts",
+    "seed:coa": "tsx src/scripts/seed-coa.ts",
+    "backfill:ledger": "tsx src/scripts/backfill-ledger.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",

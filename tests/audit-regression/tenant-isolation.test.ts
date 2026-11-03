@@ -22,6 +22,7 @@ import {
 } from '../../apps/server/src/db/schema';
 import { signDeviceToken, signUserToken } from '../../apps/server/src/auth/jwt';
 import { hashPin } from '../../apps/desktop/src/main/auth';
+import { seedDefaultChartOfAccounts } from '../../apps/server/src/ledger/coa-seed';
 
 describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enforcement)', () => {
   let ctx: TestDatabaseContext;
@@ -317,8 +318,56 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       'GET /api/finance/journals',
       'POST /api/finance/journals',
       'POST /api/finance/journals/:id/post',
+      'POST /api/finance/journals/:id/reverse',
       'GET /api/finance/coa',
       'GET /api/finance/reports/trial-balance',
+      'GET /api/finance/accounts/:id/ledger',
+      'GET /api/finance/periods',
+      'POST /api/finance/periods/close',
+      'POST /api/finance/periods/:id/reopen',
+      'GET /api/finance/reconciliation',
+      'GET /api/finance/account-mappings',
+      'PUT /api/finance/account-mappings',
+      'POST /api/finance/coa',
+      'PATCH /api/finance/coa/:id',
+      'GET /api/suppliers',
+      'POST /api/suppliers',
+      'GET /api/suppliers/:id',
+      'PATCH /api/suppliers/:id',
+      'GET /api/suppliers/duplicates',
+      'POST /api/suppliers/merge',
+      'GET /api/purchase-orders',
+      'GET /api/purchase-orders/low-stock-suggestions',
+      'POST /api/purchase-orders',
+      'GET /api/purchase-orders/:id',
+      'POST /api/purchase-orders/:id/approve',
+      'POST /api/purchase-orders/:id/send',
+      'POST /api/purchase-orders/:id/cancel',
+      'POST /api/purchase-orders/:id/receive',
+      'GET /api/stock-locations',
+      'POST /api/stock-locations',
+      'PATCH /api/stock-locations/:id',
+      'GET /api/stock-transfers',
+      'POST /api/stock-transfers',
+      'GET /api/stock-transfers/:id',
+      'POST /api/stock-transfers/:id/dispatch',
+      'POST /api/stock-transfers/:id/receive',
+      'POST /api/stock-transfers/:id/cancel',
+      'GET /api/stock-counts',
+      'POST /api/stock-counts',
+      'GET /api/stock-counts/:id',
+      'PUT /api/stock-counts/:id/lines',
+      'POST /api/stock-counts/:id/submit',
+      'POST /api/stock-counts/:id/approve',
+      'POST /api/stock-counts/:id/cancel',
+      'GET /api/supplier-returns',
+      'POST /api/supplier-returns',
+      'GET /api/supplier-returns/:id',
+      'GET /api/inventory/stock',
+      'GET /api/inventory/batches/expiring',
+      'POST /api/inventory/batches/:id/discount',
+      'POST /api/inventory/batches/:id/write-off',
+      'GET /api/inventory/products/:id/stock-detail',
     ]);
 
     const activeRoutes = capturedRoutes.filter((r) => r.method !== 'OPTIONS' && r.url !== '/*');
@@ -482,6 +531,179 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       expect(resB.statusCode).toBe(200);
       expect(resB.json().pharmacyId).toBe(tenantB.pharmacyId);
       expect(resB.json().pharmacyId).not.toBe(tenantA.pharmacyId);
+    });
+
+    it('Finance ledger routes enforce tenant isolation on accounts, branches, journals, and periods', async () => {
+      const coaA = await seedDefaultChartOfAccounts(ctx.db, tenantA.pharmacyId);
+      const coaB = await seedDefaultChartOfAccounts(ctx.db, tenantB.pharmacyId);
+      const cashA = coaA.find((a) => a.code === '1000')!;
+      const salesA = coaA.find((a) => a.code === '4000')!;
+      const cashB = coaB.find((a) => a.code === '1000')!;
+
+      // 1. GET /api/finance/reports/trial-balance rejects foreign branchId with 404
+      const resTbBranch = await app.inject({
+        method: 'GET',
+        url: `/api/finance/reports/trial-balance?branchId=${tenantB.branchId}`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resTbBranch.statusCode).toBe(404);
+
+      // 2. GET /api/finance/accounts/:id/ledger rejects foreign accountId with 404
+      const resForeignLedger = await app.inject({
+        method: 'GET',
+        url: `/api/finance/accounts/${cashB.id}/ledger`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resForeignLedger.statusCode).toBe(404);
+
+      // 3. POST /api/finance/journals rejects foreign accountId with 404
+      const resForeignJournalAcc = await app.inject({
+        method: 'POST',
+        url: '/api/finance/journals',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          entryDate: '2026-11-03',
+          memo: 'Cross-tenant account test',
+          lines: [
+            { accountId: cashA.id, debitPaisa: 1000, creditPaisa: 0 },
+            { accountId: cashB.id, debitPaisa: 0, creditPaisa: 1000 },
+          ],
+        },
+      });
+      expect(resForeignJournalAcc.statusCode).toBe(404);
+
+      // 4. Create valid journal entry in Tenant A, then verify Tenant B cannot reverse it (404)
+      const resValidJournal = await app.inject({
+        method: 'POST',
+        url: '/api/finance/journals',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          entryDate: '2026-11-03',
+          memo: 'Tenant A valid entry',
+          lines: [
+            { accountId: cashA.id, debitPaisa: 5000, creditPaisa: 0 },
+            { accountId: salesA.id, debitPaisa: 0, creditPaisa: 5000 },
+          ],
+        },
+      });
+      expect(resValidJournal.statusCode).toBe(201);
+      const entryAId = resValidJournal.json().entry.id;
+
+      const resForeignReverse = await app.inject({
+        method: 'POST',
+        url: `/api/finance/journals/${entryAId}/reverse`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: { reason: 'Cross-tenant reversal attempt' },
+      });
+      expect(resForeignReverse.statusCode).toBe(404);
+
+      // 5. Close period in Tenant A, then verify Tenant B cannot reopen it (404)
+      const resCloseA = await app.inject({
+        method: 'POST',
+        url: '/api/finance/periods/close',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          startDate: '2026-08-01',
+          endDate: '2026-08-31',
+          reason: 'August close',
+        },
+      });
+      expect(resCloseA.statusCode).toBe(200);
+      const periodAId = resCloseA.json().period.id;
+
+      const resForeignReopen = await app.inject({
+        method: 'POST',
+        url: `/api/finance/periods/${periodAId}/reopen`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: { reason: 'Cross-tenant reopen attempt' },
+      });
+      expect(resForeignReopen.statusCode).toBe(404);
+
+      // 6. GET /api/finance/reconciliation and GET /api/finance/account-mappings scope to caller's pharmacyId
+      const resReconA = await app.inject({
+        method: 'GET',
+        url: '/api/finance/reconciliation',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resReconA.statusCode).toBe(200);
+      expect(resReconA.json().pharmacyId).toBe(tenantA.pharmacyId);
+
+      const resMapA = await app.inject({
+        method: 'GET',
+        url: '/api/finance/account-mappings',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resMapA.statusCode).toBe(200);
+      expect(resMapA.json().pharmacyId).toBe(tenantA.pharmacyId);
+
+      // 7. PUT /api/finance/account-mappings rejects foreign accountId with 404
+      const resForeignMapUpdate = await app.inject({
+        method: 'PUT',
+        url: '/api/finance/account-mappings',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          role: 'sales',
+          accountId: cashB.id, // Belongs to Tenant B!
+        },
+      });
+      expect(resForeignMapUpdate.statusCode).toBe(404);
+
+      // 8. POST /api/finance/coa adds custom account, rejects foreign parentId with 404
+      const resForeignParentCoa = await app.inject({
+        method: 'POST',
+        url: '/api/finance/coa',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          code: '1005',
+          name: 'Custom Drawer',
+          type: 'asset',
+          parentId: cashB.id, // Belongs to Tenant B!
+        },
+      });
+      expect(resForeignParentCoa.statusCode).toBe(404);
+
+      const resCreateCustomCoa = await app.inject({
+        method: 'POST',
+        url: '/api/finance/coa',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          code: '1005',
+          name: 'Custom Drawer A',
+          type: 'asset',
+          parentId: cashA.id,
+        },
+      });
+      expect(resCreateCustomCoa.statusCode).toBe(201);
+      const customAccountAId = resCreateCustomCoa.json().account.id;
+
+      // 9. PATCH /api/finance/coa/:id protects system account from deactivation
+      const resDeactivateSys = await app.inject({
+        method: 'PATCH',
+        url: `/api/finance/coa/${cashA.id}`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: { isActive: false },
+      });
+      expect(resDeactivateSys.statusCode).toBe(400);
+      expect(resDeactivateSys.json().message).toMatch(/system accounts are protected/i);
+
+      // 10. PATCH /api/finance/coa/:id rejects foreign account with 404
+      const resForeignCoaPatch = await app.inject({
+        method: 'PATCH',
+        url: `/api/finance/coa/${customAccountAId}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: { isActive: false },
+      });
+      expect(resForeignCoaPatch.statusCode).toBe(404);
+
+      // 11. PATCH /api/finance/coa/:id deactivates custom account
+      const resDeactivateCustom = await app.inject({
+        method: 'PATCH',
+        url: `/api/finance/coa/${customAccountAId}`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: { isActive: false },
+      });
+      expect(resDeactivateCustom.statusCode).toBe(200);
+      expect(resDeactivateCustom.json().account.isActive).toBe(false);
     });
   });
 

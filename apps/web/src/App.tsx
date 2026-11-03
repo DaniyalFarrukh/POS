@@ -11,6 +11,16 @@ import { UsersPage } from './pages/admin/UsersPage';
 import { BranchesCountersPage } from './pages/admin/BranchesCountersPage';
 import { DevicesPage } from './pages/admin/DevicesPage';
 import { AuditLogPage } from './pages/admin/AuditLogPage';
+import { ChartOfAccountsPage } from './pages/finance/ChartOfAccountsPage';
+import { JournalEntriesPage } from './pages/finance/JournalEntriesPage';
+import { SuppliersPage } from './pages/suppliers/SuppliersPage';
+import { PurchaseOrdersPage } from './pages/inventory/PurchaseOrdersPage';
+import { StockTransfersPage } from './pages/inventory/StockTransfersPage';
+import { StockLocationsPage } from './pages/inventory/StockLocationsPage';
+import { StockCountsPage } from './pages/inventory/StockCountsPage';
+import { SupplierReturnsPage } from './pages/inventory/SupplierReturnsPage';
+import { StockManagementPage } from './pages/inventory/StockManagementPage';
+import { BatchesExpiryPage } from './pages/inventory/BatchesExpiryPage';
 import { ForbiddenPage } from './pages/ForbiddenPage';
 import { RefreshCw } from 'lucide-react';
 
@@ -47,6 +57,26 @@ const MainAppContent: React.FC = () => {
     switch (currentTab) {
       case 'overview':
         return <OverviewPage />;
+      case 'stock-management':
+        return <StockManagementPage />;
+      case 'batches-expiry':
+        return <BatchesExpiryPage />;
+      case 'stock-transfers':
+        return <StockTransfersPage />;
+      case 'stock-locations':
+        return <StockLocationsPage />;
+      case 'stock-counts':
+        return <StockCountsPage />;
+      case 'supplier-returns':
+        return <SupplierReturnsPage />;
+      case 'purchase-orders':
+        return <PurchaseOrdersPage />;
+      case 'suppliers':
+        return <SuppliersPage />;
+      case 'finance-coa':
+        return <ChartOfAccountsPage />;
+      case 'finance-journals':
+        return <JournalEntriesPage />;
       case 'reports-sales':
         return <SalesReportPage />;
       case 'reports-stock':

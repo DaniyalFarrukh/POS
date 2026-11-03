@@ -8,6 +8,7 @@ import {
   products,
 } from '../db/schema';
 import { recordMasterDataChange } from '../sync/change-log';
+import { seedDefaultChartOfAccounts } from '../ledger/coa-seed';
 
 dotenv.config();
 
@@ -43,6 +44,9 @@ export async function seedProductsDemo() {
       .returning();
     pharmacy = inserted[0]!;
   }
+
+  // Ensure default Chart of Accounts is seeded for the pharmacy (idempotent)
+  await seedDefaultChartOfAccounts(db, pharmacy.id);
 
   // 2. Get or create Tax Category (Standard 0%)
   const existingTax = await db

@@ -12,6 +12,13 @@ import { dashboardRoutes } from './routes/dashboard';
 import { reportRoutes } from './routes/reports';
 import { adminRoutes } from './routes/admin';
 import { financeRoutes } from './routes/finance';
+import { supplierRoutes } from './routes/suppliers';
+import { purchaseOrderRoutes } from './routes/purchase-orders';
+import { stockLocationRoutes } from './routes/stock-locations';
+import { stockTransferRoutes } from './routes/stock-transfers';
+import { stockCountRoutes } from './routes/stock-counts';
+import { supplierReturnRoutes } from './routes/supplier-returns';
+import { stockRoutes } from './routes/stock';
 import { requireDeviceAuth } from './auth/device-auth';
 
 export interface BuildAppOptions {
@@ -94,6 +101,13 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   app.register(reportRoutes, { prefix: '/api/reports' });
   app.register(adminRoutes, { prefix: '/api/admin' });
   app.register(financeRoutes, { prefix: '/api/finance' });
+  app.register(supplierRoutes);
+  app.register(purchaseOrderRoutes);
+  app.register(stockLocationRoutes);
+  app.register(stockTransferRoutes);
+  app.register(stockCountRoutes);
+  app.register(supplierReturnRoutes);
+  app.register(stockRoutes, { prefix: '/api/inventory' });
 
   // Test protected endpoint to prove tenant identity is strictly read from JWT/deviceContext (development/test only)
   if (process.env.NODE_ENV !== 'production') {

@@ -116,6 +116,25 @@ export const batches = sqliteTable(
 );
 
 // Rule 4: Inventory changes are recorded as signed stock movements
+export const stockLocations = sqliteTable(
+  'stock_locations',
+  {
+    id: text('id').primaryKey(),
+    branchId: text('branch_id')
+      .notNull()
+      .references(() => branches.id),
+    name: text('name').notNull(),
+    code: text('code'),
+    isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('idx_stock_locations_branch').on(table.branchId),
+  ]
+);
+
 export const stockMovements = sqliteTable(
   'stock_movements',
   {
@@ -129,6 +148,7 @@ export const stockMovements = sqliteTable(
     branchId: text('branch_id')
       .notNull()
       .references(() => branches.id),
+    locationId: text('location_id').references(() => stockLocations.id),
     type: text('type', {
       enum: ['purchase', 'sale', 'return', 'adjustment', 'transfer_in', 'transfer_out'],
     }).notNull(),

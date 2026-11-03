@@ -153,6 +153,22 @@ export async function pullAndApply(
     UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?
   `);
 
+  const upsertStockLocationStmt = db.prepare(`
+    INSERT INTO stock_locations (
+      id, branch_id, name, code, is_default, is_active, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      branch_id = excluded.branch_id,
+      name = excluded.name,
+      code = excluded.code,
+      is_default = excluded.is_default,
+      is_active = excluded.is_active,
+      updated_at = excluded.updated_at
+  `);
+  const deleteStockLocationStmt = db.prepare(`
+    UPDATE stock_locations SET is_active = 0, updated_at = ? WHERE id = ?
+  `);
+
   // Batches and stock_movements are insert-only-if-missing (never overwrite locally-created data)
   const insertBatchIfMissingStmt = db.prepare(`
     INSERT OR IGNORE INTO batches (
@@ -162,8 +178,8 @@ export async function pullAndApply(
 
   const insertMovementIfMissingStmt = db.prepare(`
     INSERT OR IGNORE INTO stock_movements (
-      id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, reference_id, reason, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, product_id, batch_id, branch_id, location_id, type, quantity_signed, reference_type, reference_id, reason, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const updateCursorStmt = db.prepare(`
@@ -303,6 +319,25 @@ export async function pullAndApply(
         break;
       }
 
+      case 'stock_location':
+      case 'stock_locations': {
+        if (op === 'delete') {
+          deleteStockLocationStmt.run(now, change.entityId);
+        } else {
+          upsertStockLocationStmt.run(
+            change.entityId,
+            (data.branchId || data.branch_id || '') as string,
+            (data.name || '') as string,
+            (data.code ?? null) as string | null,
+            data.isDefault || data.is_default ? 1 : 0,
+            (data.isActive !== undefined ? data.isActive : data.is_active !== undefined ? data.is_active : true) ? 1 : 0,
+            (data.createdAt || data.created_at || now) as string,
+            (data.updatedAt || data.updated_at || now) as string
+          );
+        }
+        break;
+      }
+
       case 'batch':
       case 'batches': {
         if (op !== 'delete') {
@@ -326,6 +361,7 @@ export async function pullAndApply(
           const productId = (data.productId || data.product_id || '') as string;
           const batchId = ((data.batchId || data.batch_id) ?? null) as string | null;
           const branchId = (data.branchId || data.branch_id || '') as string;
+          const locationId = ((data.locationId || data.location_id) ?? null) as string | null;
           const type = (data.type || 'adjustment') as string;
           const quantitySigned = Number(
             data.quantitySigned !== undefined ? data.quantitySigned : data.quantity_signed || 0
@@ -341,6 +377,7 @@ export async function pullAndApply(
             productId,
             batchId,
             branchId,
+            locationId,
             type,
             quantitySigned,
             referenceType,

@@ -15,11 +15,27 @@ import {
   Clock,
   Building2,
   ChevronRight,
+  BookOpen,
+  Scale,
+  Warehouse,
+  ClipboardCheck,
+  RotateCcw,
+  CalendarClock,
 } from 'lucide-react';
 import { Badge } from '@pos/ui';
 
 export type NavItem =
   | 'overview'
+  | 'stock-management'
+  | 'batches-expiry'
+  | 'stock-transfers'
+  | 'stock-locations'
+  | 'stock-counts'
+  | 'supplier-returns'
+  | 'purchase-orders'
+  | 'suppliers'
+  | 'finance-coa'
+  | 'finance-journals'
   | 'reports-sales'
   | 'reports-stock'
   | 'reports-profit'
@@ -31,6 +47,16 @@ export type NavItem =
 
 export const NAV_PERMISSIONS: Record<NavItem, AppPermission> = {
   overview: 'reports.view',
+  'stock-management': 'inventory.stock.view',
+  'batches-expiry': 'inventory.batch.view',
+  'stock-transfers': 'inventory.transfer.view',
+  'stock-locations': 'inventory.warehouse.view',
+  'stock-counts': 'inventory.count.view',
+  'supplier-returns': 'inventory.supplier_return.view',
+  'purchase-orders': 'inventory.purchase_order.view',
+  suppliers: 'inventory.supplier.view',
+  'finance-coa': 'finance.coa.view',
+  'finance-journals': 'finance.journal.view',
   'reports-sales': 'reports.sales.view',
   'reports-stock': 'reports.stock.view',
   'reports-profit': 'reports.profit.view',
@@ -94,6 +120,81 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           label: 'Overview',
           icon: LayoutDashboard,
           permission: NAV_PERMISSIONS.overview,
+        },
+      ],
+    },
+    {
+      title: 'Finance & Accounts',
+      items: [
+        {
+          id: 'finance-coa',
+          label: 'Chart of Accounts',
+          icon: BookOpen,
+          permission: NAV_PERMISSIONS['finance-coa'],
+        },
+        {
+          id: 'finance-journals',
+          label: 'General Journal',
+          icon: Scale,
+          permission: NAV_PERMISSIONS['finance-journals'],
+        },
+      ],
+    },
+    {
+      title: 'Inventory & Warehouses',
+      items: [
+        {
+          id: 'stock-management',
+          label: 'Stock Management',
+          icon: Boxes,
+          permission: NAV_PERMISSIONS['stock-management'],
+        },
+        {
+          id: 'batches-expiry',
+          label: 'Batches & Expiry',
+          icon: CalendarClock,
+          permission: NAV_PERMISSIONS['batches-expiry'],
+        },
+        {
+          id: 'stock-transfers',
+          label: 'Stock Transfers',
+          icon: Truck,
+          permission: NAV_PERMISSIONS['stock-transfers'],
+        },
+        {
+          id: 'stock-locations',
+          label: 'Warehouses & Locations',
+          icon: Warehouse,
+          permission: NAV_PERMISSIONS['stock-locations'],
+        },
+        {
+          id: 'stock-counts',
+          label: 'Stock Counts & Audits',
+          icon: ClipboardCheck,
+          permission: NAV_PERMISSIONS['stock-counts'],
+        },
+        {
+          id: 'supplier-returns',
+          label: 'Supplier Returns',
+          icon: RotateCcw,
+          permission: NAV_PERMISSIONS['supplier-returns'],
+        },
+      ],
+    },
+    {
+      title: 'Suppliers & Procurement',
+      items: [
+        {
+          id: 'purchase-orders',
+          label: 'Purchase Orders',
+          icon: ReceiptText,
+          permission: NAV_PERMISSIONS['purchase-orders'],
+        },
+        {
+          id: 'suppliers',
+          label: 'Distributors & Suppliers',
+          icon: Truck,
+          permission: NAV_PERMISSIONS.suppliers,
         },
       ],
     },
