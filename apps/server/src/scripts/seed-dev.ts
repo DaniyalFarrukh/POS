@@ -208,7 +208,9 @@ async function main() {
     console.log(`           ID: ${result.branch.id}`);
     console.log(`Counter:   ${result.counter.name} (${result.counter.code})`);
     console.log(`           ID: ${result.counter.id}`);
-    console.log(`Owner:     ${result.owner.name} (Role: ${result.owner.role}, Default PIN: 1234)`);
+    console.log(
+      `Owner:     ${result.owner.name} (Role: ${result.owner.role}, Default PIN: 12345678)`
+    );
     console.log(`           ID: ${result.owner.id}`);
     console.log('\n🔑 ONE-TIME DEVICE REGISTRATION CODE:');
     console.log('--------------------------------------------------');
@@ -217,7 +219,7 @@ async function main() {
     console.log(`Code Hash:  ${result.registrationCode.codeHash} (Stored in DB)`);
     console.log('--------------------------------------------------');
     console.log('Register a device terminal via:');
-    console.log(`curl -X POST http://localhost:3001/devices/register \\`);
+    console.log(`curl -X POST http://localhost:3000/devices/register \\`);
     console.log(`  -H "Content-Type: application/json" \\`);
     console.log(
       `  -d '{"code":"${result.registrationCode.plainCode}","deviceName":"HexaPharm Counter 1 Terminal"}'`

@@ -243,7 +243,7 @@ export async function seedProductsDemo() {
   console.log('--------------------------------------------------');
   console.log('Demonstrate GET /sync/pull:');
   console.log(
-    `curl http://localhost:3001/sync/pull?cursor=0&limit=50 -H "Authorization: Bearer <TOKEN>"`
+    `curl http://localhost:3000/sync/pull?cursor=0&limit=50 -H "Authorization: Bearer <TOKEN>"`
   );
   console.log('==================================================\n');
 

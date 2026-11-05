@@ -12,6 +12,7 @@ import {
   UserRoleSchema,
   PinSchema,
   OwnerPinSchema,
+  isWeakOrSequentialPin,
 } from '@pos/shared';
 import { getDatabase } from './db';
 
@@ -69,7 +70,6 @@ export async function completeSetup(
   data: SetupInput,
   dbInstance?: DatabaseInstance
 ): Promise<AuthSession> {
-  const validated = SetupInputSchema.parse(data);
   const db = dbInstance ?? getDatabase();
 
   const status = getSetupStatus(db);
@@ -81,6 +81,8 @@ export async function completeSetup(
   if ((userCheck?.count ?? 0) > 0) {
     throw new AuthError('Initial setup has already been completed.');
   }
+
+  const validated = SetupInputSchema.parse(data);
 
   const now = new Date().toISOString();
   const branchId = generateUuidV7();
@@ -205,7 +207,8 @@ export async function login(
     const newAttempts = (user.failed_login_attempts || 0) + 1;
     const now = new Date().toISOString();
     if (newAttempts >= 5) {
-      const lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      const backoffFactor = Math.pow(2, Math.min(newAttempts - 5, 6));
+      const lockedUntil = new Date(Date.now() + 15 * backoffFactor * 60 * 1000).toISOString();
       db.prepare(
         'UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?'
       ).run(newAttempts, lockedUntil, now, userId);
@@ -244,6 +247,12 @@ export async function login(
     }
   }
 
+  const trimmedPin = pin.trim();
+  const pinChangeRequired =
+    trimmedPin.length < 6 ||
+    (user.role === 'owner' && trimmedPin.length < 8) ||
+    isWeakOrSequentialPin(trimmedPin);
+
   const session: AuthSession = {
     user: {
       id: user.id,
@@ -255,6 +264,7 @@ export async function login(
     counter: counterObj,
     isLocked: false,
     idleTimeoutMinutes: 5,
+    pinChangeRequired,
   };
 
   activeSession = session;

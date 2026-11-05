@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, sql, gte, lte, or, ilike } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { generateUuidV7, z, type UserRole } from '@pos/shared';
+import { generateUuidV7, z, isTrivialPin, type UserRole } from '@pos/shared';
 import {
   users,
   branches,
@@ -119,6 +119,12 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
             ? 'Owner PIN must be exactly 8 digits'
             : 'PIN must be between 6 and 8 digits';
         return reply.status(400).send({ statusCode: 400, message: msg });
+      }
+      if (isTrivialPin(pin.trim())) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: 'PIN cannot be a trivial repeating pattern (e.g. 000000 or 121212)',
+        });
       }
 
       const db = request.server.db || getDb();

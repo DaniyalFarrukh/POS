@@ -3,10 +3,39 @@ import { z } from 'zod';
 export const UserRoleSchema = z.enum(['owner', 'manager', 'accountant', 'pharmacist', 'cashier']);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
-// 6 to 8 numeric digits for staff, strictly 8 digits for owner
-export const StaffPinSchema = z.string().regex(/^\d{6,8}$/, 'PIN must be between 6 and 8 digits');
-export const OwnerPinSchema = z.string().regex(/^\d{8}$/, 'Owner PIN must be exactly 8 digits');
+export function isTrivialPin(pin: string): boolean {
+  const trimmed = pin.trim();
+  if (!/^\d+$/.test(trimmed)) return false;
+  return /^(?:(\d)\1+|(\d\d)\2+)$/.test(trimmed);
+}
+
+export function isWeakOrSequentialPin(pin: string): boolean {
+  if (isTrivialPin(pin)) return true;
+  const trimmed = pin.trim();
+  const ascending = '01234567890';
+  const descending = '09876543210';
+  return ascending.includes(trimmed) || descending.includes(trimmed);
+}
+
+// 6 to 8 numeric digits for staff, strictly 8 digits for owner (rejecting trivial repeating patterns)
+export const StaffPinSchema = z
+  .string()
+  .regex(/^\d{6,8}$/, 'PIN must be between 6 and 8 digits')
+  .refine(
+    (pin) => !isTrivialPin(pin),
+    'PIN cannot be a trivial repeating pattern (e.g. 000000 or 121212)'
+  );
+export const OwnerPinSchema = z
+  .string()
+  .regex(/^\d{8}$/, 'Owner PIN must be exactly 8 digits')
+  .refine(
+    (pin) => !isTrivialPin(pin),
+    'Owner PIN cannot be a trivial repeating pattern (e.g. 00000000 or 12121212)'
+  );
 export const PinSchema = StaffPinSchema;
+
+// Authentication input schema allows 4 to 8 digits so existing legacy users can log in and migrate their PIN
+export const LoginPinSchema = z.string().regex(/^\d{4,8}$/, 'PIN must be between 4 and 8 digits');
 
 export const SetupInputSchema = z.object({
   branchName: z.string().min(2, 'Branch name must be at least 2 characters'),
@@ -18,12 +47,12 @@ export type SetupInput = z.infer<typeof SetupInputSchema>;
 
 export const LoginInputSchema = z.object({
   userId: z.string().uuid(),
-  pin: PinSchema,
+  pin: LoginPinSchema,
 });
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 
 export const UnlockInputSchema = z.object({
-  pin: PinSchema,
+  pin: LoginPinSchema,
 });
 export type UnlockInput = z.infer<typeof UnlockInputSchema>;
 
@@ -48,6 +77,7 @@ export const AuthSessionSchema = z.object({
   }),
   isLocked: z.boolean(),
   idleTimeoutMinutes: z.number().int().min(1).default(5),
+  pinChangeRequired: z.boolean().optional(),
 });
 export type AuthSession = z.infer<typeof AuthSessionSchema>;
 

@@ -1,16 +1,18 @@
 import { buildApp } from './app';
 import { getJwtSecret } from './auth/jwt';
+import { getDatabaseUrl } from './db';
 
-// Ensure JWT_SECRET is properly configured on startup (fails fast in production)
+// Ensure JWT_SECRET and DATABASE_URL are properly configured on startup (fails fast in production)
 getJwtSecret();
+getDatabaseUrl();
 
 const server = buildApp();
 const port = Number(process.env.PORT) || 3000;
 
 server.listen({ port, host: '0.0.0.0' }, (err, address) => {
   if (err) {
-    console.error(err);
+    server.log.error(err);
     process.exit(1);
   }
-  console.log(`POS Cloud Server listening at ${address}`);
+  server.log.info(`POS Cloud Server listening at ${address}`);
 });

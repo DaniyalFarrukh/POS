@@ -36,12 +36,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       setError('Please select a user account.');
       return;
     }
-    if (selectedUser.role === 'owner' && pin.length !== 8) {
-      setError('Owner PIN must be exactly 8 digits.');
-      return;
-    }
-    if (selectedUser.role !== 'owner' && (pin.length < 6 || pin.length > 8)) {
-      setError('Staff PIN must be between 6 and 8 digits.');
+    if (pin.length < 4 || pin.length > 8) {
+      setError('PIN must be between 4 and 8 digits.');
       return;
     }
 
@@ -310,11 +306,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   onChange={setPin}
                   onSubmit={handleLogin}
                   disabled={loading}
-                  minLength={selectedUser.role === 'owner' ? 8 : 6}
+                  minLength={4}
                   placeholder={
                     selectedUser.role === 'owner'
-                      ? 'Enter Owner PIN (8 digits)'
-                      : 'Enter PIN (6-8 digits)'
+                      ? 'Enter Owner PIN (4-8 digits)'
+                      : 'Enter PIN (4-8 digits)'
                   }
                 />
               </>

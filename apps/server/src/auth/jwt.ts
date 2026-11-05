@@ -1,6 +1,24 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import type { UserRole } from '@pos/shared';
+import { generateUuidV7, type UserRole } from '@pos/shared';
+
+const revokedUserTokenJtis = new Map<string, number>();
+
+export function revokeUserToken(jti: string, ttlMs = 7 * 24 * 60 * 60 * 1000): void {
+  if (!jti) return;
+  revokedUserTokenJtis.set(jti, Date.now() + ttlMs);
+}
+
+export function isUserTokenRevoked(jti?: string): boolean {
+  if (!jti) return false;
+  const expiresAt = revokedUserTokenJtis.get(jti);
+  if (expiresAt === undefined) return false;
+  if (Date.now() > expiresAt) {
+    revokedUserTokenJtis.delete(jti);
+    return false;
+  }
+  return true;
+}
 
 export interface DeviceTokenPayload {
   pharmacyId: string;
@@ -19,6 +37,9 @@ export function getJwtSecret(): string {
     }
     if (secret === DEV_DEFAULT) {
       throw new Error('FATAL: Production JWT_SECRET cannot use default development secret');
+    }
+    if (secret.length < 32) {
+      throw new Error('FATAL: Production JWT_SECRET must be at least 32 characters long');
     }
   }
 
@@ -125,6 +146,7 @@ export interface UserTokenPayload {
   pharmacyId: string;
   role: UserRole;
   name: string;
+  jti?: string;
 }
 
 /**
@@ -132,7 +154,8 @@ export interface UserTokenPayload {
  */
 export function signUserToken(payload: UserTokenPayload, options?: SignDeviceTokenOptions): string {
   const secret = options?.secret || getJwtSecret();
-  const expiresIn = options?.expiresIn ?? '7d';
+  const expiresIn = options?.expiresIn ?? '12h';
+  const jti = payload.jti || generateUuidV7();
 
   return jwt.sign(
     {
@@ -141,6 +164,7 @@ export function signUserToken(payload: UserTokenPayload, options?: SignDeviceTok
       role: payload.role,
       name: payload.name,
       typ: 'user',
+      jti,
     },
     secret,
     {
@@ -169,10 +193,14 @@ export function verifyUserToken(
     throw new Error('Invalid user token payload: expected object');
   }
 
-  const { userId, pharmacyId, role, name, typ } = decoded as Record<string, unknown>;
+  const { userId, pharmacyId, role, name, typ, jti } = decoded as Record<string, unknown>;
 
   if (typ !== 'user') {
     throw new Error('Invalid token type: expected user token');
+  }
+
+  if (typeof jti === 'string' && isUserTokenRevoked(jti)) {
+    throw new Error('User token has been revoked');
   }
 
   if (
@@ -189,5 +217,6 @@ export function verifyUserToken(
     pharmacyId,
     role: role as UserRole,
     name,
+    ...(typeof jti === 'string' ? { jti } : {}),
   };
 }
