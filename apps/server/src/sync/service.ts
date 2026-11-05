@@ -22,7 +22,8 @@ function isTransientError(err: unknown): boolean {
   if (pgCode) {
     if (['23505', '23503', '23502', '23514', '22P02'].includes(pgCode)) return false;
     if (['40001', '40P01', '55P03', '57P01', '57P02', '57P03'].includes(pgCode)) return true;
-    if (typeof pgCode === 'string' && (pgCode.startsWith('08') || pgCode.startsWith('57'))) return true;
+    if (typeof pgCode === 'string' && (pgCode.startsWith('08') || pgCode.startsWith('57')))
+      return true;
   }
 
   const msg = (err as Error).message?.toLowerCase() || '';

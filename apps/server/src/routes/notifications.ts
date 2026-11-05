@@ -39,7 +39,9 @@ export const notificationRoutes: FastifyPluginAsync = async (fastify) => {
       const { id } = request.params;
 
       if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-        return reply.status(400).send({ statusCode: 400, message: 'Invalid notification ID format' });
+        return reply
+          .status(400)
+          .send({ statusCode: 400, message: 'Invalid notification ID format' });
       }
 
       const updated = await markNotificationAsRead(
