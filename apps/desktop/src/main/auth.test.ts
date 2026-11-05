@@ -113,6 +113,31 @@ describe('Local Authentication & IPC Role Guard', () => {
       expect(firstUser).not.toHaveProperty('pin_hash');
       expect(firstUser).not.toHaveProperty('pinHash');
     });
+
+    it('rejects completeSetup if initial setup is already completed', async () => {
+      await completeSetup(
+        {
+          branchName: 'City Pharmacy - Saddar',
+          counterName: 'Counter 01',
+          ownerName: 'Dr. Tariq',
+          pin: '12345678',
+        },
+        rawDb
+      );
+
+      // Attempt completeSetup again on already setup database
+      await expect(
+        completeSetup(
+          {
+            ownerName: 'Hacker',
+            pin: '87654321',
+            branchName: 'Rogue Branch',
+            counterName: 'Rogue Counter',
+          },
+          rawDb
+        )
+      ).rejects.toThrow(/Initial setup has already been completed/);
+    });
   });
 
   describe('User Login & Session Management', () => {
@@ -186,6 +211,21 @@ describe('Local Authentication & IPC Role Guard', () => {
       const unlocked = await unlockSession('222233', rawDb);
       expect(unlocked.isLocked).toBe(false);
       expect(getSession()?.isLocked).toBe(false);
+    });
+
+    it('locks out user after 5 consecutive failed unlock attempts', async () => {
+      await login(pharmacistId, '222233', rawDb);
+      lockSession();
+
+      for (let i = 0; i < 4; i++) {
+        await expect(unlockSession('000000', rawDb)).rejects.toThrow(/Invalid PIN/);
+      }
+
+      // 5th failed attempt triggers lockout
+      await expect(unlockSession('000000', rawDb)).rejects.toThrow(/Invalid PIN/);
+
+      // Subsequent attempt gives account temporarily locked even with correct PIN
+      await expect(unlockSession('222233', rawDb)).rejects.toThrow(/Account is temporarily locked/);
     });
   });
 

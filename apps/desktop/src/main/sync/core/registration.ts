@@ -40,6 +40,23 @@ export async function registerDevice(
   params: RegisterDeviceParams
 ): Promise<RegisterDeviceResult> {
   const normalizedUrl = params.serverUrl.replace(/\/+$/, '');
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(normalizedUrl);
+  } catch {
+    throw new Error(`Invalid server URL: ${params.serverUrl}`);
+  }
+
+  const isLocalHost =
+    parsedUrl.hostname === 'localhost' ||
+    parsedUrl.hostname === '127.0.0.1' ||
+    parsedUrl.hostname === '::1';
+
+  if (process.env.NODE_ENV === 'production' && parsedUrl.protocol !== 'https:' && !isLocalHost) {
+    throw new Error('Insecure HTTP is not allowed in production for remote servers. Use HTTPS.');
+  }
+
   const registerEndpoint = `${normalizedUrl}/devices/register`;
 
   const controller = new AbortController();

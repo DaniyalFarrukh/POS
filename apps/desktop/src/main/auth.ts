@@ -70,10 +70,13 @@ export async function completeSetup(
   const validated = SetupInputSchema.parse(data);
   const db = dbInstance ?? getDatabase();
 
-  const ownerCheck = db
-    .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'")
-    .get() as { count: number };
-  if ((ownerCheck?.count ?? 0) > 0) {
+  const status = getSetupStatus(db);
+  if (!status.needsSetup) {
+    throw new AuthError('Initial setup has already been completed.');
+  }
+
+  const userCheck = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+  if ((userCheck?.count ?? 0) > 0) {
     throw new AuthError('Initial setup has already been completed.');
   }
 
@@ -85,10 +88,8 @@ export async function completeSetup(
 
   // Rule 5: Any write that touches more than one table happens in ONE transaction
   const setupTx = db.transaction(() => {
-    const existingOwners = db
-      .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'")
-      .get() as { count: number };
-    if ((existingOwners?.count ?? 0) > 0) {
+    const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+    if ((existingUsers?.count ?? 0) > 0) {
       throw new AuthError('Initial setup has already been completed.');
     }
 
@@ -265,16 +266,57 @@ export async function unlockSession(
 
   const db = dbInstance ?? getDatabase();
   const user = db
-    .prepare('SELECT pin_hash FROM users WHERE id = ?')
-    .get(activeSession.user.id) as { pin_hash: string } | undefined;
+    .prepare(
+      'SELECT id, name, role, pin_hash, is_active, failed_login_attempts, locked_until FROM users WHERE id = ?'
+    )
+    .get(activeSession.user.id) as
+    | {
+        id: string;
+        name: string;
+        role: UserRole;
+        pin_hash: string;
+        is_active: number;
+        failed_login_attempts: number;
+        locked_until: string | null;
+      }
+    | undefined;
 
-  if (!user) {
-    throw new AuthError('User account not found');
+  if (!user || user.is_active !== 1) {
+    throw new AuthError('User account not found or inactive');
+  }
+
+  // Check temporary account lockout
+  if (user.locked_until) {
+    const lockExpiration = new Date(user.locked_until).getTime();
+    if (lockExpiration > Date.now()) {
+      throw new AuthError(
+        'Account is temporarily locked due to too many failed attempts. Try again in 15 minutes or contact owner.'
+      );
+    }
   }
 
   const isValid = await verifyPin(pin, user.pin_hash);
   if (!isValid) {
+    const newAttempts = (user.failed_login_attempts || 0) + 1;
+    const now = new Date().toISOString();
+    if (newAttempts >= 5) {
+      const lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      db.prepare(
+        'UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?'
+      ).run(newAttempts, lockedUntil, now, user.id);
+    } else {
+      db.prepare(
+        'UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?'
+      ).run(newAttempts, now, user.id);
+    }
     throw new AuthError('Invalid PIN');
+  }
+
+  // Reset lockout on successful unlock
+  if (user.failed_login_attempts > 0 || user.locked_until !== null) {
+    db.prepare(
+      'UPDATE users SET failed_login_attempts = 0, locked_until = NULL, updated_at = ? WHERE id = ?'
+    ).run(new Date().toISOString(), user.id);
   }
 
   activeSession.isLocked = false;
