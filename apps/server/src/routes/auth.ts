@@ -126,11 +126,28 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
         });
       }
 
-      if (!user.isActive) {
-        return reply.status(403).send({
-          statusCode: 403,
-          error: 'Forbidden',
-          message: 'Account has been deactivated. Please contact the administrator.',
+      // Verify PIN before revealing account status (deactivated or locked)
+      const isMatch = await bcrypt.compare(pin.trim(), user.pinHash);
+      if (!isMatch) {
+        if (user.isActive) {
+          const newAttempts = (user.failedLoginAttempts || 0) + 1;
+          const now = new Date().toISOString();
+          const updateFields: { failedLoginAttempts: number; lockedUntil?: string; updatedAt: string } = {
+            failedLoginAttempts: newAttempts,
+            updatedAt: now,
+          };
+
+          if (newAttempts >= 5) {
+            updateFields.lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+          }
+
+          await db.update(users).set(updateFields).where(eq(users.id, user.id));
+        }
+
+        return reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid credentials',
         });
       }
 
@@ -146,25 +163,11 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
         }
       }
 
-      const isMatch = await bcrypt.compare(pin.trim(), user.pinHash);
-      if (!isMatch) {
-        const newAttempts = (user.failedLoginAttempts || 0) + 1;
-        const now = new Date().toISOString();
-        const updateFields: { failedLoginAttempts: number; lockedUntil?: string; updatedAt: string } = {
-          failedLoginAttempts: newAttempts,
-          updatedAt: now,
-        };
-
-        if (newAttempts >= 5) {
-          updateFields.lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-        }
-
-        await db.update(users).set(updateFields).where(eq(users.id, user.id));
-
-        return reply.status(401).send({
-          statusCode: 401,
-          error: 'Unauthorized',
-          message: 'Invalid credentials',
+      if (!user.isActive) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Account has been deactivated. Please contact the administrator.',
         });
       }
 

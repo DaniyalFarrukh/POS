@@ -10,6 +10,8 @@ import {
   applyStockTransferReceived,
 } from './appliers/stock-transfer';
 import { applyShiftOpened, applyShiftClosed } from './appliers/shift';
+import { applyCustomerCreated } from './appliers/customer';
+import { applyCustomerReceiptCreated } from './appliers/customer-receipt';
 import type { ApplierContext, DbClient } from './types';
 
 export async function processSyncPushEvents(
@@ -86,6 +88,12 @@ export async function processSyncPushEvents(
           case 'shift.closed':
             await applyShiftClosed(tx, ctx, event.payload);
             break;
+          case 'customer.created':
+            await applyCustomerCreated(tx, ctx, event.payload, event.entityId);
+            break;
+          case 'customer_receipt.created':
+            await applyCustomerReceiptCreated(tx, ctx, event.payload, event.entityId);
+            break;
           default:
             throw new SyncRejectedError(
               'UNKNOWN_TYPE',
@@ -132,35 +140,17 @@ export async function processSyncPushEvents(
           message: err.message,
         };
       } else {
-        // Unexpected exception (e.g. database constraint violation)
-        // Log full detailed error server-side only
-        console.error(`[Sync] Unexpected error processing event ${event.eventId}:`, err);
+        // Unexpected exception (e.g. transient deadlock, connection hiccup, unhandled database error)
+        // Log full detailed error server-side only for diagnostics
+        console.error(`[Sync] Unexpected transient error processing event ${event.eventId}:`, err);
 
-        const sanitizedMessage = 'An unexpected internal error occurred';
-
-        // Transaction for event rolled back; log to rejected_events in its own isolated transaction
-        try {
-          await db.transaction(async (tx) => {
-            await tx.insert(rejectedEvents).values({
-              id: generateUuidV7(),
-              pharmacyId: ctx.pharmacyId,
-              deviceId: ctx.deviceId,
-              event: event as unknown as Record<string, unknown>,
-              code: 'INTERNAL_ERROR',
-              message: sanitizedMessage,
-              createdAt: new Date().toISOString(),
-            });
-          });
-        } catch (logErr) {
-          // Never let a logging failure crash or halt processing of the remaining batch
-          console.error('[Sync] Failed to record unexpected rejected event in database:', logErr);
-        }
-
+        // Transient / unhandled errors must NOT be marked permanently rejected.
+        // Client must receive status: 'retry_later' so push sync will retry safely.
         results[originalIndex] = {
           eventId: event.eventId,
-          status: 'rejected',
-          code: 'INTERNAL_ERROR',
-          message: sanitizedMessage,
+          status: 'retry_later',
+          code: 'TRANSIENT_ERROR',
+          message: 'A transient server error occurred. Please retry.',
         };
       }
     }

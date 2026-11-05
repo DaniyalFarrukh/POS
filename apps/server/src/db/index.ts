@@ -11,10 +11,20 @@ let globalPool: pg.Pool | null = null;
 let globalDb: NodePgDatabase<typeof schema> | null = null;
 
 export function getDatabaseUrl(): string {
-  return (
-    process.env.DATABASE_URL ||
-    'postgresql://pos:pos_dev_secret@localhost:5432/pos_server'
-  );
+  const isProduction = process.env.NODE_ENV === 'production';
+  const url = process.env.DATABASE_URL;
+  const DEV_DEFAULT = 'postgresql://pos:pos_dev_secret@localhost:5432/pos_server';
+
+  if (isProduction) {
+    if (!url) {
+      throw new Error('FATAL: DATABASE_URL environment variable is required in production');
+    }
+    if (url === DEV_DEFAULT) {
+      throw new Error('FATAL: Production DATABASE_URL cannot use default development credentials');
+    }
+  }
+
+  return url || DEV_DEFAULT;
 }
 
 export function getPool(connectionString?: string): pg.Pool {
@@ -54,5 +64,7 @@ export async function closePool(): Promise<void> {
     globalDb = null;
   }
 }
+
+export type DbClient = NodePgDatabase<typeof schema>;
 
 export { schema };
