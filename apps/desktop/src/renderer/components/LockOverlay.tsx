@@ -14,9 +14,15 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({ session, onUnlocked, o
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const isOwner = session.user.role === 'owner';
+
   const handleUnlock = async () => {
-    if (pin.length < 6) {
-      setError('PIN must be between 6 and 8 digits (8 digits for Owner).');
+    if (isOwner && pin.length !== 8) {
+      setError('Owner PIN must be exactly 8 digits.');
+      return;
+    }
+    if (!isOwner && (pin.length < 6 || pin.length > 8)) {
+      setError('Staff PIN must be between 6 and 8 digits.');
       return;
     }
 
@@ -36,7 +42,9 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({ session, onUnlocked, o
         rawMsg.includes('regex') ||
         rawMsg.includes('PIN must be')
       ) {
-        userMsg = 'PIN must be between 6 and 8 numeric digits.';
+        userMsg = isOwner
+          ? 'Owner PIN must be exactly 8 numeric digits.'
+          : 'PIN must be between 6 and 8 numeric digits.';
       }
       setError(userMsg);
       setPin('');
@@ -173,7 +181,14 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({ session, onUnlocked, o
           </div>
         )}
 
-        <PinPad pin={pin} onChange={setPin} onSubmit={handleUnlock} disabled={loading} />
+        <PinPad
+          pin={pin}
+          onChange={setPin}
+          onSubmit={handleUnlock}
+          disabled={loading}
+          minLength={isOwner ? 8 : 6}
+          placeholder={isOwner ? 'Enter Owner PIN (8 digits)' : 'Enter PIN (6-8 digits)'}
+        />
 
         <button
           type="button"

@@ -280,6 +280,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
               onChange={setPin}
               onSubmit={handleSubmit}
               disabled={loading}
+              minLength={8}
               placeholder="Enter 8-digit Owner PIN"
             />
           </div>

@@ -310,6 +310,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   onChange={setPin}
                   onSubmit={handleLogin}
                   disabled={loading}
+                  minLength={selectedUser.role === 'owner' ? 8 : 6}
                   placeholder={
                     selectedUser.role === 'owner'
                       ? 'Enter Owner PIN (8 digits)'

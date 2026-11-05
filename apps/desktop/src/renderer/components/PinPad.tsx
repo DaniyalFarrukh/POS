@@ -5,6 +5,7 @@ interface PinPadProps {
   pin: string;
   onChange: (pin: string) => void;
   onSubmit: () => void;
+  minLength?: number;
   maxLength?: number;
   disabled?: boolean;
   placeholder?: string;
@@ -15,6 +16,7 @@ export const PinPad: React.FC<PinPadProps> = ({
   pin,
   onChange,
   onSubmit,
+  minLength = 6,
   maxLength = 8,
   disabled = false,
   placeholder,
@@ -68,7 +70,7 @@ export const PinPad: React.FC<PinPadProps> = ({
         handleClear();
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (pin.length >= 4) {
+        if (pin.length >= minLength) {
           onSubmit();
         }
       }
@@ -76,7 +78,7 @@ export const PinPad: React.FC<PinPadProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [pin, disabled, maxLength, onSubmit]);
+  }, [pin, disabled, minLength, maxLength, onSubmit]);
 
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -126,7 +128,7 @@ export const PinPad: React.FC<PinPadProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              if (pin.length >= 4) {
+              if (pin.length >= minLength) {
                 onSubmit();
               }
             } else if (e.key === 'Escape') {
@@ -282,7 +284,7 @@ export const PinPad: React.FC<PinPadProps> = ({
       <button
         type="button"
         className="interactive-btn"
-        disabled={disabled || pin.length < 4}
+        disabled={disabled || pin.length < minLength}
         onClick={onSubmit}
         style={{
           marginTop: '16px',
@@ -291,11 +293,12 @@ export const PinPad: React.FC<PinPadProps> = ({
           fontSize: '14px',
           fontWeight: 700,
           borderRadius: '10px',
-          border: pin.length >= 4 && !disabled ? '1px solid #1d4ed8' : '1px solid #e2e8f0',
-          backgroundColor: pin.length >= 4 && !disabled ? '#2563eb' : '#f1f5f9',
-          color: pin.length >= 4 && !disabled ? '#ffffff' : '#64748b',
-          cursor: pin.length >= 4 && !disabled ? 'pointer' : 'not-allowed',
-          boxShadow: pin.length >= 4 && !disabled ? '0 4px 12px rgba(37, 99, 235, 0.28)' : 'none',
+          border: pin.length >= minLength && !disabled ? '1px solid #1d4ed8' : '1px solid #e2e8f0',
+          backgroundColor: pin.length >= minLength && !disabled ? '#2563eb' : '#f1f5f9',
+          color: pin.length >= minLength && !disabled ? '#ffffff' : '#64748b',
+          cursor: pin.length >= minLength && !disabled ? 'pointer' : 'not-allowed',
+          boxShadow:
+            pin.length >= minLength && !disabled ? '0 4px 12px rgba(37, 99, 235, 0.28)' : 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -310,12 +313,13 @@ export const PinPad: React.FC<PinPadProps> = ({
             fontWeight: 700,
             padding: '2px 6px',
             borderRadius: '5px',
-            backgroundColor: pin.length >= 4 && !disabled ? 'rgba(255, 255, 255, 0.2)' : '#ffffff',
+            backgroundColor:
+              pin.length >= minLength && !disabled ? 'rgba(255, 255, 255, 0.2)' : '#ffffff',
             border:
-              pin.length >= 4 && !disabled
+              pin.length >= minLength && !disabled
                 ? '1px solid rgba(255, 255, 255, 0.35)'
                 : '1px solid #cbd5e1',
-            color: pin.length >= 4 && !disabled ? '#ffffff' : '#64748b',
+            color: pin.length >= minLength && !disabled ? '#ffffff' : '#64748b',
             fontFamily: 'var(--font-mono)',
           }}
         >
