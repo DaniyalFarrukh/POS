@@ -2,8 +2,28 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '../../packages/shared/src/index';
 import { buildApp } from '../../apps/server/src/app';
 import { createTestContext, type TestDatabaseContext } from '../../apps/server/src/db/test-helper';
-import { pharmacies, branches, counters, users } from '../../apps/server/src/db/schema';
-import { getJwtSecret, signUserToken } from '../../apps/server/src/auth/jwt';
+import {
+  pharmacies,
+  branches,
+  counters,
+  users,
+  devices,
+  taxCategories,
+  products,
+  batches,
+  suppliers,
+  customers,
+  invoices,
+  purchaseOrders,
+  purchaseOrderLines,
+  stockTransfers,
+  stockTransferLines,
+  stockLocations,
+  journalEntries,
+  changeLog,
+} from '../../apps/server/src/db/schema';
+import { getJwtSecret, signDeviceToken, signUserToken } from '../../apps/server/src/auth/jwt';
+import { seedDefaultChartOfAccounts } from '../../apps/server/src/ledger/coa-seed';
 import { initDatabase, closeDatabase, getDatabase } from '../../apps/desktop/src/main/db';
 import {
   hashPin,
@@ -376,5 +396,591 @@ describe('Stage 2 Server Security Regression Suite — Commit 1 (Auth, Tokens, P
     } finally {
       await rateLimitedApp.close();
     }
+  });
+
+  it('S2-01: applyStockTransferReceived prevents cross-tenant overwrite of stockTransferLines and verifies line productId/batchId', async () => {
+    const tenantA = await createPharmacyAndOwner('S201A');
+    const tenantB = await createPharmacyAndOwner('S201B');
+    const now = new Date().toISOString();
+
+    // Register a device for Tenant A
+    const deviceAId = generateUuidV7();
+    await ctx.db.insert(devices).values({
+      id: deviceAId,
+      pharmacyId: tenantA.pharmacyId,
+      branchId: tenantA.branchId,
+      counterId: tenantA.counterId,
+      deviceName: 'Device A',
+      isRevoked: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    const deviceTokenA = signDeviceToken({
+      pharmacyId: tenantA.pharmacyId,
+      branchId: tenantA.branchId,
+      deviceId: deviceAId,
+    });
+
+    // Seed product and batch in Tenant A and Tenant B
+    const taxA = generateUuidV7();
+    const prodA = generateUuidV7();
+    const batchA = generateUuidV7();
+    const taxB = generateUuidV7();
+    const prodB = generateUuidV7();
+    const batchB = generateUuidV7();
+
+    await ctx.db.insert(taxCategories).values([
+      {
+        id: taxA,
+        pharmacyId: tenantA.pharmacyId,
+        name: 'Exempt',
+        rateBp: 0,
+        isExempt: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: taxB,
+        pharmacyId: tenantB.pharmacyId,
+        name: 'Exempt',
+        rateBp: 0,
+        isExempt: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    await ctx.db.insert(products).values([
+      {
+        id: prodA,
+        pharmacyId: tenantA.pharmacyId,
+        taxCategoryId: taxA,
+        brandName: 'Prod A',
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: prodB,
+        pharmacyId: tenantB.pharmacyId,
+        taxCategoryId: taxB,
+        brandName: 'Prod B',
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    await ctx.db.insert(batches).values([
+      {
+        id: batchA,
+        pharmacyId: tenantA.pharmacyId,
+        productId: prodA,
+        batchNo: 'BA',
+        expiryDate: '2028-12-31',
+        costPaisa: 500,
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: batchB,
+        pharmacyId: tenantB.pharmacyId,
+        productId: prodB,
+        batchNo: 'BB',
+        expiryDate: '2028-12-31',
+        costPaisa: 500,
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+
+    // Seed an in_transit stock transfer in Tenant A and in Tenant B
+    const transferAId = generateUuidV7();
+    const lineAId = generateUuidV7();
+    const transferBId = generateUuidV7();
+    const lineBId = generateUuidV7();
+
+    await ctx.db.insert(stockTransfers).values([
+      {
+        id: transferAId,
+        pharmacyId: tenantA.pharmacyId,
+        transferNumber: 'ST-A-001',
+        sourceBranchId: tenantA.branchId,
+        destinationBranchId: tenantA.branchId,
+        status: 'in_transit',
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: transferBId,
+        pharmacyId: tenantB.pharmacyId,
+        transferNumber: 'ST-B-001',
+        sourceBranchId: tenantB.branchId,
+        destinationBranchId: tenantB.branchId,
+        status: 'in_transit',
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+
+    await ctx.db.insert(stockTransferLines).values([
+      {
+        id: lineAId,
+        pharmacyId: tenantA.pharmacyId,
+        transferId: transferAId,
+        productId: prodA,
+        batchId: batchA,
+        quantityRequested: 10,
+        quantityDispatched: 10,
+        quantityReceived: 0,
+        shortageQuantity: 0,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: lineBId,
+        pharmacyId: tenantB.pharmacyId,
+        transferId: transferBId,
+        productId: prodB,
+        batchId: batchB,
+        quantityRequested: 10,
+        quantityDispatched: 10,
+        quantityReceived: 0,
+        shortageQuantity: 0,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+
+    // Tenant A pushes stock_transfer.received referencing Tenant A's transferAId,
+    // but passes Tenant B's lineBId to overwrite Tenant B's stockTransferLines!
+    const pushRes = await app.inject({
+      method: 'POST',
+      url: '/sync/push',
+      headers: { authorization: `Bearer ${deviceTokenA}` },
+      payload: {
+        events: [
+          {
+            eventId: generateUuidV7(),
+            deviceSeq: 1,
+            type: 'stock_transfer.received',
+            entityId: transferAId,
+            occurredAt: now,
+            schemaVersion: 1,
+            payload: {
+              transferId: transferAId,
+              transferNumber: 'ST-A-001',
+              destinationBranchId: tenantA.branchId,
+              receivedByUserId: tenantA.ownerId,
+              receivedAt: now,
+              lines: [
+                {
+                  lineId: lineBId, // Foreign Tenant B lineId!
+                  productId: prodA,
+                  batchId: batchA,
+                  quantityReceived: 99,
+                  shortageQuantity: 0,
+                  unitCostPaisa: 500,
+                  receiveMovementId: generateUuidV7(),
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    expect(pushRes.statusCode).toBe(200);
+    const results = pushRes.json<{ results: Array<{ status: string }> }>().results;
+    expect(results[0]?.status).toBe('rejected');
+
+    // Verify Tenant B's lineBId was NOT modified!
+    const lineBRow = await ctx.client.query<{ quantity_received: number }>(
+      'SELECT quantity_received FROM stock_transfer_lines WHERE id = $1',
+      [lineBId]
+    );
+    expect(lineBRow.rows[0]?.quantity_received).toBe(0);
+  });
+
+  it('S2-02: AR and AP reminders reject cross-tenant partyId and documentId and never leak foreign customer/supplier names', async () => {
+    const tenantA = await createPharmacyAndOwner('S202A');
+    const tenantB = await createPharmacyAndOwner('S202B');
+    const now = new Date().toISOString();
+
+    const customerBId = generateUuidV7();
+    const supplierBId = generateUuidV7();
+
+    await ctx.db.insert(customers).values({
+      id: customerBId,
+      pharmacyId: tenantB.pharmacyId,
+      name: 'Confidential Tenant B Customer',
+      phone: '03001112222',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert(suppliers).values({
+      id: supplierBId,
+      pharmacyId: tenantB.pharmacyId,
+      name: 'Confidential Tenant B Supplier',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Tenant A tries to create an AR reminder with Tenant B's customerBId
+    const arPostRes = await app.inject({
+      method: 'POST',
+      url: '/api/finance/ar/reminders',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        partyType: 'customer',
+        partyId: customerBId,
+        channel: 'sms',
+        amountPaisa: 50000,
+      },
+    });
+    expect(arPostRes.statusCode).toBe(404);
+
+    // Tenant A tries to create an AP reminder with Tenant B's supplierBId
+    const apPostRes = await app.inject({
+      method: 'POST',
+      url: '/api/finance/ap/reminders',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        partyType: 'supplier',
+        partyId: supplierBId,
+        channel: 'email',
+        amountPaisa: 50000,
+      },
+    });
+    expect(apPostRes.statusCode).toBe(404);
+  });
+
+  it('S2-03: GET /api/purchase-orders/:id and GET /api/admin/audit-logs never expose pinHash in JSON responses', async () => {
+    const tenant = await createPharmacyAndOwner('S203');
+    const now = new Date().toISOString();
+
+    const supplierId = generateUuidV7();
+    const poId = generateUuidV7();
+    await ctx.db.insert(suppliers).values({
+      id: supplierId,
+      pharmacyId: tenant.pharmacyId,
+      name: 'S203 Supplier',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await ctx.db.insert(purchaseOrders).values({
+      id: poId,
+      pharmacyId: tenant.pharmacyId,
+      branchId: tenant.branchId,
+      supplierId,
+      poNumber: 'PO-S203-001',
+      status: 'draft',
+      issueDate: '2026-10-28',
+      totalExpectedCostPaisa: 10000,
+      createdBy: tenant.ownerId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // 1. GET /api/purchase-orders/:id must not include pinHash on creator
+    const poRes = await app.inject({
+      method: 'GET',
+      url: `/api/purchase-orders/${poId}`,
+      headers: { authorization: `Bearer ${tenant.ownerToken}` },
+    });
+    expect(poRes.statusCode).toBe(200);
+    const poBody = poRes.json<{ data: { creator: Record<string, unknown> } }>();
+    expect(poBody.data.creator).toBeDefined();
+    expect(poBody.data.creator.pinHash).toBeUndefined();
+    expect(poBody.data.creator.failedLoginAttempts).toBeUndefined();
+    expect(poBody.data.creator.lockedUntil).toBeUndefined();
+
+    // 2. Insert a user change_log entry in a fresh tenant with no audit_logs so GET /api/admin/audit-logs uses the change_log fallback
+    await ctx.db.insert(changeLog).values({
+      pharmacyId: tenant.pharmacyId,
+      entity: 'user',
+      entityId: tenant.ownerId,
+      op: 'upsert',
+      data: {
+        id: tenant.ownerId,
+        name: 'Dr. Owner',
+        role: 'owner',
+        pinHash: '$2a$10$secretHashShouldBeStripped',
+        isActive: true,
+      },
+      createdAt: now,
+    });
+
+    const auditRes = await app.inject({
+      method: 'GET',
+      url: '/api/admin/audit-logs',
+      headers: { authorization: `Bearer ${tenant.ownerToken}` },
+    });
+    expect(auditRes.statusCode).toBe(200);
+    const rawAuditText = auditRes.body;
+    expect(rawAuditText).not.toContain('pinHash');
+    expect(rawAuditText).not.toContain('$2a$10$secretHashShouldBeStripped');
+  });
+
+  it('S2-04: rejects cross-tenant foreign key references across finance, inventory, purchasing, HR, and prescriptions routes', async () => {
+    const tenantA = await createPharmacyAndOwner('S204A');
+    const tenantB = await createPharmacyAndOwner('S204B');
+    const now = new Date().toISOString();
+
+    await seedDefaultChartOfAccounts(ctx.db, tenantA.pharmacyId);
+    await seedDefaultChartOfAccounts(ctx.db, tenantB.pharmacyId);
+
+    // Seed entities in Tenant A and Tenant B
+    const taxA = generateUuidV7();
+    const prodA = generateUuidV7();
+    const batchA = generateUuidV7();
+    const suppA = generateUuidV7();
+    const locA = generateUuidV7();
+
+    const taxB = generateUuidV7();
+    const prodB = generateUuidV7();
+    const batchB = generateUuidV7();
+    const custB = generateUuidV7();
+    const invB = generateUuidV7();
+    const locB = generateUuidV7();
+    const journalB = generateUuidV7();
+
+    await ctx.db.insert(taxCategories).values([
+      {
+        id: taxA,
+        pharmacyId: tenantA.pharmacyId,
+        name: 'Exempt',
+        rateBp: 0,
+        isExempt: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: taxB,
+        pharmacyId: tenantB.pharmacyId,
+        name: 'Exempt',
+        rateBp: 0,
+        isExempt: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    await ctx.db.insert(products).values([
+      {
+        id: prodA,
+        pharmacyId: tenantA.pharmacyId,
+        taxCategoryId: taxA,
+        brandName: 'Prod A',
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: prodB,
+        pharmacyId: tenantB.pharmacyId,
+        taxCategoryId: taxB,
+        brandName: 'Prod B',
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    await ctx.db.insert(batches).values([
+      {
+        id: batchA,
+        pharmacyId: tenantA.pharmacyId,
+        productId: prodA,
+        batchNo: 'BA',
+        expiryDate: '2028-12-31',
+        costPaisa: 500,
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: batchB,
+        pharmacyId: tenantB.pharmacyId,
+        productId: prodB,
+        batchNo: 'BB',
+        expiryDate: '2028-12-31',
+        costPaisa: 500,
+        mrpPaisa: 1000,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+    await ctx.db.insert(suppliers).values({
+      id: suppA,
+      pharmacyId: tenantA.pharmacyId,
+      name: 'Supplier A',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await ctx.db.insert(customers).values({
+      id: custB,
+      pharmacyId: tenantB.pharmacyId,
+      name: 'Customer B',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await ctx.db.insert(invoices).values({
+      id: invB,
+      pharmacyId: tenantB.pharmacyId,
+      counterId: tenantB.counterId,
+      cashierUserId: tenantB.ownerId,
+      invoiceNumber: 'INV-B-S204',
+      clientRequestId: generateUuidV7(),
+      status: 'finalized',
+      subtotalPaisa: 5000,
+      discountPaisa: 0,
+      taxPaisa: 0,
+      totalPaisa: 5000,
+      createdAt: now,
+    });
+    await ctx.db.insert(stockLocations).values([
+      {
+        id: locA,
+        pharmacyId: tenantA.pharmacyId,
+        branchId: tenantA.branchId,
+        name: 'Loc A',
+        code: 'LA',
+        type: 'sales_floor',
+        isDefault: true,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: locB,
+        pharmacyId: tenantB.pharmacyId,
+        branchId: tenantB.branchId,
+        name: 'Loc B',
+        code: 'LB',
+        type: 'sales_floor',
+        isDefault: true,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]);
+
+    // 1. POST /api/purchase-orders with duplicate local productId + foreign prodB
+    const poDupRes = await app.inject({
+      method: 'POST',
+      url: '/api/purchase-orders',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        branchId: tenantA.branchId,
+        supplierId: suppA,
+        issueDate: '2026-10-28',
+        lines: [
+          { productId: prodA, quantityOrdered: 5, expectedCostPaisa: 500 },
+          { productId: prodA, quantityOrdered: 5, expectedCostPaisa: 500 },
+          { productId: prodB, quantityOrdered: 5, expectedCostPaisa: 500 }, // Foreign prodB!
+        ],
+      },
+    });
+    expect(poDupRes.statusCode).toBeGreaterThanOrEqual(400);
+
+    // 2. POST /api/prescriptions with foreign customerId or productId
+    const rxRes = await app.inject({
+      method: 'POST',
+      url: '/api/prescriptions',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        customerId: custB, // Foreign custB!
+        doctorName: 'Dr. Test',
+        patientName: 'Patient Test',
+        prescriptionDate: '2026-10-28',
+        items: [{ productId: prodA, dosageInstructions: '1 tab daily', quantityPrescribed: 10 }],
+      },
+    });
+    expect(rxRes.statusCode).toBe(404);
+
+    // 3. POST /api/hr/employees with foreign branchId
+    const hrEmpRes = await app.inject({
+      method: 'POST',
+      url: '/api/hr/employees',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        branchId: tenantB.branchId, // Foreign branchId!
+        employeeCode: 'EMP-XT-01',
+        firstName: 'Cross',
+        lastName: 'Tenant',
+        designation: 'Cashier',
+        department: 'Retail',
+        joiningDate: '2026-01-01',
+        salaryPaisa: 5000000,
+      },
+    });
+    expect(hrEmpRes.statusCode).toBe(404);
+
+    // 4. POST /api/stock-counts with foreign locationId
+    const scRes = await app.inject({
+      method: 'POST',
+      url: '/api/stock-counts',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        branchId: tenantA.branchId,
+        locationId: locB, // Foreign locB!
+        batches: [{ productId: prodA, batchId: batchA }],
+      },
+    });
+    expect(scRes.statusCode).toBe(404);
+
+    // 5. POST /api/stock-transfers with foreign productId
+    const stRes = await app.inject({
+      method: 'POST',
+      url: '/api/stock-transfers',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        sourceBranchId: tenantA.branchId,
+        destinationBranchId: tenantA.branchId,
+        lines: [{ productId: prodB, batchId: batchA, quantityRequested: 5, unitCostPaisa: 500 }],
+      },
+    });
+    expect(stRes.statusCode).toBe(404);
+
+    // 6. POST /api/supplier-returns with foreign productId
+    const srRes = await app.inject({
+      method: 'POST',
+      url: '/api/supplier-returns',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        branchId: tenantA.branchId,
+        supplierId: suppA,
+        returnDate: '2026-10-28',
+        reason: 'damaged',
+        lines: [{ productId: prodB, batchId: batchA, quantity: 1, unitCostPaisa: 500 }],
+      },
+    });
+    expect(srRes.statusCode).toBe(404);
+
+    // 7. POST /api/inventory/batches/:id/write-off with foreign branchId
+    const woRes = await app.inject({
+      method: 'POST',
+      url: `/api/inventory/batches/${batchA}/write-off`,
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        branchId: tenantB.branchId, // Foreign branchId!
+        quantity: 1,
+        reason: 'expired',
+      },
+    });
+    expect(woRes.statusCode).toBe(404);
+
+    // 8. POST /api/finance/journals/:id/post with foreign journalB
+    const jpRes = await app.inject({
+      method: 'POST',
+      url: `/api/finance/journals/${journalB}/post`,
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+    });
+    expect(jpRes.statusCode).toBe(404);
   });
 });

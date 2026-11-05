@@ -669,7 +669,13 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
           createdAt: paymentReminders.createdAt,
         })
         .from(paymentReminders)
-        .innerJoin(customers, eq(paymentReminders.partyId, customers.id))
+        .innerJoin(
+          customers,
+          and(
+            eq(paymentReminders.partyId, customers.id),
+            eq(customers.pharmacyId, userContext.pharmacyId)
+          )
+        )
         .where(
           and(
             eq(paymentReminders.pharmacyId, userContext.pharmacyId),
@@ -710,6 +716,39 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const data = parsed.data;
+
+      // Verify customer belongs to this pharmacy tenant
+      const [cust] = await db
+        .select({ id: customers.id })
+        .from(customers)
+        .where(
+          and(eq(customers.id, data.partyId), eq(customers.pharmacyId, userContext.pharmacyId))
+        )
+        .limit(1);
+
+      if (!cust) {
+        return reply.status(404).send({
+          success: false,
+          message: 'Customer not found in this pharmacy',
+        });
+      }
+
+      if (data.documentId) {
+        const [inv] = await db
+          .select({ id: invoices.id })
+          .from(invoices)
+          .where(
+            and(eq(invoices.id, data.documentId), eq(invoices.pharmacyId, userContext.pharmacyId))
+          )
+          .limit(1);
+        if (!inv) {
+          return reply.status(404).send({
+            success: false,
+            message: 'Referenced invoice not found in this pharmacy',
+          });
+        }
+      }
+
       const reminderId = generateUuidV7();
       const nowIso = new Date().toISOString();
 

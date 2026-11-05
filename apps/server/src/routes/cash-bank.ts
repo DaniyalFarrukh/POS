@@ -539,6 +539,34 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
+      const [branch] = await db
+        .select({ id: branches.id })
+        .from(branches)
+        .where(and(eq(branches.id, body.branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+        .limit(1);
+      if (!branch) {
+        return reply.status(404).send({
+          success: false,
+          error: { message: 'Branch not found in this pharmacy' },
+        });
+      }
+
+      if (body.counterId) {
+        const [ctr] = await db
+          .select({ id: counters.id })
+          .from(counters)
+          .where(
+            and(eq(counters.id, body.counterId), eq(counters.pharmacyId, userContext.pharmacyId))
+          )
+          .limit(1);
+        if (!ctr) {
+          return reply.status(404).send({
+            success: false,
+            error: { message: 'Counter not found in this pharmacy' },
+          });
+        }
+      }
+
       const now = new Date().toISOString();
       const depositId = generateUuidV7();
       const seqSuffix = Math.floor(1000 + Math.random() * 9000);

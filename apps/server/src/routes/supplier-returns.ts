@@ -124,8 +124,27 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
         });
       }
 
-      // Check on-hand stock for each batch: CANNOT return more than on hand
+      // Verify batch & product ownership and on-hand stock for each batch
       for (const line of inputLines) {
+        const [batch] = await db
+          .select()
+          .from(batches)
+          .where(
+            and(
+              eq(batches.id, line.batchId),
+              eq(batches.productId, line.productId),
+              eq(batches.pharmacyId, pharmacyId)
+            )
+          );
+
+        if (!batch) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: 'Not Found',
+            message: `Batch ${line.batchId} or product ${line.productId} not found in this pharmacy`,
+          });
+        }
+
         const [balRow] = await db
           .select({
             balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(
@@ -186,13 +205,19 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
         const [batch] = await db
           .select()
           .from(batches)
-          .where(and(eq(batches.id, line.batchId), eq(batches.pharmacyId, pharmacyId)));
+          .where(
+            and(
+              eq(batches.id, line.batchId),
+              eq(batches.productId, line.productId),
+              eq(batches.pharmacyId, pharmacyId)
+            )
+          );
 
         if (!batch) {
           return reply.status(404).send({
             statusCode: 404,
             error: 'Not Found',
-            message: `Batch ${line.batchId} not found`,
+            message: `Batch ${line.batchId} or product ${line.productId} not found in this pharmacy`,
           });
         }
 

@@ -126,6 +126,20 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
         });
       }
 
+      if (locationId) {
+        const [loc] = await db
+          .select()
+          .from(stockLocations)
+          .where(and(eq(stockLocations.id, locationId), eq(stockLocations.pharmacyId, pharmacyId)));
+        if (!loc) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: 'Not Found',
+            message: 'Location not found',
+          });
+        }
+      }
+
       const now = new Date().toISOString();
       const countId = generateUuidV7();
 
@@ -145,7 +159,13 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
         const [batch] = await db
           .select()
           .from(batches)
-          .where(and(eq(batches.id, item.batchId), eq(batches.pharmacyId, pharmacyId)));
+          .where(
+            and(
+              eq(batches.id, item.batchId),
+              eq(batches.productId, item.productId),
+              eq(batches.pharmacyId, pharmacyId)
+            )
+          );
         if (!batch) continue;
 
         // Query current on-hand for this batch at this branch (and location if set)
@@ -206,7 +226,10 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
       });
 
       // Fetch created record with lines
-      const [newCount] = await db.select().from(stockCounts).where(eq(stockCounts.id, countId));
+      const [newCount] = await db
+        .select()
+        .from(stockCounts)
+        .where(and(eq(stockCounts.id, countId), eq(stockCounts.pharmacyId, pharmacyId)));
 
       return reply.status(201).send({
         data: {

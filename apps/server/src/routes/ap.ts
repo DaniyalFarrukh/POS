@@ -669,7 +669,13 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
           createdAt: paymentReminders.createdAt,
         })
         .from(paymentReminders)
-        .innerJoin(suppliers, eq(paymentReminders.partyId, suppliers.id))
+        .innerJoin(
+          suppliers,
+          and(
+            eq(paymentReminders.partyId, suppliers.id),
+            eq(suppliers.pharmacyId, userContext.pharmacyId)
+          )
+        )
         .where(
           and(
             eq(paymentReminders.pharmacyId, userContext.pharmacyId),
@@ -710,6 +716,42 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const data = parsed.data;
+
+      // Verify supplier belongs to this pharmacy tenant
+      const [supp] = await db
+        .select({ id: suppliers.id })
+        .from(suppliers)
+        .where(
+          and(eq(suppliers.id, data.partyId), eq(suppliers.pharmacyId, userContext.pharmacyId))
+        )
+        .limit(1);
+
+      if (!supp) {
+        return reply.status(404).send({
+          success: false,
+          message: 'Supplier not found in this pharmacy',
+        });
+      }
+
+      if (data.documentId) {
+        const [po] = await db
+          .select({ id: purchaseOrders.id })
+          .from(purchaseOrders)
+          .where(
+            and(
+              eq(purchaseOrders.id, data.documentId),
+              eq(purchaseOrders.pharmacyId, userContext.pharmacyId)
+            )
+          )
+          .limit(1);
+        if (!po) {
+          return reply.status(404).send({
+            success: false,
+            message: 'Referenced purchase order not found in this pharmacy',
+          });
+        }
+      }
+
       const reminderId = generateUuidV7();
       const nowIso = new Date().toISOString();
 

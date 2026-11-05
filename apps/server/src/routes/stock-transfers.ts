@@ -7,6 +7,7 @@ import {
   stockTransfers,
   stockTransferLines,
   stockMovements,
+  stockLocations,
   branches,
   products,
   batches,
@@ -171,6 +172,75 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
           code: 'INVALID_BRANCH',
           message: 'Source or destination branch does not belong to this pharmacy',
         });
+      }
+
+      if (data.sourceLocationId) {
+        const [srcLoc] = await db
+          .select()
+          .from(stockLocations)
+          .where(
+            and(
+              eq(stockLocations.id, data.sourceLocationId),
+              eq(stockLocations.pharmacyId, pharmacyId)
+            )
+          );
+        if (!srcLoc) {
+          return reply.status(404).send({
+            statusCode: 404,
+            code: 'INVALID_LOCATION',
+            message: 'Source location not found in this pharmacy',
+          });
+        }
+      }
+
+      if (data.destinationLocationId) {
+        const [destLoc] = await db
+          .select()
+          .from(stockLocations)
+          .where(
+            and(
+              eq(stockLocations.id, data.destinationLocationId),
+              eq(stockLocations.pharmacyId, pharmacyId)
+            )
+          );
+        if (!destLoc) {
+          return reply.status(404).send({
+            statusCode: 404,
+            code: 'INVALID_LOCATION',
+            message: 'Destination location not found in this pharmacy',
+          });
+        }
+      }
+
+      for (const l of data.lines) {
+        const [prod] = await db
+          .select({ id: products.id })
+          .from(products)
+          .where(and(eq(products.id, l.productId), eq(products.pharmacyId, pharmacyId)));
+        if (!prod) {
+          return reply.status(404).send({
+            statusCode: 404,
+            code: 'INVALID_PRODUCT',
+            message: `Product ${l.productId} not found in this pharmacy`,
+          });
+        }
+        const [batch] = await db
+          .select({ id: batches.id })
+          .from(batches)
+          .where(
+            and(
+              eq(batches.id, l.batchId),
+              eq(batches.productId, l.productId),
+              eq(batches.pharmacyId, pharmacyId)
+            )
+          );
+        if (!batch) {
+          return reply.status(404).send({
+            statusCode: 404,
+            code: 'INVALID_BATCH',
+            message: `Batch ${l.batchId} not found in this pharmacy`,
+          });
+        }
       }
 
       // Generate transfer number

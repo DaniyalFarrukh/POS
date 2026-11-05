@@ -850,7 +850,21 @@ export const expenseRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Branch resolution
       let targetBranchId = body.branchId;
-      if (!targetBranchId) {
+      if (targetBranchId) {
+        const [verifiedBranch] = await db
+          .select({ id: branches.id })
+          .from(branches)
+          .where(
+            and(eq(branches.id, targetBranchId), eq(branches.pharmacyId, userContext.pharmacyId))
+          )
+          .limit(1);
+        if (!verifiedBranch) {
+          return reply.status(404).send({
+            success: false,
+            message: 'Branch not found for this pharmacy',
+          });
+        }
+      } else {
         const [firstBranch] = await db
           .select({ id: branches.id })
           .from(branches)

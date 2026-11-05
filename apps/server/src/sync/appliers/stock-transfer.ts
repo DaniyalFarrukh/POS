@@ -8,6 +8,8 @@ import {
   stockTransferLines,
   stockMovements,
   branches,
+  stockLocations,
+  users,
   products,
   batches,
 } from '../../db/schema';
@@ -33,7 +35,14 @@ export async function applyStockTransferDispatched(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Verify branches belong to this pharmacy
+  // 1. Verify branches belong to this pharmacy and align with device branch
+  if (ctx.branchId && payload.sourceBranchId !== ctx.branchId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device branchId (${ctx.branchId}) does not match transfer sourceBranchId (${payload.sourceBranchId})`
+    );
+  }
+
   await verifyTenantEntity(
     tx,
     branches,
@@ -51,6 +60,39 @@ export async function applyStockTransferDispatched(
     'UNKNOWN_BRANCH',
     'destinationBranch'
   );
+
+  if (payload.sourceLocationId) {
+    await verifyTenantEntity(
+      tx,
+      stockLocations,
+      payload.sourceLocationId,
+      ctx.pharmacyId,
+      'UNKNOWN_LOCATION',
+      'sourceLocation'
+    );
+  }
+
+  if (payload.destinationLocationId) {
+    await verifyTenantEntity(
+      tx,
+      stockLocations,
+      payload.destinationLocationId,
+      ctx.pharmacyId,
+      'UNKNOWN_LOCATION',
+      'destinationLocation'
+    );
+  }
+
+  if (payload.dispatchedByUserId) {
+    await verifyTenantEntity(
+      tx,
+      users,
+      payload.dispatchedByUserId,
+      ctx.pharmacyId,
+      'UNKNOWN_USER',
+      'dispatchedByUser'
+    );
+  }
 
   // 2. Verify products and batches
   const productIds = payload.lines.map((l) => l.productId);
@@ -100,7 +142,12 @@ export async function applyStockTransferDispatched(
         notes: payload.notes || existingTransfer.notes,
         updatedAt: now,
       })
-      .where(eq(stockTransfers.id, payload.transferId));
+      .where(
+        and(
+          eq(stockTransfers.id, payload.transferId),
+          eq(stockTransfers.pharmacyId, ctx.pharmacyId)
+        )
+      );
   }
 
   // 4. Upsert stock_transfer_lines and insert transfer_out movements
@@ -219,6 +266,37 @@ export async function applyStockTransferReceived(
     return;
   }
 
+  if (ctx.branchId && transfer.destinationBranchId !== ctx.branchId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Device branchId (${ctx.branchId}) does not match transfer destinationBranchId (${transfer.destinationBranchId})`
+    );
+  }
+
+  if (payload.receivedByUserId) {
+    await verifyTenantEntity(
+      tx,
+      users,
+      payload.receivedByUserId,
+      ctx.pharmacyId,
+      'UNKNOWN_USER',
+      'receivedByUser'
+    );
+  }
+
+  const productIds = payload.lines.map((l) => l.productId);
+  await verifyTenantEntities(
+    tx,
+    products,
+    productIds,
+    ctx.pharmacyId,
+    'UNKNOWN_PRODUCT',
+    'product'
+  );
+
+  const batchIds = payload.lines.map((l) => l.batchId);
+  await verifyTenantEntities(tx, batches, batchIds, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
+
   let hasShortage = false;
 
   // 2. Process receipt lines
@@ -229,7 +307,7 @@ export async function applyStockTransferReceived(
       hasShortage = true;
     }
 
-    await tx
+    const updatedLines = await tx
       .update(stockTransferLines)
       .set({
         quantityReceived: line.quantityReceived,
@@ -239,7 +317,21 @@ export async function applyStockTransferReceived(
         shortageMovementId: line.shortageMovementId || null,
         updatedAt: now,
       })
-      .where(eq(stockTransferLines.id, line.lineId));
+      .where(
+        and(
+          eq(stockTransferLines.id, line.lineId),
+          eq(stockTransferLines.transferId, transfer.id),
+          eq(stockTransferLines.pharmacyId, ctx.pharmacyId)
+        )
+      )
+      .returning({ id: stockTransferLines.id });
+
+    if (updatedLines.length === 0) {
+      throw new SyncRejectedError(
+        'CROSS_TENANT_REFERENCE',
+        `Transfer line ${line.lineId} does not belong to transfer ${transfer.id} or pharmacy ${ctx.pharmacyId}`
+      );
+    }
 
     // Insert transfer_in movement at destination
     if (line.quantityReceived > 0) {
@@ -295,7 +387,7 @@ export async function applyStockTransferReceived(
       hasShortage,
       updatedAt: now,
     })
-    .where(eq(stockTransfers.id, transfer.id));
+    .where(and(eq(stockTransfers.id, transfer.id), eq(stockTransfers.pharmacyId, ctx.pharmacyId)));
 
   // 4. Auto-post balanced inter-branch journal entry
   await postStockTransferReceived(tx, {

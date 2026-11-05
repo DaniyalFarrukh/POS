@@ -70,6 +70,40 @@ interface AuditLogQuery {
   search?: string;
 }
 
+const SENSITIVE_AUDIT_KEYS = new Set([
+  'pinHash',
+  'pin_hash',
+  'pin',
+  'passwordHash',
+  'password_hash',
+  'password',
+  'codeHash',
+  'code_hash',
+  'token',
+  'refreshToken',
+  'secret',
+  'failedLoginAttempts',
+  'failed_login_attempts',
+  'lockedUntil',
+  'locked_until',
+]);
+
+function sanitizeAuditPayload(value: unknown): unknown {
+  if (value === null || value === undefined || typeof value !== 'object') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeAuditPayload);
+  }
+  const clean: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (!SENSITIVE_AUDIT_KEYS.has(k)) {
+      clean[k] = sanitizeAuditPayload(v);
+    }
+  }
+  return clean;
+}
+
 export const adminRoutes: FastifyPluginAsync = async (fastify) => {
   // -------------------------------------------------------------------------
   // 1. User Management
@@ -660,8 +694,8 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
 
-      const page = Math.max(1, parseInt(request.query.page || '1', 10));
-      const limit = Math.min(100, Math.max(1, parseInt(request.query.limit || '50', 10)));
+      const page = Math.max(1, parseInt(request.query.page || '1', 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(request.query.limit || '50', 10) || 50));
       const offset = (page - 1) * limit;
 
       const { entity, userId, action, startDate, endDate, search } = request.query;
@@ -669,7 +703,9 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       // Check if rich audit_logs exist for this pharmacy
       const auditConditions = [eq(auditLogs.pharmacyId, userContext.pharmacyId)];
       if (entity) auditConditions.push(eq(auditLogs.entity, entity));
-      if (userId) auditConditions.push(eq(auditLogs.userId, userId));
+      if (userId && z.string().uuid().safeParse(userId).success) {
+        auditConditions.push(eq(auditLogs.userId, userId));
+      }
       if (action) auditConditions.push(eq(auditLogs.action, action));
       if (startDate) auditConditions.push(gte(auditLogs.createdAt, startDate));
       if (endDate) auditConditions.push(lte(auditLogs.createdAt, endDate));
@@ -699,22 +735,26 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
           .limit(limit)
           .offset(offset);
 
-        const items = rows.map((r, idx) => ({
-          id: r.id,
-          seq: offset + idx + 1,
-          entity: r.entity,
-          op: r.action,
-          action: r.action,
-          userId: r.userId,
-          userName: r.userName,
-          userRole: r.userRole,
-          summary: r.summary,
-          beforeState: r.beforeState,
-          afterState: r.afterState,
-          data: r.afterState || r.beforeState || {},
-          ipAddress: r.ipAddress,
-          createdAt: r.createdAt,
-        }));
+        const items = rows.map((r, idx) => {
+          const safeBefore = sanitizeAuditPayload(r.beforeState);
+          const safeAfter = sanitizeAuditPayload(r.afterState);
+          return {
+            id: r.id,
+            seq: offset + idx + 1,
+            entity: r.entity,
+            op: r.action,
+            action: r.action,
+            userId: r.userId,
+            userName: r.userName,
+            userRole: r.userRole,
+            summary: r.summary,
+            beforeState: safeBefore,
+            afterState: safeAfter,
+            data: safeAfter || safeBefore || {},
+            ipAddress: r.ipAddress,
+            createdAt: r.createdAt,
+          };
+        });
 
         return reply.status(200).send({
           items,
@@ -753,20 +793,23 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         .limit(limit)
         .offset(offset);
 
-      const items = logs.map((l) => ({
-        id: l.entityId,
-        seq: l.seq,
-        entity: l.entity,
-        op: l.op,
-        action: l.op,
-        userName: 'System',
-        userRole: 'system',
-        summary: `${l.op.toUpperCase()} ${l.entity} (${l.entityId})`,
-        data: l.data,
-        beforeState: null,
-        afterState: (l.data as Record<string, unknown>) ?? null,
-        createdAt: l.createdAt,
-      }));
+      const items = logs.map((l) => {
+        const safeData = (sanitizeAuditPayload(l.data) as Record<string, unknown>) ?? null;
+        return {
+          id: l.entityId,
+          seq: l.seq,
+          entity: l.entity,
+          op: l.op,
+          action: l.op,
+          userName: 'System',
+          userRole: 'system',
+          summary: `${l.op.toUpperCase()} ${l.entity} (${l.entityId})`,
+          data: safeData,
+          beforeState: null,
+          afterState: safeData,
+          createdAt: l.createdAt,
+        };
+      });
 
       return reply.status(200).send({
         items,

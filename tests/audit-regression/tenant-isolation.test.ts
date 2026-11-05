@@ -302,11 +302,13 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
 
     // Authenticated routes required to be tenant-isolated
     const TENANT_ISOLATED_ROUTES = new Set([
-      'POST /test/protected-action',
       'GET /devices/me',
       'POST /sync/push',
       'GET /sync/pull',
       'GET /api/auth/me',
+      'POST /api/auth/logout',
+      'POST /api/auth/refresh',
+      'POST /api/auth/change-pin',
       'GET /api/dashboard/overview',
       'GET /api/reports/sales',
       'GET /api/reports/stock-and-expiry',
@@ -464,7 +466,6 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       'PUT /api/hr/payroll/statutory-rates/:id',
       'GET /api/hr/payroll/tax-slabs',
       'POST /api/hr/payroll/tax-slabs',
-      'PUT /api/hr/payroll/tax-slabs/:id',
       'GET /api/hr/payroll/advances',
       'POST /api/hr/payroll/advances',
       'GET /api/hr/payroll/runs',
@@ -486,6 +487,7 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
     ]);
 
     const activeRoutes = capturedRoutes.filter((r) => r.method !== 'OPTIONS' && r.url !== '/*');
+    const activeRouteKeys = new Set(activeRoutes.map((r) => `${r.method} ${r.url}`));
 
     for (const route of activeRoutes) {
       const routeKey = `${route.method} ${route.url}`;
@@ -495,6 +497,14 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       expect(
         isPublic || isTenantIsolated,
         `SECURITY ERROR: Route '${routeKey}' is registered in Fastify but not cataloged in tenant isolation tests! Every route must be tenant-isolated or explicitly justified in PUBLIC_ROUTES.`
+      ).toBe(true);
+    }
+
+    // Two-way verification: ensure TENANT_ISOLATED_ROUTES contains no phantom/stale routes
+    for (const declaredRoute of TENANT_ISOLATED_ROUTES) {
+      expect(
+        activeRouteKeys.has(declaredRoute),
+        `STALE ROUTE ERROR: '${declaredRoute}' is listed in TENANT_ISOLATED_ROUTES but does not exist in Fastify!`
       ).toBe(true);
     }
   });
@@ -1555,6 +1565,103 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       expect(results[0].code).toBe('CROSS_TENANT_REFERENCE');
       expect(results[1].status).toBe('rejected');
       expect(results[1].code).toBe('CROSS_TENANT_REFERENCE');
+    });
+  });
+
+  // =========================================================================
+  // 8. Behavioral Tenant Isolation for Remaining Route Families (S2-10)
+  // =========================================================================
+  describe('Behavioral Tenant Isolation Across ERP Route Families', () => {
+    it('isolates suppliers, purchase-orders, stock-locations, stock-transfers, stock-counts, supplier-returns, and stock detail across tenants', async () => {
+      // Tenant A querying Tenant B's supplier -> 404
+      const suppRes = await app.inject({
+        method: 'GET',
+        url: `/api/suppliers/${tenantB.supplierId}`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(suppRes.statusCode).toBe(404);
+
+      // Tenant A querying Tenant B's product stock detail -> 404
+      const stockDetailRes = await app.inject({
+        method: 'GET',
+        url: `/api/inventory/products/${tenantB.productId}/stock-detail`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(stockDetailRes.statusCode).toBe(404);
+
+      // Tenant A discounting Tenant B's batch -> 404
+      const discountRes = await app.inject({
+        method: 'POST',
+        url: `/api/inventory/batches/${tenantB.batchId}/discount`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: { mrpPaisa: 4000, reason: 'Cross tenant discount attempt' },
+      });
+      expect(discountRes.statusCode).toBe(404);
+
+      // Tenant A listing suppliers, POs, stock locations, transfers, counts, supplier returns never includes Tenant B
+      const listEndpoints = [
+        '/api/suppliers',
+        '/api/purchase-orders',
+        '/api/stock-locations',
+        '/api/stock-transfers',
+        '/api/stock-counts',
+        '/api/supplier-returns',
+      ];
+      for (const url of listEndpoints) {
+        const res = await app.inject({
+          method: 'GET',
+          url,
+          headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(JSON.stringify(res.json())).not.toContain(tenantB.pharmacyId);
+        expect(JSON.stringify(res.json())).not.toContain(tenantB.supplierId);
+        expect(JSON.stringify(res.json())).not.toContain(tenantB.productId);
+      }
+    });
+
+    it('isolates finance (AR, AP, cash-bank, budgets, sales-ledger), HR/payroll, notifications, and global search across tenants', async () => {
+      // Tenant A requesting AR statement for Tenant B supplier/customer -> 404
+      const apStmtRes = await app.inject({
+        method: 'GET',
+        url: `/api/finance/ap/statement/${tenantB.supplierId}`,
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(apStmtRes.statusCode).toBe(404);
+
+      // Finance, HR, Payroll, Notifications, and Search endpoints scoped to Tenant A
+      const scopedGetEndpoints = [
+        '/api/finance/ar/summary',
+        '/api/finance/ap/summary',
+        '/api/finance/cash-bank/accounts',
+        '/api/finance/cash-bank/transfers',
+        '/api/finance/cash-bank/deposits',
+        '/api/finance/sales-ledger',
+        '/api/finance/budgets?fiscalYear=2026',
+        '/api/hr/employees',
+        '/api/hr/leave/types',
+        '/api/hr/leave/requests',
+        '/api/hr/payroll/runs',
+        '/api/hr/payroll/advances',
+        '/api/notifications',
+        '/api/search?q=Product',
+      ];
+
+      for (const url of scopedGetEndpoints) {
+        const res = await app.inject({
+          method: 'GET',
+          url,
+          headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        });
+        expect(res.statusCode).toBe(200);
+        const raw = JSON.stringify(res.json());
+        expect(raw).not.toContain(tenantB.pharmacyId);
+        if (url !== '/api/notifications') {
+          expect(raw).not.toContain(tenantB.productId);
+          expect(raw).not.toContain(tenantB.supplierId);
+          expect(raw).not.toContain(tenantB.invoiceId);
+        }
+      }
     });
   });
 });

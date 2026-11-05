@@ -146,6 +146,19 @@ export async function applyPurchaseReceived(
       .limit(1);
 
     if (!existing[0]) {
+      const [crossBatch] = await tx
+        .select({ id: batches.id })
+        .from(batches)
+        .where(eq(batches.id, b.id))
+        .limit(1);
+
+      if (crossBatch) {
+        throw new SyncRejectedError(
+          'CROSS_TENANT_REFERENCE',
+          `Batch ${b.id} belongs to another pharmacy tenant`
+        );
+      }
+
       await tx.insert(batches).values({
         id: b.id,
         pharmacyId: ctx.pharmacyId,
@@ -168,6 +181,9 @@ export async function applyPurchaseReceived(
       });
     }
   }
+
+  const lineBatchIds = payload.lines.map((l) => l.batchId);
+  await verifyTenantEntities(tx, batches, lineBatchIds, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
 
   // 3. Insert Purchase Stock Movements (Rule 2 & Rule 4: preserve client-generated movementId)
   for (const line of payload.lines) {

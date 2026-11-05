@@ -270,13 +270,13 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
         });
       }
 
-      // Verify products exist
-      const productIds = data.lines.map((l) => l.productId);
+      // Verify products exist (deduplicate productIds so duplicate local IDs cannot mask a foreign ID)
+      const uniqueProductIds = Array.from(new Set(data.lines.map((l) => l.productId)));
       const matchedProducts = await db
         .select()
         .from(products)
-        .where(and(eq(products.pharmacyId, pharmacyId), inArray(products.id, productIds)));
-      if (matchedProducts.length !== productIds.length) {
+        .where(and(eq(products.pharmacyId, pharmacyId), inArray(products.id, uniqueProductIds)));
+      if (matchedProducts.length !== uniqueProductIds.length) {
         return reply.status(400).send({
           code: 'INVALID_PRODUCT',
           message: 'One or more products do not belong to this pharmacy',
@@ -378,12 +378,29 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
           po: purchaseOrders,
           supplier: suppliers,
           branch: branches,
-          creator: users,
+          creator: {
+            id: users.id,
+            pharmacyId: users.pharmacyId,
+            name: users.name,
+            role: users.role,
+            isActive: users.isActive,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+          },
         })
         .from(purchaseOrders)
-        .innerJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
-        .innerJoin(branches, eq(purchaseOrders.branchId, branches.id))
-        .leftJoin(users, eq(purchaseOrders.createdBy, users.id))
+        .innerJoin(
+          suppliers,
+          and(eq(purchaseOrders.supplierId, suppliers.id), eq(suppliers.pharmacyId, pharmacyId))
+        )
+        .innerJoin(
+          branches,
+          and(eq(purchaseOrders.branchId, branches.id), eq(branches.pharmacyId, pharmacyId))
+        )
+        .leftJoin(
+          users,
+          and(eq(purchaseOrders.createdBy, users.id), eq(users.pharmacyId, pharmacyId))
+        )
         .where(and(eq(purchaseOrders.id, id), eq(purchaseOrders.pharmacyId, pharmacyId)));
 
       if (!poRow) {
@@ -483,7 +500,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
           approvedAt: now,
           updatedAt: now,
         })
-        .where(eq(purchaseOrders.id, id))
+        .where(and(eq(purchaseOrders.id, id), eq(purchaseOrders.pharmacyId, pharmacyId)))
         .returning();
 
       return reply.status(200).send({ data: updated });
@@ -527,7 +544,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
           status: 'sent',
           updatedAt: now,
         })
-        .where(eq(purchaseOrders.id, id))
+        .where(and(eq(purchaseOrders.id, id), eq(purchaseOrders.pharmacyId, pharmacyId)))
         .returning();
 
       return reply.status(200).send({ data: updated });
@@ -571,7 +588,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
           status: 'cancelled',
           updatedAt: now,
         })
-        .where(eq(purchaseOrders.id, id))
+        .where(and(eq(purchaseOrders.id, id), eq(purchaseOrders.pharmacyId, pharmacyId)))
         .returning();
 
       return reply.status(200).send({ data: updated });
@@ -629,7 +646,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
 
       const lineMap = new Map(existingLines.map((l) => [l.id, l]));
 
-      // Check over-receipt policy
+      // Check over-receipt policy and productId alignment
       const data = parsed.data;
       for (const item of data.lines) {
         const line = lineMap.get(item.poLineId);
@@ -638,6 +655,27 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
             code: 'INVALID_LINE',
             message: `PO Line '${item.poLineId}' does not belong to this purchase order`,
           });
+        }
+
+        if (item.productId !== line.productId) {
+          return reply.status(400).send({
+            code: 'INVALID_PRODUCT',
+            message: `Product '${item.productId}' does not match PO line product '${line.productId}'`,
+          });
+        }
+
+        if (item.batchId) {
+          const [crossBatch] = await db
+            .select({ id: batches.id, pharmacyId: batches.pharmacyId })
+            .from(batches)
+            .where(eq(batches.id, item.batchId))
+            .limit(1);
+          if (crossBatch && crossBatch.pharmacyId !== pharmacyId) {
+            return reply.status(400).send({
+              code: 'INVALID_BATCH',
+              message: 'Batch ID belongs to another pharmacy tenant',
+            });
+          }
         }
 
         if (po.overReceiptPolicy === 'reject') {
@@ -788,7 +826,9 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
               quantityReceived: newQty,
               updatedAt: now,
             })
-            .where(eq(purchaseOrderLines.id, line.id));
+            .where(
+              and(eq(purchaseOrderLines.id, line.id), eq(purchaseOrderLines.pharmacyId, pharmacyId))
+            );
         }
 
         // 5. Determine overall PO status
@@ -803,7 +843,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
             status: updatedPOStatus,
             updatedAt: now,
           })
-          .where(eq(purchaseOrders.id, id));
+          .where(and(eq(purchaseOrders.id, id), eq(purchaseOrders.pharmacyId, pharmacyId)));
 
         // 6. Record purchase order receipt linking row
         await tx.insert(purchaseOrderReceipts).values({

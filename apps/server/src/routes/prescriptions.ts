@@ -302,6 +302,54 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
         nextRefillDate = addDaysToDate(body.prescriptionDate, body.refillIntervalDays);
       }
 
+      // Verify customerId belongs to this pharmacy if provided
+      if (body.customerId) {
+        const [cust] = await db
+          .select({ id: customers.id })
+          .from(customers)
+          .where(and(eq(customers.id, body.customerId), eq(customers.pharmacyId, pharmacyId)))
+          .limit(1);
+        if (!cust) {
+          return reply.status(404).send({
+            success: false,
+            error: 'NOT_FOUND',
+            message: 'Customer not found in this pharmacy',
+          });
+        }
+      }
+
+      // Verify invoiceId belongs to this pharmacy if provided
+      if (body.invoiceId) {
+        const [inv] = await db
+          .select({ id: invoices.id })
+          .from(invoices)
+          .where(and(eq(invoices.id, body.invoiceId), eq(invoices.pharmacyId, pharmacyId)))
+          .limit(1);
+        if (!inv) {
+          return reply.status(404).send({
+            success: false,
+            error: 'NOT_FOUND',
+            message: 'Invoice not found in this pharmacy',
+          });
+        }
+      }
+
+      // Verify all item productIds belong to this pharmacy
+      for (const item of body.items) {
+        const [prod] = await db
+          .select({ id: products.id })
+          .from(products)
+          .where(and(eq(products.id, item.productId), eq(products.pharmacyId, pharmacyId)))
+          .limit(1);
+        if (!prod) {
+          return reply.status(404).send({
+            success: false,
+            error: 'NOT_FOUND',
+            message: `Product ${item.productId} not found in this pharmacy`,
+          });
+        }
+      }
+
       const prescriptionId = generateUuidV7();
       const randomSuffix = Math.floor(1000 + Math.random() * 9000).toString();
       const datePart = body.prescriptionDate.replace(/-/g, '');
@@ -440,8 +488,16 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
           notes: prescriptionItems.notes,
         })
         .from(prescriptionItems)
-        .innerJoin(products, eq(prescriptionItems.productId, products.id))
-        .where(eq(prescriptionItems.prescriptionId, id));
+        .innerJoin(
+          products,
+          and(eq(prescriptionItems.productId, products.id), eq(products.pharmacyId, pharmacyId))
+        )
+        .where(
+          and(
+            eq(prescriptionItems.prescriptionId, id),
+            eq(prescriptionItems.pharmacyId, pharmacyId)
+          )
+        );
 
       // Fetch linked customer if available
       let customer = null;
@@ -454,7 +510,7 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
             address: customers.address,
           })
           .from(customers)
-          .where(eq(customers.id, rx.customerId))
+          .where(and(eq(customers.id, rx.customerId), eq(customers.pharmacyId, pharmacyId)))
           .limit(1);
         customer = c || null;
       }
@@ -470,7 +526,7 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
             createdAt: invoices.createdAt,
           })
           .from(invoices)
-          .where(eq(invoices.id, rx.invoiceId))
+          .where(and(eq(invoices.id, rx.invoiceId), eq(invoices.pharmacyId, pharmacyId)))
           .limit(1);
         invoice = inv || null;
       }

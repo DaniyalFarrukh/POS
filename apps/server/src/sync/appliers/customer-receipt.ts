@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { CustomerReceiptCreatedPayloadSchema } from '@pos/shared';
-import { customers, erpPayments, branches } from '../../db/schema';
+import { customers, erpPayments, branches, counters, users } from '../../db/schema';
 import { SyncRejectedError, SyncRetryLaterError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
+import { verifyTenantEntity } from './common';
 import { insertChangeLog } from '../change-log';
 import { postFinancialPaymentCompleted } from '../../ledger/posting-engine';
 
@@ -49,7 +50,46 @@ export async function applyCustomerReceiptCreated(
     );
   }
 
-  // 2. Resolve Branch ID
+  // 2. Resolve and verify Branch ID, Counter ID, and Cashier User ID
+  if (payload.branchId) {
+    if (ctx.branchId && payload.branchId !== ctx.branchId) {
+      throw new SyncRejectedError(
+        'CROSS_TENANT_REFERENCE',
+        `Device branchId (${ctx.branchId}) does not match receipt branchId (${payload.branchId})`
+      );
+    }
+    await verifyTenantEntity(
+      tx,
+      branches,
+      payload.branchId,
+      ctx.pharmacyId,
+      'UNKNOWN_BRANCH',
+      'branch'
+    );
+  }
+
+  if (payload.counterId) {
+    await verifyTenantEntity(
+      tx,
+      counters,
+      payload.counterId,
+      ctx.pharmacyId,
+      'UNKNOWN_COUNTER',
+      'counter'
+    );
+  }
+
+  if (payload.cashierUserId) {
+    await verifyTenantEntity(
+      tx,
+      users,
+      payload.cashierUserId,
+      ctx.pharmacyId,
+      'UNKNOWN_USER',
+      'cashierUser'
+    );
+  }
+
   let branchId: string | undefined = payload.branchId ?? ctx.branchId;
   if (!branchId) {
     const [b] = await tx

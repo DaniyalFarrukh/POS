@@ -311,6 +311,33 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const userContext = request.userContext!;
+      const db = request.server.db || getDb();
+      const { id } = request.params;
+
+      if (!z.string().uuid().safeParse(id).success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid journal ID format',
+        });
+      }
+
+      const [entry] = await db
+        .select({ id: journalEntries.id })
+        .from(journalEntries)
+        .where(
+          and(eq(journalEntries.id, id), eq(journalEntries.pharmacyId, userContext.pharmacyId))
+        )
+        .limit(1);
+
+      if (!entry) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Journal entry not found in this pharmacy',
+        });
+      }
+
       return reply.status(200).send({
         ok: true,
         pharmacyId: userContext.pharmacyId,

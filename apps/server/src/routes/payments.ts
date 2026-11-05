@@ -638,9 +638,58 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
           })
           .returning();
 
-        // 3. Insert Allocations
+        // 3. Insert Allocations (verifying each document belongs to this pharmacy)
         const createdAllocations = [];
         for (const alloc of body.allocations) {
+          if (alloc.documentType === 'invoice') {
+            const [inv] = await tx
+              .select({ id: invoices.id })
+              .from(invoices)
+              .where(
+                and(
+                  eq(invoices.id, alloc.documentId),
+                  eq(invoices.pharmacyId, userContext.pharmacyId)
+                )
+              )
+              .limit(1);
+            if (!inv) {
+              throw Object.assign(new Error('Allocated invoice not found in this pharmacy'), {
+                statusCode: 404,
+              });
+            }
+          } else if (alloc.documentType === 'purchase') {
+            const [po] = await tx
+              .select({ id: purchaseOrders.id })
+              .from(purchaseOrders)
+              .where(
+                and(
+                  eq(purchaseOrders.id, alloc.documentId),
+                  eq(purchaseOrders.pharmacyId, userContext.pharmacyId)
+                )
+              )
+              .limit(1);
+            const [je] = !po
+              ? await tx
+                  .select({ id: journalEntries.id })
+                  .from(journalEntries)
+                  .where(
+                    and(
+                      or(
+                        eq(journalEntries.id, alloc.documentId),
+                        eq(journalEntries.sourceId, alloc.documentId)
+                      ),
+                      eq(journalEntries.pharmacyId, userContext.pharmacyId)
+                    )
+                  )
+                  .limit(1)
+              : [po];
+            if (!je) {
+              throw Object.assign(new Error('Allocated purchase not found in this pharmacy'), {
+                statusCode: 404,
+              });
+            }
+          }
+
           const allocId = generateUuidV7();
           const [inserted] = await tx
             .insert(paymentAllocations)

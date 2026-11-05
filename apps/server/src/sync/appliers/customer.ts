@@ -30,6 +30,19 @@ export async function applyCustomerCreated(
   const now = new Date().toISOString();
   const normalized = normalizePhone(payload.phone);
 
+  const [existingCustomerById] = await tx
+    .select({ id: customers.id, pharmacyId: customers.pharmacyId })
+    .from(customers)
+    .where(eq(customers.id, payload.id))
+    .limit(1);
+
+  if (existingCustomerById && existingCustomerById.pharmacyId !== ctx.pharmacyId) {
+    throw new SyncRejectedError(
+      'CROSS_TENANT_REFERENCE',
+      `Customer ${payload.id} belongs to another pharmacy tenant`
+    );
+  }
+
   let isDuplicate = false;
   let duplicateOfId: string | null = null;
 

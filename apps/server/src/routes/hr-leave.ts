@@ -19,6 +19,8 @@ import {
   leaveAllocations,
   leaveRequests,
   attendanceRecords,
+  branches,
+  users,
 } from '../db/schema';
 import { getDb } from '../db';
 import { requirePermission } from '../auth/user-auth';
@@ -62,6 +64,36 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
       const input = parsed.data;
       const nowIso = new Date().toISOString();
       const id = generateUuidV7();
+
+      if (input.branchId) {
+        const [b] = await db
+          .select({ id: branches.id })
+          .from(branches)
+          .where(and(eq(branches.id, input.branchId), eq(branches.pharmacyId, pharmacyId)))
+          .limit(1);
+        if (!b) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: 'Not Found',
+            message: 'Branch not found in this pharmacy',
+          });
+        }
+      }
+
+      if (input.userId) {
+        const [u] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.id, input.userId), eq(users.pharmacyId, pharmacyId)))
+          .limit(1);
+        if (!u) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: 'Not Found',
+            message: 'User not found in this pharmacy',
+          });
+        }
+      }
 
       const [created] = await db
         .insert(employees)

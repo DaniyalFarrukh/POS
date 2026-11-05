@@ -702,6 +702,33 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
+      const [branch] = await db
+        .select({ id: branches.id })
+        .from(branches)
+        .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, pharmacyId)));
+
+      if (!branch) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Branch not found or belongs to another pharmacy',
+        });
+      }
+
+      if (locationId) {
+        const [loc] = await db
+          .select({ id: stockLocations.id })
+          .from(stockLocations)
+          .where(and(eq(stockLocations.id, locationId), eq(stockLocations.pharmacyId, pharmacyId)));
+        if (!loc) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: 'Not Found',
+            message: 'Location not found or belongs to another pharmacy',
+          });
+        }
+      }
+
       // Check current on-hand quantity for this batch at this branch/location
       const [balRow] = await db
         .select({
