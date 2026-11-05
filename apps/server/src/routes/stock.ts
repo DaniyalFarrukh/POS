@@ -800,7 +800,7 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.status(500).send({
           statusCode: 500,
           error: 'Internal Server Error',
-          message: err instanceof Error ? err.message : String(err),
+          message: 'Internal server error',
         });
       }
 

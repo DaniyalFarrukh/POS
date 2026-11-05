@@ -787,15 +787,6 @@ describe('Financial Reports Module & Acceptance Test Suite', () => {
     expect(tbJson.data.isBalanced).toBe(true);
     expect(bsJson.data.isBalanced).toBe(true);
 
-    console.log(
-      `\n=================================================================\n` +
-        `[BENCHMARK RESULT] Aggregated 100,000 journal lines across Trial Balance, P&L, and Balance Sheet\n` +
-        `- Execution Time: ${durationMs.toFixed(2)} ms (Budget: 2,000.00 ms)\n` +
-        `- Trial Balance Balanced: ${tbJson.data.isBalanced}\n` +
-        `- Balance Sheet Balanced: ${bsJson.data.isBalanced}\n` +
-        `=================================================================\n`
-    );
-
     // Must be strictly under 2.0 seconds (2,000 ms)
     expect(durationMs).toBeLessThan(2000);
   }, 60000); // 60s timeout for seeding 100k rows

@@ -46,6 +46,19 @@ export interface BuildAppOptions {
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
+  const redactPaths = [
+    'req.headers.authorization',
+    'req.headers.cookie',
+    '*.pin',
+    '*.pinHash',
+    '*.token',
+    '*.refreshToken',
+    '*.code',
+    '*.codeHash',
+    '*.secret',
+    '*.password',
+  ];
+
   const loggerConfig =
     options.logger !== undefined
       ? options.logger
@@ -53,14 +66,112 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
         ? false
         : {
             level: process.env.LOG_LEVEL || 'info',
+            redact: {
+              paths: redactPaths,
+              censor: '[REDACTED]',
+            },
           };
 
-  const app = Fastify({ logger: loggerConfig });
+  const app = Fastify({
+    logger: loggerConfig,
+    bodyLimit: 1048576, // 1 MiB max request body size
+    trustProxy: true,
+  });
   const sharedInfo = getSharedInfo();
 
   // Decorate with database client (injected or default)
   const db = options.db || getDb();
   app.decorate('db', db);
+
+  // Enforce HTTPS in production when ENFORCE_HTTPS=true
+  app.addHook('onRequest', async (request, reply) => {
+    if (process.env.NODE_ENV === 'production' && process.env.ENFORCE_HTTPS === 'true') {
+      const forwardedProto = request.headers['x-forwarded-proto'];
+      const proto = Array.isArray(forwardedProto)
+        ? forwardedProto[0]
+        : forwardedProto?.split(',')[0]?.trim() || request.protocol;
+      if (proto !== 'https' && request.url !== '/health') {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'HTTPS is required in production',
+        });
+      }
+    }
+  });
+
+  // Set defensive security headers on every response
+  app.addHook('onSend', async (request, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('Referrer-Policy', 'no-referrer');
+    reply.header('Content-Security-Policy', "default-src 'self'");
+    reply.header('X-Permitted-Cross-Domain-Policies', 'none');
+
+    const forwardedProto = request.headers['x-forwarded-proto'];
+    const isHttps =
+      forwardedProto === 'https' ||
+      request.protocol === 'https' ||
+      (process.env.NODE_ENV === 'production' && process.env.ENFORCE_HTTPS === 'true');
+    if (isHttps) {
+      reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+  });
+
+  // Central error handler: convert ZodError and invalid Postgres UUID/numeric syntax to 400, mask 500 details
+  app.setErrorHandler((error, request, reply) => {
+    const errObj = error as unknown as {
+      name?: string;
+      statusCode?: number;
+      code?: string;
+      message?: string;
+      issues?: Array<{ message?: string }>;
+      cause?: { code?: string; message?: string };
+    };
+
+    // 1. Zod validation errors -> 400 Bad Request
+    if (errObj.name === 'ZodError' || Array.isArray(errObj.issues)) {
+      const firstIssue = errObj.issues?.[0]?.message || 'Validation error';
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: firstIssue,
+      });
+    }
+
+    // 2. Postgres invalid_text_representation (22P02, e.g. invalid UUID) or numeric_value_out_of_range (22003) -> 400 Bad Request
+    const pgCode = errObj.code || errObj.cause?.code;
+    const rawMsg = `${errObj.message || ''} ${errObj.cause?.message || ''}`;
+    if (
+      pgCode === '22P02' ||
+      pgCode === '22003' ||
+      /invalid input syntax for type (uuid|integer|numeric)/i.test(rawMsg)
+    ) {
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: 'Invalid identifier or parameter format',
+      });
+    }
+
+    const statusCode =
+      typeof errObj.statusCode === 'number' && errObj.statusCode >= 400 ? errObj.statusCode : 500;
+
+    if (statusCode < 500) {
+      return reply.status(statusCode).send({
+        statusCode,
+        error: errObj.name || 'Request Error',
+        message: errObj.message || 'Bad request',
+      });
+    }
+
+    request.log.error(error);
+    return reply.status(500).send({
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'Internal server error',
+    });
+  });
 
   // Enable CORS for web client (never reflect arbitrary origins when credentials are enabled)
   const defaultAllowedOrigins = [

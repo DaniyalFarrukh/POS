@@ -529,9 +529,6 @@ describe('Monthly Payroll Module (Calculations, Immutability & Ledger Posting)',
       url: `/api/hr/payroll/runs/${run.id}/post`,
       headers: { authorization: `Bearer ${managerTokenA}` },
     });
-    if (resPost.statusCode !== 200) {
-      console.error('resPost failed:', resPost.body);
-    }
     expect(resPost.statusCode).toBe(200);
     const bodyPost = resPost.json();
     expect(bodyPost.data.status).toBe('posted');

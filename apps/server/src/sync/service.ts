@@ -154,8 +154,8 @@ export async function processSyncPushEvents(
             message: err.message,
             createdAt: new Date().toISOString(),
           });
-        } catch (logErr) {
-          console.error('Failed to record rejected event in database:', logErr);
+        } catch {
+          // Swallow secondary logging failure so batch results still return cleanly
         }
 
         results[originalIndex] = {
@@ -166,8 +166,6 @@ export async function processSyncPushEvents(
         };
       } else if (isTransientError(err)) {
         // Transient error (connection hiccup, deadlock, lock timeout)
-        console.error(`[Sync] Transient error processing event ${event.eventId}:`, err);
-
         results[originalIndex] = {
           eventId: event.eventId,
           status: 'retry_later',
@@ -176,7 +174,6 @@ export async function processSyncPushEvents(
         };
       } else {
         // Permanent unexpected database error (e.g. unique constraint or foreign key violation)
-        console.error(`[Sync] Permanent unexpected error processing event ${event.eventId}:`, err);
         const sanitizedMessage = 'An unexpected internal error occurred';
 
         try {
@@ -191,8 +188,8 @@ export async function processSyncPushEvents(
               createdAt: new Date().toISOString(),
             });
           });
-        } catch (logErr) {
-          console.error('[Sync] Failed to record unexpected rejected event in database:', logErr);
+        } catch {
+          // Swallow secondary logging failure so batch results still return cleanly
         }
 
         results[originalIndex] = {

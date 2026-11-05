@@ -15,11 +15,9 @@ import {
   customers,
   invoices,
   purchaseOrders,
-  purchaseOrderLines,
   stockTransfers,
   stockTransferLines,
   stockLocations,
-  journalEntries,
   changeLog,
 } from '../../apps/server/src/db/schema';
 import { getJwtSecret, signDeviceToken, signUserToken } from '../../apps/server/src/auth/jwt';
@@ -982,5 +980,127 @@ describe('Stage 2 Server Security Regression Suite — Commit 1 (Auth, Tokens, P
       headers: { authorization: `Bearer ${tenantA.ownerToken}` },
     });
     expect(jpRes.statusCode).toBe(404);
+  });
+
+  // =========================================================================
+  // S2-05: Malformed UUIDs, Zod errors, and 500 error masking
+  // =========================================================================
+  it('S2-05: returns 400 (never 500 or raw Postgres errors) on malformed UUID params and invalid Zod payloads', async () => {
+    const tenantA = await createPharmacyAndOwner('S205_A');
+    const badPoRes = await app.inject({
+      method: 'GET',
+      url: '/api/purchase-orders/not-a-valid-uuid',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+    });
+    expect(badPoRes.statusCode).toBe(400);
+    expect(JSON.stringify(badPoRes.json())).not.toMatch(/invalid input syntax for type uuid/i);
+
+    const badCustRes = await app.inject({
+      method: 'GET',
+      url: '/api/customers/not-a-valid-uuid',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+    });
+    expect(badCustRes.statusCode).toBe(400);
+
+    const badCashBankRes = await app.inject({
+      method: 'POST',
+      url: '/api/finance/cash-bank/accounts',
+      headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      payload: {
+        name: '', // invalid empty name
+        accountType: 'invalid_type',
+      },
+    });
+    expect(badCashBankRes.statusCode).toBe(400);
+  });
+
+  // =========================================================================
+  // S2-11: Security headers, 1 MiB bodyLimit, trustProxy, and HTTPS/HSTS enforcement
+  // =========================================================================
+  it('S2-11: sets defensive security headers, enforces 1 MiB bodyLimit (413), and enforces HTTPS + HSTS in production when ENFORCE_HTTPS=true', async () => {
+    const healthRes = await app.inject({
+      method: 'GET',
+      url: '/health',
+    });
+    expect(healthRes.statusCode).toBe(200);
+    expect(healthRes.headers['x-content-type-options']).toBe('nosniff');
+    expect(healthRes.headers['x-frame-options']).toBe('DENY');
+    expect(healthRes.headers['referrer-policy']).toBe('no-referrer');
+    expect(healthRes.headers['content-security-policy']).toContain("default-src 'self'");
+    expect(healthRes.headers['x-permitted-cross-domain-policies']).toBe('none');
+
+    // Oversized payload > 1 MiB -> 413
+    const hugeBody = JSON.stringify({ data: 'x'.repeat(1024 * 1024 + 500) });
+    const hugeRes = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      headers: { 'content-type': 'application/json' },
+      payload: hugeBody,
+    });
+    expect(hugeRes.statusCode).toBe(413);
+
+    // HTTPS + HSTS enforcement when NODE_ENV=production and ENFORCE_HTTPS=true
+    const origNodeEnv = process.env.NODE_ENV;
+    const origEnforceHttps = process.env.ENFORCE_HTTPS;
+    const origJwtSecret = process.env.JWT_SECRET;
+    try {
+      process.env.NODE_ENV = 'production';
+      process.env.ENFORCE_HTTPS = 'true';
+      process.env.JWT_SECRET = 'prod-strong-secret-that-is-at-least-32-bytes-long!!';
+
+      const prodApp = buildApp({ db: ctx.db, logger: false });
+      await prodApp.ready();
+
+      const httpRes = await prodApp.inject({
+        method: 'GET',
+        url: '/api/auth/me',
+        headers: { 'x-forwarded-proto': 'http' },
+      });
+      expect(httpRes.statusCode).toBe(403);
+
+      const httpsHealthRes = await prodApp.inject({
+        method: 'GET',
+        url: '/health',
+        headers: { 'x-forwarded-proto': 'https' },
+      });
+      expect(httpsHealthRes.statusCode).toBe(200);
+      expect(httpsHealthRes.headers['strict-transport-security']).toContain('max-age=31536000');
+
+      await prodApp.close();
+    } finally {
+      process.env.NODE_ENV = origNodeEnv;
+      if (origEnforceHttps === undefined) {
+        delete process.env.ENFORCE_HTTPS;
+      } else {
+        process.env.ENFORCE_HTTPS = origEnforceHttps;
+      }
+      if (origJwtSecret === undefined) {
+        delete process.env.JWT_SECRET;
+      } else {
+        process.env.JWT_SECRET = origJwtSecret;
+      }
+    }
+  });
+
+  // =========================================================================
+  // S2-12: Logger redaction and no raw console.error in sync service
+  // =========================================================================
+  it('S2-12: configures Pino redaction paths in app.ts and avoids raw console.error in sync/service.ts', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const appSource = fs.readFileSync(
+      path.resolve(__dirname, '../../apps/server/src/app.ts'),
+      'utf8'
+    );
+    expect(appSource).toContain('redact');
+    expect(appSource).toContain('req.headers.authorization');
+    expect(appSource).toContain('*.pin');
+    expect(appSource).toContain('*.pinHash');
+
+    const syncServiceSource = fs.readFileSync(
+      path.resolve(__dirname, '../../apps/server/src/sync/service.ts'),
+      'utf8'
+    );
+    expect(syncServiceSource).not.toMatch(/console\.error\(/);
   });
 });
