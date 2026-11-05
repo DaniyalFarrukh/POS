@@ -24,7 +24,7 @@ describe('Device Registration & Authentication (Phase 3)', () => {
   describe('JWT and Code Hashing Utilities', () => {
     it('generates, hashes and verifies device registration code formats', () => {
       const code = generatePlainRegistrationCode();
-      expect(code).toMatch(/^REG-[0-9A-F]{4}-[0-9A-F]{4}$/);
+      expect(code).toMatch(/^REG-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
 
       const hash1 = hashRegistrationCode(code);
       const hash2 = hashRegistrationCode(code.toLowerCase());
@@ -78,7 +78,11 @@ describe('Device Registration & Authentication (Phase 3)', () => {
 
     it('rejects tokens missing required tenancy claims', () => {
       const secret = process.env.JWT_SECRET || 'dev_pos_jwt_secret_change_in_production';
-      const incompleteToken = jwt.sign({ pharmacyId: generateUuidV7() }, secret);
+      const incompleteToken = jwt.sign(
+        { pharmacyId: generateUuidV7(), typ: 'device' },
+        secret,
+        { audience: 'pos:device' }
+      );
 
       expect(() => verifyDeviceToken(incompleteToken)).toThrow(
         /missing required tenancy claims/i

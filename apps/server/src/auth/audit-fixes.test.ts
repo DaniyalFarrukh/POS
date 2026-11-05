@@ -168,4 +168,92 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
       expect(allowOrigin).not.toBe('*');
     });
   });
+
+  describe('M-03: Separate aud and typ claims for device vs user tokens', () => {
+    it('rejects device token when verified as user token', async () => {
+      const { signDeviceToken, verifyUserToken } = await import('./jwt');
+      const devToken = signDeviceToken({
+        pharmacyId,
+        branchId: generateUuidV7(),
+        deviceId: generateUuidV7(),
+      });
+
+      expect(() => verifyUserToken(devToken)).toThrow(/jwt audience invalid|expected user token/i);
+    });
+
+    it('rejects user token when verified as device token', async () => {
+      const { signUserToken, verifyDeviceToken } = await import('./jwt');
+      const userToken = signUserToken({
+        userId: activeUserId,
+        pharmacyId,
+        role: 'owner',
+        name: 'Active User',
+      });
+
+      expect(() => verifyDeviceToken(userToken)).toThrow(/jwt audience invalid|expected device token/i);
+    });
+  });
+
+  describe('M-04: High-entropy 64-bit device registration codes', () => {
+    it('generates 64-bit entropy registration codes matching 4 hex blocks', async () => {
+      const { generatePlainRegistrationCode } = await import('./jwt');
+      const code = generatePlainRegistrationCode();
+      expect(code).toMatch(/^REG-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
+    });
+  });
+
+  describe('M-05: Registration code expiresInHours validation', () => {
+    it('rejects expiresInHours exceeding 168 (7 days) with HTTP 400', async () => {
+      const { signUserToken } = await import('./jwt');
+      const ownerToken = signUserToken({
+        userId: activeUserId,
+        pharmacyId,
+        role: 'owner',
+        name: 'Active User',
+      });
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/admin/registration-codes',
+        headers: {
+          authorization: `Bearer ${ownerToken}`,
+        },
+        payload: {
+          branchId: generateUuidV7(),
+          counterId: generateUuidV7(),
+          expiresInHours: 500, // Exceeds 168 hours limit
+        },
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().message).toMatch(/cannot exceed 168 hours|Number must be less than or equal to 168/i);
+    });
+  });
+
+  describe('M-01: Last active owner protection & role change audit logs', () => {
+    it('rejects demotion or deactivation of the last active owner account', async () => {
+      const { signUserToken } = await import('./jwt');
+      const ownerToken = signUserToken({
+        userId: activeUserId,
+        pharmacyId,
+        role: 'owner',
+        name: 'Active User',
+      });
+
+      // Attempt to demote the sole active owner to cashier
+      const res = await app.inject({
+        method: 'PATCH',
+        url: `/api/admin/users/${activeUserId}`,
+        headers: {
+          authorization: `Bearer ${ownerToken}`,
+        },
+        payload: {
+          role: 'cashier',
+        },
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().message).toMatch(/Cannot demote or deactivate/i);
+    });
+  });
 });

@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, gte, lte, or, ilike } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { generateUuidV7, z, type UserRole } from '@pos/shared';
 import {
@@ -9,11 +9,13 @@ import {
   devices,
   deviceRegistrationCodes,
   changeLog,
+  auditLogs,
 } from '../db/schema';
 import { requirePermission } from '../auth/user-auth';
 import { hashRegistrationCode, generatePlainRegistrationCode } from '../auth/jwt';
 import { getDb } from '../db';
 import { insertChangeLog } from '../sync/change-log';
+import { logAuditEvent } from '../services/audit-service';
 
 const IdParamSchema = z.object({
   id: z.string().uuid('Invalid ID format'),
@@ -45,7 +47,13 @@ const CreateCounterSchema = z.object({
 const CreateRegCodeSchema = z.object({
   branchId: z.string().uuid('Valid branchId is required'),
   counterId: z.string().uuid('Valid counterId is required'),
-  expiresInHours: z.number().int().positive().optional().default(24),
+  expiresInHours: z
+    .number()
+    .int()
+    .positive()
+    .max(168, 'Registration code expiry cannot exceed 168 hours (7 days)')
+    .optional()
+    .default(24),
 });
 
 type CreateUserBody = z.infer<typeof CreateUserSchema>;
@@ -55,6 +63,11 @@ interface AuditLogQuery {
   page?: string;
   limit?: string;
   entity?: string;
+  userId?: string;
+  action?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
 }
 
 export const adminRoutes: FastifyPluginAsync = async (fastify) => {
@@ -163,6 +176,54 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const db = request.server.db || getDb();
     const now = new Date().toISOString();
 
+    // Verify user exists and belongs to this pharmacy tenant
+    const [existingUser] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        role: users.role,
+        isActive: users.isActive,
+      })
+      .from(users)
+      .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
+      .limit(1);
+
+    if (!existingUser) {
+      return reply.status(404).send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
+    }
+
+    // Owner protection: cannot demote or deactivate own active owner account
+    const isDemoting = role !== undefined && role !== 'owner' && existingUser.role === 'owner';
+    const isDeactivating = isActive === false && existingUser.isActive;
+
+    if (existingUser.role === 'owner' && (isDemoting || isDeactivating)) {
+      if (id === userContext.userId) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: 'Cannot demote or deactivate your own active owner account',
+        });
+      }
+
+      // Check if this is the last active owner for this pharmacy
+      const activeOwners = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          and(
+            eq(users.pharmacyId, userContext.pharmacyId),
+            eq(users.role, 'owner'),
+            eq(users.isActive, true)
+          )
+        );
+
+      if (activeOwners.length <= 1) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: 'Cannot demote or deactivate the last active owner account for this pharmacy',
+        });
+      }
+    }
+
     const updateFields: Record<string, unknown> = { updatedAt: now };
     if (role && ['owner', 'manager', 'accountant', 'pharmacist', 'cashier'].includes(role)) {
       updateFields.role = role;
@@ -202,6 +263,26 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
           pinHash: u.pinHash,
         },
         createdAt: now,
+      });
+
+      // Audit log for staff account/role modification
+      await logAuditEvent(tx, {
+        pharmacyId: userContext.pharmacyId,
+        userId: userContext.userId,
+        userName: userContext.name,
+        userRole: userContext.role,
+        action: 'user.update',
+        entity: 'user',
+        entityId: u.id,
+        summary: `Updated user ${u.name} (role: ${existingUser.role} -> ${u.role}, active: ${existingUser.isActive} -> ${u.isActive})`,
+        beforeState: {
+          role: existingUser.role,
+          isActive: existingUser.isActive,
+        },
+        afterState: {
+          role: u.role,
+          isActive: u.isActive,
+        },
       });
 
       return u;
@@ -543,9 +624,71 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const limit = Math.min(100, Math.max(1, parseInt(request.query.limit || '50', 10)));
     const offset = (page - 1) * limit;
 
+    const { entity, userId, action, startDate, endDate, search } = request.query;
+
+    // Check if rich audit_logs exist for this pharmacy
+    const auditConditions = [eq(auditLogs.pharmacyId, userContext.pharmacyId)];
+    if (entity) auditConditions.push(eq(auditLogs.entity, entity));
+    if (userId) auditConditions.push(eq(auditLogs.userId, userId));
+    if (action) auditConditions.push(eq(auditLogs.action, action));
+    if (startDate) auditConditions.push(gte(auditLogs.createdAt, startDate));
+    if (endDate) auditConditions.push(lte(auditLogs.createdAt, endDate));
+    if (search) {
+      auditConditions.push(
+        or(
+          ilike(auditLogs.summary, `%${search}%`),
+          ilike(auditLogs.userName, `%${search}%`),
+          ilike(auditLogs.action, `%${search}%`)
+        )!
+      );
+    }
+
+    const [auditCountRow] = await db
+      .select({ total: sql<number>`COUNT(*)` })
+      .from(auditLogs)
+      .where(and(...auditConditions));
+
+    const auditCount = Number(auditCountRow?.total ?? 0);
+
+    if (auditCount > 0) {
+      const rows = await db
+        .select()
+        .from(auditLogs)
+        .where(and(...auditConditions))
+        .orderBy(desc(auditLogs.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      const items = rows.map((r, idx) => ({
+        id: r.id,
+        seq: offset + idx + 1,
+        entity: r.entity,
+        op: r.action,
+        action: r.action,
+        userId: r.userId,
+        userName: r.userName,
+        userRole: r.userRole,
+        summary: r.summary,
+        beforeState: r.beforeState,
+        afterState: r.afterState,
+        data: r.afterState || r.beforeState || {},
+        ipAddress: r.ipAddress,
+        createdAt: r.createdAt,
+      }));
+
+      return reply.status(200).send({
+        items,
+        total: auditCount,
+        page,
+        limit,
+        totalPages: Math.ceil(auditCount / limit) || 1,
+      });
+    }
+
+    // Fallback to changeLog
     const conditions = [eq(changeLog.pharmacyId, userContext.pharmacyId)];
-    if (request.query.entity) {
-      conditions.push(eq(changeLog.entity, request.query.entity));
+    if (entity) {
+      conditions.push(eq(changeLog.entity, entity));
     }
 
     const [countRow] = await db
@@ -570,12 +713,80 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       .limit(limit)
       .offset(offset);
 
+    const items = logs.map((l) => ({
+      id: l.entityId,
+      seq: l.seq,
+      entity: l.entity,
+      op: l.op,
+      action: l.op,
+      userName: 'System',
+      userRole: 'system',
+      summary: `${l.op.toUpperCase()} ${l.entity} (${l.entityId})`,
+      data: l.data,
+      beforeState: null,
+      afterState: l.data as any,
+      createdAt: l.createdAt,
+    }));
+
     return reply.status(200).send({
-      items: logs,
+      items,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit) || 1,
     });
   });
+
+  // -------------------------------------------------------------------------
+  // 5. Diagnostics & Support Bundle Export (Strictly Zero-PHI)
+  // -------------------------------------------------------------------------
+  fastify.get(
+    '/diagnostics/export',
+    { preHandler: [requirePermission('admin.audit_log.view')] },
+    async (request, reply) => {
+      const userContext = request.userContext!;
+      const db = request.server.db || getDb();
+
+      // Technical diagnostic metrics strictly excluding sensitive patient health data
+      const [branchCount] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(branches)
+        .where(eq(branches.pharmacyId, userContext.pharmacyId));
+
+      const [counterCount] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(counters)
+        .where(eq(counters.pharmacyId, userContext.pharmacyId));
+
+      const [deviceCount] = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(devices)
+        .where(eq(devices.pharmacyId, userContext.pharmacyId));
+
+      const [latestChange] = await db
+        .select({ maxSeq: sql<number>`COALESCE(MAX(${changeLog.seq}), 0)` })
+        .from(changeLog)
+        .where(eq(changeLog.pharmacyId, userContext.pharmacyId));
+
+      return reply.status(200).send({
+        success: true,
+        data: {
+          pharmacyId: userContext.pharmacyId,
+          exportedAt: new Date().toISOString(),
+          exportedBy: userContext.userId,
+          diagnostics: {
+            branches: Number(branchCount?.count ?? 0),
+            counters: Number(counterCount?.count ?? 0),
+            devices: Number(deviceCount?.count ?? 0),
+            syncCursorSeq: Number(latestChange?.maxSeq ?? 0),
+            nodeEnv: process.env.NODE_ENV || 'development',
+            serverTimeUTC: new Date().toISOString(),
+          },
+          // Regulatory Compliance Notice: Prescriptions and Protected Health Information (PHI)
+          // are strictly barred from diagnostics and support exports under patient privacy rules.
+          phiExcluded: true,
+        },
+      });
+    }
+  );
 };
