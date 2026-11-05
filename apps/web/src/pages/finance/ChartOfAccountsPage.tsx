@@ -37,28 +37,91 @@ import {
 
 const TYPE_CONFIG: Record<
   AccountType,
-  { label: string; badgeVariant: 'default' | 'success' | 'warning' | 'info' | 'destructive'; headerBg: string }
+  {
+    label: string;
+    badgeVariant: 'default' | 'success' | 'warning' | 'info' | 'destructive';
+    headerBg: string;
+  }
 > = {
   asset: { label: 'Assets', badgeVariant: 'info', headerBg: 'bg-blue-50/50 dark:bg-blue-950/20' },
-  liability: { label: 'Liabilities', badgeVariant: 'warning', headerBg: 'bg-amber-50/50 dark:bg-amber-950/20' },
-  equity: { label: 'Equity', badgeVariant: 'default', headerBg: 'bg-purple-50/50 dark:bg-purple-950/20' },
-  revenue: { label: 'Revenue', badgeVariant: 'success', headerBg: 'bg-emerald-50/50 dark:bg-emerald-950/20' },
-  expense: { label: 'Expenses', badgeVariant: 'destructive', headerBg: 'bg-rose-50/50 dark:bg-rose-950/20' },
+  liability: {
+    label: 'Liabilities',
+    badgeVariant: 'warning',
+    headerBg: 'bg-amber-50/50 dark:bg-amber-950/20',
+  },
+  equity: {
+    label: 'Equity',
+    badgeVariant: 'default',
+    headerBg: 'bg-purple-50/50 dark:bg-purple-950/20',
+  },
+  revenue: {
+    label: 'Revenue',
+    badgeVariant: 'success',
+    headerBg: 'bg-emerald-50/50 dark:bg-emerald-950/20',
+  },
+  expense: {
+    label: 'Expenses',
+    badgeVariant: 'destructive',
+    headerBg: 'bg-rose-50/50 dark:bg-rose-950/20',
+  },
 };
 
-const MAPPING_ROLE_LABELS: Record<string, { label: string; desc: string; expectedType: AccountType }> = {
-  cash: { label: 'Cash in Hand', desc: 'Primary till / register cash account', expectedType: 'asset' },
-  bank: { label: 'Bank Account', desc: 'Bank settlement / transfer account', expectedType: 'asset' },
-  wallet: { label: 'Digital Wallet', desc: 'Mobile wallet (Easypaisa / JazzCash)', expectedType: 'asset' },
+const MAPPING_ROLE_LABELS: Record<
+  string,
+  { label: string; desc: string; expectedType: AccountType }
+> = {
+  cash: {
+    label: 'Cash in Hand',
+    desc: 'Primary till / register cash account',
+    expectedType: 'asset',
+  },
+  bank: {
+    label: 'Bank Account',
+    desc: 'Bank settlement / transfer account',
+    expectedType: 'asset',
+  },
+  wallet: {
+    label: 'Digital Wallet',
+    desc: 'Mobile wallet (Easypaisa / JazzCash)',
+    expectedType: 'asset',
+  },
   ar: { label: 'Accounts Receivable', desc: 'Customer credit balance', expectedType: 'asset' },
-  inventory: { label: 'Merchandise Inventory', desc: 'Stock on hand valuation asset', expectedType: 'asset' },
+  inventory: {
+    label: 'Merchandise Inventory',
+    desc: 'Stock on hand valuation asset',
+    expectedType: 'asset',
+  },
   ap: { label: 'Accounts Payable', desc: 'Supplier trade liabilities', expectedType: 'liability' },
-  sales: { label: 'Sales Revenue', desc: 'Income earned from product sales', expectedType: 'revenue' },
-  output_tax: { label: 'Sales Tax Payable', desc: 'Output GST collected on invoices', expectedType: 'liability' },
-  input_tax: { label: 'Input Tax Receivable', desc: 'Input GST paid on supplier purchases', expectedType: 'asset' },
-  cogs: { label: 'Cost of Goods Sold (COGS)', desc: 'Direct inventory cost recognized at sale', expectedType: 'expense' },
-  stock_variance: { label: 'Inventory Adjustment Variance', desc: 'Gains/losses from physical stock count adjustments', expectedType: 'expense' },
-  retained_earnings: { label: 'Retained Earnings', desc: 'Cumulative net income carried forward', expectedType: 'equity' },
+  sales: {
+    label: 'Sales Revenue',
+    desc: 'Income earned from product sales',
+    expectedType: 'revenue',
+  },
+  output_tax: {
+    label: 'Sales Tax Payable',
+    desc: 'Output GST collected on invoices',
+    expectedType: 'liability',
+  },
+  input_tax: {
+    label: 'Input Tax Receivable',
+    desc: 'Input GST paid on supplier purchases',
+    expectedType: 'asset',
+  },
+  cogs: {
+    label: 'Cost of Goods Sold (COGS)',
+    desc: 'Direct inventory cost recognized at sale',
+    expectedType: 'expense',
+  },
+  stock_variance: {
+    label: 'Inventory Adjustment Variance',
+    desc: 'Gains/losses from physical stock count adjustments',
+    expectedType: 'expense',
+  },
+  retained_earnings: {
+    label: 'Retained Earnings',
+    desc: 'Cumulative net income carried forward',
+    expectedType: 'equity',
+  },
 };
 
 export const ChartOfAccountsPage: React.FC = () => {
@@ -103,7 +166,7 @@ export const ChartOfAccountsPage: React.FC = () => {
     setMappingsLoading(true);
     try {
       const res = await apiFetch<{ mappings: Record<string, string>; accounts: AccountRecord[] }>(
-        '/api/finance/account-mappings',
+        '/api/finance/account-mappings'
       );
       setMappings(res.mappings || {});
     } catch (err) {
@@ -120,7 +183,9 @@ export const ChartOfAccountsPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  const handleToggleActive = async (account: AccountRecord | { id: string; isActive: boolean; isSystem: boolean }) => {
+  const handleToggleActive = async (
+    account: AccountRecord | { id: string; isActive: boolean; isSystem: boolean }
+  ) => {
     if (account.isSystem) return;
     try {
       await apiFetch(`/api/finance/coa/${account.id}`, {
@@ -186,7 +251,7 @@ export const ChartOfAccountsPage: React.FC = () => {
     if (!searchQuery.trim()) return accounts;
     const q = searchQuery.toLowerCase();
     return accounts.filter(
-      (a) => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q),
+      (a) => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)
     );
   }, [accounts, searchQuery]);
 
@@ -204,16 +269,24 @@ export const ChartOfAccountsPage: React.FC = () => {
 
       return (
         <React.Fragment key={account.id}>
-          <TableRow className={!account.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/30' : undefined}>
+          <TableRow
+            className={
+              !account.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/30' : undefined
+            }
+          >
             <TableCell className="py-2.5">
               <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
                 {depth > 0 && <span className="text-slate-400 font-mono text-xs">└─</span>}
-                <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{account.code}</span>
+                <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">
+                  {account.code}
+                </span>
               </div>
             </TableCell>
             <TableCell className="py-2.5">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900 dark:text-slate-100">{account.name}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">
+                  {account.name}
+                </span>
                 {account.isSystem && (
                   <span
                     className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
@@ -250,7 +323,11 @@ export const ChartOfAccountsPage: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleActive(account)}
-                      className={account.isActive ? 'text-amber-600 hover:text-amber-700' : 'text-emerald-600 hover:text-emerald-700'}
+                      className={
+                        account.isActive
+                          ? 'text-amber-600 hover:text-amber-700'
+                          : 'text-emerald-600 hover:text-emerald-700'
+                      }
                     >
                       {account.isActive ? 'Deactivate' : 'Reactivate'}
                     </Button>
@@ -277,17 +354,15 @@ export const ChartOfAccountsPage: React.FC = () => {
             Chart of Accounts
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            General ledger accounts structure, classification, and operational document posting mappings
+            General ledger accounts structure, classification, and operational document posting
+            mappings
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {canManage && activeTab === 'coa' && (
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2"
-            >
+            <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Add Custom Account
             </Button>
@@ -405,7 +480,10 @@ export const ChartOfAccountsPage: React.FC = () => {
                         <TableBody>
                           {typeNodes.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={5} className="text-center py-6 text-slate-400 text-sm">
+                              <TableCell
+                                colSpan={5}
+                                className="text-center py-6 text-slate-400 text-sm"
+                              >
                                 No accounts found under {config.label}
                               </TableCell>
                             </TableRow>
@@ -468,7 +546,9 @@ export const ChartOfAccountsPage: React.FC = () => {
                               role: {roleKey}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{meta.desc}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                            {meta.desc}
+                          </p>
                         </div>
 
                         <div>
@@ -495,7 +575,11 @@ export const ChartOfAccountsPage: React.FC = () => {
 
                 {canManage && (
                   <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
-                    <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex items-center gap-2"
+                    >
                       {isSubmitting && <RefreshCw className="w-4 h-4 animate-spin" />}
                       Save Account Mappings
                     </Button>

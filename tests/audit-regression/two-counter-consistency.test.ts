@@ -4,10 +4,7 @@ import path from 'node:path';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '../../packages/shared/src/index';
 import { buildApp } from '../../apps/server/src/app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../../apps/server/src/db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../../apps/server/src/db/test-helper';
 import {
   pharmacies,
   branches,
@@ -18,17 +15,9 @@ import {
   products,
 } from '../../apps/server/src/db/schema';
 import { signDeviceToken } from '../../apps/server/src/auth/jwt';
-import {
-  initDatabase,
-  getDatabase,
-  setDatabaseForTesting,
-} from '../../apps/desktop/src/main/db';
+import { initDatabase, getDatabase, setDatabaseForTesting } from '../../apps/desktop/src/main/db';
 import { hashPin, setSessionForTesting } from '../../apps/desktop/src/main/auth';
-import {
-  createSupplier,
-  receiveGrn,
-  adjustStock,
-} from '../../apps/desktop/src/main/purchasing';
+import { createSupplier, receiveGrn, adjustStock } from '../../apps/desktop/src/main/purchasing';
 import { finalizeSale } from '../../apps/desktop/src/main/finalizeSale';
 import { processReturn } from '../../apps/desktop/src/main/returns';
 import { openShift, closeShift } from '../../apps/desktop/src/main/shifts';
@@ -199,9 +188,12 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
     });
 
     const seedLocalCounterDb = (db: DatabaseInstance) => {
-      db.prepare(
-        'INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)'
-      ).run(branchId, 'Main Branch', now, now);
+      db.prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)').run(
+        branchId,
+        'Main Branch',
+        now,
+        now
+      );
       db.prepare(
         'INSERT INTO counters (id, branch_id, name, code, last_invoice_seq, last_credit_note_seq, created_at, updated_at) VALUES (?, ?, ?, ?, 0, 0, ?, ?)'
       ).run(counter1Id, branchId, 'Counter 1', 'C1', now, now);
@@ -323,7 +315,9 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
 
     const c2StockAfterPull1 = (
       t.db2
-        .prepare('SELECT COALESCE(SUM(quantity_signed), 0) as bal FROM stock_movements WHERE batch_id = ?')
+        .prepare(
+          'SELECT COALESCE(SUM(quantity_signed), 0) as bal FROM stock_movements WHERE batch_id = ?'
+        )
         .get(batchId) as { bal: number }
     ).bal;
     expect(c2StockAfterPull1).toBe(90);
@@ -381,10 +375,14 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
 
     // Expected final balance: +100 (GRN) - 10 (sale1) - 15 (sale2) + 3 (return) - 2 (adjustment) = 76
     const c1Movements = t.db1
-      .prepare('SELECT id, type, quantity_signed FROM stock_movements WHERE batch_id = ? ORDER BY id ASC')
+      .prepare(
+        'SELECT id, type, quantity_signed FROM stock_movements WHERE batch_id = ? ORDER BY id ASC'
+      )
       .all(batchId) as Array<{ id: string; type: string; quantity_signed: number }>;
     const c2Movements = t.db2
-      .prepare('SELECT id, type, quantity_signed FROM stock_movements WHERE batch_id = ? ORDER BY id ASC')
+      .prepare(
+        'SELECT id, type, quantity_signed FROM stock_movements WHERE batch_id = ? ORDER BY id ASC'
+      )
       .all(batchId) as Array<{ id: string; type: string; quantity_signed: number }>;
     const serverMovementsRes = await ctx.client.query<{
       id: string;
@@ -431,7 +429,10 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
     const batchId = grn.lines![0]!.batchId;
 
     await pushPending({ db: t.db1, fetch: globalThis.fetch }, { serverUrl, token: t.device1Token });
-    await pullAndApply({ db: t.db2, fetch: globalThis.fetch }, { serverUrl, token: t.device2Token });
+    await pullAndApply(
+      { db: t.db2, fetch: globalThis.fetch },
+      { serverUrl, token: t.device2Token }
+    );
 
     // 2. Both counters go offline and concurrently sell 12 units each from the 20-unit batch (total 24 sold)
     activateCounterSession(t.db1, t, t.counter1Id, 'Counter 1');
@@ -460,7 +461,9 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
 
     // 3. Capture Counter 1's pending event before pushing so we can replay it to test duplicate delivery
     const c1OutboxRow = t.db1
-      .prepare("SELECT event_id, device_seq, type, entity_id, payload, occurred_at FROM outbox WHERE status = 'pending' LIMIT 1")
+      .prepare(
+        "SELECT event_id, device_seq, type, entity_id, payload, occurred_at FROM outbox WHERE status = 'pending' LIMIT 1"
+      )
       .get() as {
       event_id: string;
       device_seq: number;
@@ -470,8 +473,14 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
       occurred_at: string;
     };
 
-    const push1 = await pushPending({ db: t.db1, fetch: globalThis.fetch }, { serverUrl, token: t.device1Token });
-    const push2 = await pushPending({ db: t.db2, fetch: globalThis.fetch }, { serverUrl, token: t.device2Token });
+    const push1 = await pushPending(
+      { db: t.db1, fetch: globalThis.fetch },
+      { serverUrl, token: t.device1Token }
+    );
+    const push2 = await pushPending(
+      { db: t.db2, fetch: globalThis.fetch },
+      { serverUrl, token: t.device2Token }
+    );
     expect(push1.acked).toBe(1);
     expect(push2.acked).toBe(1);
 
@@ -501,18 +510,28 @@ describe('Two-Counter Multi-Device Consistency Integration Suite', () => {
     t.db2.close();
     t.db2 = openMigratedSqliteDb(t.db2Path);
 
-    await pullAndApply({ db: t.db1, fetch: globalThis.fetch }, { serverUrl, token: t.device1Token });
-    await pullAndApply({ db: t.db2, fetch: globalThis.fetch }, { serverUrl, token: t.device2Token });
+    await pullAndApply(
+      { db: t.db1, fetch: globalThis.fetch },
+      { serverUrl, token: t.device1Token }
+    );
+    await pullAndApply(
+      { db: t.db2, fetch: globalThis.fetch },
+      { serverUrl, token: t.device2Token }
+    );
 
     // Both counters and PostgreSQL must agree on balance = 20 - 12 - 12 = -4 (with a negative_stock alert recorded)
     const bal1 = (
       t.db1
-        .prepare('SELECT COALESCE(SUM(quantity_signed), 0) as bal FROM stock_movements WHERE batch_id = ?')
+        .prepare(
+          'SELECT COALESCE(SUM(quantity_signed), 0) as bal FROM stock_movements WHERE batch_id = ?'
+        )
         .get(batchId) as { bal: number }
     ).bal;
     const bal2 = (
       t.db2
-        .prepare('SELECT COALESCE(SUM(quantity_signed), 0) as bal FROM stock_movements WHERE batch_id = ?')
+        .prepare(
+          'SELECT COALESCE(SUM(quantity_signed), 0) as bal FROM stock_movements WHERE batch_id = ?'
+        )
         .get(batchId) as { bal: number }
     ).bal;
     expect(bal1).toBe(-4);

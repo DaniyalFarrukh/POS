@@ -78,7 +78,8 @@ export function generateThermalReceiptHtml(
   const t: ReceiptStrings = getReceiptStrings(locale);
 
   const pharmacyName = options.pharmacyName || invoice.branchName || t.pharmacyDefaultName;
-  const pharmacyAddress = options.pharmacyAddress || invoice.branchAddress || t.pharmacyDefaultAddress;
+  const pharmacyAddress =
+    options.pharmacyAddress || invoice.branchAddress || t.pharmacyDefaultAddress;
   const phone = options.phone || t.phone;
   const taxId = options.taxId || t.taxId;
 
@@ -602,4 +603,3 @@ export function generateZReportHtml(
 </body>
 </html>`;
 }
-

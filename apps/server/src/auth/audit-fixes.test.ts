@@ -67,10 +67,14 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
         process.env.NODE_ENV = 'production';
         delete process.env.DATABASE_URL;
 
-        expect(() => getDatabaseUrl()).toThrow(/FATAL: DATABASE_URL environment variable is required in production/);
+        expect(() => getDatabaseUrl()).toThrow(
+          /FATAL: DATABASE_URL environment variable is required in production/
+        );
 
         process.env.DATABASE_URL = 'postgresql://pos:pos_dev_secret@localhost:5432/pos_server';
-        expect(() => getDatabaseUrl()).toThrow(/FATAL: Production DATABASE_URL cannot use default development credentials/);
+        expect(() => getDatabaseUrl()).toThrow(
+          /FATAL: Production DATABASE_URL cannot use default development credentials/
+        );
       } finally {
         process.env.NODE_ENV = origEnv;
         if (origDbUrl) {
@@ -120,28 +124,31 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
   describe('H-01: Sync service turns transient/unexpected errors into retry_later', () => {
     it('returns retry_later with TRANSIENT_ERROR on unexpected exceptions rather than permanent rejection', async () => {
       const { processSyncPushEvents } = await import('../sync/service');
+      type DbType = Parameters<typeof processSyncPushEvents>[0];
+      type EventType = Parameters<typeof processSyncPushEvents>[2][0];
 
       // Create a mock DB where transaction throws an unexpected runtime error (e.g. connection reset)
       const mockDb = {
         transaction: async () => {
           throw new Error('Connection reset by peer');
         },
-      } as any;
+      } as unknown as DbType;
 
+      const dummyDeviceId = generateUuidV7();
       const dummyEvent = {
         eventId: generateUuidV7(),
         eventType: 'invoice.created',
         eventVersion: 1,
         occurredAt: new Date().toISOString(),
-        deviceId: generateUuidV7(),
+        deviceId: dummyDeviceId,
         deviceSeq: 1,
         payload: {},
-      };
+      } as unknown as EventType;
 
       const results = await processSyncPushEvents(
         mockDb,
-        { pharmacyId, deviceId: dummyEvent.deviceId, branchId: generateUuidV7() },
-        [dummyEvent as any]
+        { pharmacyId, deviceId: dummyDeviceId, branchId: generateUuidV7() },
+        [dummyEvent]
       );
 
       expect(results).toHaveLength(1);
@@ -190,7 +197,9 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
         name: 'Active User',
       });
 
-      expect(() => verifyDeviceToken(userToken)).toThrow(/jwt audience invalid|expected device token/i);
+      expect(() => verifyDeviceToken(userToken)).toThrow(
+        /jwt audience invalid|expected device token/i
+      );
     });
   });
 
@@ -226,7 +235,9 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
       });
 
       expect(res.statusCode).toBe(400);
-      expect(res.json().message).toMatch(/cannot exceed 168 hours|Number must be less than or equal to 168/i);
+      expect(res.json().message).toMatch(
+        /cannot exceed 168 hours|Number must be less than or equal to 168/i
+      );
     });
   });
 

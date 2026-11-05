@@ -93,7 +93,7 @@ export const JournalEntriesPage: React.FC = () => {
       if (search.trim()) params.set('search', search.trim());
 
       const res = await apiFetch<{ items: JournalEntryRecord[]; total: number }>(
-        `/api/finance/journals?${params.toString()}`,
+        `/api/finance/journals?${params.toString()}`
       );
       setEntries(res.items);
     } catch (err) {
@@ -267,7 +267,8 @@ export const JournalEntriesPage: React.FC = () => {
             General Journal
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Immutable double-entry transaction ledger with audit trails, document links, and reversing entries
+            Immutable double-entry transaction ledger with audit trails, document links, and
+            reversing entries
           </p>
         </div>
 
@@ -302,22 +303,14 @@ export const JournalEntriesPage: React.FC = () => {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 From Date
               </label>
-              <Input
-                type="date"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-              />
+              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 To Date
               </label>
-              <Input
-                type="date"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-              />
+              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
             </div>
 
             <div>
@@ -354,16 +347,15 @@ export const JournalEntriesPage: React.FC = () => {
             </div>
 
             <div className="flex items-end gap-2">
-              <Button type="submit" className="flex-1 flex items-center justify-center gap-1.5" size="sm">
+              <Button
+                type="submit"
+                className="flex-1 flex items-center justify-center gap-1.5"
+                size="sm"
+              >
                 <Search className="w-3.5 h-3.5" />
                 Filter
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleResetFilters}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={handleResetFilters}>
                 Reset
               </Button>
             </div>
@@ -414,7 +406,7 @@ export const JournalEntriesPage: React.FC = () => {
                           status: entry.status,
                           reversesEntryId: entry.reversesEntryId,
                         },
-                        user.role,
+                        user.role
                       ).canReverse
                     : false;
 
@@ -776,7 +768,8 @@ export const JournalEntriesPage: React.FC = () => {
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-rose-500 font-medium text-xs">
-                    <AlertTriangle className="w-4 h-4" /> {validationResult.entryError || 'Unbalanced'}
+                    <AlertTriangle className="w-4 h-4" />{' '}
+                    {validationResult.entryError || 'Unbalanced'}
                   </span>
                 )}
               </div>
@@ -821,9 +814,9 @@ export const JournalEntriesPage: React.FC = () => {
                 Immutable Ledger Protection
               </div>
               <p>
-                Accounting records cannot be modified or deleted. Reversing this entry will immediately
-                post an exact opposing journal entry that flips debits and credits, netting the ledger
-                balance to zero.
+                Accounting records cannot be modified or deleted. Reversing this entry will
+                immediately post an exact opposing journal entry that flips debits and credits,
+                netting the ledger balance to zero.
               </p>
             </div>
 

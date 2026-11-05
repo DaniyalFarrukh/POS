@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../lib/api';
 import { formatPaisa } from '../../lib/formatters';
-import {
-  calculateReconciliationStatus,
-  getExpiryStatusDetails,
-} from '../../lib/stock-utils';
+import { calculateReconciliationStatus, getExpiryStatusDetails } from '../../lib/stock-utils';
 import type {
   StockProductRecord,
   StockBatchRecord,
@@ -73,7 +70,9 @@ export const StockManagementPage: React.FC = () => {
   const [branchId, setBranchId] = useState<string>('');
   const [locationId, setLocationId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'low_stock' | 'near_expiry' | 'expired'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'low_stock' | 'near_expiry' | 'expired'>(
+    'all'
+  );
 
   const [branches, setBranches] = useState<BranchRecord[]>([]);
   const [locations, setLocations] = useState<StockLocationRecord[]>([]);
@@ -88,7 +87,9 @@ export const StockManagementPage: React.FC = () => {
       try {
         const [branchRes, locRes] = await Promise.all([
           apiFetch<{ data: BranchRecord[] }>('/api/admin/branches').catch(() => ({ data: [] })),
-          apiFetch<{ data: StockLocationRecord[] }>('/api/stock-locations').catch(() => ({ data: [] })),
+          apiFetch<{ data: StockLocationRecord[] }>('/api/stock-locations').catch(() => ({
+            data: [],
+          })),
         ]);
         if (branchRes.data) setBranches(branchRes.data);
         if (locRes.data) setLocations(locRes.data);
@@ -168,7 +169,8 @@ export const StockManagementPage: React.FC = () => {
             <Boxes className="w-6 h-6 text-blue-600" /> Stock Management & Valuation
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Real-time on-hand stock derived strictly from immutable stock movements. Stock value reconciled against General Ledger Account 1200.
+            Real-time on-hand stock derived strictly from immutable stock movements. Stock value
+            reconciled against General Ledger Account 1200.
           </p>
         </div>
 
@@ -184,7 +186,8 @@ export const StockManagementPage: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-blue-900 flex items-center gap-1.5">
-                <Scale className="w-4 h-4 text-blue-600" /> Inventory Stock Valuation & Ledger Reconciliation
+                <Scale className="w-4 h-4 text-blue-600" /> Inventory Stock Valuation & Ledger
+                Reconciliation
               </span>
               <span
                 className={`text-[11px] font-mono px-2 py-0.5 rounded border font-semibold ${reconStatus.badgeClass}`}
@@ -195,7 +198,9 @@ export const StockManagementPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-blue-100">
               <div>
-                <div className="text-[11px] text-slate-500 font-medium">Physical Stock Valuation</div>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  Physical Stock Valuation
+                </div>
                 <div className="text-xl font-bold text-slate-900 mt-0.5">
                   {formatPaisa(kpis.totalStockValuePaisa)}
                 </div>
@@ -203,7 +208,9 @@ export const StockManagementPage: React.FC = () => {
               </div>
 
               <div>
-                <div className="text-[11px] text-slate-500 font-medium">GL Account 1200 Balance</div>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  GL Account 1200 Balance
+                </div>
                 <div className="text-xl font-bold text-slate-900 mt-0.5">
                   {formatPaisa(kpis.ledgerInventoryBalancePaisa)}
                 </div>
@@ -424,7 +431,9 @@ export const StockManagementPage: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="text-xs text-slate-700">{p.manufacturer || '—'}</div>
-                        <div className="text-[11px] font-mono text-slate-400">{p.barcode || '—'}</div>
+                        <div className="text-[11px] font-mono text-slate-400">
+                          {p.barcode || '—'}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs text-slate-500">
                         {p.reorderLevel}
@@ -457,12 +466,18 @@ export const StockManagementPage: React.FC = () => {
                             </Badge>
                           )}
                           {p.hasNearExpiry && !p.hasExpired && (
-                            <Badge variant="secondary" className="text-[10px] py-0 bg-amber-50 text-amber-700 border-amber-200">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] py-0 bg-amber-50 text-amber-700 border-amber-200"
+                            >
                               Near Expiry
                             </Badge>
                           )}
                           {!p.isLowStock && !p.hasExpired && !p.hasNearExpiry && (
-                            <Badge variant="outline" className="text-[10px] py-0 text-emerald-700 border-emerald-200">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] py-0 text-emerald-700 border-emerald-200"
+                            >
                               Adequate
                             </Badge>
                           )}
@@ -519,9 +534,13 @@ export const StockManagementPage: React.FC = () => {
 
                     return (
                       <TableRow key={`${b.batchId}-${b.branchId}-${b.locationId || 'default'}`}>
-                        <TableCell className="font-mono text-xs font-semibold">{b.batchNo}</TableCell>
+                        <TableCell className="font-mono text-xs font-semibold">
+                          {b.batchNo}
+                        </TableCell>
                         <TableCell>
-                          <div className="font-semibold text-xs text-slate-900">{b.productName}</div>
+                          <div className="font-semibold text-xs text-slate-900">
+                            {b.productName}
+                          </div>
                           {b.genericName && (
                             <div className="text-[11px] text-slate-400">{b.genericName}</div>
                           )}
@@ -539,11 +558,15 @@ export const StockManagementPage: React.FC = () => {
                             {expDetails.label}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs">{formatPaisa(b.costPaisa)}</TableCell>
+                        <TableCell className="text-right font-mono text-xs">
+                          {formatPaisa(b.costPaisa)}
+                        </TableCell>
                         <TableCell className="text-right font-mono text-xs font-semibold">
                           {formatPaisa(b.mrpPaisa)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs font-bold">{b.onHandQuantity}</TableCell>
+                        <TableCell className="text-right font-mono text-xs font-bold">
+                          {b.onHandQuantity}
+                        </TableCell>
                         <TableCell className="text-right font-mono text-xs font-semibold text-emerald-700">
                           {formatPaisa(b.stockValuePaisa)}
                         </TableCell>
@@ -568,8 +591,8 @@ export const StockManagementPage: React.FC = () => {
           {/* Pagination bar */}
           <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 text-xs text-slate-500">
             <div>
-              Showing {total > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, total)} of{' '}
-              {total} items
+              Showing {total > 0 ? (page - 1) * pageSize + 1 : 0} to{' '}
+              {Math.min(page * pageSize, total)} of {total} items
             </div>
             <div className="flex items-center gap-2">
               <Button

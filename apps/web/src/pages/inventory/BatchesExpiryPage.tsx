@@ -92,7 +92,9 @@ export const BatchesExpiryPage: React.FC = () => {
       try {
         const [branchRes, locRes] = await Promise.all([
           apiFetch<{ data: BranchRecord[] }>('/api/admin/branches').catch(() => ({ data: [] })),
-          apiFetch<{ data: StockLocationRecord[] }>('/api/stock-locations').catch(() => ({ data: [] })),
+          apiFetch<{ data: StockLocationRecord[] }>('/api/stock-locations').catch(() => ({
+            data: [],
+          })),
         ]);
         if (branchRes.data) setBranches(branchRes.data);
         if (locRes.data) setLocations(locRes.data);
@@ -214,7 +216,8 @@ export const BatchesExpiryPage: React.FC = () => {
             <CalendarClock className="w-6 h-6 text-amber-600" /> Batches & Expiry Management
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Track expiring inventory in 30, 60, and 90-day windows. Markdown prices, return to suppliers, or write off with ledger posting.
+            Track expiring inventory in 30, 60, and 90-day windows. Markdown prices, return to
+            suppliers, or write off with ledger posting.
           </p>
         </div>
 
@@ -231,7 +234,9 @@ export const BatchesExpiryPage: React.FC = () => {
               <AlertOctagon className="w-3.5 h-3.5" /> Expired Batches
             </div>
             <div className="text-2xl font-bold text-rose-700 mt-1">{summary.expired}</div>
-            <div className="text-xs text-rose-600/80 mt-1">Requires immediate write-off or return</div>
+            <div className="text-xs text-rose-600/80 mt-1">
+              Requires immediate write-off or return
+            </div>
           </CardContent>
         </Card>
 
@@ -257,7 +262,9 @@ export const BatchesExpiryPage: React.FC = () => {
             <div className="text-2xl font-bold text-slate-900 mt-1">
               {formatPaisa(summary.totalExpiringValuePaisa)}
             </div>
-            <div className="text-xs text-slate-400 mt-1">Across {summary.totalExpiringCount} active batches</div>
+            <div className="text-xs text-slate-400 mt-1">
+              Across {summary.totalExpiringCount} active batches
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -419,7 +426,9 @@ export const BatchesExpiryPage: React.FC = () => {
                           {expDetails.label}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right text-xs">{formatPaisa(b.costPaisa)}</TableCell>
+                      <TableCell className="text-right text-xs">
+                        {formatPaisa(b.costPaisa)}
+                      </TableCell>
                       <TableCell className="text-right text-xs font-semibold text-slate-900">
                         {formatPaisa(b.mrpPaisa)}
                       </TableCell>
@@ -519,7 +528,9 @@ export const BatchesExpiryPage: React.FC = () => {
             <div className="bg-slate-50 p-3 rounded border border-slate-200">
               <div className="font-semibold text-slate-800">{discountModalBatch.productName}</div>
               <div className="text-slate-500 mt-1">
-                Current MRP: <span className="font-bold">{formatPaisa(discountModalBatch.mrpPaisa)}</span> • Batch Cost:{' '}
+                Current MRP:{' '}
+                <span className="font-bold">{formatPaisa(discountModalBatch.mrpPaisa)}</span> •
+                Batch Cost:{' '}
                 <span className="font-bold">{formatPaisa(discountModalBatch.costPaisa)}</span>
               </div>
             </div>
@@ -589,11 +600,14 @@ export const BatchesExpiryPage: React.FC = () => {
               <div className="font-semibold">{writeOffModalBatch.productName}</div>
               <div className="text-rose-700 mt-1">
                 On-hand quantity:{' '}
-                <span className="font-bold">{writeOffModalBatch.onHandQuantity} units</span> (Valuation:{' '}
-                <span className="font-bold">{formatPaisa(writeOffModalBatch.stockValuePaisa)}</span>)
+                <span className="font-bold">{writeOffModalBatch.onHandQuantity} units</span>{' '}
+                (Valuation:{' '}
+                <span className="font-bold">{formatPaisa(writeOffModalBatch.stockValuePaisa)}</span>
+                )
               </div>
               <div className="text-[11px] text-rose-600 mt-1">
-                Notice: Writing off posts directly to General Ledger Account 5010 (Stock Adjustments & Write-offs) and reduces Inventory Account 1200.
+                Notice: Writing off posts directly to General Ledger Account 5010 (Stock Adjustments
+                & Write-offs) and reduces Inventory Account 1200.
               </div>
             </div>
 

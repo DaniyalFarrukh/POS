@@ -66,4 +66,3 @@ export function isBatchExpired(
 ): boolean {
   return expiryDate < referenceDate;
 }
-

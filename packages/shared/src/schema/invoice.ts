@@ -15,7 +15,10 @@ export const InvoiceLineCreateInputSchema = z.object({
   batchNo: z.string().optional().nullable(),
   expiryDate: z.string().optional().nullable(),
   quantity: z.number().int('Quantity must be an integer').min(1, 'Quantity must be at least 1'),
-  unitPricePaisa: z.number().int('Unit price must be in integer paisa').min(0, 'Price cannot be negative'),
+  unitPricePaisa: z
+    .number()
+    .int('Unit price must be in integer paisa')
+    .min(0, 'Price cannot be negative'),
   discountType: z.enum(['none', 'percent', 'flat']).optional().default('none'),
   discountBp: z.number().int().min(0).max(10000).optional().default(0),
   flatDiscountPaisa: z.number().int().min(0).optional().default(0),
@@ -132,4 +135,3 @@ export const InvoiceSearchParamsSchema = z.object({
   offset: z.number().int().min(0).optional().default(0),
 });
 export type InvoiceSearchParams = z.input<typeof InvoiceSearchParamsSchema>;
-

@@ -36,6 +36,7 @@ import { searchRoutes } from './routes/search';
 import { requireDeviceAuth } from './auth/device-auth';
 
 export interface BuildAppOptions {
+  logger?: boolean | object;
   db?: NodePgDatabase<typeof schema>;
   deviceRateLimitMax?: number;
   deviceRateLimitWindow?: string | number;
@@ -44,7 +45,17 @@ export interface BuildAppOptions {
 }
 
 export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
-  const app = Fastify({ logger: false });
+  const isTest = process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST);
+  const loggerConfig =
+    options.logger !== undefined
+      ? options.logger
+      : isTest
+        ? false
+        : {
+            level: process.env.LOG_LEVEL || 'info',
+          };
+
+  const app = Fastify({ logger: loggerConfig });
   const sharedInfo = getSharedInfo();
 
   // Decorate with database client (injected or default)
@@ -60,7 +71,9 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   ];
 
   const corsOrigin = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
+    ? process.env.CORS_ORIGIN.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
     : process.env.NODE_ENV === 'production'
       ? false
       : defaultAllowedOrigins;

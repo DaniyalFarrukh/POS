@@ -36,7 +36,9 @@ export const StatCard: React.FC<StatCardProps> = ({
           )}
         </div>
         <div className="mt-3 flex items-baseline justify-between">
-          <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{value}</h3>
+          <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            {value}
+          </h3>
           {badge}
         </div>
         {(subtitle || trend) && (
@@ -45,7 +47,9 @@ export const StatCard: React.FC<StatCardProps> = ({
               <span
                 className={cn(
                   'font-semibold',
-                  trend.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                  trend.isPositive
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-rose-600 dark:text-rose-400'
                 )}
               >
                 {trend.isPositive ? '↑' : '↓'} {trend.value}

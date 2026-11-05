@@ -17,7 +17,9 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
   >('general');
 
   // Printer & Hardware state
-  const [printers, setPrinters] = useState<Array<{ name: string; displayName: string; isDefault: boolean }>>([]);
+  const [printers, setPrinters] = useState<
+    Array<{ name: string; displayName: string; isDefault: boolean }>
+  >([]);
   const [selectedPrinter, setSelectedPrinter] = useState<string>(() => {
     return localStorage.getItem('pos_printer_name') || '';
   });
@@ -51,7 +53,11 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
   const [restoreError, setRestoreError] = useState<string | null>(null);
 
   // Diagnostics & Updater state
-  const [integrityStatus, setIntegrityStatus] = useState<{ ok: boolean; message: string; dbPath: string } | null>(null);
+  const [integrityStatus, setIntegrityStatus] = useState<{
+    ok: boolean;
+    message: string;
+    dbPath: string;
+  } | null>(null);
   const [diagnosticsResult, setDiagnosticsResult] = useState<string | null>(null);
   const [updaterStatus, setUpdaterStatus] = useState<string | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState<boolean>(false);
@@ -160,7 +166,11 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
           // Optional scanner beep
           if (isHardware) {
             try {
-              const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+              const ctx = new (
+                window.AudioContext ||
+                (window as unknown as { webkitAudioContext: typeof AudioContext })
+                  .webkitAudioContext
+              )();
               const osc = ctx.createOscillator();
               const gain = ctx.createGain();
               osc.frequency.setValueAtTime(1200, ctx.currentTime);
@@ -309,7 +319,15 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '24px' }}>⚙️</span>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: '20px',
+                fontWeight: 800,
+                color: '#0f172a',
+                letterSpacing: '-0.02em',
+              }}
+            >
               {t.settingsTitle}
             </h1>
           </div>
@@ -394,7 +412,14 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
       <div style={{ padding: '24px', maxWidth: '1000px', width: '100%' }}>
         {/* 1. GENERAL / LANGUAGE TAB */}
         {activeTab === 'general' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginTop: 0, marginBottom: '16px' }}>
               {t.languageSelection}
             </h2>
@@ -452,7 +477,8 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
 
             <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>
-                {t.layoutDirection}: <span style={{ color: '#2563eb' }}>{isRtl ? t.rtlText : t.ltrText}</span>
+                {t.layoutDirection}:{' '}
+                <span style={{ color: '#2563eb' }}>{isRtl ? t.rtlText : t.ltrText}</span>
               </div>
               <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
                 {t.layoutDirectionDesc}
@@ -463,7 +489,14 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
 
         {/* 2. PRINTER & HARDWARE TAB */}
         {activeTab === 'hardware' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginTop: 0, marginBottom: '4px' }}>
               {t.printerSetup}
             </h2>
@@ -471,9 +504,24 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               {t.printerSetupDesc}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '20px',
+                marginBottom: '20px',
+              }}
+            >
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   {t.selectPrinter}
                 </label>
                 <select
@@ -498,7 +546,15 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   {t.paperWidth}
                 </label>
                 <select
@@ -520,7 +576,15 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '6px',
+                }}
+              >
                 {t.receiptHeader}
               </label>
               <input
@@ -539,7 +603,15 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '6px',
+                }}
+              >
                 {t.receiptFooter}
               </label>
               <textarea
@@ -592,7 +664,13 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               </button>
 
               {testPrintStatus && (
-                <span style={{ fontSize: '13px', fontWeight: 500, color: testPrintStatus.startsWith('✓') ? '#16a34a' : '#dc2626' }}>
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: testPrintStatus.startsWith('✓') ? '#16a34a' : '#dc2626',
+                  }}
+                >
                   {testPrintStatus}
                 </span>
               )}
@@ -602,7 +680,14 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
 
         {/* 3. BARCODE SCANNER TEST TAB */}
         {activeTab === 'scanner' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginTop: 0, marginBottom: '4px' }}>
               {t.scannerTestTitle}
             </h2>
@@ -636,23 +721,56 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               style={{
                 padding: '16px',
                 borderRadius: '8px',
-                backgroundColor: isHardwareScanner === null ? '#f8fafc' : isHardwareScanner ? '#ecfdf5' : '#fffbeb',
-                border: isHardwareScanner === null ? '1px solid #e2e8f0' : isHardwareScanner ? '1px solid #a7f3d0' : '1px solid #fde68a',
+                backgroundColor:
+                  isHardwareScanner === null
+                    ? '#f8fafc'
+                    : isHardwareScanner
+                      ? '#ecfdf5'
+                      : '#fffbeb',
+                border:
+                  isHardwareScanner === null
+                    ? '1px solid #e2e8f0'
+                    : isHardwareScanner
+                      ? '1px solid #a7f3d0'
+                      : '1px solid #fde68a',
               }}
             >
-              <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', color: isHardwareScanner === null ? '#64748b' : isHardwareScanner ? '#065f46' : '#92400e' }}>
+              <div
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  marginBottom: '8px',
+                  color:
+                    isHardwareScanner === null
+                      ? '#64748b'
+                      : isHardwareScanner
+                        ? '#065f46'
+                        : '#92400e',
+                }}
+              >
                 {isHardwareScanner === null
                   ? `ℹ ${t.scannerStatusIdle}`
                   : isHardwareScanner
-                  ? `✓ ${t.scannerStatusDetected}`
-                  : `⚠ ${t.scannerStatusManual}`}
+                    ? `✓ ${t.scannerStatusDetected}`
+                    : `⚠ ${t.scannerStatusManual}`}
               </div>
 
               {lastScanned && (
-                <div style={{ fontSize: '13px', color: '#334155', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginTop: '12px' }}>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    color: '#334155',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '12px',
+                    marginTop: '12px',
+                  }}
+                >
                   <div>
                     <div style={{ color: '#64748b', fontSize: '12px' }}>{t.lastScannedBarcode}</div>
-                    <div style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '15px' }}>{lastScanned}</div>
+                    <div style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '15px' }}>
+                      {lastScanned}
+                    </div>
                   </div>
                   <div>
                     <div style={{ color: '#64748b', fontSize: '12px' }}>{t.scanDuration}</div>
@@ -692,7 +810,14 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
 
         {/* 4. KEYBOARD SHORTCUTS REFERENCE TAB */}
         {activeTab === 'shortcuts' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginTop: 0, marginBottom: '4px' }}>
               {t.shortcutsTitle}
             </h2>
@@ -755,12 +880,24 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
 
         {/* 5. DATABASE BACKUPS & RESTORE TAB */}
         {activeTab === 'backup' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
               <div>
-                <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>
-                  {t.backupTitle}
-                </h2>
+                <h2 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>{t.backupTitle}</h2>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
                   {t.backupDesc}
                 </p>
@@ -800,15 +937,21 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               </div>
             )}
 
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '10px' }}>
+            <h3
+              style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '10px' }}
+            >
               {t.recentBackups}
             </h3>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
-                  <th style={{ padding: '8px 12px', textAlign: isRtl ? 'right' : 'left' }}>{t.backupFileName}</th>
-                  <th style={{ padding: '8px 12px', textAlign: isRtl ? 'right' : 'left' }}>{t.backupDate}</th>
+                  <th style={{ padding: '8px 12px', textAlign: isRtl ? 'right' : 'left' }}>
+                    {t.backupFileName}
+                  </th>
+                  <th style={{ padding: '8px 12px', textAlign: isRtl ? 'right' : 'left' }}>
+                    {t.backupDate}
+                  </th>
                   <th style={{ padding: '8px 12px', textAlign: 'right' }}>{t.backupSize}</th>
                   <th style={{ padding: '8px 12px', textAlign: 'center' }}>{t.actions}</th>
                 </tr>
@@ -816,14 +959,19 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               <tbody>
                 {backups.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                    <td
+                      colSpan={4}
+                      style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}
+                    >
                       No local backups created yet.
                     </td>
                   </tr>
                 ) : (
                   backups.map((b) => (
                     <tr key={b.filename} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 600 }}>{b.filename}</td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 600 }}>
+                        {b.filename}
+                      </td>
                       <td style={{ padding: '8px 12px', color: '#64748b' }}>
                         {new Date(b.createdAt).toLocaleString()}
                       </td>
@@ -858,7 +1006,14 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
 
         {/* 6. DIAGNOSTICS & UPDATES TAB */}
         {activeTab === 'diagnostics' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e2e8f0' }}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '8px',
+              padding: '24px',
+              border: '1px solid #e2e8f0',
+            }}
+          >
             <h2 style={{ fontSize: '16px', fontWeight: 600, marginTop: 0, marginBottom: '4px' }}>
               {t.diagnosticsTitle}
             </h2>
@@ -877,17 +1032,33 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               }}
             >
               <div style={{ fontSize: '13px', color: '#64748b' }}>{t.integrityStatus}</div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: integrityStatus?.ok ? '#065f46' : '#991b1b', marginTop: '4px' }}>
+              <div
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  color: integrityStatus?.ok ? '#065f46' : '#991b1b',
+                  marginTop: '4px',
+                }}
+              >
                 {integrityStatus?.ok ? `✓ ${t.integrityOk}` : `✗ ${t.integrityFailed}`}
               </div>
               {integrityStatus?.dbPath && (
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontFamily: 'monospace' }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: '#64748b',
+                    marginTop: '4px',
+                    fontFamily: 'monospace',
+                  }}
+                >
                   Path: {integrityStatus.dbPath}
                 </div>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px' }}>
+            <div
+              style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px' }}
+            >
               <button
                 type="button"
                 onClick={handleExportDiagnostics}
@@ -916,7 +1087,8 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
                 {t.autoUpdateTitle}
               </h3>
               <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px 0' }}>
-                {t.autoUpdateDesc} (Placeholder URL: https://updates.pos-pharmacy.local/releases/win/)
+                {t.autoUpdateDesc} (Placeholder URL:
+                https://updates.pos-pharmacy.local/releases/win/)
               </p>
 
               <button
@@ -984,7 +1156,10 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '20px' }}>⚠️</span>
-                <h3 id="restore-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#fca5a5' }}>
+                <h3
+                  id="restore-modal-title"
+                  style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#fca5a5' }}
+                >
                   {t.restoreModalTitle}
                 </h3>
               </div>
@@ -1016,15 +1191,43 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
             </div>
 
             <div style={{ padding: '24px' }}>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.5, marginBottom: '16px' }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#475569',
+                  lineHeight: 1.5,
+                  marginBottom: '16px',
+                }}
+              >
                 {t.restoreModalWarning}
               </p>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '18px', fontSize: '12px', fontFamily: 'monospace', color: '#0f172a' }}>
+              <div
+                style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  marginBottom: '18px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  color: '#0f172a',
+                }}
+              >
                 File: <strong>{restoreModalFile}</strong>
               </div>
 
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#334155',
+                  marginBottom: '6px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
                 {t.restoreOwnerPinPrompt}
               </label>
               <input
@@ -1049,7 +1252,14 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
               />
 
               {restoreError && (
-                <div style={{ fontSize: '13px', color: '#dc2626', marginBottom: '16px', fontWeight: 700 }}>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    color: '#dc2626',
+                    marginBottom: '16px',
+                    fontWeight: 700,
+                  }}
+                >
                   ⚠️ {restoreError}
                 </div>
               )}
@@ -1083,7 +1293,9 @@ export function SettingsScreen({ session }: SettingsScreenProps) {
                   disabled={!ownerPinInput}
                   style={{
                     padding: '9px 22px',
-                    background: ownerPinInput ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)' : '#cbd5e1',
+                    background: ownerPinInput
+                      ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
+                      : '#cbd5e1',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '8px',

@@ -30,11 +30,7 @@ export async function verifyTenantEntity(
 
   if (local) return;
 
-  const [other] = await tx
-    .select({ id: table.id })
-    .from(table)
-    .where(eq(table.id, id))
-    .limit(1);
+  const [other] = await tx.select({ id: table.id }).from(table).where(eq(table.id, id)).limit(1);
 
   if (other) {
     throw new SyncRejectedError(

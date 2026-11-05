@@ -1,13 +1,6 @@
 import { eq, and } from 'drizzle-orm';
 import { PurchaseReceivedPayloadSchema } from '@pos/shared';
-import {
-  batches,
-  stockMovements,
-  products,
-  branches,
-  suppliers,
-  users,
-} from '../../db/schema';
+import { batches, stockMovements, products, branches, suppliers, users } from '../../db/schema';
 import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
 import { verifyTenantEntity, verifyTenantEntities } from './common';
@@ -54,10 +47,7 @@ export async function applyPurchaseReceived(
       .select({ id: suppliers.id })
       .from(suppliers)
       .where(
-        and(
-          eq(suppliers.id, payload.purchase.supplierId),
-          eq(suppliers.pharmacyId, ctx.pharmacyId)
-        )
+        and(eq(suppliers.id, payload.purchase.supplierId), eq(suppliers.pharmacyId, ctx.pharmacyId))
       )
       .limit(1);
 

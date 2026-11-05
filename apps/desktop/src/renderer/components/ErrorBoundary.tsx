@@ -96,7 +96,9 @@ export class ErrorBoundary extends Component<Props, State> {
             }}
           >
             {/* Warning Icon & Heading */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}
+            >
               <div
                 style={{
                   width: '48px',
@@ -124,7 +126,9 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </div>
 
-            <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#cbd5e1', marginBottom: '24px' }}>
+            <p
+              style={{ fontSize: '14px', lineHeight: 1.6, color: '#cbd5e1', marginBottom: '24px' }}
+            >
               {t.crashAdvice}
             </p>
 

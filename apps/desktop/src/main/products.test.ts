@@ -88,7 +88,9 @@ describe('Product Management & CSV Bulk Import', () => {
     it('filters accurately by generic name', () => {
       const result = getProducts({ search: 'Paracetamol', page: 1, pageSize: 50 }, rawDb);
       expect(result.totalCount).toBeGreaterThan(0);
-      expect(result.products.every((p) => p.genericName.toLowerCase().includes('paracetamol'))).toBe(true);
+      expect(
+        result.products.every((p) => p.genericName.toLowerCase().includes('paracetamol'))
+      ).toBe(true);
     });
 
     it('filters accurately by barcode', () => {
@@ -103,7 +105,9 @@ describe('Product Management & CSV Bulk Import', () => {
 
     it('filters accurately by isActive in SQL pagination (M-12)', () => {
       // Deactivate 5 products
-      rawDb.prepare('UPDATE products SET is_active = 0 WHERE id IN (SELECT id FROM products LIMIT 5)').run();
+      rawDb
+        .prepare('UPDATE products SET is_active = 0 WHERE id IN (SELECT id FROM products LIMIT 5)')
+        .run();
 
       const activeOnly = getProducts({ isActive: true, page: 1, pageSize: 200 }, rawDb);
       expect(activeOnly.totalCount).toBe(195);
@@ -348,7 +352,9 @@ describe('Product Management & CSV Bulk Import', () => {
 
       expect(substitutes.length).toBeGreaterThanOrEqual(1);
       expect(substitutes.every((s) => s.id !== target.id)).toBe(true);
-      expect(substitutes.every((s) => s.genericName.toLowerCase() === target.genericName.toLowerCase())).toBe(true);
+      expect(
+        substitutes.every((s) => s.genericName.toLowerCase() === target.genericName.toLowerCase())
+      ).toBe(true);
     });
   });
 });

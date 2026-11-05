@@ -94,7 +94,12 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
       {/* Top Bar with Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={onBack} className="flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onBack}
+            className="flex items-center gap-1.5"
+          >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
@@ -109,7 +114,8 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Contact: {supplier.contactPerson || 'Not specified'} • Terms: {supplier.paymentTermsDays} days
+              Contact: {supplier.contactPerson || 'Not specified'} • Terms:{' '}
+              {supplier.paymentTermsDays} days
               {supplier.taxNumber ? ` • NTN/STRN: ${supplier.taxNumber}` : ''}
             </p>
           </div>
@@ -155,7 +161,9 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <div>
                 <span className="text-slate-400 block font-medium">Credit Limit</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                  {supplier.creditLimitPaisa > 0 ? formatPaisa(supplier.creditLimitPaisa) : 'No limit'}
+                  {supplier.creditLimitPaisa > 0
+                    ? formatPaisa(supplier.creditLimitPaisa)
+                    : 'No limit'}
                 </span>
               </div>
             </div>
@@ -187,9 +195,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
                 {formatPaisa(supplier.payableBalancePaisa)}
               </span>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Current Accounts Payable balance
-              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Current Accounts Payable balance</p>
             </div>
           </CardContent>
         </Card>

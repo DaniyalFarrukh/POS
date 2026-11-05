@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { Database as DatabaseInstance } from 'better-sqlite3';
 import { registerDevice } from './registration';
 
 describe('M-06: Desktop WAN registration TLS enforcement in production', () => {
@@ -9,8 +10,12 @@ describe('M-06: Desktop WAN registration TLS enforcement in production', () => {
 
       const mockDeps = {
         fetch: async () => new Response('{}', { status: 200 }),
-        storeSecret: async () => {},
-        db: {} as any,
+        tokenStore: {
+          getToken: async () => null,
+          setToken: async () => {},
+          clearToken: async () => {},
+        },
+        db: {} as unknown as DatabaseInstance,
       };
 
       await expect(
@@ -49,7 +54,7 @@ describe('M-06: Desktop WAN registration TLS enforcement in production', () => {
         db: {
           prepare: () => ({ run: () => {} }),
           transaction: (fn: () => void) => fn,
-        } as any,
+        } as unknown as DatabaseInstance,
       };
 
       const result = await registerDevice(mockDeps, {

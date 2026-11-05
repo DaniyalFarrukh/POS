@@ -27,9 +27,11 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
 
     for (const m of MIGRATIONS) {
       m.up(db);
-      db.prepare(
-        'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)'
-      ).run(m.version, m.name, new Date().toISOString());
+      db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+        m.version,
+        m.name,
+        new Date().toISOString()
+      );
     }
 
     const now = new Date().toISOString();
@@ -41,9 +43,12 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
     batchId = generateUuidV7();
 
     // Seed branch, counter, user, product, batch
-    db.prepare(
-      'INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)'
-    ).run(branchId, 'Main Branch', now, now);
+    db.prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)').run(
+      branchId,
+      'Main Branch',
+      now,
+      now
+    );
 
     db.prepare(
       'INSERT INTO counters (id, branch_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
@@ -57,13 +62,15 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       'INSERT INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
     ).run(taxCategoryId, 'Standard 18%', 1800, 0, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       productId,
       'Panadol 500mg',
       'Paracetamol',
@@ -79,12 +86,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       now
     );
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (
         id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchId, productId, 'B-PAN-01', '2027-12-31', 3500, 5000, now, now);
+    `
+    ).run(batchId, productId, 'B-PAN-01', '2027-12-31', 3500, 5000, now, now);
   });
 
   describe('Counter enhancements (last_invoice_seq & code)', () => {
@@ -125,12 +134,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       const now = new Date().toISOString();
 
       // 1. Invoices
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoices (
           id, counter_id, cashier_user_id, invoice_number, client_request_id,
           status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, notes, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `
+      ).run(
         invoiceId,
         counterId,
         cashierUserId,
@@ -146,36 +157,31 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       );
 
       // 2. Invoice Lines
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoice_lines (
           id, invoice_id, product_id, batch_id, quantity,
           unit_price_paisa, discount_paisa, tax_rate_bp, tax_paisa, line_total_paisa
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        lineId,
-        invoiceId,
-        productId,
-        batchId,
-        2,
-        5000,
-        1000,
-        1800,
-        1620,
-        10620
-      );
+      `
+      ).run(lineId, invoiceId, productId, batchId, 2, 5000, 1000, 1800, 1620, 10620);
 
       // 3. Payments
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO payments (id, invoice_id, method, amount_paisa)
         VALUES (?, ?, ?, ?)
-      `).run(paymentId, invoiceId, 'cash', 10620);
+      `
+      ).run(paymentId, invoiceId, 'cash', 10620);
 
       // 4. Fiscal Submissions
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO fiscal_submissions (
           id, invoice_id, status, fiscal_invoice_number, qr_payload, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(fiscalId, invoiceId, 'not_required', null, null, now, now);
+      `
+      ).run(fiscalId, invoiceId, 'not_required', null, null, now, now);
 
       // Verify persisted rows
       const inv = db.prepare('SELECT * FROM invoices WHERE id = ?').get(invoiceId) as {
@@ -215,12 +221,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
   describe('Uniqueness constraints', () => {
     it('rejects duplicate invoice_number', () => {
       const now = new Date().toISOString();
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoices (
           id, counter_id, cashier_user_id, invoice_number, client_request_id,
           status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `
+      ).run(
         generateUuidV7(),
         counterId,
         cashierUserId,
@@ -235,12 +243,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       );
 
       expect(() => {
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO invoices (
             id, counter_id, cashier_user_id, invoice_number, client_request_id,
             status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
+        `
+        ).run(
           generateUuidV7(),
           counterId,
           cashierUserId,
@@ -258,12 +268,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
 
     it('rejects duplicate client_request_id', () => {
       const now = new Date().toISOString();
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoices (
           id, counter_id, cashier_user_id, invoice_number, client_request_id,
           status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `
+      ).run(
         generateUuidV7(),
         counterId,
         cashierUserId,
@@ -278,12 +290,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       );
 
       expect(() => {
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO invoices (
             id, counter_id, cashier_user_id, invoice_number, client_request_id,
             status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
+        `
+        ).run(
           generateUuidV7(),
           counterId,
           cashierUserId,
@@ -311,12 +325,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       paymentId = generateUuidV7();
       const now = new Date().toISOString();
 
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoices (
           id, counter_id, cashier_user_id, invoice_number, client_request_id,
           status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, notes, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `
+      ).run(
         invoiceId,
         counterId,
         cashierUserId,
@@ -331,17 +347,21 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
         now
       );
 
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoice_lines (
           id, invoice_id, product_id, batch_id, quantity,
           unit_price_paisa, discount_paisa, tax_rate_bp, tax_paisa, line_total_paisa
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(lineId, invoiceId, productId, batchId, 1, 5000, 0, 0, 0, 5000);
+      `
+      ).run(lineId, invoiceId, productId, batchId, 1, 5000, 0, 0, 0, 5000);
 
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO payments (id, invoice_id, method, amount_paisa)
         VALUES (?, ?, ?, ?)
-      `).run(paymentId, invoiceId, 'cash', 5000);
+      `
+      ).run(paymentId, invoiceId, 'cash', 5000);
     });
 
     it('UPDATE on invoices fails with "finalized records are immutable"', () => {
@@ -387,12 +407,14 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
       const fiscalId = generateUuidV7();
       const now = new Date().toISOString();
 
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO invoices (
           id, counter_id, cashier_user_id, invoice_number, client_request_id,
           status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      `
+      ).run(
         invoiceId,
         counterId,
         cashierUserId,
@@ -406,23 +428,25 @@ describe('Invoices Schema & Immutability Triggers (Phase 2)', () => {
         now
       );
 
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO fiscal_submissions (
           id, invoice_id, status, fiscal_invoice_number, qr_payload, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(fiscalId, invoiceId, 'pending', null, null, now, now);
+      `
+      ).run(fiscalId, invoiceId, 'pending', null, null, now, now);
 
       // Now update the fiscal submission row to 'submitted'
       const later = new Date(Date.now() + 1000).toISOString();
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE fiscal_submissions
         SET status = ?, fiscal_invoice_number = ?, qr_payload = ?, updated_at = ?
         WHERE id = ?
-      `).run('submitted', 'FBR-INV-998877', 'https://fbr.gov.pk/qr/mock', later, fiscalId);
+      `
+      ).run('submitted', 'FBR-INV-998877', 'https://fbr.gov.pk/qr/mock', later, fiscalId);
 
-      const updated = db
-        .prepare('SELECT * FROM fiscal_submissions WHERE id = ?')
-        .get(fiscalId) as {
+      const updated = db.prepare('SELECT * FROM fiscal_submissions WHERE id = ?').get(fiscalId) as {
         status: string;
         fiscal_invoice_number: string;
         qr_payload: string;

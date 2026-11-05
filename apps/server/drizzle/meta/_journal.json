@@ -78,6 +78,76 @@
       "when": 1793735000000,
       "tag": "0010_stock_counts_and_supplier_returns",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793740000000,
+      "tag": "0011_payments_and_customers",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793745000000,
+      "tag": "0012_expenses_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793750000000,
+      "tag": "0013_payment_reminders",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793755000000,
+      "tag": "0014_cash_and_bank",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793760000000,
+      "tag": "0015_budget_planning",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793765000000,
+      "tag": "0016_period_close_tracking",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793770000000,
+      "tag": "0017_customers_and_credit_sales",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793775000000,
+      "tag": "0018_prescriptions_and_refill_reminders",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793780000000,
+      "tag": "0019_leave_management_and_attendance",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793785000000,
+      "tag": "0020_payroll_module",
+      "breakpoints": true
     }
   ]
 }

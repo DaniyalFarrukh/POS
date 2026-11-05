@@ -7,13 +7,7 @@ import {
   createTestContext,
   type TestDatabaseContext,
 } from '../db/test-helper';
-import {
-  pharmacies,
-  branches,
-  counters,
-  changeLog,
-  devices,
-} from '../db/schema';
+import { pharmacies, branches, counters, changeLog, devices } from '../db/schema';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
 import { recordMasterDataChange } from './change-log';
@@ -64,7 +58,10 @@ function createSyncPullMockDb() {
                 for (const v of val) extractSqlValues(v, out);
               }
             }
-            if ('queryChunks' in c && Array.isArray((c as { queryChunks: unknown[] }).queryChunks)) {
+            if (
+              'queryChunks' in c &&
+              Array.isArray((c as { queryChunks: unknown[] }).queryChunks)
+            ) {
               for (const chunk of (c as { queryChunks: unknown[] }).queryChunks) {
                 extractSqlValues(chunk, out);
               }
@@ -459,9 +456,7 @@ describe('GET /sync/pull (Phase 3)', () => {
         )
       ).toBe(true);
       expect(
-        data.changes.some(
-          (c) => c.entity === 'stock_movement' && c.data.branchId === otherBranchId
-        )
+        data.changes.some((c) => c.entity === 'stock_movement' && c.data.branchId === otherBranchId)
       ).toBe(false);
     });
 
@@ -531,7 +526,6 @@ describe('GET /sync/pull (Phase 3)', () => {
     });
 
     it('executes pullChangeLog against live PostgreSQL schema', async () => {
-
       const pharmacyId = generateUuidV7();
       const branchId = generateUuidV7();
       const counterId = generateUuidV7();

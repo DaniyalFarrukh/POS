@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseCsv } from './parser';
-import {
-  validateCsvProducts,
-  convertRupeesToPaisa,
-  detectColumnMapping,
-} from './validator';
+import { validateCsvProducts, convertRupeesToPaisa, detectColumnMapping } from './validator';
 import { generateUuidV7 } from '../uuid';
 
 describe('RFC 4180 CSV Parser', () => {
@@ -26,12 +22,7 @@ describe('RFC 4180 CSV Parser', () => {
 
     const rows = parseCsv(csv);
     expect(rows).toHaveLength(3);
-    expect(rows[1]).toEqual([
-      'Augmentin',
-      'Amoxicillin, Clavulanic Acid',
-      '625mg',
-      'tablet',
-    ]);
+    expect(rows[1]).toEqual(['Augmentin', 'Amoxicillin, Clavulanic Acid', '625mg', 'tablet']);
     expect(rows[2]?.[1]).toBe('Amoxicillin, Sulbactam, Clavulanate');
   });
 
@@ -62,7 +53,15 @@ describe('CSV Product Validator', () => {
   const dummyTaxId = generateUuidV7();
 
   it('detects standard header column mapping', () => {
-    const headers = ['Product Name', 'Formula', 'Dose', 'Type', 'Company', 'EAN Code', 'Retail Price'];
+    const headers = [
+      'Product Name',
+      'Formula',
+      'Dose',
+      'Type',
+      'Company',
+      'EAN Code',
+      'Retail Price',
+    ];
     const mapping = detectColumnMapping(headers);
 
     expect(mapping.brandName).toBe(0);

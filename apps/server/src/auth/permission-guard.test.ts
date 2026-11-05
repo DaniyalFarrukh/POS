@@ -37,7 +37,11 @@ describe('Permission Matrix & Route Guard Enforcement', () => {
     // Create users for each role in our test database
     const now = new Date().toISOString();
 
-    const createUser = async (name: string, role: 'owner' | 'manager' | 'accountant' | 'pharmacist' | 'cashier', isActive = true) => {
+    const createUser = async (
+      name: string,
+      role: 'owner' | 'manager' | 'accountant' | 'pharmacist' | 'cashier',
+      isActive = true
+    ) => {
       const id = generateUuidV7();
       await ctx.db.insert(users).values({
         id,
@@ -68,12 +72,15 @@ describe('Permission Matrix & Route Guard Enforcement', () => {
 
     app.addHook('onRoute', (routeOptions) => {
       if (routeOptions.method !== 'HEAD' && routeOptions.method !== 'OPTIONS') {
-        const methods = Array.isArray(routeOptions.method) ? routeOptions.method : [routeOptions.method];
+        const methods = Array.isArray(routeOptions.method)
+          ? routeOptions.method
+          : [routeOptions.method];
         for (const m of methods) {
           registeredRoutes.push({
             method: m,
             url: routeOptions.url,
-            permission: (routeOptions.config as { requiredPermission?: string })?.requiredPermission,
+            permission: (routeOptions.config as { requiredPermission?: string })
+              ?.requiredPermission,
           });
         }
       }
@@ -90,12 +97,15 @@ describe('Permission Matrix & Route Guard Enforcement', () => {
   describe('Route Permission Completeness Audit', () => {
     // Approved routes that do not require a user permission, with documented engineering reasons
     const EXEMPT_ROUTES: Record<string, string> = {
-      'GET /health': 'Public unauthenticated health check probe for orchestrators and load balancers',
-      'POST /devices/register': 'Device registration via one-time cryptographically hashed pre-shared registration code',
+      'GET /health':
+        'Public unauthenticated health check probe for orchestrators and load balancers',
+      'POST /devices/register':
+        'Device registration via one-time cryptographically hashed pre-shared registration code',
       'GET /devices/me': 'Device identity verification guarded by device bearer token',
       'POST /sync/push': 'Counter POS offline sync push protocol guarded by device bearer token',
       'GET /sync/pull': 'Counter POS offline sync pull protocol guarded by device bearer token',
-      'POST /api/auth/login': 'Public credential submission endpoint to verify identity and issue JWT',
+      'POST /api/auth/login':
+        'Public credential submission endpoint to verify identity and issue JWT',
       'POST /test/protected-action': 'Development / test endpoint guarded by device bearer token',
     };
 

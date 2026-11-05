@@ -132,7 +132,11 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
         if (user.isActive) {
           const newAttempts = (user.failedLoginAttempts || 0) + 1;
           const now = new Date().toISOString();
-          const updateFields: { failedLoginAttempts: number; lockedUntil?: string; updatedAt: string } = {
+          const updateFields: {
+            failedLoginAttempts: number;
+            lockedUntil?: string;
+            updatedAt: string;
+          } = {
             failedLoginAttempts: newAttempts,
             updatedAt: now,
           };

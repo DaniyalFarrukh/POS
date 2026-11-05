@@ -13,7 +13,11 @@ export const KeyboardShortcutOverlay: React.FC<KeyboardShortcutOverlayProps> = (
     { key: 'F3', label: 'Search / Scan', desc: 'Focus product search for rapid barcode scanning' },
     { key: 'F4', label: 'Hold / Recall', desc: 'Park active cart or resume held transactions' },
     { key: 'F5', label: 'Day-End Report', desc: 'Shift summary, cash count & day-end closure' },
-    { key: 'F6', label: 'Customer / Rx', desc: 'Attach patient details, doctor & prescription notes' },
+    {
+      key: 'F6',
+      label: 'Customer / Rx',
+      desc: 'Attach patient details, doctor & prescription notes',
+    },
     { key: 'F10', label: 'Lock Terminal', desc: 'Secure register instantly with quick PIN lock' },
     { key: 'Del', label: 'Remove Line', desc: 'Remove currently selected item from cart' },
     { key: 'Esc', label: 'Cancel / Close', desc: 'Dismiss open dialogs or clear search filter' },
@@ -68,7 +72,14 @@ export const KeyboardShortcutOverlay: React.FC<KeyboardShortcutOverlayProps> = (
             ⌨️
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '14px', letterSpacing: '0.04em', color: '#ffffff' }}>
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: '14px',
+                letterSpacing: '0.04em',
+                color: '#ffffff',
+              }}
+            >
               HIGH-SPEED POS SHORTCUTS
             </div>
             <div style={{ fontSize: '11px', color: '#94a3b8' }}>
@@ -127,9 +138,7 @@ export const KeyboardShortcutOverlay: React.FC<KeyboardShortcutOverlayProps> = (
               {s.key}
             </kbd>
             <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>
-                {s.label}
-              </div>
+              <div style={{ fontWeight: 700, fontSize: '13px', color: '#f1f5f9' }}>{s.label}</div>
               <div
                 style={{
                   fontSize: '11px',

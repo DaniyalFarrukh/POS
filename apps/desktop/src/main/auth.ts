@@ -44,9 +44,9 @@ export function getSetupStatus(dbInstance?: DatabaseInstance): {
   isRepairState?: boolean;
 } {
   const db = dbInstance ?? getDatabase();
-  const ownerRow = db
-    .prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'")
-    .get() as { count: number };
+  const ownerRow = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'owner'").get() as {
+    count: number;
+  };
   const ownerCount = ownerRow?.count ?? 0;
 
   if (ownerCount === 0) {
@@ -54,7 +54,9 @@ export function getSetupStatus(dbInstance?: DatabaseInstance): {
   }
 
   const branchRow = db.prepare('SELECT COUNT(*) as count FROM branches').get() as { count: number };
-  const counterRow = db.prepare('SELECT COUNT(*) as count FROM counters').get() as { count: number };
+  const counterRow = db.prepare('SELECT COUNT(*) as count FROM counters').get() as {
+    count: number;
+  };
   const isRepairState = branchRow.count === 0 || counterRow.count === 0;
 
   return {
@@ -88,28 +90,36 @@ export async function completeSetup(
 
   // Rule 5: Any write that touches more than one table happens in ONE transaction
   const setupTx = db.transaction(() => {
-    const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+    const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get() as {
+      count: number;
+    };
     if ((existingUsers?.count ?? 0) > 0) {
       throw new AuthError('Initial setup has already been completed.');
     }
 
     // 1. Insert Branch
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO branches (id, name, created_at, updated_at)
       VALUES (?, ?, ?, ?)
-    `).run(branchId, validated.branchName, now, now);
+    `
+    ).run(branchId, validated.branchName, now, now);
 
     // 2. Insert Counter
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO counters (id, branch_id, name, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?)
-    `).run(counterId, branchId, validated.counterName, now, now);
+    `
+    ).run(counterId, branchId, validated.counterName, now, now);
 
     // 3. Insert Owner User
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at)
       VALUES (?, ?, 'owner', ?, 1, 0, NULL, ?, ?)
-    `).run(ownerId, validated.ownerName, hashedPin, now, now);
+    `
+    ).run(ownerId, validated.ownerName, hashedPin, now, now);
   });
 
   setupTx();
@@ -200,9 +210,11 @@ export async function login(
         'UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?'
       ).run(newAttempts, lockedUntil, now, userId);
     } else {
-      db.prepare(
-        'UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?'
-      ).run(newAttempts, now, userId);
+      db.prepare('UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?').run(
+        newAttempts,
+        now,
+        userId
+      );
     }
     throw new AuthError('Invalid PIN');
   }
@@ -305,9 +317,11 @@ export async function unlockSession(
         'UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?'
       ).run(newAttempts, lockedUntil, now, user.id);
     } else {
-      db.prepare(
-        'UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?'
-      ).run(newAttempts, now, user.id);
+      db.prepare('UPDATE users SET failed_login_attempts = ?, updated_at = ? WHERE id = ?').run(
+        newAttempts,
+        now,
+        user.id
+      );
     }
     throw new AuthError('Invalid PIN');
   }
@@ -363,10 +377,7 @@ export function setSessionForTesting(session: AuthSession | null): void {
  * - 'cashier': counter sales, receipts, shifts, cash count.
  * - 'accountant': counter read-only (sales viewing, financial reports).
  */
-export function assertRole(
-  session: AuthSession | null,
-  allowedRoles: UserRole[]
-): AuthSession {
+export function assertRole(session: AuthSession | null, allowedRoles: UserRole[]): AuthSession {
   if (!session) {
     throw new AuthError('Authentication required. Please log in.');
   }
@@ -426,12 +437,12 @@ export function getStaffList(
   const rows = db
     .prepare('SELECT id, name, role, is_active, created_at FROM users ORDER BY created_at ASC')
     .all() as {
-      id: string;
-      name: string;
-      role: UserRole;
-      is_active: number;
-      created_at: string;
-    }[];
+    id: string;
+    name: string;
+    role: UserRole;
+    is_active: number;
+    created_at: string;
+  }[];
 
   return rows.map((r) => ({
     id: r.id,
@@ -467,10 +478,12 @@ export async function createStaffMember(
   const now = new Date().toISOString();
   const hashedPin = await hashPin(input.pin);
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at)
     VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)
-  `).run(id, trimmedName, input.role, hashedPin, now, now);
+  `
+  ).run(id, trimmedName, input.role, hashedPin, now, now);
 
   return {
     id,
@@ -494,8 +507,7 @@ export async function updateStaffMember(
   const existing = db
     .prepare('SELECT id, name, role, is_active, created_at FROM users WHERE id = ?')
     .get(id) as
-    | { id: string; name: string; role: UserRole; is_active: number; created_at: string }
-    | undefined;
+    { id: string; name: string; role: UserRole; is_active: number; created_at: string } | undefined;
 
   if (!existing) {
     throw new AuthError('Staff member not found');
@@ -579,4 +591,3 @@ export async function updateStaffMember(
     createdAt: updated.created_at,
   };
 }
-

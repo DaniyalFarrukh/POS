@@ -110,7 +110,9 @@ export const StockTransfersPage: React.FC = () => {
   // Load auxiliary data
   const loadAuxData = useCallback(async () => {
     try {
-      const bRes = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>('/api/branches');
+      const bRes = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>(
+        '/api/branches'
+      );
       const bList = bRes.data || bRes.items || [];
       setBranches(bList);
       if (bList.length >= 2 && bList[0] && bList[1]) {
@@ -152,9 +154,7 @@ export const StockTransfersPage: React.FC = () => {
   // Load locations when branches change in drawer
   useEffect(() => {
     if (sourceBranchId) {
-      apiFetch<{ items: StockLocationRecord[] }>(
-        `/api/stock-locations?branchId=${sourceBranchId}`
-      )
+      apiFetch<{ items: StockLocationRecord[] }>(`/api/stock-locations?branchId=${sourceBranchId}`)
         .then((res) => setSourceLocations(res.items || []))
         .catch(() => setSourceLocations([]));
     } else {
@@ -330,7 +330,8 @@ export const StockTransfersPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900">Stock Transfers</h1>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Dispatch, track in-transit inventory, and receive branch &amp; warehouse stock transfers.
+            Dispatch, track in-transit inventory, and receive branch &amp; warehouse stock
+            transfers.
           </p>
         </div>
 
@@ -606,15 +607,15 @@ export const StockTransfersPage: React.FC = () => {
           {/* Transfer Lines */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-700 uppercase">Items to Transfer</span>
+              <span className="text-xs font-semibold text-slate-700 uppercase">
+                Items to Transfer
+              </span>
               <Button type="button" variant="outline" size="sm" onClick={handleAddLine}>
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add Product
               </Button>
             </div>
 
-            {formErrors.lines && (
-              <div className="text-rose-600 text-xs">{formErrors.lines}</div>
-            )}
+            {formErrors.lines && <div className="text-rose-600 text-xs">{formErrors.lines}</div>}
 
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {formLines.map((line, idx) => (
@@ -645,9 +646,7 @@ export const StockTransfersPage: React.FC = () => {
                       type="number"
                       min="1"
                       value={line.quantityRequested}
-                      onChange={(e) =>
-                        handleLineChange(idx, 'quantityRequested', e.target.value)
-                      }
+                      onChange={(e) => handleLineChange(idx, 'quantityRequested', e.target.value)}
                       className="text-xs"
                       placeholder="Qty"
                     />

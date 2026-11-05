@@ -16,17 +16,20 @@ The central PostgreSQL backend for cloud synchronization, multi-tenant master da
 Run the following commands in **Windows PowerShell** from the project root (`d:\POS`):
 
 ### Start the PostgreSQL Container
+
 ```powershell
 docker compose up -d
 ```
 
 ### Verify Container Status & Logs
+
 ```powershell
 docker compose ps
 docker compose logs -f postgres
 ```
 
 ### Stop the Container
+
 ```powershell
 # Stop container and keep persisted data
 docker compose down
@@ -40,6 +43,7 @@ docker compose down -v
 ## 2. Environment Configuration
 
 Copy the example environment file:
+
 ```powershell
 # In project root:
 Copy-Item .env.example .env
@@ -49,6 +53,7 @@ Copy-Item apps/server/.env.example apps/server/.env
 ```
 
 To set the environment variable directly in your **PowerShell session**:
+
 ```powershell
 $env:DATABASE_URL = "postgresql://pos:pos_dev_secret@localhost:5432/pos_server"
 ```
@@ -58,6 +63,7 @@ $env:DATABASE_URL = "postgresql://pos:pos_dev_secret@localhost:5432/pos_server"
 ## 3. Database Migrations
 
 Run database migrations against the configured PostgreSQL instance:
+
 ```powershell
 # Run the migration runner:
 pnpm --filter @pos/server migrate
@@ -71,15 +77,18 @@ pnpm --filter @pos/server db:generate
 ## 4. Running the Server & Tests
 
 ### Start the API Development Server:
+
 ```powershell
 pnpm --filter @pos/server dev
 ```
 
 ### Run Automated Tests:
+
 ```powershell
 pnpm --filter @pos/server test
 ```
-*Note: Test files use an isolated PostgreSQL schema per test suite and automatically clean up after completion.*
+
+_Note: Test files use an isolated PostgreSQL schema per test suite and automatically clean up after completion._
 
 ---
 

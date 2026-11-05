@@ -77,7 +77,15 @@ export const SyncOfflineBanner: React.FC<SyncOfflineBannerProps> = ({
           {bannerInfo.level === 'warning' ? '⚠️' : '🚨'}
         </span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
             <span>{bannerInfo.title}</span>
             <span
               style={{
@@ -140,7 +148,9 @@ export const SyncOfflineBanner: React.FC<SyncOfflineBannerProps> = ({
         >
           {syncing || status.state === 'syncing' ? (
             <>
-              <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>↻</span>
+              <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>
+                ↻
+              </span>
               <span>Syncing...</span>
             </>
           ) : (

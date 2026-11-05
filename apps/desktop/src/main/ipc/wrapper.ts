@@ -88,9 +88,7 @@ export function validateSenderFrame(event: Electron.IpcMainInvokeEvent): void {
     throw new Error(`IPC security violation: Untrusted origin frame URL '${url}'.`);
   }
 
-  const win = BrowserWindow?.fromWebContents
-    ? BrowserWindow.fromWebContents(event.sender)
-    : null;
+  const win = BrowserWindow?.fromWebContents ? BrowserWindow.fromWebContents(event.sender) : null;
   if (win && win.isDestroyed()) {
     throw new Error('IPC security violation: Window is destroyed.');
   }
@@ -111,9 +109,8 @@ export async function verifyOwnerPinForDestructive(
     throw new Error('Owner PIN confirmation is required for destructive operations.');
   }
   const db = rawDb ?? getDatabase();
-  const owner = db
-    .prepare('SELECT pin_hash FROM users WHERE id = ?')
-    .get(session.user.id) as { pin_hash: string } | undefined;
+  const owner = db.prepare('SELECT pin_hash FROM users WHERE id = ?').get(session.user.id) as
+    { pin_hash: string } | undefined;
   if (!owner || !owner.pin_hash) {
     throw new Error('Owner credentials not found in database.');
   }
@@ -135,8 +132,15 @@ export async function verifyOwnerPinForDestructive(
 export function registerSecureIpcHandler<TInput = unknown, TOutput = unknown>(
   config: SecureIpcHandlerConfig<TInput, TOutput>
 ): void {
-  const { channel, isPublic = false, publicReason, roles, schema, isDestructive = false, handler } =
-    config;
+  const {
+    channel,
+    isPublic = false,
+    publicReason,
+    roles,
+    schema,
+    isDestructive = false,
+    handler,
+  } = config;
 
   if (isPublic && !publicReason) {
     throw new Error(`Public IPC handler '${channel}' must document a publicReason.`);
@@ -179,8 +183,8 @@ export function registerSecureIpcHandler<TInput = unknown, TOutput = unknown>(
         typeof firstArg === 'object' && firstArg !== null && typeof firstArg.ownerPin === 'string'
           ? firstArg.ownerPin
           : typeof args[1] === 'string'
-          ? args[1]
-          : '';
+            ? args[1]
+            : '';
       await verifyOwnerPinForDestructive(ownerPin, session);
     }
 

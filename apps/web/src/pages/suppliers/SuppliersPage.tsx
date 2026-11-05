@@ -369,9 +369,7 @@ export const SuppliersPage: React.FC = () => {
               <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
                 {formatPaisa(kpis.overduePayablePaisa)}
               </span>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Past supplier credit terms
-              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Past supplier credit terms</p>
             </div>
           </CardContent>
         </Card>
@@ -399,7 +397,10 @@ export const SuppliersPage: React.FC = () => {
       {/* Filter Bar */}
       <Card>
         <CardContent className="p-4">
-          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-center gap-3">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex flex-col sm:flex-row items-center gap-3"
+          >
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <Input
@@ -479,7 +480,9 @@ export const SuppliersPage: React.FC = () => {
                 {suppliersList.map((s) => (
                   <TableRow
                     key={s.id}
-                    className={!s.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/30' : undefined}
+                    className={
+                      !s.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/30' : undefined
+                    }
                   >
                     <TableCell>
                       <div>
@@ -537,7 +540,11 @@ export const SuppliersPage: React.FC = () => {
                               onClick={() => handleToggleActive(s)}
                               className={s.isActive ? 'text-amber-600' : 'text-emerald-600'}
                             >
-                              {s.isActive ? <Ban className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+                              {s.isActive ? (
+                                <Ban className="w-4 h-4" />
+                              ) : (
+                                <ShieldCheck className="w-4 h-4" />
+                              )}
                             </Button>
                           </>
                         )}
@@ -556,7 +563,9 @@ export const SuppliersPage: React.FC = () => {
         <Modal
           open={isFormModalOpen}
           onClose={() => setIsFormModalOpen(false)}
-          title={editingSupplier ? `Edit Supplier: ${editingSupplier.name}` : 'Register New Distributor'}
+          title={
+            editingSupplier ? `Edit Supplier: ${editingSupplier.name}` : 'Register New Distributor'
+          }
         >
           <form onSubmit={handleFormSubmit} className="space-y-4 max-w-xl">
             {formErrors.form && (
@@ -653,7 +662,10 @@ export const SuppliersPage: React.FC = () => {
                   min="0"
                   value={formData.paymentTermsDays}
                   onChange={(e) =>
-                    setFormData({ ...formData, paymentTermsDays: parseInt(e.target.value, 10) || 0 })
+                    setFormData({
+                      ...formData,
+                      paymentTermsDays: parseInt(e.target.value, 10) || 0,
+                    })
                   }
                   required
                 />
@@ -731,8 +743,9 @@ export const SuppliersPage: React.FC = () => {
               <p className="font-semibold mb-1">Safe Single Source of Truth Merge</p>
               <p>
                 Identified distributors with identical names or phone numbers created independently.
-                Merging will reclassify the secondary supplier&apos;s payable balance to the primary supplier
-                via an immutable accounting reclassification entry, and deactivate the secondary record.
+                Merging will reclassify the secondary supplier&apos;s payable balance to the primary
+                supplier via an immutable accounting reclassification entry, and deactivate the
+                secondary record.
               </p>
             </div>
 
@@ -762,7 +775,9 @@ export const SuppliersPage: React.FC = () => {
                         <span className="font-bold block text-slate-900 dark:text-slate-100">
                           {c.name}
                         </span>
-                        <span className="text-[11px] text-slate-500 block">Phone: {c.phone || '—'}</span>
+                        <span className="text-[11px] text-slate-500 block">
+                          Phone: {c.phone || '—'}
+                        </span>
                         <span className="text-[11px] text-slate-500 block">
                           Payable Balance: {formatPaisa(c.payableBalancePaisa || 0)}
                         </span>

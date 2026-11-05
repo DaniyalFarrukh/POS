@@ -81,7 +81,11 @@ export const StockTransferDetailPage: React.FC<StockTransferDetailPageProps> = (
   // Dispatch Action
   const handleDispatch = async () => {
     if (!transfer) return;
-    if (!window.confirm(`Are you sure you want to dispatch transfer ${transfer.transferNumber}? Stock will be moved to in-transit status.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to dispatch transfer ${transfer.transferNumber}? Stock will be moved to in-transit status.`
+      )
+    ) {
       return;
     }
 
@@ -301,8 +305,9 @@ export const StockTransferDetailPage: React.FC<StockTransferDetailPageProps> = (
             <h4 className="font-semibold text-blue-900">Stock is In Transit</h4>
             <p className="text-blue-700 mt-0.5">
               These items have been deducted from source branch inventory and are currently{' '}
-              <strong>not sellable</strong> at either branch. Once verified upon physical arrival at the
-              destination, click <strong>Receive Stock</strong> to complete the transfer and add items to sellable stock.
+              <strong>not sellable</strong> at either branch. Once verified upon physical arrival at
+              the destination, click <strong>Receive Stock</strong> to complete the transfer and add
+              items to sellable stock.
             </p>
           </div>
         </div>
@@ -407,9 +412,7 @@ export const StockTransferDetailPage: React.FC<StockTransferDetailPageProps> = (
                       <div className="text-xs text-slate-400">{line.product.genericName}</div>
                     )}
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {line.batch?.batchNo || '—'}
-                  </TableCell>
+                  <TableCell className="font-mono text-xs">{line.batch?.batchNo || '—'}</TableCell>
                   <TableCell className="text-xs text-slate-600">
                     {line.batch?.expiryDate || '—'}
                   </TableCell>
@@ -447,8 +450,8 @@ export const StockTransferDetailPage: React.FC<StockTransferDetailPageProps> = (
       >
         <form onSubmit={handleReceiveSubmit} className="space-y-4">
           <p className="text-xs text-slate-500">
-            Verify count for each batch. If items were damaged or lost in transit, enter the shortage
-            and provide a reason.
+            Verify count for each batch. If items were damaged or lost in transit, enter the
+            shortage and provide a reason.
           </p>
 
           {receiveErrors.general && (
@@ -524,7 +527,9 @@ export const StockTransferDetailPage: React.FC<StockTransferDetailPageProps> = (
                         placeholder="e.g. Broken ampoules, carton crushed during transit"
                       />
                       {reasonError && (
-                        <div className="text-rose-600 text-xs font-medium mt-0.5">{reasonError}</div>
+                        <div className="text-rose-600 text-xs font-medium mt-0.5">
+                          {reasonError}
+                        </div>
                       )}
                     </div>
                   )}

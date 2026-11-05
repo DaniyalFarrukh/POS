@@ -100,17 +100,11 @@ export async function reconcileLedger(
     .from(journalLines)
     .innerJoin(
       journalEntries,
-      and(
-        eq(journalLines.entryId, journalEntries.id),
-        eq(journalEntries.pharmacyId, pharmacyId)
-      )
+      and(eq(journalLines.entryId, journalEntries.id), eq(journalEntries.pharmacyId, pharmacyId))
     )
     .innerJoin(
       accounts,
-      and(
-        eq(journalLines.accountId, accounts.id),
-        eq(accounts.pharmacyId, pharmacyId)
-      )
+      and(eq(journalLines.accountId, accounts.id), eq(accounts.pharmacyId, pharmacyId))
     )
     .where(
       and(
@@ -157,10 +151,7 @@ export async function reconcileLedger(
     .from(journalLines)
     .innerJoin(
       journalEntries,
-      and(
-        eq(journalLines.entryId, journalEntries.id),
-        eq(journalEntries.pharmacyId, pharmacyId)
-      )
+      and(eq(journalLines.entryId, journalEntries.id), eq(journalEntries.pharmacyId, pharmacyId))
     )
     .where(
       and(
@@ -184,10 +175,7 @@ export async function reconcileLedger(
     .from(stockMovements)
     .innerJoin(
       batches,
-      and(
-        eq(stockMovements.batchId, batches.id),
-        eq(batches.pharmacyId, pharmacyId)
-      )
+      and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
     )
     .where(eq(stockMovements.pharmacyId, pharmacyId));
 
@@ -212,13 +200,10 @@ export async function reconcileLedger(
     batchesInventoryValuePaisa += info.qty * info.costPaisa;
   }
 
-  const inventoryDifferencePaisa =
-    ledgerInventoryValuePaisa - batchesInventoryValuePaisa;
+  const inventoryDifferencePaisa = ledgerInventoryValuePaisa - batchesInventoryValuePaisa;
 
   const isReconciled =
-    salesDifferencePaisa === 0 &&
-    netSalesDifferencePaisa === 0 &&
-    inventoryDifferencePaisa === 0;
+    salesDifferencePaisa === 0 && netSalesDifferencePaisa === 0 && inventoryDifferencePaisa === 0;
 
   return {
     pharmacyId,
@@ -236,4 +221,3 @@ export async function reconcileLedger(
     isReconciled,
   };
 }
-

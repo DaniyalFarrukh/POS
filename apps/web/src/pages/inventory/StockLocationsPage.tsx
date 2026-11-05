@@ -49,7 +49,9 @@ export const StockLocationsPage: React.FC = () => {
   // Load branches
   const loadBranches = useCallback(async () => {
     try {
-      const res = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>('/api/branches');
+      const res = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>(
+        '/api/branches'
+      );
       const list = res.data || res.items || [];
       setBranches(list);
       if (list.length > 0 && !selectedBranchId && list[0]) {
@@ -256,23 +258,28 @@ export const StockLocationsPage: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={canManage ? 6 : 5} className="text-center py-8 text-slate-500">
+                  <TableCell
+                    colSpan={canManage ? 6 : 5}
+                    className="text-center py-8 text-slate-500"
+                  >
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-600" />
                     Loading locations...
                   </TableCell>
                 </TableRow>
               ) : locations.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canManage ? 6 : 5} className="text-center py-8 text-slate-500">
-                    No storage locations defined for this branch. Click &quot;Add Location&quot; to configure.
+                  <TableCell
+                    colSpan={canManage ? 6 : 5}
+                    className="text-center py-8 text-slate-500"
+                  >
+                    No storage locations defined for this branch. Click &quot;Add Location&quot; to
+                    configure.
                   </TableCell>
                 </TableRow>
               ) : (
                 locations.map((loc) => (
                   <TableRow key={loc.id}>
-                    <TableCell className="font-semibold text-slate-900">
-                      {loc.name}
-                    </TableCell>
+                    <TableCell className="font-semibold text-slate-900">{loc.name}</TableCell>
                     <TableCell className="font-mono text-xs text-slate-600">
                       {loc.code || '—'}
                     </TableCell>

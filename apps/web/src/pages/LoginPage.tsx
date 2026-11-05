@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Input, Button } from '@pos/ui';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  Input,
+  Button,
+} from '@pos/ui';
 import { Building2, KeyRound, User, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -45,21 +54,15 @@ export const LoginPage: React.FC = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-xl shadow-blue-500/25 mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            MediCare Portal
-          </h1>
-          <p className="text-slate-400 text-xs mt-1">
-            Executive Owner &amp; Pharmacist Dashboard
-          </p>
+          <h1 className="text-2xl font-black text-white tracking-tight">MediCare Portal</h1>
+          <p className="text-slate-400 text-xs mt-1">Executive Owner &amp; Pharmacist Dashboard</p>
         </div>
 
         {/* Login Card */}
         <Card className="shadow-2xl border-slate-700/60 bg-white/95 backdrop-blur-sm">
           <form onSubmit={handleSubmit}>
             <CardHeader className="space-y-1">
-              <CardTitle className="text-lg font-bold text-slate-900">
-                Sign In
-              </CardTitle>
+              <CardTitle className="text-lg font-bold text-slate-900">Sign In</CardTitle>
               <CardDescription className="text-xs text-slate-500">
                 Enter your registered name and numeric PIN to access the portal.
               </CardDescription>

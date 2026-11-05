@@ -112,12 +112,8 @@
           "name": "batches_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "batches",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -125,12 +121,8 @@
           "name": "batches_product_id_products_id_fk",
           "tableFrom": "batches",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -210,12 +202,8 @@
           "name": "branches_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "branches",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -334,12 +322,8 @@
           "name": "change_log_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "change_log",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -439,12 +423,8 @@
           "name": "counters_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "counters",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -452,12 +432,8 @@
           "name": "counters_branch_id_branches_id_fk",
           "tableFrom": "counters",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -569,12 +545,8 @@
           "name": "credit_note_lines_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "credit_note_lines",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -582,12 +554,8 @@
           "name": "credit_note_lines_credit_note_id_credit_notes_id_fk",
           "tableFrom": "credit_note_lines",
           "tableTo": "credit_notes",
-          "columnsFrom": [
-            "credit_note_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["credit_note_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -595,12 +563,8 @@
           "name": "credit_note_lines_original_invoice_line_id_invoice_lines_id_fk",
           "tableFrom": "credit_note_lines",
           "tableTo": "invoice_lines",
-          "columnsFrom": [
-            "original_invoice_line_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["original_invoice_line_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -608,12 +572,8 @@
           "name": "credit_note_lines_product_id_products_id_fk",
           "tableFrom": "credit_note_lines",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -621,12 +581,8 @@
           "name": "credit_note_lines_batch_id_batches_id_fk",
           "tableFrom": "credit_note_lines",
           "tableTo": "batches",
-          "columnsFrom": [
-            "batch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -762,12 +718,8 @@
           "name": "credit_notes_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "credit_notes",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -775,12 +727,8 @@
           "name": "credit_notes_original_invoice_id_invoices_id_fk",
           "tableFrom": "credit_notes",
           "tableTo": "invoices",
-          "columnsFrom": [
-            "original_invoice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["original_invoice_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -788,12 +736,8 @@
           "name": "credit_notes_branch_id_branches_id_fk",
           "tableFrom": "credit_notes",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -801,12 +745,8 @@
           "name": "credit_notes_counter_id_counters_id_fk",
           "tableFrom": "credit_notes",
           "tableTo": "counters",
-          "columnsFrom": [
-            "counter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["counter_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -814,12 +754,8 @@
           "name": "credit_notes_cashier_user_id_users_id_fk",
           "tableFrom": "credit_notes",
           "tableTo": "users",
-          "columnsFrom": [
-            "cashier_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cashier_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -829,10 +765,7 @@
         "uq_credit_notes_pharmacy_number": {
           "name": "uq_credit_notes_pharmacy_number",
           "nullsNotDistinct": false,
-          "columns": [
-            "pharmacy_id",
-            "credit_note_number"
-          ]
+          "columns": ["pharmacy_id", "credit_note_number"]
         }
       },
       "policies": {},
@@ -914,12 +847,8 @@
           "name": "device_registration_codes_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "device_registration_codes",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -927,12 +856,8 @@
           "name": "device_registration_codes_branch_id_branches_id_fk",
           "tableFrom": "device_registration_codes",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -940,12 +865,8 @@
           "name": "device_registration_codes_counter_id_counters_id_fk",
           "tableFrom": "device_registration_codes",
           "tableTo": "counters",
-          "columnsFrom": [
-            "counter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["counter_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1044,12 +965,8 @@
           "name": "devices_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "devices",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1057,12 +974,8 @@
           "name": "devices_branch_id_branches_id_fk",
           "tableFrom": "devices",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -1070,12 +983,8 @@
           "name": "devices_counter_id_counters_id_fk",
           "tableFrom": "devices",
           "tableTo": "counters",
-          "columnsFrom": [
-            "counter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["counter_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1188,12 +1097,8 @@
           "name": "invoice_lines_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "invoice_lines",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1201,12 +1106,8 @@
           "name": "invoice_lines_invoice_id_invoices_id_fk",
           "tableFrom": "invoice_lines",
           "tableTo": "invoices",
-          "columnsFrom": [
-            "invoice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invoice_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1214,12 +1115,8 @@
           "name": "invoice_lines_product_id_products_id_fk",
           "tableFrom": "invoice_lines",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1227,12 +1124,8 @@
           "name": "invoice_lines_batch_id_batches_id_fk",
           "tableFrom": "invoice_lines",
           "tableTo": "batches",
-          "columnsFrom": [
-            "batch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1357,12 +1250,8 @@
           "name": "invoices_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "invoices",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1370,12 +1259,8 @@
           "name": "invoices_counter_id_counters_id_fk",
           "tableFrom": "invoices",
           "tableTo": "counters",
-          "columnsFrom": [
-            "counter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["counter_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1383,12 +1268,8 @@
           "name": "invoices_cashier_user_id_users_id_fk",
           "tableFrom": "invoices",
           "tableTo": "users",
-          "columnsFrom": [
-            "cashier_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cashier_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1398,18 +1279,12 @@
         "uq_invoices_pharmacy_invoice_number": {
           "name": "uq_invoices_pharmacy_invoice_number",
           "nullsNotDistinct": false,
-          "columns": [
-            "pharmacy_id",
-            "invoice_number"
-          ]
+          "columns": ["pharmacy_id", "invoice_number"]
         },
         "uq_invoices_pharmacy_client_request": {
           "name": "uq_invoices_pharmacy_client_request",
           "nullsNotDistinct": false,
-          "columns": [
-            "pharmacy_id",
-            "client_request_id"
-          ]
+          "columns": ["pharmacy_id", "client_request_id"]
         }
       },
       "policies": {},
@@ -1479,12 +1354,8 @@
           "name": "payments_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "payments",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1492,12 +1363,8 @@
           "name": "payments_invoice_id_invoices_id_fk",
           "tableFrom": "payments",
           "tableTo": "invoices",
-          "columnsFrom": [
-            "invoice_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["invoice_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1550,9 +1417,7 @@
         "pharmacies_code_unique": {
           "name": "pharmacies_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -1588,12 +1453,8 @@
           "name": "processed_events_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "processed_events",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1601,10 +1462,7 @@
       "compositePrimaryKeys": {
         "pk_processed_events": {
           "name": "pk_processed_events",
-          "columns": [
-            "pharmacy_id",
-            "event_id"
-          ]
+          "columns": ["pharmacy_id", "event_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1746,12 +1604,8 @@
           "name": "products_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "products",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1759,12 +1613,8 @@
           "name": "products_tax_category_id_tax_categories_id_fk",
           "tableFrom": "products",
           "tableTo": "tax_categories",
-          "columnsFrom": [
-            "tax_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tax_category_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1850,12 +1700,8 @@
           "name": "rejected_events_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "rejected_events",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1863,12 +1709,8 @@
           "name": "rejected_events_device_id_devices_id_fk",
           "tableFrom": "rejected_events",
           "tableTo": "devices",
-          "columnsFrom": [
-            "device_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["device_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1973,12 +1815,8 @@
           "name": "stock_alerts_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "stock_alerts",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1986,12 +1824,8 @@
           "name": "stock_alerts_branch_id_branches_id_fk",
           "tableFrom": "stock_alerts",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1999,12 +1833,8 @@
           "name": "stock_alerts_product_id_products_id_fk",
           "tableFrom": "stock_alerts",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2012,12 +1842,8 @@
           "name": "stock_alerts_batch_id_batches_id_fk",
           "tableFrom": "stock_alerts",
           "tableTo": "batches",
-          "columnsFrom": [
-            "batch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -2160,12 +1986,8 @@
           "name": "stock_movements_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "stock_movements",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2173,12 +1995,8 @@
           "name": "stock_movements_product_id_products_id_fk",
           "tableFrom": "stock_movements",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2186,12 +2004,8 @@
           "name": "stock_movements_batch_id_batches_id_fk",
           "tableFrom": "stock_movements",
           "tableTo": "batches",
-          "columnsFrom": [
-            "batch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -2199,12 +2013,8 @@
           "name": "stock_movements_branch_id_branches_id_fk",
           "tableFrom": "stock_movements",
           "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["branch_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2296,12 +2106,8 @@
           "name": "suppliers_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "suppliers",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2383,12 +2189,8 @@
           "name": "tax_categories_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "tax_categories",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2488,12 +2290,8 @@
           "name": "users_pharmacy_id_pharmacies_id_fk",
           "tableFrom": "users",
           "tableTo": "pharmacies",
-          "columnsFrom": [
-            "pharmacy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pharmacy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -2503,10 +2301,7 @@
         "uq_users_pharmacy_name": {
           "name": "uq_users_pharmacy_name",
           "nullsNotDistinct": false,
-          "columns": [
-            "pharmacy_id",
-            "name"
-          ]
+          "columns": ["pharmacy_id", "name"]
         }
       },
       "policies": {},

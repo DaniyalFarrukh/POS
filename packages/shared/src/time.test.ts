@@ -48,4 +48,3 @@ describe('Asia/Karachi Business Date and Time Utilities', () => {
     expect(isBatchExpired('2025-01-01', today)).toBe(true);
   });
 });
-

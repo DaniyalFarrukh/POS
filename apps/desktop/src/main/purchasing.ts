@@ -36,7 +36,8 @@ function getActiveContext(): { branchId: string; userId: string } {
 
   // Fallback for tests / headless CLI runs: fetch first branch and owner
   const db = getDatabase();
-  const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as { id: string } | undefined;
+  const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as
+    { id: string } | undefined;
   const userRow = db.prepare('SELECT id FROM users LIMIT 1').get() as { id: string } | undefined;
 
   const branchId = branchRow?.id ?? generateUuidV7();
@@ -84,10 +85,12 @@ export function createSupplier(input: CreateSupplierInput): Supplier {
   const now = new Date().toISOString();
   const id = generateUuidV7();
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO suppliers (id, name, contact_person, phone, email, address, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `
+  ).run(
     id,
     validated.name,
     validated.contactPerson ?? null,
@@ -126,11 +129,13 @@ export function updateSupplier(id: string, input: UpdateSupplierInput): Supplier
     updatedAt: now,
   };
 
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE suppliers
     SET name = ?, contact_person = ?, phone = ?, email = ?, address = ?, updated_at = ?
     WHERE id = ?
-  `).run(
+  `
+  ).run(
     updated.name,
     updated.contactPerson ?? null,
     updated.phone ?? null,
@@ -146,7 +151,9 @@ export function updateSupplier(id: string, input: UpdateSupplierInput): Supplier
 export function deleteSupplier(id: string): { success: boolean } {
   const db = getDatabase();
   // Check if supplier has purchases
-  const usage = db.prepare('SELECT COUNT(*) as count FROM purchases WHERE supplier_id = ?').get(id) as {
+  const usage = db
+    .prepare('SELECT COUNT(*) as count FROM purchases WHERE supplier_id = ?')
+    .get(id) as {
     count: number;
   };
   if (usage.count > 0) {
@@ -155,14 +162,18 @@ export function deleteSupplier(id: string): { success: boolean } {
 
   const now = new Date().toISOString();
   // Soft delete (deactivate) so supplier is marked inactive without destroying relational data
-  const res = db.prepare('UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?').run(now, id);
+  const res = db
+    .prepare('UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?')
+    .run(now, id);
   return { success: res.changes > 0 };
 }
 
 export function deactivateSupplier(id: string): { success: boolean } {
   const db = getDatabase();
   const now = new Date().toISOString();
-  const res = db.prepare('UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?').run(now, id);
+  const res = db
+    .prepare('UPDATE suppliers SET is_active = 0, updated_at = ? WHERE id = ?')
+    .run(now, id);
   return { success: res.changes > 0 };
 }
 
@@ -182,7 +193,9 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
   }
 
   // Pre-fetch product names to ensure existence and enrich response
-  const checkProductStmt = db.prepare('SELECT id, brand_name, generic_name FROM products WHERE id = ?');
+  const checkProductStmt = db.prepare(
+    'SELECT id, brand_name, generic_name FROM products WHERE id = ?'
+  );
   for (const line of validated.lines) {
     const p = checkProductStmt.get(line.productId) as { id: string } | undefined;
     if (!p) {
@@ -274,8 +287,7 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
     for (const line of validated.lines) {
       // Create or merge batch: check if (productId, batchNo) exists
       const existingBatch = findBatchStmt.get(line.productId, line.batchNo) as
-        | { id: string; cost_paisa: number; mrp_paisa: number; expiry_date: string }
-        | undefined;
+        { id: string; cost_paisa: number; mrp_paisa: number; expiry_date: string } | undefined;
 
       let batchId: string;
       if (existingBatch) {
@@ -423,7 +435,9 @@ export function receiveGrn(input: ReceiveGrnInput): PurchaseRecord {
 // ---------------------------------------------------------------------------
 // 3. Stock Overview Queries (By Product & By Batch)
 // ---------------------------------------------------------------------------
-export function getStockOverviewByProduct(rawParams: StockFilterParams): StockOverviewResult<StockOverviewProduct> {
+export function getStockOverviewByProduct(
+  rawParams: StockFilterParams
+): StockOverviewResult<StockOverviewProduct> {
   const params = StockFilterParamsSchema.parse(rawParams);
   const db = getDatabase();
   const context = getActiveContext();
@@ -468,10 +482,12 @@ export function getStockOverviewByProduct(rawParams: StockFilterParams): StockOv
   if (params.filter === 'low_stock') {
     filterHaving = 'AND COALESCE(sm.total_balance, 0) <= 10';
   } else if (params.filter === 'expiring_60') {
-    filterHaving = 'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= ? AND b.earliest_expiry >= ?';
+    filterHaving =
+      'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= ? AND b.earliest_expiry >= ?';
     filterArgs.push(d60, today);
   } else if (params.filter === 'expiring_90') {
-    filterHaving = 'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= ? AND b.earliest_expiry >= ?';
+    filterHaving =
+      'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry <= ? AND b.earliest_expiry >= ?';
     filterArgs.push(d90, today);
   } else if (params.filter === 'expired') {
     filterHaving = 'AND b.earliest_expiry IS NOT NULL AND b.earliest_expiry < ?';
@@ -504,7 +520,9 @@ export function getStockOverviewByProduct(rawParams: StockFilterParams): StockOv
     isControlled: number;
   };
 
-  const rows = db.prepare(dataSql).all(...queryArgs, ...filterArgs, params.pageSize, offset) as RawProductOverviewRow[];
+  const rows = db
+    .prepare(dataSql)
+    .all(...queryArgs, ...filterArgs, params.pageSize, offset) as RawProductOverviewRow[];
   const items: StockOverviewProduct[] = rows.map((r) => ({
     productId: r.productId,
     brandName: r.brandName,
@@ -526,7 +544,9 @@ export function getStockOverviewByProduct(rawParams: StockFilterParams): StockOv
   };
 }
 
-export function getStockOverviewByBatch(rawParams: StockFilterParams): StockOverviewResult<StockOverviewBatch> {
+export function getStockOverviewByBatch(
+  rawParams: StockFilterParams
+): StockOverviewResult<StockOverviewBatch> {
   const params = StockFilterParamsSchema.parse(rawParams);
   const db = getDatabase();
   const context = getActiveContext();
@@ -596,7 +616,10 @@ export function getStockOverviewByBatch(rawParams: StockFilterParams): StockOver
     LIMIT ? OFFSET ?
   `;
 
-  const rows = db.prepare(dataSql).all(...queryArgs, params.pageSize, offset) as (Omit<StockOverviewBatch, 'daysUntilExpiry' | 'status'>)[];
+  const rows = db.prepare(dataSql).all(...queryArgs, params.pageSize, offset) as Omit<
+    StockOverviewBatch,
+    'daysUntilExpiry' | 'status'
+  >[];
 
   const nowMs = Date.now();
   const items: StockOverviewBatch[] = rows.map((r) => {
@@ -643,15 +666,21 @@ export function adjustStock(input: StockAdjustmentInput): {
   const branchId = validated.branchId ?? context.branchId;
 
   // Validate product and batch exist
-  const batchRow = db.prepare(`
+  const batchRow = db
+    .prepare(
+      `
     SELECT b.id, b.product_id, b.batch_no, p.brand_name
     FROM batches b
     INNER JOIN products p ON b.product_id = p.id
     WHERE b.id = ? AND b.product_id = ?
-  `).get(validated.batchId, validated.productId) as { id: string } | undefined;
+  `
+    )
+    .get(validated.batchId, validated.productId) as { id: string } | undefined;
 
   if (!batchRow) {
-    throw new Error(`Batch ID "${validated.batchId}" does not match Product ID "${validated.productId}"`);
+    throw new Error(
+      `Batch ID "${validated.batchId}" does not match Product ID "${validated.productId}"`
+    );
   }
 
   const movementId = generateUuidV7();
@@ -662,12 +691,14 @@ export function adjustStock(input: StockAdjustmentInput): {
   // Rule 5: Writes touching more than one table happen in ONE database transaction
   const adjustTx = db.transaction(() => {
     // 1. Insert stock_movements record (Rule 4)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (
         id, product_id, batch_id, branch_id, type, quantity_signed,
         reference_type, reference_id, reason, created_at, updated_at
       ) VALUES (?, ?, ?, ?, 'adjustment', ?, 'stock_adjustment', ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       movementId,
       validated.productId,
       validated.batchId,
@@ -681,13 +712,15 @@ export function adjustStock(input: StockAdjustmentInput): {
 
     // 2. Insert outbox record in same transaction (Rule 5)
     const outboxEventId = generateUuidV7();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
       ) VALUES (
         ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'stock_adjustment.created', 'stock_adjustment.created', ?, ?, ?, 'pending', 0, ?
       )
-    `).run(
+    `
+    ).run(
       outboxEventId,
       outboxEventId,
       movementId,
@@ -707,11 +740,15 @@ export function adjustStock(input: StockAdjustmentInput): {
     );
 
     // 3. Compute updated balance for this batch in this branch
-    const balRow = db.prepare(`
+    const balRow = db
+      .prepare(
+        `
       SELECT COALESCE(SUM(quantity_signed), 0) as balance
       FROM stock_movements
       WHERE branch_id = ? AND batch_id = ?
-    `).get(branchId, validated.batchId) as { balance: number };
+    `
+      )
+      .get(branchId, validated.batchId) as { balance: number };
     newBalance = balRow.balance;
   });
 
@@ -735,7 +772,9 @@ export function getBatchesForProduct(productId: string): {
   const db = getDatabase();
   const context = getActiveContext();
 
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     SELECT
       b.id,
       b.batch_no as batchNo,
@@ -752,7 +791,9 @@ export function getBatchesForProduct(productId: string): {
     ) sm ON b.id = sm.batch_id
     WHERE b.product_id = ?
     ORDER BY b.expiry_date ASC
-  `).all(context.branchId, productId) as {
+  `
+    )
+    .all(context.branchId, productId) as {
     id: string;
     batchNo: string;
     expiryDate: string;

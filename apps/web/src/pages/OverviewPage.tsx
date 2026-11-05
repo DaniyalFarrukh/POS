@@ -2,7 +2,21 @@ import React, { useEffect, useState } from 'react';
 import type { DashboardOverview } from '../types';
 import { apiFetch } from '../lib/api';
 import { formatPaisa, formatKarachiDateOnly } from '../lib/formatters';
-import { StatCard, Card, CardHeader, CardTitle, CardContent, Table, TableHeader, TableBody, TableHead, TableRow, TableCell, Badge, Button } from '@pos/ui';
+import {
+  StatCard,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  Badge,
+  Button,
+} from '@pos/ui';
 import {
   DollarSign,
   Receipt,
@@ -114,9 +128,7 @@ export const OverviewPage: React.FC = () => {
           <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-blue-600" />
-              <CardTitle className="text-sm font-bold text-slate-900">
-                Top Products Today
-              </CardTitle>
+              <CardTitle className="text-sm font-bold text-slate-900">Top Products Today</CardTitle>
             </div>
             <span className="text-[11px] text-slate-400 font-medium">By units sold</span>
           </CardHeader>

@@ -36,9 +36,7 @@ describe('Failure Modes & Resilience Integration Tests (Phase 3.4)', () => {
    * (no duplicates, no gaps), in order of deviceSeq, the outbox is fully acked, and backoff delays
    * were applied (use fake timers).
    */
-  it(
-    '1. Server outage mid-push: queue 250 events, drop response after first 100, then restore network with backoff',
-    async () => {
+  it('1. Server outage mid-push: queue 250 events, drop response after first 100, then restore network with backoff', async () => {
     // 1. Queue 250 purchase events on Counter A (each creates 1 batch + 1 movement + 1 outbox event)
     const totalEvents = 250;
     const batchIds: string[] = [];
@@ -53,15 +51,31 @@ describe('Failure Modes & Resilience Integration Tests (Phase 3.4)', () => {
 
         batchIds.push(batchId);
 
-        counterA.db.prepare(`
+        counterA.db
+          .prepare(
+            `
           INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
           VALUES (?, ?, ?, '2028-12-31', 3000, 5000, ?, ?)
-        `).run(batchId, server.productId, batchNo, now, now);
+        `
+          )
+          .run(batchId, server.productId, batchNo, now, now);
 
-        counterA.db.prepare(`
+        counterA.db
+          .prepare(
+            `
           INSERT INTO stock_movements (id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, reference_id, reason, created_at, updated_at)
           VALUES (?, ?, ?, ?, 'purchase', 10, 'purchase', ?, 'Queue 250 Test', ?, ?)
-        `).run(generateUuidV7(), server.productId, batchId, counterA.branchId, purchaseId, now, now);
+        `
+          )
+          .run(
+            generateUuidV7(),
+            server.productId,
+            batchId,
+            counterA.branchId,
+            purchaseId,
+            now,
+            now
+          );
 
         const payload = {
           purchase: {
@@ -93,13 +107,17 @@ describe('Failure Modes & Resilience Integration Tests (Phase 3.4)', () => {
           ],
         };
 
-        counterA.db.prepare(`
+        counterA.db
+          .prepare(
+            `
           INSERT INTO outbox (
             id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
           ) VALUES (
             ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'purchase.received', 'purchase.received', ?, ?, ?, 'pending', 0, ?
           )
-        `).run(eventId, eventId, purchaseId, JSON.stringify(payload), now, now);
+        `
+          )
+          .run(eventId, eventId, purchaseId, JSON.stringify(payload), now, now);
       }
     })();
 

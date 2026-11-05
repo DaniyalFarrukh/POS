@@ -120,17 +120,8 @@ export async function applyCreditNoteCreated(
   );
 
   // 9. Verify referenced batches exist for this pharmacy
-  const batchIds = payload.lines
-    .map((l) => l.batchId)
-    .filter((id): id is string => Boolean(id));
-  await verifyTenantEntities(
-    tx,
-    batches,
-    batchIds,
-    ctx.pharmacyId,
-    'UNKNOWN_BATCH',
-    'batch'
-  );
+  const batchIds = payload.lines.map((l) => l.batchId).filter((id): id is string => Boolean(id));
+  await verifyTenantEntities(tx, batches, batchIds, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
 
   // 5. Insert Credit Note Header
   await tx.insert(creditNotes).values({

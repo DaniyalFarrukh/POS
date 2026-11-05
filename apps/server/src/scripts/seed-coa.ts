@@ -15,17 +15,12 @@ export async function seedChartOfAccountsForAllPharmacies(
   customDb?: NodePgDatabase<typeof schema>
 ): Promise<Array<{ pharmacyId: string; pharmacyName: string; accountCount: number }>> {
   const db = customDb || getDb();
-  const allPharmacies = await db
-    .select()
-    .from(pharmacies)
-    .orderBy(asc(pharmacies.createdAt));
+  const allPharmacies = await db.select().from(pharmacies).orderBy(asc(pharmacies.createdAt));
 
   const results: Array<{ pharmacyId: string; pharmacyName: string; accountCount: number }> = [];
 
   for (const pharmacy of allPharmacies) {
-    const accountsList = await db.transaction((tx) =>
-      seedDefaultChartOfAccounts(tx, pharmacy.id)
-    );
+    const accountsList = await db.transaction((tx) => seedDefaultChartOfAccounts(tx, pharmacy.id));
     results.push({
       pharmacyId: pharmacy.id,
       pharmacyName: pharmacy.name,
@@ -55,4 +50,3 @@ async function main() {
 if (process.argv[1]?.replace(/\\/g, '/').endsWith('seed-coa.ts')) {
   main();
 }
-

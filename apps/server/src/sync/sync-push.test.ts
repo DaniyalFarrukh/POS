@@ -138,7 +138,10 @@ function createSyncMockDb() {
                   for (const v of val) extractSqlValues(v, out);
                 }
               }
-              if ('queryChunks' in c && Array.isArray((c as { queryChunks: unknown[] }).queryChunks)) {
+              if (
+                'queryChunks' in c &&
+                Array.isArray((c as { queryChunks: unknown[] }).queryChunks)
+              ) {
                 for (const chunk of (c as { queryChunks: unknown[] }).queryChunks) {
                   extractSqlValues(chunk, out);
                 }
@@ -216,9 +219,17 @@ function createSyncMockDb() {
               if (table === stockMovements) {
                 if (fields && typeof fields === 'object' && 'balance' in fields) {
                   // Calculate balance for specific batch
-                  const conditions = (condition as { operands?: Array<{ left?: unknown; right?: { value?: unknown } }> })?.operands;
-                  const batchIdVal = conditions?.find((c) => (c.left as { name?: string })?.name === 'batch_id')?.right?.value;
-                  const relevant = currentStore.stockMovements.filter((m) => !batchIdVal || m.batchId === batchIdVal);
+                  const conditions = (
+                    condition as {
+                      operands?: Array<{ left?: unknown; right?: { value?: unknown } }>;
+                    }
+                  )?.operands;
+                  const batchIdVal = conditions?.find(
+                    (c) => (c.left as { name?: string })?.name === 'batch_id'
+                  )?.right?.value;
+                  const relevant = currentStore.stockMovements.filter(
+                    (m) => !batchIdVal || m.batchId === batchIdVal
+                  );
                   const bal = relevant.reduce((sum, m) => sum + (Number(m.quantitySigned) || 0), 0);
                   return [{ balance: bal }];
                 }
@@ -317,9 +328,18 @@ describe('POST /sync/push (Phase 3)', () => {
 
     mockDb._store.pharmacies.set(pharmacyId, { id: pharmacyId, name: `${name} Pharmacy` });
     mockDb._store.branches.set(branchId, { id: branchId, pharmacyId, name: `${name} Branch` });
-    mockDb._store.counters.set(counterId, { id: counterId, pharmacyId, branchId, name: 'Counter 1' });
+    mockDb._store.counters.set(counterId, {
+      id: counterId,
+      pharmacyId,
+      branchId,
+      name: 'Counter 1',
+    });
     mockDb._store.users.set(userId, { id: userId, pharmacyId, name: 'Cashier 1', role: 'cashier' });
-    mockDb._store.products.set(productId, { id: productId, pharmacyId, brandName: 'Panadol 500mg' });
+    mockDb._store.products.set(productId, {
+      id: productId,
+      pharmacyId,
+      brandName: 'Panadol 500mg',
+    });
     mockDb._store.devices.set(deviceId, {
       id: deviceId,
       pharmacyId,
@@ -914,7 +934,9 @@ describe('POST /sync/push (Phase 3)', () => {
       expect(data1.results[0]!.code).toBe('UNKNOWN_BATCH');
 
       // Processed events should NOT have evSale.eventId
-      expect(mockDb._store.processedEvents.has(`${tenant.pharmacyId}:${evSale.eventId}`)).toBe(false);
+      expect(mockDb._store.processedEvents.has(`${tenant.pharmacyId}:${evSale.eventId}`)).toBe(
+        false
+      );
 
       // Push 2: Purchase introduces the batch
       const evPurchase = {
@@ -1250,7 +1272,6 @@ describe('POST /sync/push (Phase 3)', () => {
     });
 
     it('applies events end-to-end against live PostgreSQL container', async () => {
-
       const tenant = setupMockTenant(createSyncMockDb(), 'Live');
       expect(tenant.pharmacyId).toBeDefined();
       expect(typeof isAvailable).toBe('boolean');

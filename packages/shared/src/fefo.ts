@@ -26,10 +26,7 @@ export class InsufficientStockError extends Error {
   readonly available: number;
 
   constructor(requested: number, available: number, message?: string) {
-    super(
-      message ??
-        `Insufficient stock: requested ${requested}, available ${available}`
-    );
+    super(message ?? `Insufficient stock: requested ${requested}, available ${available}`);
     this.name = 'InsufficientStockError';
     this.requested = requested;
     this.available = available;
@@ -60,9 +57,7 @@ export function allocateFefo(
     !Number.isInteger(requestedQty) ||
     requestedQty <= 0
   ) {
-    throw new Error(
-      `requestedQty must be a positive integer, received: ${requestedQty}`
-    );
+    throw new Error(`requestedQty must be a positive integer, received: ${requestedQty}`);
   }
 
   // 2. Filter eligible batches without mutating input

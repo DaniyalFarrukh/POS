@@ -61,16 +61,42 @@ describe('Performance Benchmark with 20,000 Products (Low-End PC Profile)', () =
     `);
 
     const brands = [
-      'Panadol', 'Brufen', 'Augmentin', 'Disprin', 'Arinac', 'Risek', 'Softin',
-      'Gravinate', 'Ponstan', 'Flagyl', 'Ciproxin', 'Surbex-Z', 'Calpol', 'Loprin',
-      'Nuberol Forte', 'Zyrtec', 'Tegral', 'Lipiget', 'Xanax', 'Lexotanil'
+      'Panadol',
+      'Brufen',
+      'Augmentin',
+      'Disprin',
+      'Arinac',
+      'Risek',
+      'Softin',
+      'Gravinate',
+      'Ponstan',
+      'Flagyl',
+      'Ciproxin',
+      'Surbex-Z',
+      'Calpol',
+      'Loprin',
+      'Nuberol Forte',
+      'Zyrtec',
+      'Tegral',
+      'Lipiget',
+      'Xanax',
+      'Lexotanil',
     ];
     const forms = ['Tablet', 'Syrup', 'Capsule', 'Injection', 'Suspension', 'Ointment'];
     const strengths = ['250mg', '500mg', '400mg', '10mg', '20mg', '1g', '625mg'];
     const generics = [
-      'Paracetamol', 'Ibuprofen', 'Amoxicillin + Clavulanate', 'Aspirin',
-      'Omeprazole', 'Loratadine', 'Dimenhydrinate', 'Mefenamic Acid',
-      'Metronidazole', 'Ciprofloxacin', 'Atorvastatin', 'Alprazolam'
+      'Paracetamol',
+      'Ibuprofen',
+      'Amoxicillin + Clavulanate',
+      'Aspirin',
+      'Omeprazole',
+      'Loratadine',
+      'Dimenhydrinate',
+      'Mefenamic Acid',
+      'Metronidazole',
+      'Ciprofloxacin',
+      'Atorvastatin',
+      'Alprazolam',
     ];
 
     const seedStart = performance.now();
@@ -89,7 +115,17 @@ describe('Performance Benchmark with 20,000 Products (Low-End PC Profile)', () =
           sampleBarcodes.push(barcode);
         }
 
-        insertStmt.run(id, brand, generic, form, strength, 'GSK / Abbott Pharma', barcode, mrpPaisa, isControlled);
+        insertStmt.run(
+          id,
+          brand,
+          generic,
+          form,
+          strength,
+          'GSK / Abbott Pharma',
+          barcode,
+          mrpPaisa,
+          isControlled
+        );
       }
     });
 
@@ -122,7 +158,9 @@ describe('Performance Benchmark with 20,000 Products (Low-End PC Profile)', () =
     const startupStart = performance.now();
     const testDb = new Database(dbPath, { readonly: true });
     const integrityRes = testDb.pragma('integrity_check', { simple: true }) as string;
-    const countRes = (testDb.prepare('SELECT COUNT(*) as cnt FROM products').get() as { cnt: number }).cnt;
+    const countRes = (
+      testDb.prepare('SELECT COUNT(*) as cnt FROM products').get() as { cnt: number }
+    ).cnt;
     const startupDurationMs = performance.now() - startupStart;
     testDb.close();
 

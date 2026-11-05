@@ -17,13 +17,7 @@ import {
   Button,
   Badge,
 } from '@pos/ui';
-import {
-  ArrowLeft,
-  Layers,
-  History,
-  AlertTriangle,
-  RefreshCw,
-} from 'lucide-react';
+import { ArrowLeft, Layers, History, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface ProductStockDetailPageProps {
   productId: string;
@@ -100,7 +94,8 @@ export const ProductStockDetailPage: React.FC<ProductStockDetailPageProps> = ({
               )}
             </div>
             <p className="text-xs text-slate-500">
-              {product.genericName || 'No generic name'} • {product.strength || ''} {product.form || ''}
+              {product.genericName || 'No generic name'} • {product.strength || ''}{' '}
+              {product.form || ''}
             </p>
           </div>
         </div>
@@ -193,7 +188,9 @@ export const ProductStockDetailPage: React.FC<ProductStockDetailPageProps> = ({
                     <TableRow key={`${b.batchId}-${b.branchId}-${b.locationId || 'default'}`}>
                       <TableCell className="font-mono text-xs font-medium">{b.batchNo}</TableCell>
                       <TableCell className="text-xs">{b.branchName}</TableCell>
-                      <TableCell className="text-xs text-slate-500">{b.locationName || 'Default'}</TableCell>
+                      <TableCell className="text-xs text-slate-500">
+                        {b.locationName || 'Default'}
+                      </TableCell>
                       <TableCell>
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium border ${expDetails.colorClass}`}
@@ -201,9 +198,15 @@ export const ProductStockDetailPage: React.FC<ProductStockDetailPageProps> = ({
                           {expDetails.label}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right text-xs">{formatPaisa(b.costPaisa)}</TableCell>
-                      <TableCell className="text-right text-xs font-semibold">{formatPaisa(b.mrpPaisa)}</TableCell>
-                      <TableCell className="text-right font-bold text-xs">{b.onHandQuantity}</TableCell>
+                      <TableCell className="text-right text-xs">
+                        {formatPaisa(b.costPaisa)}
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-semibold">
+                        {formatPaisa(b.mrpPaisa)}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-xs">
+                        {b.onHandQuantity}
+                      </TableCell>
                       <TableCell className="text-right text-xs font-semibold text-emerald-700">
                         {formatPaisa(b.onHandQuantity * b.costPaisa)}
                       </TableCell>
@@ -220,7 +223,8 @@ export const ProductStockDetailPage: React.FC<ProductStockDetailPageProps> = ({
       <Card>
         <CardHeader className="pb-3 border-b">
           <CardTitle className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-            <History className="w-4 h-4 text-purple-600" /> Stock Movements Timeline ({movements.length})
+            <History className="w-4 h-4 text-purple-600" /> Stock Movements Timeline (
+            {movements.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">

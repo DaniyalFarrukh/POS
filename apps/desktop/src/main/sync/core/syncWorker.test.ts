@@ -44,20 +44,26 @@ describe('SyncWorker (Phase 3.2)', () => {
     }
 
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO branches (id, name, created_at, updated_at)
       VALUES ('branch-1', 'Main Branch', ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO counters (id, branch_id, name, code, created_at, updated_at)
       VALUES ('counter-1', 'branch-1', 'Counter 1', 'C-1', ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at)
       VALUES ('tax-1', 'Standard Rate', 1700, 0, ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
   });
 
   afterEach(() => {
@@ -72,22 +78,13 @@ describe('SyncWorker (Phase 3.2)', () => {
     status = 'pending'
   ) {
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-    `).run(
-      id,
-      id,
-      seq,
-      type,
-      type,
-      id,
-      JSON.stringify(payload),
-      now,
-      status,
-      now
-    );
+    `
+    ).run(id, id, seq, type, type, id, JSON.stringify(payload), now, status, now);
   }
 
   it('offline -> online transition: recovers from unreachable health check to online_idle', async () => {
@@ -114,10 +111,10 @@ describe('SyncWorker (Phase 3.2)', () => {
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         );
       }
-      return new Response(
-        JSON.stringify({ results: [] }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ results: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }) as unknown as typeof fetch;
 
     const worker = new SyncWorker({
@@ -156,10 +153,9 @@ describe('SyncWorker (Phase 3.2)', () => {
         return new Response(JSON.stringify({ status: 'ok' }), { status: 200 });
       }
       if (urlStr.includes('/sync/pull')) {
-        return new Response(
-          JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }),
-          { status: 200 }
-        );
+        return new Response(JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }), {
+          status: 200,
+        });
       }
       return new Response(JSON.stringify({ results: [] }), { status: 200 });
     }) as unknown as typeof fetch;
@@ -227,10 +223,9 @@ describe('SyncWorker (Phase 3.2)', () => {
         return new Response(JSON.stringify({ results: [] }), { status: 200 });
       }
       if (urlStr.includes('/sync/pull')) {
-        return new Response(
-          JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }),
-          { status: 200 }
-        );
+        return new Response(JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }), {
+          status: 200,
+        });
       }
       return new Response(JSON.stringify({}), { status: 200 });
     }) as unknown as typeof fetch;
@@ -261,7 +256,7 @@ describe('SyncWorker (Phase 3.2)', () => {
     expect(pushCalls).toBe(1);
 
     // Release the push
-    const doResolve = resolvePush as unknown as (() => void);
+    const doResolve = resolvePush as unknown as () => void;
     doResolve();
 
     const [res1, res2] = await Promise.all([sync1Promise, sync2Promise]);
@@ -283,10 +278,10 @@ describe('SyncWorker (Phase 3.2)', () => {
         return new Response(JSON.stringify({ status: 'ok' }), { status: 200 });
       }
       if (urlStr.includes('/sync/push')) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized', message: 'Token revoked' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Token revoked' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
       return new Response(JSON.stringify({}), { status: 200 });
     }) as unknown as typeof fetch;
@@ -306,7 +301,9 @@ describe('SyncWorker (Phase 3.2)', () => {
     expect(status.lastError).toContain('Authentication failed');
 
     // Outbox event must NOT be deleted
-    const outboxRow = db.prepare('SELECT status FROM outbox WHERE id = ?').get(eventId) as { status: string };
+    const outboxRow = db.prepare('SELECT status FROM outbox WHERE id = ?').get(eventId) as {
+      status: string;
+    };
     expect(outboxRow.status).toBe('pending');
 
     // Advance fake timers by 5 minutes: no further fetch calls should happen
@@ -400,7 +397,9 @@ describe('SyncWorker (Phase 3.2)', () => {
     expect(callOrder).toEqual(['health', 'push', 'pull', 'push']);
 
     // Event should be acknowledged
-    const outboxRow = db.prepare('SELECT status FROM outbox WHERE id = ?').get(eventId) as { status: string };
+    const outboxRow = db.prepare('SELECT status FROM outbox WHERE id = ?').get(eventId) as {
+      status: string;
+    };
     expect(outboxRow.status).toBe('acked');
 
     worker.stop();
@@ -417,10 +416,9 @@ describe('SyncWorker (Phase 3.2)', () => {
         return new Response(JSON.stringify({ status: 'ok' }), { status: 200 });
       }
       if (urlStr.includes('/sync/pull')) {
-        return new Response(
-          JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }),
-          { status: 200 }
-        );
+        return new Response(JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }), {
+          status: 200,
+        });
       }
       return new Response(JSON.stringify({ results: [] }), { status: 200 });
     }) as unknown as typeof fetch;
@@ -459,10 +457,12 @@ describe('SyncWorker (Phase 3.2)', () => {
     insertOutboxEvent('evt-3', 3, 'invoice.created', {}, 'exception');
 
     // Insert 1 open sync_exception record
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO sync_exceptions (id, event_id, code, message, payload, status, created_at)
       VALUES (?, ?, ?, ?, ?, 'open', ?)
-    `).run('exc-1', 'evt-3', 'TEST_ERR', 'Error msg', '{}', eightyHoursAgo);
+    `
+    ).run('exc-1', 'evt-3', 'TEST_ERR', 'Error msg', '{}', eightyHoursAgo);
 
     const mockFetch = vi.fn() as unknown as typeof fetch;
 

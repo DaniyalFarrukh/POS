@@ -63,7 +63,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
           maxWidth: '820px',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
-          boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(226, 232, 240, 0.8)',
+          boxShadow:
+            '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(226, 232, 240, 0.8)',
           border: '1px solid #e2e8f0',
           overflow: 'hidden',
         }}
@@ -80,10 +81,24 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
           }}
         >
           <div>
-            <div style={{ display: 'inline-block', padding: '3px 8px', backgroundColor: '#eff6ff', color: '#1d4ed8', borderRadius: '6px', fontSize: '11px', fontWeight: 800, marginBottom: '6px', letterSpacing: '0.04em' }}>
+            <div
+              style={{
+                display: 'inline-block',
+                padding: '3px 8px',
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 800,
+                marginBottom: '6px',
+                letterSpacing: '0.04em',
+              }}
+            >
               INITIAL SETUP WIZARD
             </div>
-            <h1 style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1
+              style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a' }}
+            >
               Configure Counter Terminal
             </h1>
             <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
@@ -109,11 +124,26 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', padding: '32px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 1fr',
+            gap: '32px',
+            padding: '32px',
+          }}
+        >
           {/* Form Fields */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '6px',
+                }}
+              >
                 Branch / Store Name
               </label>
               <input
@@ -134,7 +164,15 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '6px',
+                }}
+              >
                 Counter Identifier
               </label>
               <input
@@ -155,7 +193,15 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '6px',
+                }}
+              >
                 Owner / Manager Full Name
               </label>
               <input
@@ -175,12 +221,32 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
               />
             </div>
 
-            <div style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '4px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                padding: '14px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                marginTop: '4px',
+              }}
+            >
+              <div
+                style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}
+              >
                 Security & Role Information:
               </div>
-              <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#64748b', lineHeight: 1.5 }}>
-                <li>This account will have full <strong>Owner</strong> privileges.</li>
+              <ul
+                style={{
+                  margin: 0,
+                  paddingLeft: '18px',
+                  fontSize: '12px',
+                  color: '#64748b',
+                  lineHeight: 1.5,
+                }}
+              >
+                <li>
+                  This account will have full <strong>Owner</strong> privileges.
+                </li>
                 <li>PIN is hashed with bcryptjs on the local counter terminal.</li>
                 <li>Hashes are never exposed to the frontend or network.</li>
               </ul>
@@ -200,8 +266,10 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
               border: '1px solid #e2e8f0',
             }}
           >
-            <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>
-              Set Owner PIN (4-8 digits)
+            <div
+              style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}
+            >
+              Set Owner PIN (8 digits)
             </div>
             <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
               Use keyboard or on-screen keypad
@@ -212,6 +280,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
               onChange={setPin}
               onSubmit={handleSubmit}
               disabled={loading}
+              placeholder="Enter 8-digit Owner PIN"
             />
           </div>
         </div>

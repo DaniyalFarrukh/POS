@@ -96,7 +96,7 @@ describe('Web Purchase Orders Domain Utilities & Validation', () => {
     const lines = [
       { quantityOrdered: 100, expectedCostPaisa: 2500 }, // 250,000 paisa
       { quantityOrdered: 40, expectedCostPaisa: 18000 }, // 720,000 paisa
-      { quantityOrdered: 10, expectedCostPaisa: 500 },   // 5,000 paisa
+      { quantityOrdered: 10, expectedCostPaisa: 500 }, // 5,000 paisa
     ];
 
     const totals = calculatePOTotals(lines);
@@ -130,4 +130,3 @@ describe('Web Purchase Orders Domain Utilities & Validation', () => {
     expect(getPOStatusDetails('cancelled').variant).toBe('destructive');
   });
 });
-

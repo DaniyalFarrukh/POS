@@ -64,7 +64,9 @@ export function validatePOForm(form: POFormState): { isValid: boolean; errors: P
   };
 }
 
-export function calculatePOTotals(lines: Array<{ quantityOrdered: number; expectedCostPaisa: number }>): {
+export function calculatePOTotals(
+  lines: Array<{ quantityOrdered: number; expectedCostPaisa: number }>
+): {
   totalQuantity: number;
   totalCostPaisa: number;
 } {
@@ -94,7 +96,10 @@ export function canReceivePO(role?: string): boolean {
   return role === 'owner' || role === 'manager' || role === 'pharmacist';
 }
 
-export function getPOStatusDetails(status: POStatus): { label: string; variant: 'default' | 'success' | 'warning' | 'destructive' | 'outline' } {
+export function getPOStatusDetails(status: POStatus): {
+  label: string;
+  variant: 'default' | 'success' | 'warning' | 'destructive' | 'outline';
+} {
   switch (status) {
     case 'draft':
       return { label: 'Draft', variant: 'outline' };
@@ -112,4 +117,3 @@ export function getPOStatusDetails(status: POStatus): { label: string; variant: 
       return { label: status, variant: 'outline' };
   }
 }
-

@@ -25,14 +25,10 @@ export const SupplierLedgerPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiFetch<{ items: SupplierLedgerItem[] }>(
-        '/api/reports/supplier-ledger'
-      );
+      const res = await apiFetch<{ items: SupplierLedgerItem[] }>('/api/reports/supplier-ledger');
       setItems(res.items);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch supplier ledger'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to fetch supplier ledger');
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +50,8 @@ export const SupplierLedgerPage: React.FC = () => {
             Supplier Procurement Ledger
           </h2>
           <p className="text-xs text-slate-500">
-            Total inventory deliveries, supplier spend, and purchase frequency recorded on the server
+            Total inventory deliveries, supplier spend, and purchase frequency recorded on the
+            server
           </p>
         </div>
         <Button
@@ -135,7 +132,9 @@ export const SupplierLedgerPage: React.FC = () => {
             </Table>
           ) : (
             <div className="p-12 text-center text-xs text-slate-400">
-              {isLoading ? 'Loading supplier history...' : 'No supplier procurement entries recorded.'}
+              {isLoading
+                ? 'Loading supplier history...'
+                : 'No supplier procurement entries recorded.'}
             </div>
           )}
         </CardContent>

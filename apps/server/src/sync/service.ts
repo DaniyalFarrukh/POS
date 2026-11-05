@@ -14,6 +14,33 @@ import { applyCustomerCreated } from './appliers/customer';
 import { applyCustomerReceiptCreated } from './appliers/customer-receipt';
 import type { ApplierContext, DbClient } from './types';
 
+function isTransientError(err: unknown): boolean {
+  if (err instanceof SyncRetryLaterError) return true;
+  if (!err || typeof err !== 'object') return false;
+
+  const pgCode = (err as { code?: string }).code;
+  if (pgCode) {
+    if (['23505', '23503', '23502', '23514', '22P02'].includes(pgCode)) return false;
+    if (['40001', '40P01', '55P03', '57P01', '57P02', '57P03'].includes(pgCode)) return true;
+    if (typeof pgCode === 'string' && (pgCode.startsWith('08') || pgCode.startsWith('57'))) return true;
+  }
+
+  const msg = (err as Error).message?.toLowerCase() || '';
+  if (
+    msg.includes('connection reset') ||
+    msg.includes('etimedout') ||
+    msg.includes('econnrefused') ||
+    msg.includes('econnreset') ||
+    msg.includes('deadlock') ||
+    msg.includes('lock timeout') ||
+    msg.includes('transient')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function processSyncPushEvents(
   db: DbClient,
   ctx: ApplierContext,
@@ -95,10 +122,7 @@ export async function processSyncPushEvents(
             await applyCustomerReceiptCreated(tx, ctx, event.payload, event.entityId);
             break;
           default:
-            throw new SyncRejectedError(
-              'UNKNOWN_TYPE',
-              `Unknown sync event type: ${event.type}`
-            );
+            throw new SyncRejectedError('UNKNOWN_TYPE', `Unknown sync event type: ${event.type}`);
         }
 
         return 'accepted' as const;
@@ -139,18 +163,42 @@ export async function processSyncPushEvents(
           code: err.code,
           message: err.message,
         };
-      } else {
-        // Unexpected exception (e.g. transient deadlock, connection hiccup, unhandled database error)
-        // Log full detailed error server-side only for diagnostics
-        console.error(`[Sync] Unexpected transient error processing event ${event.eventId}:`, err);
+      } else if (isTransientError(err)) {
+        // Transient error (connection hiccup, deadlock, lock timeout)
+        console.error(`[Sync] Transient error processing event ${event.eventId}:`, err);
 
-        // Transient / unhandled errors must NOT be marked permanently rejected.
-        // Client must receive status: 'retry_later' so push sync will retry safely.
         results[originalIndex] = {
           eventId: event.eventId,
           status: 'retry_later',
           code: 'TRANSIENT_ERROR',
           message: 'A transient server error occurred. Please retry.',
+        };
+      } else {
+        // Permanent unexpected database error (e.g. unique constraint or foreign key violation)
+        console.error(`[Sync] Permanent unexpected error processing event ${event.eventId}:`, err);
+        const sanitizedMessage = 'An unexpected internal error occurred';
+
+        try {
+          await db.transaction(async (tx) => {
+            await tx.insert(rejectedEvents).values({
+              id: generateUuidV7(),
+              pharmacyId: ctx.pharmacyId,
+              deviceId: ctx.deviceId,
+              event: event as unknown as Record<string, unknown>,
+              code: 'INTERNAL_ERROR',
+              message: sanitizedMessage,
+              createdAt: new Date().toISOString(),
+            });
+          });
+        } catch (logErr) {
+          console.error('[Sync] Failed to record unexpected rejected event in database:', logErr);
+        }
+
+        results[originalIndex] = {
+          eventId: event.eventId,
+          status: 'rejected',
+          code: 'INTERNAL_ERROR',
+          message: sanitizedMessage,
         };
       }
     }

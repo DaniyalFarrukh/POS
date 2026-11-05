@@ -152,12 +152,10 @@ interface InvoiceDbRow {
 /**
  * Loads an existing finalized invoice with all lines, payments, and fiscal info.
  */
-function loadExistingInvoice(
-  db: DatabaseInstance,
-  inv: InvoiceDbRow
-): FinalizedInvoice {
+function loadExistingInvoice(db: DatabaseInstance, inv: InvoiceDbRow): FinalizedInvoice {
   const lineRows = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         il.*,
         p.brand_name,
@@ -169,7 +167,8 @@ function loadExistingInvoice(
       LEFT JOIN batches b ON il.batch_id = b.id
       WHERE il.invoice_id = ?
       ORDER BY il.rowid ASC
-    `)
+    `
+    )
     .all(inv.id) as {
     id: string;
     invoice_id: string;
@@ -355,9 +354,7 @@ export function finalizeSale(
   // Run everything inside ONE better-sqlite3 transaction started with .immediate()
   const executeSaleTransaction = db.transaction(() => {
     // 1. Idempotency Check
-    const existing = selectExistingStmt.get(input.clientRequestId) as
-      | InvoiceDbRow
-      | undefined;
+    const existing = selectExistingStmt.get(input.clientRequestId) as InvoiceDbRow | undefined;
     if (existing) {
       return {
         isExisting: true,
@@ -366,18 +363,14 @@ export function finalizeSale(
     }
 
     // 2. Validate Counter & Cashier
-    const counter = selectCounterStmt.get(input.counterId) as
-      | CounterDbRow
-      | undefined;
+    const counter = selectCounterStmt.get(input.counterId) as CounterDbRow | undefined;
     if (!counter) {
       throw new Error(`Counter not found with id: ${input.counterId}`);
     }
     const branchId = counter.branch_id;
     const counterCode = counter.code || 'C1';
 
-    const cashier = selectCashierStmt.get(input.cashierUserId) as
-      | UserDbRow
-      | undefined;
+    const cashier = selectCashierStmt.get(input.cashierUserId) as UserDbRow | undefined;
     if (!cashier) {
       throw new Error(`Cashier user not found with id: ${input.cashierUserId}`);
     }
@@ -449,13 +442,9 @@ export function finalizeSale(
       }
 
       // Query product & tax category from DB
-      const prod = selectProductStmt.get(line.productId) as
-        | ProductDbRow
-        | undefined;
+      const prod = selectProductStmt.get(line.productId) as ProductDbRow | undefined;
       if (!prod) {
-        throw new Error(
-          `Line ${lineIdx + 1}: unknown product with id: ${line.productId}`
-        );
+        throw new Error(`Line ${lineIdx + 1}: unknown product with id: ${line.productId}`);
       }
       if (prod.is_active !== 1) {
         throw new Error(
@@ -493,10 +482,7 @@ export function finalizeSale(
       }
 
       // Load batch balances for this branch
-      const batchRows = selectBatchBalancesStmt.all(
-        branchId,
-        line.productId
-      ) as BatchBalanceRow[];
+      const batchRows = selectBatchBalancesStmt.all(branchId, line.productId) as BatchBalanceRow[];
 
       const fefoInputs: FefoBatchInput[] = batchRows.map((b) => ({
         batchId: b.batchId,

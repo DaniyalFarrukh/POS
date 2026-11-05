@@ -6,11 +6,7 @@ import { createOutboxRepo, type OutboxRepository } from './outboxRepo';
 import { pushPending } from './pushPending';
 import { pullAndApply } from './pullAndApply';
 import type { TokenStore } from './registration';
-import type {
-  SyncConfig,
-  SyncConnectionState,
-  SyncStatus,
-} from './types';
+import type { SyncConfig, SyncConnectionState, SyncStatus } from './types';
 
 export interface SyncWorkerDependencies {
   db: DatabaseInstance;
@@ -63,7 +59,8 @@ export class SyncWorker extends EventEmitter {
 
     // Initial config resolution with defaults
     this.config = {
-      serverUrl: deps.config?.serverUrl || this.readStateKey('server_url') || 'http://127.0.0.1:3000',
+      serverUrl:
+        deps.config?.serverUrl || this.readStateKey('server_url') || 'http://127.0.0.1:3000',
       maxOfflineHours: deps.config?.maxOfflineHours ?? 72,
       syncIntervalMs: deps.config?.syncIntervalMs ?? 30_000,
       requestTimeoutMs: deps.config?.requestTimeoutMs ?? 15_000,
@@ -188,10 +185,10 @@ export class SyncWorker extends EventEmitter {
   private async executeCycle(): Promise<SyncStatus> {
     this.transitionTo('syncing', null);
 
-    const serverUrl = (
-      this.readStateKey('server_url') ||
-      this.config.serverUrl
-    ).replace(/\/+$/, '');
+    const serverUrl = (this.readStateKey('server_url') || this.config.serverUrl).replace(
+      /\/+$/,
+      ''
+    );
 
     // 1. Connectivity check: GET {server_url}/health with a 5s timeout
     const isHealthy = await this.checkHealth(serverUrl);
@@ -280,7 +277,9 @@ export class SyncWorker extends EventEmitter {
 
     // 5. If push had retry_later results: pull already ran, now retry push once in same run
     if (pushSummary.retryLater > 0) {
-      this.logger?.info(`Push had ${pushSummary.retryLater} retry_later results, retrying push once...`);
+      this.logger?.info(
+        `Push had ${pushSummary.retryLater} retry_later results, retrying push once...`
+      );
       const retryPushSummary = await pushPending(
         {
           db: this.db,
@@ -374,7 +373,9 @@ export class SyncWorker extends EventEmitter {
     const delayMs = nextDelayMs(this.consecutiveFailures, this.random);
     this.consecutiveFailures += 1;
 
-    this.logger?.info(`Scheduling sync retry in ${delayMs}ms (attempt #${this.consecutiveFailures})`);
+    this.logger?.info(
+      `Scheduling sync retry in ${delayMs}ms (attempt #${this.consecutiveFailures})`
+    );
     this.scheduledTimer = setTimeout(() => {
       this.scheduledTimer = null;
       void this.syncNow();
@@ -417,8 +418,6 @@ export class SyncWorker extends EventEmitter {
   }
 }
 
-export function createSyncWorker(
-  deps: SyncWorkerDependencies
-): SyncWorker {
+export function createSyncWorker(deps: SyncWorkerDependencies): SyncWorker {
   return new SyncWorker(deps);
 }

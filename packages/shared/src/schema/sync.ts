@@ -9,15 +9,12 @@ export const SyncEventTypeSchema = z.enum([
   'stock_transfer.received',
   'shift.opened',
   'shift.closed',
+  'customer.created',
+  'customer_receipt.created',
 ]);
 export type SyncEventType = z.infer<typeof SyncEventTypeSchema>;
 
-export const SyncResultStatusSchema = z.enum([
-  'accepted',
-  'duplicate',
-  'retry_later',
-  'rejected',
-]);
+export const SyncResultStatusSchema = z.enum(['accepted', 'duplicate', 'retry_later', 'rejected']);
 export type SyncResultStatus = z.infer<typeof SyncResultStatusSchema>;
 
 /**
@@ -106,7 +103,7 @@ export type InvoiceCreatedLine = z.infer<typeof InvoiceCreatedLineSchema>;
 export const InvoiceCreatedPaymentSchema = z.object({
   id: z.string().uuid(),
   invoiceId: z.string().uuid().optional(),
-  method: z.enum(['cash', 'card', 'wallet']),
+  method: z.enum(['cash', 'card', 'wallet', 'credit']),
   amountPaisa: z.number().int().min(1),
 });
 export type InvoiceCreatedPayment = z.infer<typeof InvoiceCreatedPaymentSchema>;
@@ -148,6 +145,8 @@ export const InvoiceCreatedPayloadSchema = z.object({
   discountPaisa: z.number().int().min(0).default(0),
   taxPaisa: z.number().int().min(0).default(0),
   totalPaisa: z.number().int().min(0),
+  customerId: z.string().uuid().nullable().optional(),
+  creditLimitExceeded: z.boolean().optional(),
   notes: z.string().nullable().optional(),
   createdAt: z.string(),
   lines: z.array(InvoiceCreatedLineSchema).min(1, 'Invoice must contain at least 1 line item'),
@@ -200,16 +199,17 @@ export const StockAdjustmentCreatedPayloadSchema = z.object({
   productId: z.string().uuid(),
   batchId: z.string().uuid(),
   branchId: z.string().uuid(),
-  quantitySigned: z.number().int().refine((n) => n !== 0, {
-    message: 'Adjustment quantity cannot be 0',
-  }),
+  quantitySigned: z
+    .number()
+    .int()
+    .refine((n) => n !== 0, {
+      message: 'Adjustment quantity cannot be 0',
+    }),
   reasonType: z.string().optional(),
   reason: z.string().min(1),
   createdAt: z.string().optional(),
 });
-export type StockAdjustmentCreatedPayload = z.infer<
-  typeof StockAdjustmentCreatedPayloadSchema
->;
+export type StockAdjustmentCreatedPayload = z.infer<typeof StockAdjustmentCreatedPayloadSchema>;
 
 // 4b. stock_transfer.dispatched & stock_transfer.received Payload Schemas
 export const StockTransferDispatchedLineSchema = z.object({
@@ -231,7 +231,9 @@ export const StockTransferDispatchedPayloadSchema = z.object({
   dispatchedAt: z.string(),
   dispatchedByUserId: z.string().uuid().optional(),
   notes: z.string().nullable().optional(),
-  lines: z.array(StockTransferDispatchedLineSchema).min(1, 'Transfer must have at least 1 line item'),
+  lines: z
+    .array(StockTransferDispatchedLineSchema)
+    .min(1, 'Transfer must have at least 1 line item'),
 });
 export type StockTransferDispatchedPayload = z.infer<typeof StockTransferDispatchedPayloadSchema>;
 
@@ -286,6 +288,37 @@ export const ShiftClosedPayloadSchema = z.object({
 });
 export type ShiftClosedPayload = z.infer<typeof ShiftClosedPayloadSchema>;
 
+// 6. customer.created Payload Schema (Counter customer registration)
+export const CustomerCreatedPayloadSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  phone: z.string().nullable().optional(),
+  email: z.string().email().nullable().optional(),
+  address: z.string().nullable().optional(),
+  creditLimitPaisa: z.number().int().min(0).default(0),
+  openingBalancePaisa: z.number().int().default(0),
+  priceTier: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+export type CustomerCreatedPayload = z.infer<typeof CustomerCreatedPayloadSchema>;
+
+// 7. customer_receipt.created Payload Schema (Counter payment collection against customer balance)
+export const CustomerReceiptCreatedPayloadSchema = z.object({
+  id: z.string().uuid(),
+  paymentNumber: z.string().min(1),
+  branchId: z.string().uuid().optional(),
+  counterId: z.string().uuid().nullable().optional(),
+  cashierUserId: z.string().uuid().nullable().optional(),
+  customerId: z.string().uuid(),
+  customerName: z.string().optional(),
+  amountPaisa: z.number().int().min(1),
+  method: z.enum(['cash', 'card', 'wallet']),
+  receiptDate: z.string(),
+  notes: z.string().nullable().optional(),
+  createdAt: z.string(),
+});
+export type CustomerReceiptCreatedPayload = z.infer<typeof CustomerReceiptCreatedPayloadSchema>;
+
 // Request & Response envelope schemas
 export const SyncPushRequestSchema = z.object({
   events: z.array(SyncEventEnvelopeSchema).max(100, 'Maximum 100 events allowed per push'),
@@ -306,61 +339,69 @@ export const SyncPushResponseSchema = z.object({
 export type SyncPushResponse = z.infer<typeof SyncPushResponseSchema>;
 
 // GET /sync/pull schemas (docs/SYNC.md)
-export const SyncProductChangeDataSchema = z.preprocess((val) => {
-  if (val && typeof val === 'object') {
-    const obj = val as Record<string, unknown>;
-    return {
-      id: obj.id,
-      brandName: obj.brandName ?? obj.brand_name ?? obj.name,
-      genericName: obj.genericName ?? obj.generic_name ?? '',
-      strength: obj.strength ?? '',
-      form: obj.form ?? '',
-      manufacturer: obj.manufacturer ?? '',
-      barcode: obj.barcode !== undefined ? obj.barcode : null,
-      taxCategoryId: obj.taxCategoryId ?? obj.tax_category_id,
-      mrpPaisa:
-        obj.mrpPaisa !== undefined
-          ? Number(obj.mrpPaisa)
-          : obj.mrp_paisa !== undefined
-          ? Number(obj.mrp_paisa)
-          : undefined,
-      isControlled:
-        obj.isControlled !== undefined
-          ? Boolean(obj.isControlled)
-          : obj.is_controlled !== undefined
-          ? Boolean(obj.is_controlled)
-          : false,
-      isActive:
-        obj.isActive !== undefined
-          ? Boolean(obj.isActive)
-          : obj.is_active !== undefined
-          ? Boolean(obj.is_active)
-          : true,
-      createdAt: obj.createdAt ?? obj.created_at,
-      updatedAt: obj.updatedAt ?? obj.updated_at,
-    };
-  }
-  return val;
-}, z.object({
-  id: z.string().min(1),
-  brandName: z.string().min(1),
-  genericName: z.string().optional().default(''),
-  strength: z.string().optional().default(''),
-  form: z.string().optional().default(''),
-  manufacturer: z.string().optional().default(''),
-  barcode: z.string().nullable().optional(),
-  taxCategoryId: z.string().optional(),
-  mrpPaisa: z.number().int().min(0),
-  isControlled: z.boolean().optional().default(false),
-  isActive: z.boolean().optional().default(true),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
-}));
+export const SyncProductChangeDataSchema = z.preprocess(
+  (val) => {
+    if (val && typeof val === 'object') {
+      const obj = val as Record<string, unknown>;
+      return {
+        id: obj.id,
+        brandName: obj.brandName ?? obj.brand_name ?? obj.name,
+        genericName: obj.genericName ?? obj.generic_name ?? '',
+        strength: obj.strength ?? '',
+        form: obj.form ?? '',
+        manufacturer: obj.manufacturer ?? '',
+        barcode: obj.barcode !== undefined ? obj.barcode : null,
+        taxCategoryId: obj.taxCategoryId ?? obj.tax_category_id,
+        mrpPaisa:
+          obj.mrpPaisa !== undefined
+            ? Number(obj.mrpPaisa)
+            : obj.mrp_paisa !== undefined
+              ? Number(obj.mrp_paisa)
+              : undefined,
+        isControlled:
+          obj.isControlled !== undefined
+            ? Boolean(obj.isControlled)
+            : obj.is_controlled !== undefined
+              ? Boolean(obj.is_controlled)
+              : false,
+        isActive:
+          obj.isActive !== undefined
+            ? Boolean(obj.isActive)
+            : obj.is_active !== undefined
+              ? Boolean(obj.is_active)
+              : true,
+        createdAt: obj.createdAt ?? obj.created_at,
+        updatedAt: obj.updatedAt ?? obj.updated_at,
+      };
+    }
+    return val;
+  },
+  z.object({
+    id: z.string().min(1),
+    brandName: z.string().min(1),
+    genericName: z.string().optional().default(''),
+    strength: z.string().optional().default(''),
+    form: z.string().optional().default(''),
+    manufacturer: z.string().optional().default(''),
+    barcode: z.string().nullable().optional(),
+    taxCategoryId: z.string().optional(),
+    mrpPaisa: z.number().int().min(0),
+    isControlled: z.boolean().optional().default(false),
+    isActive: z.boolean().optional().default(true),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+  })
+);
 export type SyncProductChangeData = z.infer<typeof SyncProductChangeDataSchema>;
 
 export const SyncPullQuerySchema = z.object({
   cursor: z.coerce.number().int().min(0, 'Cursor must be >= 0').default(0),
-  limit: z.coerce.number().int().min(1, 'Limit must be >= 1').max(500, 'Limit cannot exceed 500').default(200),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1, 'Limit must be >= 1')
+    .max(500, 'Limit cannot exceed 500')
+    .default(200),
 });
 export type SyncPullQuery = z.infer<typeof SyncPullQuerySchema>;
 

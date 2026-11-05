@@ -11,10 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('pos_auth_token');
   const headers = new Headers(options.headers || {});
 

@@ -53,17 +53,25 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
     // Setup a branch
     testBranchId = generateUuidV7();
     const now = new Date().toISOString();
-    rawDb.prepare(`
+    rawDb
+      .prepare(
+        `
       INSERT INTO branches (id, name, created_at, updated_at)
       VALUES (?, 'Main City Branch', ?, ?)
-    `).run(testBranchId, now, now);
+    `
+      )
+      .run(testBranchId, now, now);
 
     // Setup an owner user
     testUserId = generateUuidV7();
-    rawDb.prepare(`
+    rawDb
+      .prepare(
+        `
       INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
       VALUES (?, 'Dr. Pharmacist', 'pharmacist', 'hash', 1, ?, ?)
-    `).run(testUserId, now, now);
+    `
+      )
+      .run(testUserId, now, now);
 
     // Fetch seeded supplier
     const supplierRow = rawDb.prepare('SELECT id FROM suppliers LIMIT 1').get() as { id: string };
@@ -192,15 +200,15 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
       // Assert that batches are merged: exactly ONE batch entity exists in batches table
       expect(batchId2).toBe(batchId1);
 
-      const batchCount = rawDb.prepare(
-        'SELECT COUNT(*) as count FROM batches WHERE product_id = ? AND batch_no = ?'
-      ).get(testProduct1Id, batchNumber) as { count: number };
+      const batchCount = rawDb
+        .prepare('SELECT COUNT(*) as count FROM batches WHERE product_id = ? AND batch_no = ?')
+        .get(testProduct1Id, batchNumber) as { count: number };
       expect(batchCount.count).toBe(1);
 
       // Assert that 2 separate signed stock movements exist (Rule 4)
-      const movements = rawDb.prepare(
-        'SELECT * FROM stock_movements WHERE batch_id = ? ORDER BY created_at ASC'
-      ).all(batchId1) as { type: string; quantity_signed: number }[];
+      const movements = rawDb
+        .prepare('SELECT * FROM stock_movements WHERE batch_id = ? ORDER BY created_at ASC')
+        .all(batchId1) as { type: string; quantity_signed: number }[];
 
       expect(movements).toHaveLength(2);
       expect(movements[0]?.type).toBe('purchase');
@@ -240,9 +248,9 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
       };
       expect(outboxAfter.count).toBe(outboxBefore.count + 1);
 
-      const latestEvent = rawDb.prepare(
-        'SELECT * FROM outbox ORDER BY created_at DESC LIMIT 1'
-      ).get() as { event_type: string; payload: string };
+      const latestEvent = rawDb
+        .prepare('SELECT * FROM outbox ORDER BY created_at DESC LIMIT 1')
+        .get() as { event_type: string; payload: string };
       expect(latestEvent.event_type).toBe('purchase.received');
       expect(latestEvent.payload).toContain('INV-OUTBOX-1');
     });
@@ -281,7 +289,9 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
       expect(adj1.newBalance).toBe(46); // 50 - 4 = 46
 
       // Verify movement record
-      const moveRow1 = rawDb.prepare('SELECT * FROM stock_movements WHERE id = ?').get(adj1.movementId) as {
+      const moveRow1 = rawDb
+        .prepare('SELECT * FROM stock_movements WHERE id = ?')
+        .get(adj1.movementId) as {
         type: string;
         quantity_signed: number;
         reason: string;
@@ -311,9 +321,11 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
       expect(adj3.newBalance).toBe(50); // 44 + 6 = 50
 
       // Verify outbox rows for adjustments
-      const adjEvents = rawDb.prepare(
-        "SELECT COUNT(*) as count FROM outbox WHERE event_type = 'stock_adjustment.created'"
-      ).get() as { count: number };
+      const adjEvents = rawDb
+        .prepare(
+          "SELECT COUNT(*) as count FROM outbox WHERE event_type = 'stock_adjustment.created'"
+        )
+        .get() as { count: number };
       expect(adjEvents.count).toBe(3);
     });
 
@@ -385,9 +397,11 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
         reason: 'Broken bottle on shelf',
       });
 
-      const outboxRow = rawDb.prepare(
-        "SELECT type, event_type FROM outbox WHERE type = 'stock_adjustment.created' ORDER BY created_at DESC LIMIT 1"
-      ).get() as { type: string; event_type: string };
+      const outboxRow = rawDb
+        .prepare(
+          "SELECT type, event_type FROM outbox WHERE type = 'stock_adjustment.created' ORDER BY created_at DESC LIMIT 1"
+        )
+        .get() as { type: string; event_type: string };
 
       expect(outboxRow).toBeDefined();
       expect(outboxRow.type).toBe('stock_adjustment.created');
@@ -430,8 +444,22 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
   describe('4. Totals Match Verification', () => {
     it('purchase document total_cost_paisa exactly matches sum of line quantities * cost', () => {
       // 3 lines with different quantities and prices
-      const line1 = { productId: testProduct1Id, batchNo: 'BN-TOT-1', expiryDate: '2027-01-01', quantity: 12, costPaisa: 3500, mrpPaisa: 5000 };
-      const line2 = { productId: testProduct2Id, batchNo: 'BN-TOT-2', expiryDate: '2027-02-01', quantity: 25, costPaisa: 4250, mrpPaisa: 6000 };
+      const line1 = {
+        productId: testProduct1Id,
+        batchNo: 'BN-TOT-1',
+        expiryDate: '2027-01-01',
+        quantity: 12,
+        costPaisa: 3500,
+        mrpPaisa: 5000,
+      };
+      const line2 = {
+        productId: testProduct2Id,
+        batchNo: 'BN-TOT-2',
+        expiryDate: '2027-02-01',
+        quantity: 25,
+        costPaisa: 4250,
+        mrpPaisa: 6000,
+      };
 
       const expectedTotal = 12 * 3500 + 25 * 4250; // 42,000 + 106,250 = 148,250 paisa (Rs. 1,482.50)
 
@@ -445,7 +473,9 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
       expect(grn.totalCostPaisa).toBe(expectedTotal);
 
       // Verify in database
-      const dbRow = rawDb.prepare('SELECT total_cost_paisa FROM purchases WHERE id = ?').get(grn.id) as {
+      const dbRow = rawDb
+        .prepare('SELECT total_cost_paisa FROM purchases WHERE id = ?')
+        .get(grn.id) as {
         total_cost_paisa: number;
       };
       expect(dbRow.total_cost_paisa).toBe(expectedTotal);
@@ -458,8 +488,22 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
         supplierInvoiceNo: 'INV-PROD-MATCH-1',
         invoiceDate: '2026-10-26',
         lines: [
-          { productId: testProduct1Id, batchNo: 'BN-PA-1', expiryDate: '2027-01-01', quantity: 30, costPaisa: 1000, mrpPaisa: 2000 },
-          { productId: testProduct1Id, batchNo: 'BN-PB-2', expiryDate: '2027-05-01', quantity: 45, costPaisa: 1050, mrpPaisa: 2000 },
+          {
+            productId: testProduct1Id,
+            batchNo: 'BN-PA-1',
+            expiryDate: '2027-01-01',
+            quantity: 30,
+            costPaisa: 1000,
+            mrpPaisa: 2000,
+          },
+          {
+            productId: testProduct1Id,
+            batchNo: 'BN-PB-2',
+            expiryDate: '2027-05-01',
+            quantity: 45,
+            costPaisa: 1050,
+            mrpPaisa: 2000,
+          },
         ],
       });
 

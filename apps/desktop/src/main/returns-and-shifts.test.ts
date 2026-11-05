@@ -3,7 +3,13 @@ import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
 import { MIGRATIONS, setDatabaseForTesting } from './db';
 import { finalizeSale } from './finalizeSale';
 import { processReturn, getReturnableInvoiceLines } from './returns';
-import { openShift, closeShift, getCurrentShift, getShiftHistory, roleGuardedGetShiftHistory } from './shifts';
+import {
+  openShift,
+  closeShift,
+  getCurrentShift,
+  getShiftHistory,
+  roleGuardedGetShiftHistory,
+} from './shifts';
 import { setSessionForTesting } from './auth';
 import { generateUuidV7 } from '@pos/shared';
 
@@ -70,13 +76,15 @@ describe('Returns & Shift Closing (Phase 2)', () => {
     ).run(taxCatId, 'Pharma 10%', 1000, 0, now, now);
 
     // Product with MRP 10000 paisa (Rs. 100)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       productId,
       'Panadol 500mg',
       'Paracetamol',
@@ -93,26 +101,34 @@ describe('Returns & Shift Closing (Phase 2)', () => {
     );
 
     // Batch 1: 50 units stock
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchId1, productId, 'B-001', '2028-12-31', 6000, 10000, now, now);
+    `
+    ).run(batchId1, productId, 'B-001', '2028-12-31', 6000, 10000, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (id, product_id, branch_id, batch_id, type, quantity_signed, created_at, updated_at)
       VALUES (?, ?, ?, ?, 'purchase', 50, ?, ?)
-    `).run(generateUuidV7(), productId, branchId, batchId1, now, now);
+    `
+    ).run(generateUuidV7(), productId, branchId, batchId1, now, now);
 
     // Batch 2: 20 units stock
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchId2, productId, 'B-002', '2029-01-31', 6500, 10000, now, now);
+    `
+    ).run(batchId2, productId, 'B-002', '2029-01-31', 6500, 10000, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (id, product_id, branch_id, batch_id, type, quantity_signed, created_at, updated_at)
       VALUES (?, ?, ?, ?, 'purchase', 20, ?, ?)
-    `).run(generateUuidV7(), productId, branchId, batchId2, now, now);
+    `
+    ).run(generateUuidV7(), productId, branchId, batchId2, now, now);
   });
 
   describe('1. Returnable Balances & Over-return Prevention', () => {
@@ -418,10 +434,7 @@ describe('Returns & Shift Closing (Phase 2)', () => {
 
       // Cannot open a second shift on the same counter while one is open
       expect(() => {
-        openShift(
-          { openingCashPaisa: 1000 },
-          { counterId, cashierUserId, branchId, rawDb: db }
-        );
+        openShift({ openingCashPaisa: 1000 }, { counterId, cashierUserId, branchId, rawDb: db });
       }).toThrow(/already open/);
 
       // 2. Perform Cash Sale: 2 units = 22000 paisa cash
@@ -537,10 +550,7 @@ describe('Returns & Shift Closing (Phase 2)', () => {
         { db, counterId, cashierUserId, branchId }
       );
 
-      closeShift(
-        { shiftId: shift.id, countedCashPaisa: 4000 },
-        { cashierUserId, rawDb: db }
-      );
+      closeShift({ shiftId: shift.id, countedCashPaisa: 4000 }, { cashierUserId, rawDb: db });
 
       const outboxRows = db
         .prepare(`SELECT event_type FROM outbox ORDER BY created_at ASC`)
@@ -558,10 +568,7 @@ describe('Returns & Shift Closing (Phase 2)', () => {
       const otherBranchId = generateUuidV7();
 
       // Open shift on counterId
-      openShift(
-        { openingCashPaisa: 5000 },
-        { counterId, cashierUserId, branchId, rawDb: db }
-      );
+      openShift({ openingCashPaisa: 5000 }, { counterId, cashierUserId, branchId, rawDb: db });
 
       // Set cashier session bound to counterId / branchId
       setSessionForTesting({

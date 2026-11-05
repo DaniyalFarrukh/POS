@@ -78,15 +78,11 @@ describe('Device Registration & Authentication (Phase 3)', () => {
 
     it('rejects tokens missing required tenancy claims', () => {
       const secret = process.env.JWT_SECRET || 'dev_pos_jwt_secret_change_in_production';
-      const incompleteToken = jwt.sign(
-        { pharmacyId: generateUuidV7(), typ: 'device' },
-        secret,
-        { audience: 'pos:device' }
-      );
+      const incompleteToken = jwt.sign({ pharmacyId: generateUuidV7(), typ: 'device' }, secret, {
+        audience: 'pos:device',
+      });
 
-      expect(() => verifyDeviceToken(incompleteToken)).toThrow(
-        /missing required tenancy claims/i
-      );
+      expect(() => verifyDeviceToken(incompleteToken)).toThrow(/missing required tenancy claims/i);
     });
   });
 
@@ -135,7 +131,9 @@ describe('Device Registration & Authentication (Phase 3)', () => {
                 if (table === devices) {
                   // Find matching device
                   // Check deviceId and pharmacyId
-                  const conditions = (condition as { operands?: Array<{ right?: { value?: string } }> })?.operands;
+                  const conditions = (
+                    condition as { operands?: Array<{ right?: { value?: string } }> }
+                  )?.operands;
                   const devId = conditions?.[0]?.right?.value;
                   const pharmId = conditions?.[1]?.right?.value;
                   const found = devList.find(
@@ -157,7 +155,8 @@ describe('Device Registration & Authentication (Phase 3)', () => {
                     if (table === deviceRegistrationCodes) {
                       const unusedIndex = codes.findIndex((c) => c.usedAt === null);
                       if (unusedIndex !== -1) {
-                        codes[unusedIndex]!.usedAt = (values.usedAt as string) || new Date().toISOString();
+                        codes[unusedIndex]!.usedAt =
+                          (values.usedAt as string) || new Date().toISOString();
                         return [{ id: codes[unusedIndex]!.id }];
                       }
                       return [];
@@ -476,7 +475,6 @@ describe('Device Registration & Authentication (Phase 3)', () => {
     });
 
     it('verifies live integration when PostgreSQL container is available', async () => {
-
       // 1. Seed dev environment in isolated schema
       const seedResult = await seedDevEnvironment(ctx.db);
       expect(seedResult.pharmacy.id).toBeDefined();

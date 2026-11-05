@@ -134,7 +134,7 @@ export const PinPad: React.FC<PinPadProps> = ({
               handleClear();
             }
           }}
-          placeholder={placeholder || 'Enter PIN (4-8 digits)'}
+          placeholder={placeholder || 'Enter PIN (6-8 digits)'}
           style={{
             width: '100%',
             height: '46px',

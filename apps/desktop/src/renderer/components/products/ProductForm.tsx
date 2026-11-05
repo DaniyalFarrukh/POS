@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type {
-  CreateProductInput,
-  ProductWithTax,
-  TaxCategory,
-} from '@pos/shared';
+import type { CreateProductInput, ProductWithTax, TaxCategory } from '@pos/shared';
 import { CreateProductInputSchema, formatPKR, convertRupeesToPaisa } from '@pos/shared';
 
 interface ProductFormProps {
@@ -219,9 +215,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px',
+              marginBottom: '16px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Brand Name *
               </label>
               <input
@@ -242,7 +253,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Generic Name / Formula *
               </label>
               <input
@@ -263,9 +282,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: '16px',
+              marginBottom: '16px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Strength *
               </label>
               <input
@@ -286,7 +320,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Dosage Form *
               </label>
               <select
@@ -311,7 +353,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Manufacturer / Pharma *
               </label>
               <input
@@ -332,9 +382,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 1fr',
+              gap: '16px',
+              marginBottom: '16px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Barcode (EAN-13 / UPC / Custom)
               </label>
               <input
@@ -355,7 +420,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Tax Category *
               </label>
               <select
@@ -390,13 +463,36 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               marginBottom: '18px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+              }}
+            >
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#1e293b',
+                    marginBottom: '4px',
+                  }}
+                >
                   Maximum Retail Price (Rs.) *
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '12px', top: '9px', fontSize: '13px', color: '#64748b' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '9px',
+                      fontSize: '13px',
+                      color: '#64748b',
+                    }}
+                  >
                     Rs.
                   </span>
                   <input
@@ -420,8 +516,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </div>
               </div>
 
-              <div style={{ flex: 1, padding: '8px 12px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Rule 1 Engine Storage:</div>
+              <div
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                  Rule 1 Engine Storage:
+                </div>
                 <div style={{ fontSize: '15px', fontWeight: 700, color: '#2563eb' }}>
                   {calculatedPaisa.toLocaleString()} paisa
                 </div>
@@ -434,7 +540,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
           {/* Controlled Drug & Status Toggles */}
           <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: '#334155' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#334155',
+              }}
+            >
               <input
                 type="checkbox"
                 checked={isControlled}
@@ -442,11 +558,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 style={{ width: '16px', height: '16px', accentColor: '#dc2626' }}
               />
               <span>
-                <strong style={{ color: isControlled ? '#dc2626' : 'inherit' }}>Controlled Drug / Narcotic</strong> (Requires doctor prescription & audit trail)
+                <strong style={{ color: isControlled ? '#dc2626' : 'inherit' }}>
+                  Controlled Drug / Narcotic
+                </strong>{' '}
+                (Requires doctor prescription & audit trail)
               </span>
             </label>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: '#334155' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#334155',
+              }}
+            >
               <input
                 type="checkbox"
                 checked={isActive}
@@ -458,7 +587,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              borderTop: '1px solid #e2e8f0',
+              paddingTop: '16px',
+            }}
+          >
             <button
               type="button"
               onClick={onClose}

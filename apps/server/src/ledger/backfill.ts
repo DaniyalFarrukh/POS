@@ -116,23 +116,12 @@ export async function backfillLedgerEntries(
       .from(stockMovements)
       .innerJoin(
         batches,
-        and(
-          eq(stockMovements.batchId, batches.id),
-          eq(batches.pharmacyId, pharmacyId)
-        )
+        and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
       )
-      .where(
-        and(
-          eq(stockMovements.pharmacyId, pharmacyId),
-          eq(stockMovements.type, 'purchase')
-        )
-      )
+      .where(and(eq(stockMovements.pharmacyId, pharmacyId), eq(stockMovements.type, 'purchase')))
       .orderBy(asc(stockMovements.createdAt), asc(stockMovements.id));
 
-    const purchasesByRef = new Map<
-      string,
-      Array<(typeof purchaseMovements)[number]>
-    >();
+    const purchasesByRef = new Map<string, Array<(typeof purchaseMovements)[number]>>();
     for (const pm of purchaseMovements) {
       const refId = pm.referenceId ?? pm.movementId;
       if (postedKeySet.has(`purchase:${refId}`)) {
@@ -213,10 +202,7 @@ export async function backfillLedgerEntries(
       .from(invoices)
       .innerJoin(
         counters,
-        and(
-          eq(invoices.counterId, counters.id),
-          eq(counters.pharmacyId, pharmacyId)
-        )
+        and(eq(invoices.counterId, counters.id), eq(counters.pharmacyId, pharmacyId))
       )
       .where(eq(invoices.pharmacyId, pharmacyId))
       .orderBy(asc(invoices.createdAt), asc(invoices.id));
@@ -230,23 +216,13 @@ export async function backfillLedgerEntries(
       const lines = await db
         .select()
         .from(invoiceLines)
-        .where(
-          and(
-            eq(invoiceLines.pharmacyId, pharmacyId),
-            eq(invoiceLines.invoiceId, inv.id)
-          )
-        )
+        .where(and(eq(invoiceLines.pharmacyId, pharmacyId), eq(invoiceLines.invoiceId, inv.id)))
         .orderBy(asc(invoiceLines.id));
 
       const invPayments = await db
         .select()
         .from(payments)
-        .where(
-          and(
-            eq(payments.pharmacyId, pharmacyId),
-            eq(payments.invoiceId, inv.id)
-          )
-        )
+        .where(and(eq(payments.pharmacyId, pharmacyId), eq(payments.invoiceId, inv.id)))
         .orderBy(asc(payments.id));
 
       summary.invoices.count += 1;
@@ -310,10 +286,7 @@ export async function backfillLedgerEntries(
         .select()
         .from(creditNoteLines)
         .where(
-          and(
-            eq(creditNoteLines.pharmacyId, pharmacyId),
-            eq(creditNoteLines.creditNoteId, cn.id)
-          )
+          and(eq(creditNoteLines.pharmacyId, pharmacyId), eq(creditNoteLines.creditNoteId, cn.id))
         )
         .orderBy(asc(creditNoteLines.id));
 
@@ -373,17 +346,9 @@ export async function backfillLedgerEntries(
       .from(stockMovements)
       .innerJoin(
         batches,
-        and(
-          eq(stockMovements.batchId, batches.id),
-          eq(batches.pharmacyId, pharmacyId)
-        )
+        and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
       )
-      .where(
-        and(
-          eq(stockMovements.pharmacyId, pharmacyId),
-          eq(stockMovements.type, 'adjustment')
-        )
-      )
+      .where(and(eq(stockMovements.pharmacyId, pharmacyId), eq(stockMovements.type, 'adjustment')))
       .orderBy(asc(stockMovements.createdAt), asc(stockMovements.id));
 
     for (const adj of adjustmentRows) {

@@ -130,10 +130,7 @@ export interface UserTokenPayload {
 /**
  * Signs a user session JWT for dashboard/web clients.
  */
-export function signUserToken(
-  payload: UserTokenPayload,
-  options?: SignDeviceTokenOptions
-): string {
+export function signUserToken(payload: UserTokenPayload, options?: SignDeviceTokenOptions): string {
   const secret = options?.secret || getJwtSecret();
   const expiresIn = options?.expiresIn ?? '7d';
 
@@ -194,4 +191,3 @@ export function verifyUserToken(
     name,
   };
 }
-

@@ -45,7 +45,8 @@ export function getPool(connectionString?: string): pg.Pool {
 
 export function getDb(poolOrUrl?: pg.Pool | string): NodePgDatabase<typeof schema> {
   if (poolOrUrl) {
-    const pool = typeof poolOrUrl === 'string' ? new Pool({ connectionString: poolOrUrl }) : poolOrUrl;
+    const pool =
+      typeof poolOrUrl === 'string' ? new Pool({ connectionString: poolOrUrl }) : poolOrUrl;
     return drizzle(pool, { schema });
   }
 

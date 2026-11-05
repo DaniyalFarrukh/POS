@@ -39,22 +39,13 @@ describe('pushPending (Phase 3.2)', () => {
     status = 'pending'
   ) {
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-    `).run(
-      id,
-      id,
-      seq,
-      type,
-      type,
-      id,
-      JSON.stringify(payload),
-      now,
-      status,
-      now
-    );
+    `
+    ).run(id, id, seq, type, type, id, JSON.stringify(payload), now, status, now);
   }
 
   it('all accepted: marks all events acked and returns matching summary', async () => {
@@ -145,31 +136,41 @@ describe('pushPending (Phase 3.2)', () => {
 
     expect(summary).toEqual({
       sent: 4,
-      acked: 2,       // accepted + duplicate both become 'acked'
-      retryLater: 1,  // stays pending with attempts + 1
-      rejected: 1,    // moves to 'exception'
+      acked: 2, // accepted + duplicate both become 'acked'
+      retryLater: 1, // stays pending with attempts + 1
+      rejected: 1, // moves to 'exception'
       failedRequest: false,
       authError: false,
     });
 
     // Check outbox records
-    const rowAccepted = db.prepare('SELECT status, attempts FROM outbox WHERE id = ?').get(idAccepted) as { status: string; attempts: number };
+    const rowAccepted = db
+      .prepare('SELECT status, attempts FROM outbox WHERE id = ?')
+      .get(idAccepted) as { status: string; attempts: number };
     expect(rowAccepted.status).toBe('acked');
 
-    const rowDuplicate = db.prepare('SELECT status, attempts FROM outbox WHERE id = ?').get(idDuplicate) as { status: string; attempts: number };
+    const rowDuplicate = db
+      .prepare('SELECT status, attempts FROM outbox WHERE id = ?')
+      .get(idDuplicate) as { status: string; attempts: number };
     expect(rowDuplicate.status).toBe('acked');
 
-    const rowRetry = db.prepare('SELECT status, attempts, last_error FROM outbox WHERE id = ?').get(idRetry) as { status: string; attempts: number; last_error: string };
+    const rowRetry = db
+      .prepare('SELECT status, attempts, last_error FROM outbox WHERE id = ?')
+      .get(idRetry) as { status: string; attempts: number; last_error: string };
     expect(rowRetry.status).toBe('pending');
     expect(rowRetry.attempts).toBe(1);
     expect(rowRetry.last_error).toMatch(/Product missing on server/);
 
-    const rowRejected = db.prepare('SELECT status, last_error FROM outbox WHERE id = ?').get(idRejected) as { status: string; last_error: string };
+    const rowRejected = db
+      .prepare('SELECT status, last_error FROM outbox WHERE id = ?')
+      .get(idRejected) as { status: string; last_error: string };
     expect(rowRejected.status).toBe('exception');
     expect(rowRejected.last_error).toMatch(/TOTALS_MISMATCH/);
 
     // Check sync_exceptions table has the rejected event
-    const exceptions = db.prepare('SELECT event_id, code, message, status FROM sync_exceptions WHERE event_id = ?').all(idRejected) as Array<{
+    const exceptions = db
+      .prepare('SELECT event_id, code, message, status FROM sync_exceptions WHERE event_id = ?')
+      .all(idRejected) as Array<{
       event_id: string;
       code: string;
       message: string;
@@ -306,7 +307,9 @@ describe('pushPending (Phase 3.2)', () => {
     let sentSeqs: number[] = [];
 
     const orderTrackingFetch = async (_url: string | URL | Request, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as { events: Array<{ eventId: string; deviceSeq: number }> };
+      const body = JSON.parse(String(init?.body)) as {
+        events: Array<{ eventId: string; deviceSeq: number }>;
+      };
       sentEventIds = body.events.map((e) => e.eventId);
       sentSeqs = body.events.map((e) => e.deviceSeq);
 
@@ -336,7 +339,9 @@ describe('pushPending (Phase 3.2)', () => {
     insertEvent(id2, 2, 'invoice.created', { item: 2 });
     insertEvent(id3, 3, 'invoice.created', { item: 3 });
 
-    const totalBefore = (db.prepare('SELECT COUNT(*) as count FROM outbox').get() as { count: number }).count;
+    const totalBefore = (
+      db.prepare('SELECT COUNT(*) as count FROM outbox').get() as { count: number }
+    ).count;
     expect(totalBefore).toBe(3);
 
     const partialFetch = async () => {
@@ -357,7 +362,9 @@ describe('pushPending (Phase 3.2)', () => {
       { serverUrl: 'http://localhost:3001', token: 'token' }
     );
 
-    const totalAfter = (db.prepare('SELECT COUNT(*) as count FROM outbox').get() as { count: number }).count;
+    const totalAfter = (
+      db.prepare('SELECT COUNT(*) as count FROM outbox').get() as { count: number }
+    ).count;
     // Exactly 3 rows remain in outbox: 1 acked, 1 pending, 1 exception. No rows lost or duplicated!
     expect(totalAfter).toBe(3);
 

@@ -418,4 +418,3 @@ export const TrashIcon: React.FC<IconProps> = ({ size = 16, color = 'currentColo
     <line x1="14" y1="11" x2="14" y2="17" />
   </svg>
 );
-

@@ -36,8 +36,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       setError('Please select a user account.');
       return;
     }
-    if (pin.length < 4) {
-      setError('Please enter your full 4-8 digit PIN.');
+    if (selectedUser.role === 'owner' && pin.length !== 8) {
+      setError('Owner PIN must be exactly 8 digits.');
+      return;
+    }
+    if (selectedUser.role !== 'owner' && (pin.length < 6 || pin.length > 8)) {
+      setError('Staff PIN must be between 6 and 8 digits.');
       return;
     }
 
@@ -51,8 +55,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       });
       onLoginSuccess(session);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(msg.includes('Invalid PIN') ? 'Incorrect PIN. Please try again.' : msg);
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      let userMsg = rawMsg;
+      if (rawMsg.includes('Invalid PIN')) {
+        userMsg = 'Incorrect PIN. Please try again.';
+      } else if (
+        rawMsg.includes('invalid_format') ||
+        rawMsg.includes('regex') ||
+        rawMsg.includes('PIN must be')
+      ) {
+        userMsg =
+          selectedUser.role === 'owner'
+            ? 'Owner PIN must be exactly 8 numeric digits.'
+            : 'PIN must be between 6 and 8 numeric digits.';
+      }
+      setError(userMsg);
       setPin('');
     } finally {
       setLoading(false);
@@ -89,7 +106,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           maxWidth: '860px',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
-          boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(226, 232, 240, 0.8)',
+          boxShadow:
+            '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(226, 232, 240, 0.8)',
           border: '1px solid #e2e8f0',
           overflow: 'hidden',
         }}
@@ -150,10 +168,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '28px', padding: '28px 32px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1.2fr 1fr',
+            gap: '28px',
+            padding: '28px 32px',
+          }}
+        >
           {/* User Selection List */}
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#64748b',
+                marginBottom: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
               Select Account
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -178,7 +212,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                       borderRadius: '12px',
                       border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
                       backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-                      boxShadow: isSelected ? '0 2px 8px rgba(37, 99, 235, 0.1)' : 'var(--shadow-sm)',
+                      boxShadow: isSelected
+                        ? '0 2px 8px rgba(37, 99, 235, 0.1)'
+                        : 'var(--shadow-sm)',
                       cursor: 'pointer',
                     }}
                   >
@@ -188,7 +224,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                           width: '38px',
                           height: '38px',
                           borderRadius: '50%',
-                          background: isSelected ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#f1f5f9',
+                          background: isSelected
+                            ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
+                            : '#f1f5f9',
                           color: isSelected ? '#ffffff' : '#475569',
                           display: 'flex',
                           alignItems: 'center',
@@ -244,11 +282,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           >
             {selectedUser ? (
               <>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b', marginBottom: '2px' }}>
+                <div
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 800,
+                    color: '#1e293b',
+                    marginBottom: '2px',
+                  }}
+                >
                   {selectedUser.name}
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: 500 }}>
-                  Enter PIN to unlock terminal
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: '#64748b',
+                    marginBottom: '8px',
+                    fontWeight: 500,
+                  }}
+                >
+                  {selectedUser.role === 'owner'
+                    ? 'Enter 8-digit Owner PIN to unlock terminal'
+                    : 'Enter 6-8 digit PIN to unlock terminal'}
                 </div>
 
                 <PinPad
@@ -256,10 +310,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                   onChange={setPin}
                   onSubmit={handleLogin}
                   disabled={loading}
+                  placeholder={
+                    selectedUser.role === 'owner'
+                      ? 'Enter Owner PIN (8 digits)'
+                      : 'Enter PIN (6-8 digits)'
+                  }
                 />
               </>
             ) : (
-              <div style={{ color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>Select an account to log in</div>
+              <div style={{ color: '#94a3b8', fontSize: '14px', fontWeight: 500 }}>
+                Select an account to log in
+              </div>
             )}
           </div>
         </div>

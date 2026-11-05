@@ -94,7 +94,9 @@ export const SupplierReturnsPage: React.FC = () => {
   // Load auxiliary data
   const loadAuxData = useCallback(async () => {
     try {
-      const bRes = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>('/api/branches');
+      const bRes = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>(
+        '/api/branches'
+      );
       const bList = bRes.data || bRes.items || [];
       setBranches(bList);
       if (bList.length > 0 && bList[0]) {
@@ -305,10 +307,13 @@ export const SupplierReturnsPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <RotateCcw className="w-7 h-7 text-blue-600" />
-            <h1 className="text-2xl font-bold text-slate-900">Supplier Returns &amp; Debit Notes</h1>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Supplier Returns &amp; Debit Notes
+            </h1>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Return damaged or expired stock to distributors, deduct inventory, and issue debit notes to reduce accounts payable.
+            Return damaged or expired stock to distributors, deduct inventory, and issue debit notes
+            to reduce accounts payable.
           </p>
         </div>
 
@@ -398,7 +403,8 @@ export const SupplierReturnsPage: React.FC = () => {
               ) : filteredReturns.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-slate-500">
-                    No supplier returns recorded. Click &quot;New Supplier Return&quot; to initiate a return.
+                    No supplier returns recorded. Click &quot;New Supplier Return&quot; to initiate
+                    a return.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -508,9 +514,7 @@ export const SupplierReturnsPage: React.FC = () => {
               </Button>
             </div>
 
-            {formErrors.lines && (
-              <div className="text-rose-600 text-xs">{formErrors.lines}</div>
-            )}
+            {formErrors.lines && <div className="text-rose-600 text-xs">{formErrors.lines}</div>}
 
             <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
               {formLines.map((line, idx) => {
@@ -541,9 +545,7 @@ export const SupplierReturnsPage: React.FC = () => {
                           min="1"
                           max={line.availableOnHand}
                           value={line.quantity}
-                          onChange={(e) =>
-                            handleLineChange(idx, 'quantity', e.target.value)
-                          }
+                          onChange={(e) => handleLineChange(idx, 'quantity', e.target.value)}
                           className="text-xs text-right"
                           placeholder="Qty"
                         />
@@ -618,15 +620,21 @@ export const SupplierReturnsPage: React.FC = () => {
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-slate-500">Return Number:</span>
-                <span className="font-mono font-bold text-slate-900">{selectedReturn.returnNumber}</span>
+                <span className="font-mono font-bold text-slate-900">
+                  {selectedReturn.returnNumber}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Supplier:</span>
-                <span className="font-semibold text-slate-900">{selectedReturn.supplierName || selectedReturn.supplierId}</span>
+                <span className="font-semibold text-slate-900">
+                  {selectedReturn.supplierName || selectedReturn.supplierId}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Branch:</span>
-                <span className="text-slate-800">{selectedReturn.branchName || selectedReturn.branchId}</span>
+                <span className="text-slate-800">
+                  {selectedReturn.branchName || selectedReturn.branchId}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Return Date:</span>
@@ -661,8 +669,12 @@ export const SupplierReturnsPage: React.FC = () => {
                       <TableCell className="font-medium text-xs">
                         {line.product?.brandName || 'Product'}
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{line.batch?.batchNo || '—'}</TableCell>
-                      <TableCell className="text-right font-bold text-xs">{line.quantity}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {line.batch?.batchNo || '—'}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-xs">
+                        {line.quantity}
+                      </TableCell>
                       <TableCell className="text-right font-mono text-xs">
                         {formatPaisa(line.unitCostPaisa)}
                       </TableCell>
@@ -686,4 +698,3 @@ export const SupplierReturnsPage: React.FC = () => {
     </div>
   );
 };
-

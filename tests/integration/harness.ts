@@ -23,8 +23,14 @@ import { hashRegistrationCode } from '../../apps/server/src/auth/jwt';
 import { MIGRATIONS } from '../../apps/desktop/src/main/db';
 import { finalizeSale, type FinalizedInvoice } from '../../apps/desktop/src/main/finalizeSale';
 import { processReturn } from '../../apps/desktop/src/main/returns';
-import { registerDevice, type TokenStore } from '../../apps/desktop/src/main/sync/core/registration';
-import { createSyncWorker, type SyncWorker } from '../../apps/desktop/src/main/sync/core/syncWorker';
+import {
+  registerDevice,
+  type TokenStore,
+} from '../../apps/desktop/src/main/sync/core/registration';
+import {
+  createSyncWorker,
+  type SyncWorker,
+} from '../../apps/desktop/src/main/sync/core/syncWorker';
 import type { SyncStatus } from '../../apps/desktop/src/main/sync/core/types';
 import { createNetworkProxy, type TestNetworkProxy } from './proxy';
 
@@ -377,8 +383,11 @@ export async function createTestCounter(
 
   for (const m of MIGRATIONS) {
     m.up(db);
-    db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)')
-      .run(m.version, m.name, new Date().toISOString());
+    db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+      m.version,
+      m.name,
+      new Date().toISOString()
+    );
   }
 
   // Network controls via controllable proxy
@@ -405,7 +414,8 @@ export async function createTestCounter(
   };
 
   // Perform real device registration against server
-  const assignedCounterId = preferredCounterId || (name.includes('B') ? server.counterBId : server.counterAId);
+  const assignedCounterId =
+    preferredCounterId || (name.includes('B') ? server.counterBId : server.counterAId);
   const code = await server.createRegistrationCode(assignedCounterId);
 
   const regResult = await registerDevice(
@@ -611,12 +621,24 @@ export async function createTestCounter(
       const reason = input.reason || 'Inventory count adjustment';
 
       const tx = db.transaction(() => {
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO stock_movements (
             id, product_id, batch_id, branch_id, type, quantity_signed,
             reference_type, reference_id, reason, created_at, updated_at
           ) VALUES (?, ?, ?, ?, 'adjustment', ?, 'stock_adjustment', ?, ?, ?, ?)
-        `).run(movementId, input.productId, input.batchId, counter.branchId, input.quantitySigned, movementId, reason, now, now);
+        `
+        ).run(
+          movementId,
+          input.productId,
+          input.batchId,
+          counter.branchId,
+          input.quantitySigned,
+          movementId,
+          reason,
+          now,
+          now
+        );
 
         const payload = {
           movementId,
@@ -629,13 +651,15 @@ export async function createTestCounter(
           createdAt: now,
         };
 
-        db.prepare(`
+        db.prepare(
+          `
           INSERT INTO outbox (
             id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
           ) VALUES (
             ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'stock_adjustment.created', 'stock_adjustment.created', ?, ?, ?, 'pending', 0, ?
           )
-        `).run(eventId, eventId, movementId, JSON.stringify(payload), now, now);
+        `
+        ).run(eventId, eventId, movementId, JSON.stringify(payload), now, now);
       });
 
       tx();
@@ -711,7 +735,9 @@ export async function serverStockForBatch(server: TestServer, batchId: string): 
 
 export function localStockForBatch(counter: TestCounter, batchId: string): number {
   const row = counter.db
-    .prepare('SELECT COALESCE(SUM(quantity_signed), 0) as balance FROM stock_movements WHERE batch_id = ?')
+    .prepare(
+      'SELECT COALESCE(SUM(quantity_signed), 0) as balance FROM stock_movements WHERE batch_id = ?'
+    )
     .get(batchId) as { balance: number } | undefined;
   return Number(row?.balance ?? 0);
 }

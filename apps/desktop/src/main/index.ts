@@ -269,7 +269,8 @@ export function registerAllIpcHandlers(): void {
   registerSecureIpcHandler({
     channel: 'products:update',
     roles: ['pharmacist', 'owner'],
-    handler: async (_ctx, id: string, input: UpdateProductInput) => roleGuardedUpdateProduct(id, input),
+    handler: async (_ctx, id: string, input: UpdateProductInput) =>
+      roleGuardedUpdateProduct(id, input),
   });
 
   registerSecureIpcHandler({
@@ -493,10 +494,7 @@ export function registerAllIpcHandlers(): void {
     channel: 'backup:restore',
     roles: ['owner'],
     isDestructive: true,
-    handler: async (
-      _ctx,
-      payloadOrFilename: string | { filename: string; ownerPin: string }
-    ) => {
+    handler: async (_ctx, payloadOrFilename: string | { filename: string; ownerPin: string }) => {
       const filename =
         typeof payloadOrFilename === 'object' && payloadOrFilename !== null
           ? payloadOrFilename.filename

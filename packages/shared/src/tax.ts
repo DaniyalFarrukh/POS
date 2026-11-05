@@ -34,11 +34,7 @@ export { roundHalfUp };
  * Documented Rule: Round half up per line.
  * Supports tax-exempt items (returns 0 paisa).
  */
-export function computeLineTax(
-  netAmountPaisa: Paisa,
-  rateBp: number,
-  isTaxExempt = false
-): Paisa {
+export function computeLineTax(netAmountPaisa: Paisa, rateBp: number, isTaxExempt = false): Paisa {
   assertIntegerPaisa(netAmountPaisa, 'netAmountPaisa');
   if (typeof rateBp !== 'number' || isNaN(rateBp) || rateBp < 0) {
     throw new Error(`rateBp must be non-negative, received: ${rateBp}`);
@@ -114,8 +110,14 @@ export function computeInvoiceTotals(lines: InvoiceLineInput[]): InvoiceTotals {
     // 2. Compute discount (percent discount + flat discount)
     let percentDiscountPaisa = 0;
     if (line.discountBp !== undefined && line.discountBp !== null) {
-      if (typeof line.discountBp !== 'number' || !Number.isFinite(line.discountBp) || line.discountBp < 0) {
-        throw new RangeError(`line[${idx}].discountBp must be non-negative, received: ${line.discountBp}`);
+      if (
+        typeof line.discountBp !== 'number' ||
+        !Number.isFinite(line.discountBp) ||
+        line.discountBp < 0
+      ) {
+        throw new RangeError(
+          `line[${idx}].discountBp must be non-negative, received: ${line.discountBp}`
+        );
       }
       if (line.discountBp > 0) {
         percentDiscountPaisa = calculateDiscountAmount(grossAmountPaisa, line.discountBp);
@@ -126,7 +128,9 @@ export function computeInvoiceTotals(lines: InvoiceLineInput[]): InvoiceTotals {
     if (line.flatDiscountPaisa !== undefined && line.flatDiscountPaisa !== null) {
       assertIntegerPaisa(line.flatDiscountPaisa, `line[${idx}].flatDiscountPaisa`);
       if (line.flatDiscountPaisa < 0) {
-        throw new RangeError(`line[${idx}].flatDiscountPaisa must be non-negative, received: ${line.flatDiscountPaisa}`);
+        throw new RangeError(
+          `line[${idx}].flatDiscountPaisa must be non-negative, received: ${line.flatDiscountPaisa}`
+        );
       }
       flatDiscountPaisa = line.flatDiscountPaisa;
     }

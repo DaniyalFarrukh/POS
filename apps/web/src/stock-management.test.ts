@@ -93,4 +93,3 @@ describe('Stock Management & Reconciliation Utilities', () => {
     expect(validateDiscountInput(250.5).isValid).toBe(false); // floats not allowed
   });
 });
-

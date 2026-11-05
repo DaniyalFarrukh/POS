@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '../../packages/shared/src/index';
 import { buildApp } from '../../apps/server/src/app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../../apps/server/src/db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../../apps/server/src/db/test-helper';
 import {
   pharmacies,
   branches,
@@ -17,11 +14,7 @@ import {
   invoices,
   invoiceLines,
 } from '../../apps/server/src/db/schema';
-import {
-  getJwtSecret,
-  signDeviceToken,
-  signUserToken,
-} from '../../apps/server/src/auth/jwt';
+import { getJwtSecret, signDeviceToken, signUserToken } from '../../apps/server/src/auth/jwt';
 import { seedDevEnvironment } from '../../apps/server/src/scripts/seed-dev';
 import { initDatabase, closeDatabase, getDatabase } from '../../apps/desktop/src/main/db';
 import {
@@ -72,7 +65,8 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     const batchId = generateUuidV7();
 
     const ownerPinHash = await hashPin('12345678');
-    const pharmacyCode = name.replace(/[^A-Za-z0-9]/g, '_').toUpperCase() + '_' + pharmacyId.slice(0, 8);
+    const pharmacyCode =
+      name.replace(/[^A-Za-z0-9]/g, '_').toUpperCase() + '_' + pharmacyId.slice(0, 8);
 
     await ctx.db.insert(pharmacies).values({
       id: pharmacyId,
@@ -208,7 +202,14 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     ).run(tenant.counterId, tenant.branchId, 'Counter 1', 'C1', now, now);
     db.prepare(
       'INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)'
-    ).run(tenant.ownerId, 'Owner', 'owner', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', now, now);
+    ).run(
+      tenant.ownerId,
+      'Owner',
+      'owner',
+      '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+      now,
+      now
+    );
     db.prepare(
       'INSERT INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at) VALUES (?, ?, 0, 1, ?, ?)'
     ).run(tenant.taxCategoryId, 'Standard Exempt', now, now);
@@ -343,8 +344,14 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     // Set unique pharmacy codes
     const codeA = 'PHARM_A';
     const codeB = 'PHARM_B';
-    await ctx.client.query('UPDATE pharmacies SET code = $1 WHERE id = $2', [codeA, tenantA.pharmacyId]);
-    await ctx.client.query('UPDATE pharmacies SET code = $1 WHERE id = $2', [codeB, tenantB.pharmacyId]);
+    await ctx.client.query('UPDATE pharmacies SET code = $1 WHERE id = $2', [
+      codeA,
+      tenantA.pharmacyId,
+    ]);
+    await ctx.client.query('UPDATE pharmacies SET code = $1 WHERE id = $2', [
+      codeB,
+      tenantB.pharmacyId,
+    ]);
 
     const pinHashA = await hashPin('11112222');
     const pinHashB = await hashPin('22223333');
@@ -501,10 +508,7 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     expect(changeEntry.rows[0]?.data.pinHash).toBeDefined();
 
     // 3. pullAndApply stores pin_hash locally so offline login works
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
     await expect(login(createdUser.id, '778899', db)).resolves.toBeDefined();
 
     // 4. 5 failed login attempts lock account for 15 minutes on desktop
@@ -515,10 +519,7 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     await expect(login(createdUser.id, '778899', db)).rejects.toThrow(/locked/i);
 
     // 5. pullAndApply does NOT overwrite local failed_login_attempts or locked_until
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
     await expect(login(createdUser.id, '778899', db)).rejects.toThrow(/locked/i);
   });
 

@@ -87,7 +87,8 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
             Cloud Synchronization & Outbox Center
           </h1>
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-            Monitor real-time synchronization between this terminal, branch inventory, and the central cloud database.
+            Monitor real-time synchronization between this terminal, branch inventory, and the
+            central cloud database.
           </p>
         </div>
 
@@ -181,7 +182,9 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                 justifyContent: 'space-between',
               }}
             >
-              <span>{actionMsg.isError ? '⚠️' : '✅'} {actionMsg.text}</span>
+              <span>
+                {actionMsg.isError ? '⚠️' : '✅'} {actionMsg.text}
+              </span>
               <button
                 type="button"
                 onClick={() => setActionMsg(null)}
@@ -245,7 +248,9 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                   </span>
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                  Terminal ID: <strong>{session.counter.name}</strong> • Branch: <strong>{session.branch.name}</strong> • Last Online: <strong>{formatKarachiDateTime(status?.lastOnlineAt)}</strong>
+                  Terminal ID: <strong>{session.counter.name}</strong> • Branch:{' '}
+                  <strong>{session.branch.name}</strong> • Last Online:{' '}
+                  <strong>{formatKarachiDateTime(status?.lastOnlineAt)}</strong>
                 </div>
               </div>
             </div>
@@ -270,10 +275,17 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                 boxShadow: '0 2px 4px rgba(37,99,235,0.2)',
               }}
             >
-              <span style={{ display: 'inline-block', animation: syncing ? 'spin 1s linear infinite' : undefined }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  animation: syncing ? 'spin 1s linear infinite' : undefined,
+                }}
+              >
                 ↻
               </span>
-              <span>{syncing || status?.state === 'syncing' ? 'Synchronizing...' : 'Retry Now'}</span>
+              <span>
+                {syncing || status?.state === 'syncing' ? 'Synchronizing...' : 'Retry Now'}
+              </span>
             </button>
           </div>
 
@@ -294,14 +306,30 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                 padding: '20px',
               }}
             >
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Pending Events
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: (status?.pendingCount ?? 0) > 0 ? '#d97706' : '#16a34a', marginTop: '6px' }}>
+              <div
+                style={{
+                  fontSize: '28px',
+                  fontWeight: 800,
+                  color: (status?.pendingCount ?? 0) > 0 ? '#d97706' : '#16a34a',
+                  marginTop: '6px',
+                }}
+              >
                 {status?.pendingCount ?? 0}
               </div>
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
-                {(status?.pendingCount ?? 0) === 0 ? 'Outbox is completely clear' : 'Awaiting push to server'}
+                {(status?.pendingCount ?? 0) === 0
+                  ? 'Outbox is completely clear'
+                  : 'Awaiting push to server'}
               </div>
             </div>
 
@@ -314,19 +342,52 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                 padding: '20px',
               }}
             >
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Exceptions
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: (status?.exceptionCount ?? 0) > 0 ? '#dc2626' : '#16a34a', marginTop: '6px' }}>
+              <div
+                style={{
+                  fontSize: '28px',
+                  fontWeight: 800,
+                  color: (status?.exceptionCount ?? 0) > 0 ? '#dc2626' : '#16a34a',
+                  marginTop: '6px',
+                }}
+              >
                 {status?.exceptionCount ?? 0}
               </div>
-              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{(status?.exceptionCount ?? 0) === 0 ? 'No rejected records' : 'Requires review'}</span>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#64748b',
+                  marginTop: '6px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span>
+                  {(status?.exceptionCount ?? 0) === 0 ? 'No rejected records' : 'Requires review'}
+                </span>
                 {canManageExceptions && (status?.exceptionCount ?? 0) > 0 && (
                   <button
                     type="button"
                     onClick={() => setActiveTab('exceptions')}
-                    style={{ border: 'none', background: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: '11px' }}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      color: '#2563eb',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontSize: '11px',
+                    }}
                   >
                     View →
                   </button>
@@ -343,10 +404,19 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                 padding: '20px',
               }}
             >
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Last Successful Push
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '12px' }}>
+              <div
+                style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '12px' }}
+              >
                 {formatKarachiDateTime(status?.lastPushOkAt)}
               </div>
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
@@ -363,10 +433,19 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                 padding: '20px',
               }}
             >
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Last Successful Pull
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '12px' }}>
+              <div
+                style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '12px' }}
+              >
                 {formatKarachiDateTime(status?.lastPullOkAt)}
               </div>
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
@@ -384,7 +463,14 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
               padding: '24px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '10px',
+              }}
+            >
               <div>
                 <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
                   Offline Duration vs. Threshold Limit
@@ -418,7 +504,15 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
               />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '11px',
+                color: '#94a3b8',
+                marginTop: '8px',
+              }}
+            >
               <span>0h (Connected)</span>
               <span>36h (Warning 50%)</span>
               <span>58h (Critical 80%)</span>
@@ -437,7 +531,9 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                   color: '#92400e',
                 }}
               >
-                ⚠️ <strong>Offline Advisory:</strong> POS terminal operations and checkout are never halted by offline thresholds. However, catalog and stock updates from other counters or branches require synchronization.
+                ⚠️ <strong>Offline Advisory:</strong> POS terminal operations and checkout are never
+                halted by offline thresholds. However, catalog and stock updates from other counters
+                or branches require synchronization.
               </div>
             )}
           </div>

@@ -46,97 +46,88 @@ describe('Invoice Creation & Database Persistence (Phase 2)', () => {
     batchId = generateUuidV7();
     const now = new Date().toISOString();
 
-    rawDb.prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)').run(
-      branchId,
-      'Main Branch',
-      now,
-      now
-    );
+    rawDb
+      .prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)')
+      .run(branchId, 'Main Branch', now, now);
 
-    rawDb.prepare('INSERT INTO counters (id, branch_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)').run(
-      counterId,
-      branchId,
-      'Counter 1',
-      now,
-      now
-    );
+    rawDb
+      .prepare(
+        'INSERT INTO counters (id, branch_id, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
+      )
+      .run(counterId, branchId, 'Counter 1', now, now);
 
-    rawDb.prepare('INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
-      userId,
-      'Cashier Ali',
-      'cashier',
-      'pin_mock_hash',
-      1,
-      now,
-      now
-    );
+    rawDb
+      .prepare(
+        'INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      )
+      .run(userId, 'Cashier Ali', 'cashier', 'pin_mock_hash', 1, now, now);
 
-    rawDb.prepare('INSERT INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').run(
-      taxCatId,
-      'Standard 18%',
-      1800,
-      0,
-      now,
-      now
-    );
+    rawDb
+      .prepare(
+        'INSERT INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+      )
+      .run(taxCatId, 'Standard 18%', 1800, 0, now, now);
 
-    rawDb.prepare(`
+    rawDb
+      .prepare(
+        `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      productId,
-      'Augmentin 625mg',
-      'Amoxicillin + Clavulanic Acid',
-      '625mg',
-      'tablet',
-      'GSK',
-      '8964000999999',
-      taxCatId,
-      12000, // Rs. 120.00
-      0,
-      1,
-      now,
-      now
-    );
+    `
+      )
+      .run(
+        productId,
+        'Augmentin 625mg',
+        'Amoxicillin + Clavulanic Acid',
+        '625mg',
+        'tablet',
+        'GSK',
+        '8964000999999',
+        taxCatId,
+        12000, // Rs. 120.00
+        0,
+        1,
+        now,
+        now
+      );
 
-    rawDb.prepare(`
+    rawDb
+      .prepare(
+        `
       INSERT INTO batches (
         id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      batchId,
-      productId,
-      'BATCH-AUG-01',
-      '2027-06-30',
-      8000,
-      12000,
-      now,
-      now
-    );
+    `
+      )
+      .run(batchId, productId, 'BATCH-AUG-01', '2027-06-30', 8000, 12000, now, now);
 
     // Initial stock: 100 units through a purchase movement
-    rawDb.prepare(`
+    rawDb
+      .prepare(
+        `
       INSERT INTO stock_movements (
         id, product_id, batch_id, branch_id, type, quantity_signed,
         reference_type, reference_id, reason, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      generateUuidV7(),
-      productId,
-      batchId,
-      branchId,
-      'purchase',
-      100, // +100 units
-      'test_grn',
-      'init',
-      'Initial stock',
-      now,
-      now
-    );
+    `
+      )
+      .run(
+        generateUuidV7(),
+        productId,
+        batchId,
+        branchId,
+        'purchase',
+        100, // +100 units
+        'test_grn',
+        'init',
+        'Initial stock',
+        now,
+        now
+      );
 
     testSession = {
       user: { id: userId, name: 'Cashier Ali', role: 'cashier', isActive: true },
@@ -203,7 +194,9 @@ describe('Invoice Creation & Database Persistence (Phase 2)', () => {
     expect(lines).toHaveLength(1);
 
     // Verify Payments table row
-    const payment = rawDb.prepare('SELECT * FROM payments WHERE invoice_id = ?').get(invoice.id) as {
+    const payment = rawDb
+      .prepare('SELECT * FROM payments WHERE invoice_id = ?')
+      .get(invoice.id) as {
       method: string;
       amount_paisa: number;
     };
@@ -211,7 +204,9 @@ describe('Invoice Creation & Database Persistence (Phase 2)', () => {
     expect(payment.amount_paisa).toBe(25488);
 
     // Verify Outbox table row (Rule 5 & 7)
-    const outboxRow = rawDb.prepare('SELECT * FROM outbox WHERE event_type = ?').get('invoice.created') as {
+    const outboxRow = rawDb
+      .prepare('SELECT * FROM outbox WHERE event_type = ?')
+      .get('invoice.created') as {
       payload: string;
       synced_at: string | null;
     };

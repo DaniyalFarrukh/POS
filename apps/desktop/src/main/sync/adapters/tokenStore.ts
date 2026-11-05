@@ -56,16 +56,12 @@ export class SafeStorageTokenStore implements TokenStore {
     }
 
     this.db
-      .prepare<[string, string]>(
-        'INSERT OR REPLACE INTO sync_state (key, value) VALUES (?, ?)'
-      )
+      .prepare<[string, string]>('INSERT OR REPLACE INTO sync_state (key, value) VALUES (?, ?)')
       .run('token_encrypted', storedValue);
   }
 
   public async clearToken(): Promise<void> {
-    this.db
-      .prepare<[string]>('DELETE FROM sync_state WHERE key = ?')
-      .run('token_encrypted');
+    this.db.prepare<[string]>('DELETE FROM sync_state WHERE key = ?').run('token_encrypted');
   }
 }
 

@@ -177,4 +177,3 @@ describe('Stock Transfers & Locations Web Utilities & Logic', () => {
     });
   });
 });
-

@@ -436,7 +436,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // =========================================================================
   describe('Authentication & Tenancy', () => {
     it('authenticates valid user credentials and returns JWT token', async () => {
-
       const res = await app.inject({
         method: 'POST',
         url: '/api/auth/login',
@@ -448,14 +447,16 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       });
 
       expect(res.statusCode).toBe(200);
-      const body = res.json<{ token: string; user: { id: string; role: string; pharmacyName: string } }>();
+      const body = res.json<{
+        token: string;
+        user: { id: string; role: string; pharmacyName: string };
+      }>();
       expect(body.token).toBeDefined();
       expect(body.user.role).toBe('owner');
       expect(body.user.pharmacyName).toBe('MediCare Central');
     });
 
     it('rejects invalid credentials with 401', async () => {
-
       const res = await app.inject({
         method: 'POST',
         url: '/api/auth/login',
@@ -470,7 +471,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/dashboard/overview',
@@ -485,7 +485,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // =========================================================================
   describe('Role-Based Access Control (RBAC)', () => {
     it('allows owner to access all reports and admin routes', async () => {
-
       const resOverview = await app.inject({
         method: 'GET',
         url: '/api/dashboard/overview',
@@ -509,7 +508,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('allows pharmacist to access overview and sales, but denies profit and admin', async () => {
-
       // Allowed
       const resSales = await app.inject({
         method: 'GET',
@@ -536,7 +534,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('denies cashier access to dashboard overview, reports, and admin', async () => {
-
       const resOverview = await app.inject({
         method: 'GET',
         url: '/api/dashboard/overview',
@@ -565,7 +562,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // =========================================================================
   describe('Report Queries with Known Fixtures', () => {
     it('calculates exact sales report totals and breakdowns', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/reports/sales',
@@ -606,7 +602,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('filters sales report by branchId', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: `/api/reports/sales?branchId=${branchEastId}`,
@@ -623,7 +618,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('calculates profit per batch strictly in integer paisa', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/reports/profit-per-batch',
@@ -655,7 +649,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('computes stock balance cross-branch and verifies expiry status (Rule 4)', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/reports/stock-and-expiry',
@@ -694,7 +687,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('summarizes supplier ledger purchases correctly', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/reports/supplier-ledger',
@@ -725,7 +717,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('delivers overview KPIs on /api/dashboard/overview', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/dashboard/overview',
@@ -753,7 +744,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
   // =========================================================================
   describe('Admin Management Endpoints', () => {
     it('creates a new cashier user and logs it to change_log', async () => {
-
       const res = await app.inject({
         method: 'POST',
         url: '/api/admin/users',
@@ -784,7 +774,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('creates branches and counters and retrieves them', async () => {
-
       const branchRes = await app.inject({
         method: 'POST',
         url: '/api/admin/branches',
@@ -825,7 +814,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('generates a registration code and lists registered devices', async () => {
-
       // Generate registration code
       const codeRes = await app.inject({
         method: 'POST',
@@ -840,7 +828,7 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
 
       expect(codeRes.statusCode).toBe(201);
       const codeData = codeRes.json<{ id: string; code: string }>();
-      expect(codeData.code).toMatch(/^REG-[0-9A-F]{4}-[0-9A-F]{4}$/);
+      expect(codeData.code).toMatch(/^REG-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
 
       // Add dummy device and test revocation
       const deviceId = generateUuidV7();
@@ -879,7 +867,6 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     });
 
     it('queries read-only audit logs with pagination', async () => {
-
       const res = await app.inject({
         method: 'GET',
         url: '/api/admin/audit-logs?page=1&limit=10',

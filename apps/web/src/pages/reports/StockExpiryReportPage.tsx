@@ -66,8 +66,7 @@ export const StockExpiryReportPage: React.FC = () => {
         item.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.batchNo.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === 'all' || item.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -108,7 +107,8 @@ export const StockExpiryReportPage: React.FC = () => {
             Cross-Branch Stock &amp; Expiry Ledger
           </h2>
           <p className="text-xs text-slate-500">
-            Real-time batch tracking and inventory balances summed from immutable ledger events (Rule 4)
+            Real-time batch tracking and inventory balances summed from immutable ledger events
+            (Rule 4)
           </p>
         </div>
         <Button
@@ -166,7 +166,8 @@ export const StockExpiryReportPage: React.FC = () => {
           </div>
 
           <div className="text-xs text-slate-500 font-medium">
-            Showing <span className="font-bold text-slate-800">{filteredItems.length}</span> batch records
+            Showing <span className="font-bold text-slate-800">{filteredItems.length}</span> batch
+            records
           </div>
         </CardContent>
       </Card>
@@ -198,7 +199,9 @@ export const StockExpiryReportPage: React.FC = () => {
                   <TableRow key={`${item.batchId}-${item.branchId}`}>
                     <TableCell className="text-xs">
                       <div className="font-bold text-slate-900">{item.brandName}</div>
-                      <div className="text-[11px] text-slate-500 font-medium">{item.branchName}</div>
+                      <div className="text-[11px] text-slate-500 font-medium">
+                        {item.branchName}
+                      </div>
                     </TableCell>
                     <TableCell className="text-xs font-mono font-medium text-slate-700">
                       {item.batchNo}

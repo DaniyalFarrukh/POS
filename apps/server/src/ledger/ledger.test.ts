@@ -9,22 +9,10 @@ import {
 } from '../db/test-helper';
 import { getDatabaseUrl } from '../db';
 import * as schema from '../db/schema';
-import {
-  pharmacies,
-  branches,
-  users,
-  accounts,
-  journalEntries,
-  changeLog,
-} from '../db/schema';
+import { pharmacies, branches, users, accounts, journalEntries, changeLog } from '../db/schema';
 import { DEFAULT_CHART_OF_ACCOUNTS, seedDefaultChartOfAccounts } from './coa-seed';
 import { seedChartOfAccountsForAllPharmacies } from '../scripts/seed-coa';
-import {
-  postJournalEntry,
-  reverseJournalEntry,
-  closePeriod,
-  reopenPeriod,
-} from './service';
+import { postJournalEntry, reverseJournalEntry, closePeriod, reopenPeriod } from './service';
 import { trialBalance, accountLedger } from './queries';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
@@ -124,10 +112,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
 
     await seedDefaultChartOfAccounts(ctx.db, pharmacyId);
 
-    const coa = await ctx.db
-      .select()
-      .from(accounts)
-      .where(eq(accounts.pharmacyId, pharmacyId));
+    const coa = await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyId));
 
     const byCode = new Map(coa.map((a) => [a.code, a]));
 
@@ -328,10 +313,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
       const miscId = tenant.byCode.get('6900')!.id;
 
       // Deactivate 6900
-      await ctx.db
-        .update(accounts)
-        .set({ isActive: false })
-        .where(eq(accounts.id, miscId));
+      await ctx.db.update(accounts).set({ isActive: false }).where(eq(accounts.id, miscId));
 
       await expect(
         ctx.db.transaction((tx) =>
@@ -435,10 +417,9 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
 
       // 2. DELETE journal_entries must fail
       await expect(
-        ctx.client.query(
-          `DELETE FROM "${ctx.schemaName}"."journal_entries" WHERE "id" = $1`,
-          [entry.id]
-        )
+        ctx.client.query(`DELETE FROM "${ctx.schemaName}"."journal_entries" WHERE "id" = $1`, [
+          entry.id,
+        ])
       ).rejects.toThrow(/immutable/i);
 
       // 3. UPDATE journal_lines must fail
@@ -452,10 +433,9 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
 
       // 4. DELETE journal_lines must fail
       await expect(
-        ctx.client.query(
-          `DELETE FROM "${ctx.schemaName}"."journal_lines" WHERE "id" = $1`,
-          [firstLineId]
-        )
+        ctx.client.query(`DELETE FROM "${ctx.schemaName}"."journal_lines" WHERE "id" = $1`, [
+          firstLineId,
+        ])
       ).rejects.toThrow(/immutable/i);
     });
   });
@@ -752,10 +732,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
           )
         );
 
-        const [resultsA, resultsB] = await Promise.all([
-          Promise.all(tasksA),
-          Promise.all(tasksB),
-        ]);
+        const [resultsA, resultsB] = await Promise.all([Promise.all(tasksA), Promise.all(tasksB)]);
 
         const entryNosA = resultsA.map((e) => e.entryNo).sort((a, b) => a - b);
         const expectedA = Array.from({ length: CONCURRENT_COUNT }, (_, i) => i + 1);
@@ -780,13 +757,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
 
       const activeAccounts = tenant.coa;
       const branchesList = [tenant.branch1Id, tenant.branch2Id, null];
-      const dates = [
-        '2026-11-01',
-        '2026-11-02',
-        '2026-11-03',
-        '2026-11-04',
-        '2026-11-05',
-      ];
+      const dates = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'];
 
       const postedEntryIds: string[] = [];
       const reversedOriginalIds = new Set<string>();
@@ -912,12 +883,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
       }
 
       // 4. Sub-date range Trial Balance also balances
-      const subDateTb = await trialBalance(
-        ctx.db,
-        tenant.pharmacyId,
-        '2026-11-01',
-        '2026-11-02'
-      );
+      const subDateTb = await trialBalance(ctx.db, tenant.pharmacyId, '2026-11-01', '2026-11-02');
       expect(subDateTb.totalDebitPaisa).toBe(subDateTb.totalCreditPaisa);
 
       const afterSubDateLedger = await accountLedger(
@@ -1028,4 +994,3 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
     });
   });
 });
-

@@ -2,11 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
 import { MIGRATIONS } from './db';
 import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
-import {
-  searchInvoices,
-  getInvoiceById,
-  roleGuardedFinalizeSale,
-} from './invoices';
+import { searchInvoices, getInvoiceById, roleGuardedFinalizeSale } from './invoices';
 import {
   generateThermalReceiptHtml,
   type ReceiptInvoiceData,
@@ -41,9 +37,11 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
 
     for (const m of MIGRATIONS) {
       m.up(db);
-      db.prepare(
-        'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)'
-      ).run(m.version, m.name, new Date().toISOString());
+      db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+        m.version,
+        m.name,
+        new Date().toISOString()
+      );
     }
 
     const now = '2026-10-26T10:00:00.000Z';
@@ -55,9 +53,12 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     batchId = generateUuidV7();
 
     // 1. Branch
-    db.prepare(
-      'INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)'
-    ).run(branchId, 'Gulshan Branch', now, now);
+    db.prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)').run(
+      branchId,
+      'Gulshan Branch',
+      now,
+      now
+    );
 
     // 2. Counter
     db.prepare(
@@ -75,13 +76,15 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     ).run(stdTaxCatId, 'Standard GST 18%', 1800, 0, now, now);
 
     // 5. Product: Rs. 100.00 (10000 paisa)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       productId,
       'Augmentin 625mg',
       'Amoxicillin + Clavulanic',
@@ -98,19 +101,23 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     );
 
     // 6. Batch: 500 units
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchId, productId, 'AUG-2027A', '2027-11-30', 8000, 10000, now, now);
+    `
+    ).run(batchId, productId, 'AUG-2027A', '2027-11-30', 8000, 10000, now, now);
 
     // 7. Initial purchase movement
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (
         id, product_id, batch_id, branch_id, type,
         quantity_signed, reference_type, reference_id,
         reason, created_at, updated_at
       ) VALUES (?, ?, ?, ?, 'purchase', 500, 'test_ref', 'seed', 'Initial batch stock', ?, ?)
-    `).run(generateUuidV7(), productId, batchId, branchId, now, now);
+    `
+    ).run(generateUuidV7(), productId, batchId, branchId, now, now);
 
     // Setup active session for role-guarded calls
     setSessionForTesting({
@@ -181,7 +188,9 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     expect(htmlWithBatch).toContain('Powered by Hexalogic Tech');
 
     // 2. With batch & expiry toggled OFF
-    const htmlWithoutBatch = generateThermalReceiptHtml(mockInvoiceData, { showBatchExpiry: false });
+    const htmlWithoutBatch = generateThermalReceiptHtml(mockInvoiceData, {
+      showBatchExpiry: false,
+    });
     expect(htmlWithoutBatch).not.toContain('Batch: AUG-2027A');
     expect(htmlWithoutBatch).toContain('Augmentin 625mg');
 
@@ -223,7 +232,9 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     expect(finalized.payments[1]?.amountPaisa).toBe(10000);
 
     // Verify persisted in DB
-    const invInDb = db.prepare('SELECT id, invoice_number, total_paisa FROM invoices WHERE id = ?').get(finalized.id) as {
+    const invInDb = db
+      .prepare('SELECT id, invoice_number, total_paisa FROM invoices WHERE id = ?')
+      .get(finalized.id) as {
       id: string;
       invoice_number: string;
       total_paisa: number;
@@ -267,11 +278,7 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     expect(searchByNotes[0]?.notes).toContain('Arshad');
 
     // 4. Search by date filter
-    const searchByDate = searchInvoices(
-      branchId,
-      { dateFrom: TODAY, dateTo: TODAY },
-      db
-    );
+    const searchByDate = searchInvoices(branchId, { dateFrom: TODAY, dateTo: TODAY }, db);
     expect(searchByDate).toHaveLength(3);
 
     // 5. getInvoiceById loads full line details and payments

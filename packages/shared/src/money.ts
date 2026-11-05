@@ -47,7 +47,12 @@ export function subtract(a: Paisa, b: Paisa): Paisa {
  */
 export function multiplyByQuantity(unitPrice: Paisa, quantity: number): Paisa {
   assertIntegerPaisa(unitPrice, 'unitPrice');
-  if (typeof quantity !== 'number' || isNaN(quantity) || !isFinite(quantity) || !Number.isInteger(quantity)) {
+  if (
+    typeof quantity !== 'number' ||
+    isNaN(quantity) ||
+    !isFinite(quantity) ||
+    !Number.isInteger(quantity)
+  ) {
     throw new TypeError(`quantity must be an integer, received: ${quantity}`);
   }
   if (quantity < 0) {
@@ -194,7 +199,9 @@ export function convertRupeesToPaisa(rupees: string | number): Paisa {
   }
 
   // Detect negative sign: leading '-', or '-Rs.', or 'Rs. -'
-  const isNegative = /^([-\u2212]|(?:Rs\.?|PKR)\s*([-\u2212])|([-\u2212])\s*(?:Rs\.?|PKR))/i.test(trimmed);
+  const isNegative = /^([-\u2212]|(?:Rs\.?|PKR)\s*([-\u2212])|([-\u2212])\s*(?:Rs\.?|PKR))/i.test(
+    trimmed
+  );
 
   // Remove commas, currency prefixes, whitespace, and negative signs
   let cleaned = trimmed.replace(/,/g, '');

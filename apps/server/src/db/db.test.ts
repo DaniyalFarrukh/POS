@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import {
-  isPostgresReachable,
-  createTestContext,
-  type TestDatabaseContext,
-} from './test-helper';
+import { isPostgresReachable, createTestContext, type TestDatabaseContext } from './test-helper';
 import {
   pharmacies,
   branches,
@@ -41,14 +37,16 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
 
   describe('When PostgreSQL is running', () => {
     it('applies all 20 migrations cleanly on an empty database/schema', async () => {
-
       // Check that all 20 tables exist in this isolated schema
-      const res = await ctx.client.query<{ table_name: string }>(`
+      const res = await ctx.client.query<{ table_name: string }>(
+        `
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = $1
         ORDER BY table_name;
-      `, [ctx.schemaName]);
+      `,
+        [ctx.schemaName]
+      );
 
       const tableNames = res.rows.map((r) => r.table_name);
       expect(tableNames).toContain('pharmacies');
@@ -75,7 +73,6 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
     });
 
     it('enforces UNIQUE (pharmacy_id, event_id) on processed_events to guarantee idempotency', async () => {
-
       const pharmacyId = crypto.randomUUID();
       const eventId = crypto.randomUUID();
       const now = new Date().toISOString();
@@ -125,7 +122,6 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
     });
 
     it('enforces UNIQUE (pharmacy_id, invoice_number) on invoices', async () => {
-
       const pharmacy1Id = crypto.randomUUID();
       const pharmacy2Id = crypto.randomUUID();
       const branch1Id = crypto.randomUUID();
@@ -143,18 +139,60 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       ]);
 
       await ctx.db.insert(branches).values([
-        { id: branch1Id, pharmacyId: pharmacy1Id, name: 'Branch 1', createdAt: now, updatedAt: now },
-        { id: branch2Id, pharmacyId: pharmacy2Id, name: 'Branch 2', createdAt: now, updatedAt: now },
+        {
+          id: branch1Id,
+          pharmacyId: pharmacy1Id,
+          name: 'Branch 1',
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: branch2Id,
+          pharmacyId: pharmacy2Id,
+          name: 'Branch 2',
+          createdAt: now,
+          updatedAt: now,
+        },
       ]);
 
       await ctx.db.insert(counters).values([
-        { id: counter1Id, pharmacyId: pharmacy1Id, branchId: branch1Id, name: 'C1', createdAt: now, updatedAt: now },
-        { id: counter2Id, pharmacyId: pharmacy2Id, branchId: branch2Id, name: 'C2', createdAt: now, updatedAt: now },
+        {
+          id: counter1Id,
+          pharmacyId: pharmacy1Id,
+          branchId: branch1Id,
+          name: 'C1',
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: counter2Id,
+          pharmacyId: pharmacy2Id,
+          branchId: branch2Id,
+          name: 'C2',
+          createdAt: now,
+          updatedAt: now,
+        },
       ]);
 
       await ctx.db.insert(users).values([
-        { id: user1Id, pharmacyId: pharmacy1Id, name: 'Cashier 1', role: 'cashier', pinHash: 'hash', createdAt: now, updatedAt: now },
-        { id: user2Id, pharmacyId: pharmacy2Id, name: 'Cashier 2', role: 'cashier', pinHash: 'hash', createdAt: now, updatedAt: now },
+        {
+          id: user1Id,
+          pharmacyId: pharmacy1Id,
+          name: 'Cashier 1',
+          role: 'cashier',
+          pinHash: 'hash',
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: user2Id,
+          pharmacyId: pharmacy2Id,
+          name: 'Cashier 2',
+          role: 'cashier',
+          pinHash: 'hash',
+          createdAt: now,
+          updatedAt: now,
+        },
       ]);
 
       const duplicateInvoiceNumber = 'INV-C1-000001';
@@ -213,7 +251,6 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
     });
 
     it('guarantees change_log.seq increases monotonically on successive inserts', async () => {
-
       const pharmacyId = crypto.randomUUID();
       const now = new Date().toISOString();
 

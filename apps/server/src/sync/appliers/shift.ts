@@ -1,8 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import {
-  ShiftOpenedPayloadSchema,
-  ShiftClosedPayloadSchema,
-} from '@pos/shared';
+import { ShiftOpenedPayloadSchema, ShiftClosedPayloadSchema } from '@pos/shared';
 import { counters, users } from '../../db/schema';
 import { SyncRejectedError, SyncRetryLaterError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
@@ -166,4 +163,3 @@ export async function applyShiftClosed(
     createdAt: now,
   });
 }
-

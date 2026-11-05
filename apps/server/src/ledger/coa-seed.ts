@@ -17,7 +17,9 @@ export type AccountRole =
   | 'bank'
   | 'wallet'
   | 'ar'
-  | 'ap';
+  | 'ap'
+  | 'advance_suppliers'
+  | 'customer_advances';
 
 export const ALL_ACCOUNT_ROLES: readonly AccountRole[] = [
   'sales',
@@ -32,6 +34,8 @@ export const ALL_ACCOUNT_ROLES: readonly AccountRole[] = [
   'wallet',
   'ar',
   'ap',
+  'advance_suppliers',
+  'customer_advances',
 ] as const;
 
 export const DEFAULT_ACCOUNT_ROLE_CODES: Readonly<Record<AccountRole, string>> = {
@@ -41,8 +45,10 @@ export const DEFAULT_ACCOUNT_ROLE_CODES: Readonly<Record<AccountRole, string>> =
   ar: '1100',
   inventory: '1200',
   input_tax: '1300',
+  advance_suppliers: '1400',
   ap: '2000',
   output_tax: '2100',
+  customer_advances: '2400',
   sales: '4000',
   sales_returns: '4090',
   cogs: '5000',
@@ -199,10 +205,7 @@ export async function getPharmacyAccountMap(
   tx: DbClient,
   pharmacyId: string
 ): Promise<Record<AccountRole, string>> {
-  let coaRows = await tx
-    .select()
-    .from(accounts)
-    .where(eq(accounts.pharmacyId, pharmacyId));
+  let coaRows = await tx.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyId));
 
   const byCode = new Map(coaRows.map((a) => [a.code, a.id]));
   const hasAllDefaultCodes = ALL_ACCOUNT_ROLES.every((role) =>

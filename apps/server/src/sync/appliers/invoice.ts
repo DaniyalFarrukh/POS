@@ -11,6 +11,8 @@ import {
   users,
   taxCategories,
   stockAlerts,
+  customers,
+  journalLines,
 } from '../../db/schema';
 import { SyncRejectedError, SyncRetryLaterError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
@@ -62,12 +64,7 @@ export async function applyInvoiceCreated(
   const counterRows = await tx
     .select({ id: counters.id, branchId: counters.branchId })
     .from(counters)
-    .where(
-      and(
-        eq(counters.id, payload.counterId),
-        eq(counters.pharmacyId, ctx.pharmacyId)
-      )
-    )
+    .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)))
     .limit(1);
 
   const counter = counterRows[0];
@@ -128,7 +125,8 @@ export async function applyInvoiceCreated(
         pharmacyId: ctx.pharmacyId,
         name: payload.cashierUser.name,
         role: payload.cashierUser.role,
-        pinHash: payload.cashierUser.pinHash || '$2b$10$localplaceholderhash0000000000000000000000000000',
+        pinHash:
+          payload.cashierUser.pinHash || '$2b$10$localplaceholderhash0000000000000000000000000000',
         isActive: payload.cashierUser.isActive ?? true,
         createdAt: uCreatedAt,
         updatedAt: uCreatedAt,
@@ -152,7 +150,14 @@ export async function applyInvoiceCreated(
       });
     }
   }
-  await verifyTenantEntity(tx, users, payload.cashierUserId, ctx.pharmacyId, 'UNKNOWN_USER', 'user');
+  await verifyTenantEntity(
+    tx,
+    users,
+    payload.cashierUserId,
+    ctx.pharmacyId,
+    'UNKNOWN_USER',
+    'user'
+  );
 
   // 4. Verify referenced products belong to this pharmacy (or sync local product snapshots if new)
   if (payload.products && payload.products.length > 0) {
@@ -219,7 +224,14 @@ export async function applyInvoiceCreated(
     }
   }
   const productIds = payload.lines.map((l) => l.productId);
-  await verifyTenantEntities(tx, products, productIds, ctx.pharmacyId, 'UNKNOWN_PRODUCT', 'product');
+  await verifyTenantEntities(
+    tx,
+    products,
+    productIds,
+    ctx.pharmacyId,
+    'UNKNOWN_PRODUCT',
+    'product'
+  );
 
   // 5. Verify referenced batches belong to this pharmacy (or sync local batch snapshots if new)
   if (payload.batches && payload.batches.length > 0) {
@@ -268,10 +280,59 @@ export async function applyInvoiceCreated(
       }
     }
   }
-  const batchIds = payload.lines
-    .map((l) => l.batchId)
-    .filter((id): id is string => Boolean(id));
+  const batchIds = payload.lines.map((l) => l.batchId).filter((id): id is string => Boolean(id));
   await verifyTenantEntities(tx, batches, batchIds, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
+
+  // 5b. Verify Customer & check offline credit limit
+  let creditLimitExceeded = Boolean(payload.creditLimitExceeded);
+  if (payload.customerId) {
+    const [cust] = await tx
+      .select({
+        id: customers.id,
+        pharmacyId: customers.pharmacyId,
+        creditLimitPaisa: customers.creditLimitPaisa,
+      })
+      .from(customers)
+      .where(eq(customers.id, payload.customerId))
+      .limit(1);
+
+    if (!cust) {
+      throw new SyncRetryLaterError(
+        'UNKNOWN_CUSTOMER',
+        `Referenced customer ${payload.customerId} not found for pharmacy ${ctx.pharmacyId}`
+      );
+    }
+    if (cust.pharmacyId !== ctx.pharmacyId) {
+      throw new SyncRejectedError(
+        'CROSS_TENANT_REFERENCE',
+        `Referenced customer ${payload.customerId} belongs to another pharmacy tenant`
+      );
+    }
+
+    const creditAmount = payload.payments
+      .filter((p) => p.method === 'credit')
+      .reduce((sum, p) => sum + p.amountPaisa, 0);
+
+    if (creditAmount > 0 && cust.creditLimitPaisa > 0) {
+      const [arBal] = await tx
+        .select({
+          balance: sql<number>`COALESCE(SUM(${journalLines.debitPaisa} - ${journalLines.creditPaisa}), 0)`,
+        })
+        .from(journalLines)
+        .where(
+          and(
+            eq(journalLines.pharmacyId, ctx.pharmacyId),
+            eq(journalLines.partyType, 'customer'),
+            eq(journalLines.partyId, payload.customerId)
+          )
+        );
+
+      const currentAr = Number(arBal?.balance ?? 0);
+      if (currentAr + creditAmount > cust.creditLimitPaisa) {
+        creditLimitExceeded = true;
+      }
+    }
+  }
 
   // 6. Insert Invoice Header
   await tx.insert(invoices).values({
@@ -286,6 +347,8 @@ export async function applyInvoiceCreated(
     discountPaisa: payload.discountPaisa,
     taxPaisa: payload.taxPaisa,
     totalPaisa: payload.totalPaisa,
+    customerId: payload.customerId ?? null,
+    creditLimitExceeded,
     notes: payload.notes ?? null,
     createdAt: payload.createdAt,
   });

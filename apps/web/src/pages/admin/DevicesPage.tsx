@@ -200,14 +200,19 @@ export const DevicesPage: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-xs">
-                      <div className="font-semibold text-slate-800">{d.branchName || 'Unassigned'}</div>
+                      <div className="font-semibold text-slate-800">
+                        {d.branchName || 'Unassigned'}
+                      </div>
                       <div className="text-[11px] text-slate-500 font-mono">
                         {d.counterName ? `${d.counterName} (${d.counterCode || 'C1'})` : '—'}
                       </div>
                     </TableCell>
                     <TableCell className="text-xs">
                       {d.isRevoked ? (
-                        <Badge variant="destructive" className="gap-1 text-[10px] uppercase font-bold">
+                        <Badge
+                          variant="destructive"
+                          className="gap-1 text-[10px] uppercase font-bold"
+                        >
                           <ShieldAlert className="w-3 h-3" />
                           Revoked
                         </Badge>
@@ -240,7 +245,9 @@ export const DevicesPage: React.FC = () => {
             </Table>
           ) : (
             <div className="p-12 text-center text-xs text-slate-400">
-              {isLoading ? 'Loading devices...' : 'No hardware terminals registered yet. Use the registration code generator to enroll a desktop device.'}
+              {isLoading
+                ? 'Loading devices...'
+                : 'No hardware terminals registered yet. Use the registration code generator to enroll a desktop device.'}
             </div>
           )}
         </CardContent>
@@ -327,9 +334,7 @@ export const DevicesPage: React.FC = () => {
         ) : (
           <div className="space-y-5 pt-2 text-center">
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
-              <p className="text-xs font-semibold text-blue-900">
-                Single-Use Enrollment Code
-              </p>
+              <p className="text-xs font-semibold text-blue-900">Single-Use Enrollment Code</p>
               <div className="flex items-center justify-center gap-3">
                 <span className="font-mono text-2xl font-black tracking-widest text-blue-700">
                   {generatedCode}
@@ -352,8 +357,8 @@ export const DevicesPage: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-500">
-              Enter this code in the desktop app during first-time terminal setup.
-              The server strictly stores only a SHA-256 hash.
+              Enter this code in the desktop app during first-time terminal setup. The server
+              strictly stores only a SHA-256 hash.
             </p>
 
             <Button

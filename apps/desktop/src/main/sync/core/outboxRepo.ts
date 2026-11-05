@@ -83,7 +83,10 @@ export function createOutboxRepo(db: DatabaseInstance): OutboxRepository {
     ) VALUES (?, ?, ?, ?, ?, 'open', ?)
   `);
 
-  const countStmt = db.prepare<[], { total: number; pending: number; acked: number; exception: number }>(`
+  const countStmt = db.prepare<
+    [],
+    { total: number; pending: number; acked: number; exception: number }
+  >(`
     SELECT
       COUNT(*) AS total,
       COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
@@ -206,14 +209,7 @@ export function createOutboxRepo(db: DatabaseInstance): OutboxRepository {
         updateExceptionStmt.run(`[${code}] ${message}`, eventId, eventId);
 
         // 2. Insert record into sync_exceptions table
-        insertExceptionStmt.run(
-          exceptionId,
-          eventId,
-          code,
-          message,
-          payloadStr,
-          now
-        );
+        insertExceptionStmt.run(exceptionId, eventId, code, message, payloadStr, now);
       });
 
       exceptionTx();
@@ -233,9 +229,7 @@ export function createOutboxRepo(db: DatabaseInstance): OutboxRepository {
     },
 
     listExceptions(status?: SyncExceptionStatus): SyncExceptionRecord[] {
-      const rows = status
-        ? listExceptionsByStatusStmt.all(status)
-        : listExceptionsAllStmt.all();
+      const rows = status ? listExceptionsByStatusStmt.all(status) : listExceptionsAllStmt.all();
 
       return rows.map((r) => {
         let parsedPayload: Record<string, unknown> = {};

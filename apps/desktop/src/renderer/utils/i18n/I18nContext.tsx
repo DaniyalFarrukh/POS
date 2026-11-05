@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from 'react';
 import { TRANSLATIONS, type SupportedLocale, type AppTranslations } from './translations';
 
 interface I18nContextType {

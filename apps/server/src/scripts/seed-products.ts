@@ -2,11 +2,7 @@ import dotenv from 'dotenv';
 import { eq, and } from 'drizzle-orm';
 import { generateUuidV7, formatPKR } from '@pos/shared';
 import { getDb, closePool } from '../db';
-import {
-  pharmacies,
-  taxCategories,
-  products,
-} from '../db/schema';
+import { pharmacies, taxCategories, products } from '../db/schema';
 import { recordMasterDataChange } from '../sync/change-log';
 import { seedDefaultChartOfAccounts } from '../ledger/coa-seed';
 
@@ -53,10 +49,7 @@ export async function seedProductsDemo() {
     .select()
     .from(taxCategories)
     .where(
-      and(
-        eq(taxCategories.pharmacyId, pharmacy.id),
-        eq(taxCategories.name, 'Medicine Exempt 0%')
-      )
+      and(eq(taxCategories.pharmacyId, pharmacy.id), eq(taxCategories.name, 'Medicine Exempt 0%'))
     )
     .limit(1);
 
@@ -140,12 +133,7 @@ export async function seedProductsDemo() {
       const existing = await tx
         .select()
         .from(products)
-        .where(
-          and(
-            eq(products.pharmacyId, pharmacy.id),
-            eq(products.brandName, p.brandName)
-          )
-        )
+        .where(and(eq(products.pharmacyId, pharmacy.id), eq(products.brandName, p.brandName)))
         .limit(1);
 
       let fullProduct = existing[0];
@@ -205,7 +193,9 @@ export async function seedProductsDemo() {
 
     createdProducts.push(item);
 
-    console.log(`+ Product: ${p.brandName} (MRP: ${formatPKR(p.mrpPaisa)} PKR) -> change_log seq #${item.seq}`);
+    console.log(
+      `+ Product: ${p.brandName} (MRP: ${formatPKR(p.mrpPaisa)} PKR) -> change_log seq #${item.seq}`
+    );
   }
 
   // 4. Update price on first product (demonstrating price update for pull)
@@ -247,10 +237,14 @@ export async function seedProductsDemo() {
     });
   });
 
-  console.log(`\n↻ Price Update: ${productToUpdate.name} MRP updated to ${formatPKR(newPricePaisa)} PKR -> change_log seq #${updateSeq}`);
+  console.log(
+    `\n↻ Price Update: ${productToUpdate.name} MRP updated to ${formatPKR(newPricePaisa)} PKR -> change_log seq #${updateSeq}`
+  );
   console.log('--------------------------------------------------');
   console.log('Demonstrate GET /sync/pull:');
-  console.log(`curl http://localhost:3001/sync/pull?cursor=0&limit=50 -H "Authorization: Bearer <TOKEN>"`);
+  console.log(
+    `curl http://localhost:3001/sync/pull?cursor=0&limit=50 -H "Authorization: Bearer <TOKEN>"`
+  );
   console.log('==================================================\n');
 
   return { pharmacy, createdProducts, updateSeq };

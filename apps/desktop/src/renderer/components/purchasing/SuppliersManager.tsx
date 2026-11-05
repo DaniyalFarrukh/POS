@@ -184,15 +184,32 @@ export const SuppliersManager: React.FC = () => {
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+        <table
+          style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}
+        >
           <thead>
             <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Supplier / Distributor</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Contact Person</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                Supplier / Distributor
+              </th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                Contact Person
+              </th>
               <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Phone</th>
               <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Email</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Address / City</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>Actions</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                Address / City
+              </th>
+              <th
+                style={{
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  textAlign: 'right',
+                }}
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -211,8 +228,12 @@ export const SuppliersManager: React.FC = () => {
             ) : (
               filtered.map((s) => (
                 <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>{s.name}</td>
-                  <td style={{ padding: '12px 16px', color: '#475569' }}>{s.contactPerson || '—'}</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, color: '#0f172a' }}>
+                    {s.name}
+                  </td>
+                  <td style={{ padding: '12px 16px', color: '#475569' }}>
+                    {s.contactPerson || '—'}
+                  </td>
                   <td style={{ padding: '12px 16px', color: '#475569', fontFamily: 'monospace' }}>
                     {s.phone || '—'}
                   </td>
@@ -327,7 +348,15 @@ export const SuppliersManager: React.FC = () => {
               )}
 
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '4px',
+                  }}
+                >
                   Supplier Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
@@ -347,9 +376,24 @@ export const SuppliersManager: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '12px',
+                  marginBottom: '14px',
+                }}
+              >
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#334155',
+                      marginBottom: '4px',
+                    }}
+                  >
                     Contact Person
                   </label>
                   <input
@@ -369,7 +413,15 @@ export const SuppliersManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#334155',
+                      marginBottom: '4px',
+                    }}
+                  >
                     Phone Number
                   </label>
                   <input
@@ -390,7 +442,15 @@ export const SuppliersManager: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '4px',
+                  }}
+                >
                   Email Address
                 </label>
                 <input
@@ -410,7 +470,15 @@ export const SuppliersManager: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '4px',
+                  }}
+                >
                   Address / Warehouse Location
                 </label>
                 <textarea
@@ -461,7 +529,11 @@ export const SuppliersManager: React.FC = () => {
                     cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {isSubmitting ? 'Saving...' : editingSupplier ? 'Update Supplier' : 'Save Supplier'}
+                  {isSubmitting
+                    ? 'Saving...'
+                    : editingSupplier
+                      ? 'Update Supplier'
+                      : 'Save Supplier'}
                 </button>
               </div>
             </form>

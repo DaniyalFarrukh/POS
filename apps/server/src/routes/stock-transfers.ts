@@ -82,7 +82,9 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       }
       if (search && search.trim()) {
         const s = `%${search.trim()}%`;
-        conditions.push(or(ilike(stockTransfers.transferNumber, s), ilike(stockTransfers.notes, s))!);
+        conditions.push(
+          or(ilike(stockTransfers.transferNumber, s), ilike(stockTransfers.notes, s))!
+        );
       }
 
       const rows = await db
@@ -278,10 +280,7 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         .innerJoin(products, eq(stockTransferLines.productId, products.id))
         .innerJoin(batches, eq(stockTransferLines.batchId, batches.id))
         .where(
-          and(
-            eq(stockTransferLines.transferId, id),
-            eq(stockTransferLines.pharmacyId, pharmacyId)
-          )
+          and(eq(stockTransferLines.transferId, id), eq(stockTransferLines.pharmacyId, pharmacyId))
         )
         .orderBy(asc(products.brandName));
 
@@ -341,10 +340,7 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         .select()
         .from(stockTransferLines)
         .where(
-          and(
-            eq(stockTransferLines.transferId, id),
-            eq(stockTransferLines.pharmacyId, pharmacyId)
-          )
+          and(eq(stockTransferLines.transferId, id), eq(stockTransferLines.pharmacyId, pharmacyId))
         );
 
       const lineMap = new Map(existingLines.map((l) => [l.id, l]));
@@ -472,10 +468,7 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         .select()
         .from(stockTransferLines)
         .where(
-          and(
-            eq(stockTransferLines.transferId, id),
-            eq(stockTransferLines.pharmacyId, pharmacyId)
-          )
+          and(eq(stockTransferLines.transferId, id), eq(stockTransferLines.pharmacyId, pharmacyId))
         );
 
       const lineMap = new Map(existingLines.map((l) => [l.id, l]));
@@ -548,7 +541,6 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
               createdAt: now,
             });
           }
-
         }
 
         // Mark transfer received
@@ -588,10 +580,7 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         .select()
         .from(stockTransferLines)
         .where(
-          and(
-            eq(stockTransferLines.transferId, id),
-            eq(stockTransferLines.pharmacyId, pharmacyId)
-          )
+          and(eq(stockTransferLines.transferId, id), eq(stockTransferLines.pharmacyId, pharmacyId))
         );
 
       return reply.status(200).send({

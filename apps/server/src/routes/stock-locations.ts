@@ -116,7 +116,10 @@ export const stockLocationRoutes: FastifyPluginAsync = async (app) => {
           .update(stockLocations)
           .set({ isDefault: false, updatedAt: now })
           .where(
-            and(eq(stockLocations.pharmacyId, pharmacyId), eq(stockLocations.branchId, data.branchId))
+            and(
+              eq(stockLocations.pharmacyId, pharmacyId),
+              eq(stockLocations.branchId, data.branchId)
+            )
           );
       }
 

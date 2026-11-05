@@ -192,12 +192,7 @@ export async function getDashboardOverview(
       stockMovements,
       and(eq(batches.id, stockMovements.batchId), eq(stockMovements.pharmacyId, pharmacyId))
     )
-    .where(
-      and(
-        eq(batches.pharmacyId, pharmacyId),
-        lte(batches.expiryDate, d90)
-      )
-    )
+    .where(and(eq(batches.pharmacyId, pharmacyId), lte(batches.expiryDate, d90)))
     .groupBy(batches.id, batches.batchNo, products.brandName, batches.expiryDate)
     .having(sql`COALESCE(SUM(${stockMovements.quantitySigned}), 0) > 0`)
     .orderBy(asc(batches.expiryDate))
@@ -215,12 +210,7 @@ export async function getDashboardOverview(
       stockMovements,
       and(eq(products.id, stockMovements.productId), eq(stockMovements.pharmacyId, pharmacyId))
     )
-    .where(
-      and(
-        eq(products.pharmacyId, pharmacyId),
-        eq(products.isActive, true)
-      )
-    )
+    .where(and(eq(products.pharmacyId, pharmacyId), eq(products.isActive, true)))
     .groupBy(products.id, products.brandName)
     .having(sql`COALESCE(SUM(${stockMovements.quantitySigned}), 0) <= 10`)
     .orderBy(asc(sql`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`))
@@ -409,9 +399,7 @@ export async function getStockAndExpiryReport(
   pharmacyId: string,
   branchId?: string
 ): Promise<StockExpiryReportItem[]> {
-  const conditions = [
-    eq(stockMovements.pharmacyId, pharmacyId),
-  ];
+  const conditions = [eq(stockMovements.pharmacyId, pharmacyId)];
   if (branchId) {
     conditions.push(eq(stockMovements.branchId, branchId));
   }
@@ -537,7 +525,8 @@ export async function getProfitPerBatchReport(
     const unitCostPaisa = Number(r.unitCostPaisa);
     const costPaisa = unitsSold * unitCostPaisa;
     const profitPaisa = revenuePaisa - costPaisa;
-    const marginPercent = revenuePaisa > 0 ? Math.round((profitPaisa / revenuePaisa) * 1000) / 10 : 0;
+    const marginPercent =
+      revenuePaisa > 0 ? Math.round((profitPaisa / revenuePaisa) * 1000) / 10 : 0;
 
     return {
       batchId: r.batchId!,
@@ -576,12 +565,7 @@ export async function getSupplierLedgerReport(
       batches,
       and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
     )
-    .where(
-      and(
-        eq(stockMovements.pharmacyId, pharmacyId),
-        eq(stockMovements.type, 'purchase')
-      )
-    )
+    .where(and(eq(stockMovements.pharmacyId, pharmacyId), eq(stockMovements.type, 'purchase')))
     .groupBy(stockMovements.reason)
     .orderBy(desc(sql`MAX(${stockMovements.createdAt})`));
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { generateUuidV7 } from '@pos/shared';
 import { buildApp } from '../app';
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
@@ -46,9 +46,9 @@ describe('Stock Management & Batches Expiry Module', () => {
   let product3Id: string; // Flagyl 400mg (zero stock)
 
   let batch1ExpiringSoonId: string; // expires in 25 days
-  let batch2Expiring90Id: string;   // expires in 75 days
-  let batch3ExpiredId: string;      // expired 10 days ago
-  let batch4FreshId: string;        // expires in 300 days
+  let batch2Expiring90Id: string; // expires in 75 days
+  let batch3ExpiredId: string; // expired 10 days ago
+  let batch4FreshId: string; // expires in 300 days
 
   beforeAll(async () => {
     ctx = await createTestContext();
@@ -688,10 +688,7 @@ describe('Stock Management & Batches Expiry Module', () => {
     expect(discountRes.json().data.mrpPaisa).toBe(24000);
 
     // Verify updated in DB
-    const [b] = await ctx.db
-      .select()
-      .from(batches)
-      .where(eq(batches.id, batch1ExpiringSoonId));
+    const [b] = await ctx.db.select().from(batches).where(eq(batches.id, batch1ExpiringSoonId));
     expect(b!.mrpPaisa).toBe(24000);
   });
 

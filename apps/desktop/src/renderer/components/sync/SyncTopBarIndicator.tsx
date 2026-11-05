@@ -75,10 +75,7 @@ export const SyncTopBarIndicator: React.FC<SyncTopBarIndicatorProps> = ({ onClic
           borderRadius: '50%',
           backgroundColor: style.dotColor,
           display: 'inline-block',
-          boxShadow:
-            state === 'syncing'
-              ? `0 0 0 2px ${style.badgeBorder}`
-              : undefined,
+          boxShadow: state === 'syncing' ? `0 0 0 2px ${style.badgeBorder}` : undefined,
           animation: state === 'syncing' ? 'pulse 1.2s infinite' : undefined,
         }}
       />

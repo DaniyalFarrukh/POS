@@ -189,9 +189,7 @@ export function summarizePayload(
 
   if (invoiceNumber) {
     const formattedTotal =
-      typeof totalPaisa === 'number'
-        ? formatPKR(totalPaisa, { useGrouping: false })
-        : 'Unknown';
+      typeof totalPaisa === 'number' ? formatPKR(totalPaisa, { useGrouping: false }) : 'Unknown';
     return {
       type: 'Invoice Event',
       summary: `Invoice #${String(invoiceNumber)} (${formattedTotal})`,
@@ -250,7 +248,8 @@ export function summarizePayload(
 
   return {
     type: 'Generic Event',
-    summary: Object.keys(payload).length > 0 ? `${Object.keys(payload).length} fields` : 'Empty payload',
+    summary:
+      Object.keys(payload).length > 0 ? `${Object.keys(payload).length} fields` : 'Empty payload',
     details,
   };
 }

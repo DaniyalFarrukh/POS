@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
 import { buildApp } from '../app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
   pharmacies,
   users,
@@ -670,10 +667,7 @@ describe('Purchase Orders Module & Ledger Integration', () => {
       .select()
       .from(journalLines)
       .where(
-        and(
-          eq(journalLines.pharmacyId, pharmacyAId),
-          eq(journalLines.accountId, invAccountId)
-        )
+        and(eq(journalLines.pharmacyId, pharmacyAId), eq(journalLines.accountId, invAccountId))
       );
     const invDebitTotal = invLines.reduce((sum, l) => sum + l.debitPaisa, 0);
     expect(invDebitTotal).toBeGreaterThanOrEqual(190000);

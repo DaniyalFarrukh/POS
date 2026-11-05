@@ -69,4 +69,3 @@ describe('Batches & Expiry Management Page Logic', () => {
     expect(validateDiscountInput(120.45).isValid).toBe(false);
   });
 });
-

@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type {
-  StockFilterType,
-  StockOverviewProduct,
-  StockOverviewBatch,
-} from '@pos/shared';
+import type { StockFilterType, StockOverviewProduct, StockOverviewBatch } from '@pos/shared';
 import { formatPaisaToRupees } from '@pos/shared';
 import { StockAdjustmentModal } from './StockAdjustmentModal';
 
@@ -158,7 +154,8 @@ export const StockOverview: React.FC = () => {
             Stock & Inventory Overview
           </h2>
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-            Balances computed live from signed stock movements strictly adhering to <strong>Rule 4</strong> (Stock balance = sum of movements).
+            Balances computed live from signed stock movements strictly adhering to{' '}
+            <strong>Rule 4</strong> (Stock balance = sum of movements).
           </p>
         </div>
 
@@ -200,7 +197,15 @@ export const StockOverview: React.FC = () => {
       >
         {/* Row 1: View Mode Tabs + Search */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '6px' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '4px',
+              backgroundColor: '#f1f5f9',
+              padding: '4px',
+              borderRadius: '6px',
+            }}
+          >
             <button
               type="button"
               onClick={() => {
@@ -346,26 +351,74 @@ export const StockOverview: React.FC = () => {
       >
         {viewMode === 'by_batch' ? (
           /* Table: By Batch */
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '13px',
+            }}
+          >
             <thead>
               <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Medicine</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Batch No</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Expiry Date</th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Medicine
+                </th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Batch No
+                </th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Expiry Date
+                </th>
                 <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Status</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'right',
+                  }}
+                >
                   Stock Balance (Rule 4)
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'right',
+                  }}
+                >
                   Cost (Rule 1)
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'right',
+                  }}
+                >
                   MRP (Rule 1)
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'right',
+                  }}
+                >
                   Total Valuation
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'right',
+                  }}
+                >
                   Actions
                 </th>
               </tr>
@@ -373,14 +426,21 @@ export const StockOverview: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                  <td
+                    colSpan={9}
+                    style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
+                  >
                     Loading batch balances...
                   </td>
                 </tr>
               ) : batchItems.length === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                    No batch inventory found matching the criteria. Receive purchases via the GRN screen to stock batches.
+                  <td
+                    colSpan={9}
+                    style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
+                  >
+                    No batch inventory found matching the criteria. Receive purchases via the GRN
+                    screen to stock batches.
                   </td>
                 </tr>
               ) : (
@@ -391,20 +451,26 @@ export const StockOverview: React.FC = () => {
                     <tr key={b.batchId} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ fontWeight: 600, color: '#0f172a' }}>
-                          {b.brandName} <span style={{ fontWeight: 400, color: '#64748b' }}>{b.strength}</span>
+                          {b.brandName}{' '}
+                          <span style={{ fontWeight: 400, color: '#64748b' }}>{b.strength}</span>
                         </div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>
                           {b.genericName} • {b.form}
                         </div>
                       </td>
 
-                      <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontWeight: 600, color: '#1e293b' }}>
+                      <td
+                        style={{
+                          padding: '12px 16px',
+                          fontFamily: 'monospace',
+                          fontWeight: 600,
+                          color: '#1e293b',
+                        }}
+                      >
                         {b.batchNo}
                       </td>
 
-                      <td style={{ padding: '12px 16px', color: '#475569' }}>
-                        {b.expiryDate}
-                      </td>
+                      <td style={{ padding: '12px 16px', color: '#475569' }}>{b.expiryDate}</td>
 
                       <td style={{ padding: '12px 16px' }}>
                         <span
@@ -428,7 +494,8 @@ export const StockOverview: React.FC = () => {
                           textAlign: 'right',
                           fontWeight: 700,
                           fontSize: '14px',
-                          color: b.balance <= 0 ? '#dc2626' : b.balance <= 10 ? '#d97706' : '#0f172a',
+                          color:
+                            b.balance <= 0 ? '#dc2626' : b.balance <= 10 ? '#d97706' : '#0f172a',
                         }}
                       >
                         {b.balance}
@@ -442,7 +509,14 @@ export const StockOverview: React.FC = () => {
                         {formatPaisaToRupees(b.mrpPaisa)}
                       </td>
 
-                      <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 600, color: '#0369a1' }}>
+                      <td
+                        style={{
+                          padding: '12px 16px',
+                          textAlign: 'right',
+                          fontWeight: 600,
+                          color: '#0369a1',
+                        }}
+                      >
                         {formatPaisaToRupees(valuationPaisa)}
                       </td>
 
@@ -472,15 +546,46 @@ export const StockOverview: React.FC = () => {
           </table>
         ) : (
           /* Table: By Product */
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '13px',
+            }}
+          >
             <thead>
               <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Medicine Name</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Generic Formula</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Form / Strength</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'center' }}>Batches</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>Earliest Expiry</th>
-                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155', textAlign: 'right' }}>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Medicine Name
+                </th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Generic Formula
+                </th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Form / Strength
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'center',
+                  }}
+                >
+                  Batches
+                </th>
+                <th style={{ padding: '12px 16px', fontWeight: 600, color: '#334155' }}>
+                  Earliest Expiry
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    textAlign: 'right',
+                  }}
+                >
                   Total Balance (Rule 4)
                 </th>
               </tr>
@@ -488,13 +593,19 @@ export const StockOverview: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                  <td
+                    colSpan={6}
+                    style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
+                  >
                     Loading product balances...
                   </td>
                 </tr>
               ) : productItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                  <td
+                    colSpan={6}
+                    style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}
+                  >
                     No products found.
                   </td>
                 </tr>
@@ -520,15 +631,20 @@ export const StockOverview: React.FC = () => {
                       )}
                     </td>
 
-                    <td style={{ padding: '12px 16px', color: '#475569' }}>
-                      {p.genericName}
-                    </td>
+                    <td style={{ padding: '12px 16px', color: '#475569' }}>{p.genericName}</td>
 
                     <td style={{ padding: '12px 16px', color: '#475569' }}>
                       {p.form} • {p.strength}
                     </td>
 
-                    <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: '#1e293b' }}>
+                    <td
+                      style={{
+                        padding: '12px 16px',
+                        textAlign: 'center',
+                        fontWeight: 600,
+                        color: '#1e293b',
+                      }}
+                    >
                       {p.batchCount}
                     </td>
 
@@ -542,7 +658,12 @@ export const StockOverview: React.FC = () => {
                         textAlign: 'right',
                         fontWeight: 700,
                         fontSize: '14px',
-                        color: p.totalBalance <= 0 ? '#dc2626' : p.totalBalance <= 10 ? '#d97706' : '#0f172a',
+                        color:
+                          p.totalBalance <= 0
+                            ? '#dc2626'
+                            : p.totalBalance <= 10
+                              ? '#d97706'
+                              : '#0f172a',
                       }}
                     >
                       {p.totalBalance} units

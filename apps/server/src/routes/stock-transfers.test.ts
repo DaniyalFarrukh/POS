@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
 import { buildApp } from '../app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
   pharmacies,
   users,
@@ -448,7 +445,9 @@ describe('Stock Transfers & Warehouses Module', () => {
     const [transferRow] = await db
       .select()
       .from(stockTransfers)
-      .where(and(eq(stockTransfers.pharmacyId, pharmacyAId), eq(stockTransfers.status, 'in_transit')));
+      .where(
+        and(eq(stockTransfers.pharmacyId, pharmacyAId), eq(stockTransfers.status, 'in_transit'))
+      );
     expect(transferRow).toBeDefined();
 
     const [lineRow] = await db
@@ -500,10 +499,7 @@ describe('Stock Transfers & Warehouses Module', () => {
       .select()
       .from(journalLines)
       .where(
-        and(
-          eq(journalLines.pharmacyId, pharmacyAId),
-          eq(journalLines.accountId, invAccountId)
-        )
+        and(eq(journalLines.pharmacyId, pharmacyAId), eq(journalLines.accountId, invAccountId))
       );
 
     // Check that there is a debit for branch A2 and credit for branch A1 of exactly 40 * 900 = 36,000 paisa
@@ -585,10 +581,7 @@ describe('Stock Transfers & Warehouses Module', () => {
       .select()
       .from(stockMovements)
       .where(
-        and(
-          eq(stockMovements.referenceId, transfer.id),
-          eq(stockMovements.type, 'transfer_in')
-        )
+        and(eq(stockMovements.referenceId, transfer.id), eq(stockMovements.type, 'transfer_in'))
       );
     expect(recMove).toBeDefined();
     expect(recMove!.quantitySigned).toBe(17);

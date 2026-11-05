@@ -51,6 +51,7 @@ export type MasterDataEntity =
   | 'counter'
   | 'user'
   | 'supplier'
+  | 'customer'
   | 'batch'
   | 'stock_movement'
   | 'invoice'

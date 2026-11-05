@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Supplier, ProductWithTax, PurchaseRecord } from '@pos/shared';
-import { convertRupeesToPaisa, formatPaisaToRupees, calculateLineTotalPaisa, roundHalfUp, formatPKR } from '@pos/shared';
+import {
+  convertRupeesToPaisa,
+  formatPaisaToRupees,
+  calculateLineTotalPaisa,
+  roundHalfUp,
+  formatPKR,
+} from '@pos/shared';
 
 interface GrnLineItem {
   id: string; // client temporary line id
@@ -25,9 +31,7 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('');
   const [invoiceNo, setInvoiceNo] = useState<string>('');
-  const [invoiceDate, setInvoiceDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [invoiceDate, setInvoiceDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const [lines, setLines] = useState<GrnLineItem[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState<boolean>(true);
@@ -136,10 +140,7 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
 
         // Recalculate line total paisa
         try {
-          updated.lineTotalPaisa = calculateLineTotalPaisa(
-            updated.quantity,
-            updated.costPaisa
-          );
+          updated.lineTotalPaisa = calculateLineTotalPaisa(updated.quantity, updated.costPaisa);
         } catch {
           updated.lineTotalPaisa = 0;
         }
@@ -295,7 +296,8 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
             Goods Receiving Note (GRN) / Purchase Entry
           </h2>
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-            Receive stock from distributors. Updates stock movements & batches in <strong>ONE database transaction</strong> (Rule 4 & Rule 5).
+            Receive stock from distributors. Updates stock movements & batches in{' '}
+            <strong>ONE database transaction</strong> (Rule 4 & Rule 5).
           </p>
         </div>
 
@@ -335,8 +337,10 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
               ✓ Purchase GRN Successfully Received & Posted!
             </div>
             <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
-              Invoice: <strong>{successResult.supplierInvoiceNo}</strong> ({successResult.supplierName}) —{' '}
-              Total: <strong>{formatPaisaToRupees(successResult.totalCostPaisa)}</strong> across {successResult.lines?.length ?? 0} line items.
+              Invoice: <strong>{successResult.supplierInvoiceNo}</strong> (
+              {successResult.supplierName}) — Total:{' '}
+              <strong>{formatPaisaToRupees(successResult.totalCostPaisa)}</strong> across{' '}
+              {successResult.lines?.length ?? 0} line items.
             </div>
           </div>
           <button
@@ -389,7 +393,15 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
         }}
       >
         <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#334155',
+              marginBottom: '6px',
+            }}
+          >
             Distributor / Supplier <span style={{ color: '#ef4444' }}>*</span>
           </label>
           <select
@@ -421,7 +433,15 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#334155',
+              marginBottom: '6px',
+            }}
+          >
             Supplier Invoice / Bill No <span style={{ color: '#ef4444' }}>*</span>
           </label>
           <input
@@ -442,7 +462,15 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#334155',
+              marginBottom: '6px',
+            }}
+          >
             Invoice Date
           </label>
           <input
@@ -504,7 +532,9 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
           </button>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+        <table
+          style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}
+        >
           <thead>
             <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
               <th style={{ padding: '10px 14px', width: '30px' }}>#</th>
@@ -512,28 +542,44 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
               <th style={{ padding: '10px 14px', width: '130px' }}>Batch No</th>
               <th style={{ padding: '10px 14px', width: '130px' }}>Expiry (YYYY-MM-DD)</th>
               <th style={{ padding: '10px 14px', width: '80px', textAlign: 'right' }}>Qty</th>
-              <th style={{ padding: '10px 14px', width: '110px', textAlign: 'right' }}>Cost Price (Rs)</th>
-              <th style={{ padding: '10px 14px', width: '110px', textAlign: 'right' }}>Retail MRP (Rs)</th>
-              <th style={{ padding: '10px 14px', width: '120px', textAlign: 'right' }}>Line Total (Rs)</th>
+              <th style={{ padding: '10px 14px', width: '110px', textAlign: 'right' }}>
+                Cost Price (Rs)
+              </th>
+              <th style={{ padding: '10px 14px', width: '110px', textAlign: 'right' }}>
+                Retail MRP (Rs)
+              </th>
+              <th style={{ padding: '10px 14px', width: '120px', textAlign: 'right' }}>
+                Line Total (Rs)
+              </th>
               <th style={{ padding: '10px 14px', width: '40px', textAlign: 'center' }}></th>
             </tr>
           </thead>
           <tbody>
             {lines.map((line, idx) => (
               <tr key={line.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '10px 14px', color: '#94a3b8', fontWeight: 600 }}>{idx + 1}</td>
+                <td style={{ padding: '10px 14px', color: '#94a3b8', fontWeight: 600 }}>
+                  {idx + 1}
+                </td>
 
                 {/* Product Search & Selection Cell */}
                 <td style={{ padding: '8px 14px', position: 'relative' }}>
                   {line.productId ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <div>
                         <div style={{ fontWeight: 600, color: '#0f172a' }}>{line.productName}</div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>{line.genericName}</div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => updateLine(line.id, { productId: '', productName: '', genericName: '' })}
+                        onClick={() =>
+                          updateLine(line.id, { productId: '', productName: '', genericName: '' })
+                        }
                         style={{
                           background: 'none',
                           border: 'none',
@@ -569,62 +615,75 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
                       />
 
                       {/* Autocomplete Dropdown */}
-                      {activeSearchLineId === line.id && (productSearchQuery || productSearchResults.length > 0) && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '42px',
-                            left: '14px',
-                            right: '14px',
-                            backgroundColor: '#ffffff',
-                            borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
-                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                            zIndex: 100,
-                            maxHeight: '220px',
-                            overflowY: 'auto',
-                          }}
-                        >
-                          {isSearchingProducts ? (
-                            <div style={{ padding: '10px', fontSize: '12px', color: '#64748b' }}>
-                              Searching catalog...
-                            </div>
-                          ) : productSearchResults.length === 0 ? (
-                            <div style={{ padding: '10px', fontSize: '12px', color: '#64748b' }}>
-                              No medicines found matching "{productSearchQuery}"
-                            </div>
-                          ) : (
-                            productSearchResults.map((prod) => (
-                              <div
-                                key={prod.id}
-                                onClick={() => handleSelectProduct(line.id, prod)}
-                                style={{
-                                  padding: '8px 12px',
-                                  cursor: 'pointer',
-                                  borderBottom: '1px solid #f1f5f9',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eff6ff')}
-                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-                              >
-                                <div>
-                                  <span style={{ fontWeight: 600, color: '#1e293b' }}>
-                                    {prod.brandName} {prod.strength}
-                                  </span>
-                                  <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '6px' }}>
-                                    ({prod.genericName})
+                      {activeSearchLineId === line.id &&
+                        (productSearchQuery || productSearchResults.length > 0) && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '42px',
+                              left: '14px',
+                              right: '14px',
+                              backgroundColor: '#ffffff',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                              zIndex: 100,
+                              maxHeight: '220px',
+                              overflowY: 'auto',
+                            }}
+                          >
+                            {isSearchingProducts ? (
+                              <div style={{ padding: '10px', fontSize: '12px', color: '#64748b' }}>
+                                Searching catalog...
+                              </div>
+                            ) : productSearchResults.length === 0 ? (
+                              <div style={{ padding: '10px', fontSize: '12px', color: '#64748b' }}>
+                                No medicines found matching "{productSearchQuery}"
+                              </div>
+                            ) : (
+                              productSearchResults.map((prod) => (
+                                <div
+                                  key={prod.id}
+                                  onClick={() => handleSelectProduct(line.id, prod)}
+                                  style={{
+                                    padding: '8px 12px',
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid #f1f5f9',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                  }}
+                                  onMouseEnter={(e) =>
+                                    (e.currentTarget.style.backgroundColor = '#eff6ff')
+                                  }
+                                  onMouseLeave={(e) =>
+                                    (e.currentTarget.style.backgroundColor = '#ffffff')
+                                  }
+                                >
+                                  <div>
+                                    <span style={{ fontWeight: 600, color: '#1e293b' }}>
+                                      {prod.brandName} {prod.strength}
+                                    </span>
+                                    <span
+                                      style={{
+                                        fontSize: '11px',
+                                        color: '#64748b',
+                                        marginLeft: '6px',
+                                      }}
+                                    >
+                                      ({prod.genericName})
+                                    </span>
+                                  </div>
+                                  <span
+                                    style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a' }}
+                                  >
+                                    {formatPaisaToRupees(prod.mrpPaisa)}
                                   </span>
                                 </div>
-                                <span style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a' }}>
-                                  {formatPaisaToRupees(prod.mrpPaisa)}
-                                </span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
+                              ))
+                            )}
+                          </div>
+                        )}
                     </div>
                   )}
                 </td>
@@ -670,7 +729,9 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
                     type="number"
                     min={1}
                     value={line.quantity}
-                    onChange={(e) => updateLine(line.id, { quantity: parseInt(e.target.value, 10) || 1 })}
+                    onChange={(e) =>
+                      updateLine(line.id, { quantity: parseInt(e.target.value, 10) || 1 })
+                    }
                     style={{
                       width: '70px',
                       padding: '6px 8px',
@@ -726,7 +787,14 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
                 </td>
 
                 {/* Line Total */}
-                <td style={{ padding: '8px 14px', textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
+                <td
+                  style={{
+                    padding: '8px 14px',
+                    textAlign: 'right',
+                    fontWeight: 600,
+                    color: '#0f172a',
+                  }}
+                >
                   {formatPaisaToRupees(line.lineTotalPaisa)}
                 </td>
 
@@ -769,7 +837,14 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
       >
         <div style={{ display: 'flex', gap: '32px' }}>
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#64748b',
+                textTransform: 'uppercase',
+              }}
+            >
               Lines Count
             </div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
@@ -778,16 +853,28 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
           </div>
 
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#64748b',
+                textTransform: 'uppercase',
+              }}
+            >
               Total Units
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>
-              {totalUnits}
-            </div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a' }}>{totalUnits}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#64748b',
+                textTransform: 'uppercase',
+              }}
+            >
               Grand Total Cost (Rule 1)
             </div>
             <div style={{ fontSize: '24px', fontWeight: 800, color: '#0284c7' }}>

@@ -12,7 +12,9 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
   const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'week' | 'custom'>('today');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'week' | 'custom'>(
+    'today'
+  );
   const [customDateFrom, setCustomDateFrom] = useState('');
   const [customDateTo, setCustomDateTo] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRecord | null>(null);
@@ -115,10 +117,11 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
           payments: (inv.payments && inv.payments.length > 0
             ? inv.payments
             : inv.payment
-            ? [inv.payment]
-            : []
+              ? [inv.payment]
+              : []
           ).map((p) => ({
-            method: (p.paymentMethod === 'bank' ? 'wallet' : p.paymentMethod) as 'cash' | 'card' | 'wallet',
+            method: (p.paymentMethod === 'bank' ? 'wallet' : p.paymentMethod) as
+              'cash' | 'card' | 'wallet',
             amountPaisa: p.amountPaisa,
             tenderedPaisa: p.tenderedPaisa,
             changePaisa: p.changePaisa,
@@ -187,7 +190,15 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '22px' }}>🧾</span>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '20px',
+                fontWeight: 800,
+                color: '#0f172a',
+                letterSpacing: '-0.02em',
+              }}
+            >
               Invoices & Sales History
             </h2>
           </div>
@@ -237,7 +248,16 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
       >
         {/* Search input */}
         <div style={{ flex: '1 1 260px', minWidth: '220px', position: 'relative' }}>
-          <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px', color: '#94a3b8' }}>
+          <span
+            style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '14px',
+              color: '#94a3b8',
+            }}
+          >
             🔍
           </span>
           <input
@@ -267,7 +287,15 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
         </div>
 
         {/* Date presets */}
-        <div style={{ display: 'flex', gap: '6px', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            backgroundColor: '#f1f5f9',
+            padding: '3px',
+            borderRadius: '8px',
+          }}
+        >
           {[
             { id: 'today', label: 'Today' },
             { id: 'yesterday', label: 'Yesterday' },
@@ -345,7 +373,14 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
         }}
       >
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '13px',
+            }}
+          >
             <thead
               style={{
                 position: 'sticky',
@@ -356,16 +391,102 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
               }}
             >
               <tr>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Invoice #</th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date & Time</th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Customer / Patient</th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Items</th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cashier / Counter</th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Payment Method</th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Invoice #
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Date & Time
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Customer / Patient
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Items
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Cashier / Counter
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Payment Method
+                </th>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    textAlign: 'right',
+                  }}
+                >
                   Total
                 </th>
-                <th style={{ padding: '12px 16px', fontWeight: 800, color: '#475569', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'center' }}>
+                <th
+                  style={{
+                    padding: '12px 16px',
+                    fontWeight: 800,
+                    color: '#475569',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    textAlign: 'center',
+                  }}
+                >
                   Actions
                 </th>
               </tr>
@@ -373,16 +494,37 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
             <tbody>
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}>
+                  <td
+                    colSpan={8}
+                    style={{ padding: '48px', textAlign: 'center', color: '#94a3b8' }}
+                  >
                     {loading ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '24px', animation: 'spin 1s linear infinite' }}>⏳</span>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <span style={{ fontSize: '24px', animation: 'spin 1s linear infinite' }}>
+                          ⏳
+                        </span>
                         <span style={{ fontWeight: 600 }}>Loading invoices...</span>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
                         <span style={{ fontSize: '28px' }}>🧾</span>
-                        <span style={{ fontWeight: 600, color: '#64748b' }}>No invoices found for the selected criteria.</span>
+                        <span style={{ fontWeight: 600, color: '#64748b' }}>
+                          No invoices found for the selected criteria.
+                        </span>
                       </div>
                     )}
                   </td>
@@ -400,7 +542,12 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                   const isReprinting = reprintingId === inv.id;
 
                   // Format payment method summary
-                  const payList = inv.payments && inv.payments.length > 0 ? inv.payments : inv.payment ? [inv.payment] : [];
+                  const payList =
+                    inv.payments && inv.payments.length > 0
+                      ? inv.payments
+                      : inv.payment
+                        ? [inv.payment]
+                        : [];
                   const paySummary =
                     payList.length > 1
                       ? `Split (${payList.map((p) => p.paymentMethod).join(', ')})`
@@ -410,9 +557,27 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                   const isCard = paySummary.toLowerCase().includes('card');
                   const isSplit = paySummary.toLowerCase().includes('split');
 
-                  const pillBg = isCash ? '#ecfdf5' : isCard ? '#e0e7ff' : isSplit ? '#e0f2fe' : '#f5f3ff';
-                  const pillColor = isCash ? '#047857' : isCard ? '#4338ca' : isSplit ? '#0369a1' : '#6d28d9';
-                  const pillBorder = isCash ? '#a7f3d0' : isCard ? '#c7d2fe' : isSplit ? '#bae6fd' : '#ddd6fe';
+                  const pillBg = isCash
+                    ? '#ecfdf5'
+                    : isCard
+                      ? '#e0e7ff'
+                      : isSplit
+                        ? '#e0f2fe'
+                        : '#f5f3ff';
+                  const pillColor = isCash
+                    ? '#047857'
+                    : isCard
+                      ? '#4338ca'
+                      : isSplit
+                        ? '#0369a1'
+                        : '#6d28d9';
+                  const pillBorder = isCash
+                    ? '#a7f3d0'
+                    : isCard
+                      ? '#c7d2fe'
+                      : isSplit
+                        ? '#bae6fd'
+                        : '#ddd6fe';
 
                   return (
                     <tr
@@ -423,19 +588,37 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                         transition: 'background-color 0.15s ease',
                       }}
                     >
-                      <td className="tabular-nums" style={{ padding: '12px 16px', fontWeight: 800, color: '#0f172a' }}>
+                      <td
+                        className="tabular-nums"
+                        style={{ padding: '12px 16px', fontWeight: 800, color: '#0f172a' }}
+                      >
                         {inv.invoiceNumber}
                       </td>
-                      <td className="tabular-nums" style={{ padding: '12px 16px', color: '#475569' }}>{dateStr}</td>
+                      <td
+                        className="tabular-nums"
+                        style={{ padding: '12px 16px', color: '#475569' }}
+                      >
+                        {dateStr}
+                      </td>
                       <td style={{ padding: '12px 16px' }}>
                         {inv.customerName ? (
                           <div>
-                            <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                color: '#0f172a',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                              }}
+                            >
                               <span>👤</span>
                               <span>{inv.customerName}</span>
                             </div>
                             {(inv.doctorName || inv.customerPhone) && (
-                              <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+                              <div
+                                style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}
+                              >
                                 {inv.doctorName ? `Dr. ${inv.doctorName}` : ''}
                                 {inv.doctorName && inv.customerPhone ? ' • ' : ''}
                                 {inv.customerPhone || ''}
@@ -443,14 +626,22 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                             )}
                           </div>
                         ) : (
-                          <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>Walk-in</span>
+                          <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>
+                            Walk-in
+                          </span>
                         )}
                       </td>
-                      <td className="tabular-nums" style={{ padding: '12px 16px', color: '#334155', fontWeight: 600 }}>
+                      <td
+                        className="tabular-nums"
+                        style={{ padding: '12px 16px', color: '#334155', fontWeight: 600 }}
+                      >
                         {inv.lines?.length || 0} item{(inv.lines?.length || 0) === 1 ? '' : 's'}
                       </td>
                       <td style={{ padding: '12px 16px', color: '#64748b' }}>
-                        <span style={{ fontWeight: 600, color: '#334155' }}>{inv.userName || 'Cashier'}</span> • {inv.counterName || 'Counter'}
+                        <span style={{ fontWeight: 600, color: '#334155' }}>
+                          {inv.userName || 'Cashier'}
+                        </span>{' '}
+                        • {inv.counterName || 'Counter'}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
                         <span
@@ -582,7 +773,15 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '20px' }}>🧾</span>
-                  <h3 id="invoice-details-title" style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em' }}>
+                  <h3
+                    id="invoice-details-title"
+                    style={{
+                      margin: 0,
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
                     Invoice #{selectedInvoice.invoiceNumber}
                   </h3>
                   <kbd className="kbd-cap-dark" style={{ fontSize: '11px', padding: '1px 6px' }}>
@@ -621,7 +820,10 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
 
             {/* Modal Body: Lines & Totals */}
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
-              {(selectedInvoice.customerName || selectedInvoice.doctorName || selectedInvoice.customerPhone || selectedInvoice.notes) && (
+              {(selectedInvoice.customerName ||
+                selectedInvoice.doctorName ||
+                selectedInvoice.customerPhone ||
+                selectedInvoice.notes) && (
                 <div
                   style={{
                     padding: '12px 16px',
@@ -633,19 +835,41 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                     color: '#334155',
                   }}
                 >
-                  <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      marginBottom: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
                     <span>👤</span>
                     <span>Patient & Prescription Details</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '6px', fontSize: '12.5px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                      gap: '6px',
+                      fontSize: '12.5px',
+                    }}
+                  >
                     {selectedInvoice.customerName && (
-                      <div><strong>Patient:</strong> {selectedInvoice.customerName}</div>
+                      <div>
+                        <strong>Patient:</strong> {selectedInvoice.customerName}
+                      </div>
                     )}
                     {selectedInvoice.customerPhone && (
-                      <div><strong>Phone:</strong> {selectedInvoice.customerPhone}</div>
+                      <div>
+                        <strong>Phone:</strong> {selectedInvoice.customerPhone}
+                      </div>
                     )}
                     {selectedInvoice.doctorName && (
-                      <div><strong>Doctor:</strong> {selectedInvoice.doctorName}</div>
+                      <div>
+                        <strong>Doctor:</strong> {selectedInvoice.doctorName}
+                      </div>
                     )}
                   </div>
                   {selectedInvoice.notes && (
@@ -657,18 +881,72 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
               )}
 
               {/* Items List */}
-              <div style={{ fontWeight: 700, fontSize: '13px', color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  color: '#475569',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
                 Purchased Items ({selectedInvoice.lines?.length || 0})
               </div>
               <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                     <tr>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#475569' }}>Item & Batch</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700, color: '#475569' }}>Qty</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#475569' }}>Unit Price</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#475569' }}>Discount</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#475569' }}>Line Total</th>
+                      <th
+                        style={{
+                          padding: '10px 14px',
+                          textAlign: 'left',
+                          fontWeight: 700,
+                          color: '#475569',
+                        }}
+                      >
+                        Item & Batch
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px 14px',
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          color: '#475569',
+                        }}
+                      >
+                        Qty
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px 14px',
+                          textAlign: 'right',
+                          fontWeight: 700,
+                          color: '#475569',
+                        }}
+                      >
+                        Unit Price
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px 14px',
+                          textAlign: 'right',
+                          fontWeight: 700,
+                          color: '#475569',
+                        }}
+                      >
+                        Discount
+                      </th>
+                      <th
+                        style={{
+                          padding: '10px 14px',
+                          textAlign: 'right',
+                          fontWeight: 700,
+                          color: '#475569',
+                        }}
+                      >
+                        Line Total
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -679,18 +957,36 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                             {l.brandName || l.genericName || 'Product'}
                           </div>
                           {(l.batchNo || l.expiryDate) && (
-                            <div className="tabular-nums" style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                              Batch: <strong>{l.batchNo || 'N/A'}</strong> • Exp: {l.expiryDate || 'N/A'}
+                            <div
+                              className="tabular-nums"
+                              style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}
+                            >
+                              Batch: <strong>{l.batchNo || 'N/A'}</strong> • Exp:{' '}
+                              {l.expiryDate || 'N/A'}
                             </div>
                           )}
                         </td>
-                        <td className="tabular-nums" style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}>
+                        <td
+                          className="tabular-nums"
+                          style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}
+                        >
                           {l.quantity}
                         </td>
-                        <td className="tabular-nums" style={{ padding: '10px 14px', textAlign: 'right' }}>
+                        <td
+                          className="tabular-nums"
+                          style={{ padding: '10px 14px', textAlign: 'right' }}
+                        >
                           {formatPKR(l.unitPricePaisa)}
                         </td>
-                        <td className="tabular-nums" style={{ padding: '10px 14px', textAlign: 'right', color: '#b91c1c', fontWeight: 600 }}>
+                        <td
+                          className="tabular-nums"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'right',
+                            color: '#b91c1c',
+                            fontWeight: 600,
+                          }}
+                        >
                           {l.discountPaisa > 0 ? `-${formatPKR(l.discountPaisa)}` : '—'}
                         </td>
                         <td
@@ -720,19 +1016,46 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                   padding: '14px 18px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '6px',
+                    fontSize: '13px',
+                  }}
+                >
                   <span style={{ color: '#64748b' }}>Subtotal:</span>
-                  <span className="tabular-nums" style={{ fontWeight: 600 }}>{formatPKR(selectedInvoice.subtotalPaisa)}</span>
+                  <span className="tabular-nums" style={{ fontWeight: 600 }}>
+                    {formatPKR(selectedInvoice.subtotalPaisa)}
+                  </span>
                 </div>
                 {selectedInvoice.discountPaisa > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '6px',
+                      fontSize: '13px',
+                    }}
+                  >
                     <span style={{ color: '#64748b' }}>Total Discount:</span>
-                    <span className="tabular-nums" style={{ color: '#b91c1c', fontWeight: 700 }}>-{formatPKR(selectedInvoice.discountPaisa)}</span>
+                    <span className="tabular-nums" style={{ color: '#b91c1c', fontWeight: 700 }}>
+                      -{formatPKR(selectedInvoice.discountPaisa)}
+                    </span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '8px',
+                    fontSize: '13px',
+                  }}
+                >
                   <span style={{ color: '#64748b' }}>GST Tax:</span>
-                  <span className="tabular-nums" style={{ fontWeight: 600 }}>{formatPKR(selectedInvoice.taxPaisa)}</span>
+                  <span className="tabular-nums" style={{ fontWeight: 600 }}>
+                    {formatPKR(selectedInvoice.taxPaisa)}
+                  </span>
                 </div>
                 <div
                   style={{
@@ -743,8 +1066,18 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                     alignItems: 'center',
                   }}
                 >
-                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>Grand Total:</span>
-                  <span className="tabular-nums" style={{ color: '#059669', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em' }}>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    Grand Total:
+                  </span>
+                  <span
+                    className="tabular-nums"
+                    style={{
+                      color: '#059669',
+                      fontSize: '20px',
+                      fontWeight: 900,
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
                     {formatPKR(selectedInvoice.grandTotalPaisa)}
                   </span>
                 </div>
@@ -756,8 +1089,8 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                 {(selectedInvoice.payments && selectedInvoice.payments.length > 0
                   ? selectedInvoice.payments
                   : selectedInvoice.payment
-                  ? [selectedInvoice.payment]
-                  : []
+                    ? [selectedInvoice.payment]
+                    : []
                 )
                   .map((p) => `${p.paymentMethod.toUpperCase()}: ${formatPKR(p.amountPaisa)}`)
                   .join(' | ')}
@@ -775,7 +1108,17 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
                 alignItems: 'center',
               }}
             >
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer', color: '#475569', fontWeight: 600 }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  color: '#475569',
+                  fontWeight: 600,
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={showBatchOnReprint}

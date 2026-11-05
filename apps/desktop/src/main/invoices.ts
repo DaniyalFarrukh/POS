@@ -29,7 +29,9 @@ export function createInvoice(
   const db = rawDb ?? getDatabase();
 
   if (!session?.branch?.id || !session?.counter?.id || !session?.user?.id) {
-    throw new Error('Valid active session with branch, counter, and user is required to issue an invoice.');
+    throw new Error(
+      'Valid active session with branch, counter, and user is required to issue an invoice.'
+    );
   }
 
   const branchId = session.branch.id;
@@ -59,7 +61,9 @@ export function createInvoice(
 
   if (data.paymentMethod === 'cash') {
     if (tenderedPaisa < grandTotalPaisa) {
-      throw new Error(`Insufficient cash tendered: expected at least ${grandTotalPaisa} paisa, received ${tenderedPaisa}.`);
+      throw new Error(
+        `Insufficient cash tendered: expected at least ${grandTotalPaisa} paisa, received ${tenderedPaisa}.`
+      );
     }
     changePaisa = tenderedPaisa - grandTotalPaisa;
     amountPaisa = grandTotalPaisa;
@@ -72,12 +76,14 @@ export function createInvoice(
 
   // 3. Generate sequential invoice number (e.g. INV-20261026-0001)
   const countRow = db
-    .prepare(`
+    .prepare(
+      `
       SELECT COUNT(*) as count
       FROM invoices i
       JOIN counters c ON i.counter_id = c.id
       WHERE c.branch_id = ? AND i.created_at >= ?
-    `)
+    `
+    )
     .get(branchId, getKarachiDayStartUtc(dateKey)) as { count: number } | undefined;
   const seq = (countRow?.count ?? 0) + 1;
   const compactDate = dateKey.replace(/-/g, '');
@@ -117,13 +123,15 @@ export function createInvoice(
   // 4. Execute atomic transaction (Rule 5)
   const executeTx = db.transaction(() => {
     // Insert invoice header
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO invoices (
         id, counter_id, cashier_user_id, invoice_number, client_request_id,
         status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa,
         notes, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       invoiceId,
       counterId,
       userId,
@@ -168,22 +176,26 @@ export function createInvoice(
       let expiryDate = lineInput.expiryDate ?? null;
 
       if (!batchId) {
-        const found = findBatchStmt.get(branchId, lineInput.productId) as {
-          id: string;
-          batchNo: string;
-          expiryDate: string;
-        } | undefined;
+        const found = findBatchStmt.get(branchId, lineInput.productId) as
+          | {
+              id: string;
+              batchNo: string;
+              expiryDate: string;
+            }
+          | undefined;
 
         if (found) {
           batchId = found.id;
           batchNo = found.batchNo;
           expiryDate = found.expiryDate;
         } else {
-          const fallback = fallbackBatchStmt.get(lineInput.productId) as {
-            id: string;
-            batchNo: string;
-            expiryDate: string;
-          } | undefined;
+          const fallback = fallbackBatchStmt.get(lineInput.productId) as
+            | {
+                id: string;
+                batchNo: string;
+                expiryDate: string;
+              }
+            | undefined;
           if (fallback) {
             batchId = fallback.id;
             batchNo = fallback.batchNo;
@@ -224,12 +236,14 @@ export function createInvoice(
         );
       }
 
-      const prodInfo = productLookupStmt.get(lineInput.productId) as {
-        brand_name: string;
-        generic_name: string;
-        strength: string;
-        form: string;
-      } | undefined;
+      const prodInfo = productLookupStmt.get(lineInput.productId) as
+        | {
+            brand_name: string;
+            generic_name: string;
+            strength: string;
+            form: string;
+          }
+        | undefined;
 
       createdLines.push({
         id: lineId,
@@ -257,37 +271,24 @@ export function createInvoice(
 
     // Insert payment row
     const paymentMethod: 'cash' | 'card' | 'wallet' =
-      data.paymentMethod === 'card'
-        ? 'card'
-        : data.paymentMethod === 'cash'
-          ? 'cash'
-          : 'wallet';
+      data.paymentMethod === 'card' ? 'card' : data.paymentMethod === 'cash' ? 'cash' : 'wallet';
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO payments (
         id, invoice_id, method, amount_paisa
       ) VALUES (?, ?, ?, ?)
-    `).run(
-      paymentId,
-      invoiceId,
-      paymentMethod,
-      amountPaisa
-    );
+    `
+    ).run(paymentId, invoiceId, paymentMethod, amountPaisa);
 
     // Insert fiscal submission record
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO fiscal_submissions (
         id, invoice_id, status, fiscal_invoice_number, qr_payload, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      generateUuidV7(),
-      invoiceId,
-      'not_required',
-      null,
-      null,
-      now,
-      now
-    );
+    `
+    ).run(generateUuidV7(), invoiceId, 'not_required', null, null, now, now);
 
     const paymentRecord: PaymentRecord = {
       id: paymentId,
@@ -363,20 +364,15 @@ export function createInvoice(
         },
       ],
     };
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at, synced_at
       ) VALUES (
         ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'invoice.created', 'invoice.created', ?, ?, ?, 'pending', 0, ?, null
       )
-    `).run(
-      outboxEventId,
-      outboxEventId,
-      invoiceRecord.id,
-      JSON.stringify(outboxPayload),
-      now,
-      now
-    );
+    `
+    ).run(outboxEventId, outboxEventId, invoiceRecord.id, JSON.stringify(outboxPayload), now, now);
 
     return invoiceRecord;
   });
@@ -442,10 +438,7 @@ interface RawPaymentRow {
   amount_paisa: number;
 }
 
-function mapInvoiceRows(
-  db: DatabaseInstance,
-  rows: RawInvoiceRow[]
-): InvoiceRecord[] {
+function mapInvoiceRows(db: DatabaseInstance, rows: RawInvoiceRow[]): InvoiceRecord[] {
   const lineStmt = db.prepare<[string]>(`
     SELECT
       il.*,
@@ -602,7 +595,8 @@ export function searchInvoices(
   queryParams.push(limit, offset);
 
   const rows = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         i.*,
         c.branch_id,
@@ -614,7 +608,8 @@ export function searchInvoices(
       ${whereSql}
       ORDER BY i.created_at DESC
       LIMIT ? OFFSET ?
-    `)
+    `
+    )
     .all(...queryParams) as RawInvoiceRow[];
 
   return mapInvoiceRows(db, rows);
@@ -623,13 +618,11 @@ export function searchInvoices(
 /**
  * Retrieves a single finalized invoice by ID with all lines and payments.
  */
-export function getInvoiceById(
-  invoiceId: string,
-  rawDb?: DatabaseInstance
-): InvoiceRecord | null {
+export function getInvoiceById(invoiceId: string, rawDb?: DatabaseInstance): InvoiceRecord | null {
   const db = rawDb ?? getDatabase();
   const rows = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         i.*,
         c.branch_id,
@@ -640,7 +633,8 @@ export function getInvoiceById(
       LEFT JOIN counters c ON i.counter_id = c.id
       WHERE i.id = ?
       LIMIT 1
-    `)
+    `
+    )
     .all(invoiceId) as RawInvoiceRow[];
 
   const results = mapInvoiceRows(db, rows);
@@ -715,4 +709,3 @@ export async function roleGuardedGetInvoiceById(
   assertRole(getSession(), ['cashier', 'pharmacist', 'owner']);
   return getInvoiceById(invoiceId, rawDb);
 }
-

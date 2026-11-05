@@ -33,7 +33,9 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
   >([]);
 
   // Adjustment form state
-  const [adjustmentDirection, setAdjustmentDirection] = useState<'decrease' | 'increase'>('decrease');
+  const [adjustmentDirection, setAdjustmentDirection] = useState<'decrease' | 'increase'>(
+    'decrease'
+  );
   const [quantity, setQuantity] = useState<number>(1);
   const [reasonType, setReasonType] = useState<AdjustmentReasonType>('damage');
   const [reasonDetails, setReasonDetails] = useState<string>('');
@@ -205,7 +207,15 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
 
           {/* Product Info / Picker */}
           <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                marginBottom: '4px',
+              }}
+            >
               Medicine / Product
             </label>
             {productId ? (
@@ -298,9 +308,24 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
           </div>
 
           {/* Batch Selector & Current Balance */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.4fr 1fr',
+              gap: '14px',
+              marginBottom: '14px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Batch Number
               </label>
               {availableBatches.length > 0 ? (
@@ -345,7 +370,15 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Current Balance (Rule 4)
               </label>
               <div
@@ -366,9 +399,24 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
           </div>
 
           {/* Adjustment Type & Quantity */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', marginBottom: '14px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 1fr',
+              gap: '14px',
+              marginBottom: '14px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Adjustment Action
               </label>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -379,7 +427,10 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
                     flex: 1,
                     padding: '8px',
                     borderRadius: '6px',
-                    border: adjustmentDirection === 'decrease' ? '2px solid #ef4444' : '1px solid #cbd5e1',
+                    border:
+                      adjustmentDirection === 'decrease'
+                        ? '2px solid #ef4444'
+                        : '1px solid #cbd5e1',
                     backgroundColor: adjustmentDirection === 'decrease' ? '#fef2f2' : '#ffffff',
                     color: adjustmentDirection === 'decrease' ? '#b91c1c' : '#475569',
                     fontWeight: 600,
@@ -396,7 +447,10 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
                     flex: 1,
                     padding: '8px',
                     borderRadius: '6px',
-                    border: adjustmentDirection === 'increase' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                    border:
+                      adjustmentDirection === 'increase'
+                        ? '2px solid #16a34a'
+                        : '1px solid #cbd5e1',
                     backgroundColor: adjustmentDirection === 'increase' ? '#f0fdf4' : '#ffffff',
                     color: adjustmentDirection === 'increase' ? '#15803d' : '#475569',
                     fontWeight: 600,
@@ -410,7 +464,15 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '4px',
+                }}
+              >
                 Quantity
               </label>
               <input
@@ -433,7 +495,15 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
 
           {/* Reason Category */}
           <div style={{ marginBottom: '14px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                marginBottom: '4px',
+              }}
+            >
               Reason Category <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <select
@@ -450,13 +520,23 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
             >
               <option value="damage">Damage (Broken / Leaked / Compromised Packaging)</option>
               <option value="loss">Loss (Expired stock discard / Missing from inventory)</option>
-              <option value="correction">Correction (Audit recount / Data entry discrepancy)</option>
+              <option value="correction">
+                Correction (Audit recount / Data entry discrepancy)
+              </option>
             </select>
           </div>
 
           {/* Detailed Reason Explanation */}
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                marginBottom: '4px',
+              }}
+            >
               Explanation / Audit Notes <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <textarea
@@ -494,7 +574,9 @@ export const StockAdjustmentModal: React.FC<StockAdjustmentModalProps> = ({
             </span>
             <span style={{ fontSize: '13px', color: '#1e293b' }}>
               New Projected Balance:{' '}
-              <strong style={{ fontSize: '16px', color: projectedBalance < 0 ? '#dc2626' : '#0f172a' }}>
+              <strong
+                style={{ fontSize: '16px', color: projectedBalance < 0 ? '#dc2626' : '#0f172a' }}
+              >
                 {projectedBalance} units
               </strong>
             </span>

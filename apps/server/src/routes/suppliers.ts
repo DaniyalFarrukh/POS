@@ -3,13 +3,7 @@ import { eq, and, desc, asc, ilike, or } from 'drizzle-orm';
 import { z, generateUuidV7 } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
-import {
-  suppliers,
-  accounts,
-  journalEntries,
-  journalLines,
-  fiscalPeriods,
-} from '../db/schema';
+import { suppliers, accounts, journalEntries, journalLines, fiscalPeriods } from '../db/schema';
 import { getPharmacyAccountMap } from '../ledger/coa-seed';
 import { postJournalEntry } from '../ledger/service';
 import { insertChangeLog } from '../sync/change-log';
@@ -18,13 +12,7 @@ const CreateSupplierSchema = z.object({
   name: z.string().trim().min(1, 'Supplier name is required'),
   contactPerson: z.string().trim().optional().nullable(),
   phone: z.string().trim().optional().nullable(),
-  email: z
-    .string()
-    .trim()
-    .email('Invalid email address')
-    .optional()
-    .nullable()
-    .or(z.literal('')),
+  email: z.string().trim().email('Invalid email address').optional().nullable().or(z.literal('')),
   address: z.string().trim().optional().nullable(),
   taxNumber: z.string().trim().optional().nullable(),
   paymentTermsDays: z
@@ -48,13 +36,7 @@ const UpdateSupplierSchema = z.object({
   name: z.string().trim().min(1, 'Supplier name is required').optional(),
   contactPerson: z.string().trim().optional().nullable(),
   phone: z.string().trim().optional().nullable(),
-  email: z
-    .string()
-    .trim()
-    .email('Invalid email address')
-    .optional()
-    .nullable()
-    .or(z.literal('')),
+  email: z.string().trim().email('Invalid email address').optional().nullable().or(z.literal('')),
   address: z.string().trim().optional().nullable(),
   taxNumber: z.string().trim().optional().nullable(),
   paymentTermsDays: z
@@ -81,7 +63,10 @@ function normalizePhone(p?: string | null): string {
 }
 
 function normalizeName(n: string): string {
-  return n.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  return n
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
 }
 
 export const supplierRoutes: FastifyPluginAsync = async (app) => {
@@ -321,7 +306,11 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
             .where(
               and(
                 eq(accounts.pharmacyId, pharmacyId),
-                or(eq(accounts.code, '3100'), eq(accounts.code, '3000'), eq(accounts.type, 'equity'))
+                or(
+                  eq(accounts.code, '3100'),
+                  eq(accounts.code, '3000'),
+                  eq(accounts.type, 'equity')
+                )
               )
             )
             .limit(1);
@@ -422,11 +411,12 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
             if (!seenPair.has(pairKey)) {
               seenPair.add(pairKey);
               groups.push({
-                reason: nameMatch && phoneMatch
-                  ? 'Matching Name and Phone'
-                  : nameMatch
-                  ? 'Matching Supplier Name'
-                  : 'Matching Phone Number',
+                reason:
+                  nameMatch && phoneMatch
+                    ? 'Matching Name and Phone'
+                    : nameMatch
+                      ? 'Matching Supplier Name'
+                      : 'Matching Phone Number',
                 candidateIds: [s1.id, s2.id],
                 candidates: [s1, s2],
               });
@@ -509,7 +499,10 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
             )
           );
 
-        const sourceBalance = sourceLines.reduce((sum, l) => sum + (l.creditPaisa - l.debitPaisa), 0);
+        const sourceBalance = sourceLines.reduce(
+          (sum, l) => sum + (l.creditPaisa - l.debitPaisa),
+          0
+        );
 
         // 2. Post reclassification journal entry if source has non-zero balance
         if (sourceBalance !== 0) {
@@ -634,102 +627,102 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
     { preHandler: [requirePermission('inventory.supplier.view')] },
     async (request, reply) => {
       const db = request.server.db || getDb();
-        const user = request.userContext!;
-        const pharmacyId = user.pharmacyId;
-        const { id } = request.params as { id: string };
+      const user = request.userContext!;
+      const pharmacyId = user.pharmacyId;
+      const { id } = request.params as { id: string };
 
-        const [supplier] = await db
-          .select()
-          .from(suppliers)
-          .where(and(eq(suppliers.id, id), eq(suppliers.pharmacyId, pharmacyId)));
+      const [supplier] = await db
+        .select()
+        .from(suppliers)
+        .where(and(eq(suppliers.id, id), eq(suppliers.pharmacyId, pharmacyId)));
 
-        if (!supplier) {
-          return reply.status(404).send({
-            statusCode: 404,
-            error: 'Not Found',
-            message: 'Supplier not found',
-          });
-        }
-
-        const accountMap = await getPharmacyAccountMap(db, pharmacyId);
-        const apAccountId = accountMap.ap;
-
-        // AP Ledger lines
-        const lines = await db
-          .select({
-            id: journalLines.id,
-            entryId: journalLines.entryId,
-            entryNo: journalEntries.entryNo,
-            entryDate: journalEntries.entryDate,
-            sourceType: journalEntries.sourceType,
-            sourceId: journalEntries.sourceId,
-            memo: journalEntries.memo,
-            lineMemo: journalLines.memo,
-            debitPaisa: journalLines.debitPaisa,
-            creditPaisa: journalLines.creditPaisa,
-            createdAt: journalEntries.createdAt,
-          })
-          .from(journalLines)
-          .innerJoin(journalEntries, eq(journalLines.entryId, journalEntries.id))
-          .where(
-            and(
-              eq(journalLines.pharmacyId, pharmacyId),
-              eq(journalLines.accountId, apAccountId),
-              eq(journalLines.partyType, 'supplier'),
-              eq(journalLines.partyId, id),
-              eq(journalEntries.status, 'posted')
-            )
-          )
-          .orderBy(asc(journalEntries.entryDate), asc(journalEntries.createdAt));
-
-        let runningBalancePaisa = 0;
-        const ledger = lines.map((l) => {
-          runningBalancePaisa += l.creditPaisa - l.debitPaisa;
-          return {
-            ...l,
-            runningBalancePaisa,
-          };
+      if (!supplier) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Supplier not found',
         });
+      }
 
-        // Purchase history (from purchase journal entries or movements)
-        const purchaseEntries = await db
-          .select({
-            id: journalEntries.id,
-            entryNo: journalEntries.entryNo,
-            entryDate: journalEntries.entryDate,
-            sourceId: journalEntries.sourceId,
-            memo: journalEntries.memo,
-            postedAt: journalEntries.createdAt,
-          })
-          .from(journalEntries)
-          .innerJoin(journalLines, eq(journalLines.entryId, journalEntries.id))
-          .where(
-            and(
-              eq(journalEntries.pharmacyId, pharmacyId),
-              eq(journalEntries.sourceType, 'purchase'),
-              eq(journalLines.partyType, 'supplier'),
-              eq(journalLines.partyId, id),
-              eq(journalEntries.status, 'posted')
-            )
-          )
-          .groupBy(
-            journalEntries.id,
-            journalEntries.entryNo,
-            journalEntries.entryDate,
-            journalEntries.sourceId,
-            journalEntries.memo,
-            journalEntries.createdAt
-          )
-          .orderBy(desc(journalEntries.entryDate));
+      const accountMap = await getPharmacyAccountMap(db, pharmacyId);
+      const apAccountId = accountMap.ap;
 
-        return reply.status(200).send({
-          supplier: {
-            ...supplier,
-            payableBalancePaisa: runningBalancePaisa,
-          },
-          ledger,
-          purchases: purchaseEntries,
-        });
+      // AP Ledger lines
+      const lines = await db
+        .select({
+          id: journalLines.id,
+          entryId: journalLines.entryId,
+          entryNo: journalEntries.entryNo,
+          entryDate: journalEntries.entryDate,
+          sourceType: journalEntries.sourceType,
+          sourceId: journalEntries.sourceId,
+          memo: journalEntries.memo,
+          lineMemo: journalLines.memo,
+          debitPaisa: journalLines.debitPaisa,
+          creditPaisa: journalLines.creditPaisa,
+          createdAt: journalEntries.createdAt,
+        })
+        .from(journalLines)
+        .innerJoin(journalEntries, eq(journalLines.entryId, journalEntries.id))
+        .where(
+          and(
+            eq(journalLines.pharmacyId, pharmacyId),
+            eq(journalLines.accountId, apAccountId),
+            eq(journalLines.partyType, 'supplier'),
+            eq(journalLines.partyId, id),
+            eq(journalEntries.status, 'posted')
+          )
+        )
+        .orderBy(asc(journalEntries.entryDate), asc(journalEntries.createdAt));
+
+      let runningBalancePaisa = 0;
+      const ledger = lines.map((l) => {
+        runningBalancePaisa += l.creditPaisa - l.debitPaisa;
+        return {
+          ...l,
+          runningBalancePaisa,
+        };
+      });
+
+      // Purchase history (from purchase journal entries or movements)
+      const purchaseEntries = await db
+        .select({
+          id: journalEntries.id,
+          entryNo: journalEntries.entryNo,
+          entryDate: journalEntries.entryDate,
+          sourceId: journalEntries.sourceId,
+          memo: journalEntries.memo,
+          postedAt: journalEntries.createdAt,
+        })
+        .from(journalEntries)
+        .innerJoin(journalLines, eq(journalLines.entryId, journalEntries.id))
+        .where(
+          and(
+            eq(journalEntries.pharmacyId, pharmacyId),
+            eq(journalEntries.sourceType, 'purchase'),
+            eq(journalLines.partyType, 'supplier'),
+            eq(journalLines.partyId, id),
+            eq(journalEntries.status, 'posted')
+          )
+        )
+        .groupBy(
+          journalEntries.id,
+          journalEntries.entryNo,
+          journalEntries.entryDate,
+          journalEntries.sourceId,
+          journalEntries.memo,
+          journalEntries.createdAt
+        )
+        .orderBy(desc(journalEntries.entryDate));
+
+      return reply.status(200).send({
+        supplier: {
+          ...supplier,
+          payableBalancePaisa: runningBalancePaisa,
+        },
+        ledger,
+        purchases: purchaseEntries,
+      });
     }
   );
 
@@ -772,13 +765,16 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
         .update(suppliers)
         .set({
           name: data.name !== undefined ? data.name : existing.name,
-          contactPerson: data.contactPerson !== undefined ? data.contactPerson : existing.contactPerson,
+          contactPerson:
+            data.contactPerson !== undefined ? data.contactPerson : existing.contactPerson,
           phone: data.phone !== undefined ? data.phone : existing.phone,
           email: data.email !== undefined ? (data.email ? data.email : null) : existing.email,
           address: data.address !== undefined ? data.address : existing.address,
           taxNumber: data.taxNumber !== undefined ? data.taxNumber : existing.taxNumber,
-          paymentTermsDays: data.paymentTermsDays !== undefined ? data.paymentTermsDays : existing.paymentTermsDays,
-          creditLimitPaisa: data.creditLimitPaisa !== undefined ? data.creditLimitPaisa : existing.creditLimitPaisa,
+          paymentTermsDays:
+            data.paymentTermsDays !== undefined ? data.paymentTermsDays : existing.paymentTermsDays,
+          creditLimitPaisa:
+            data.creditLimitPaisa !== undefined ? data.creditLimitPaisa : existing.creditLimitPaisa,
           isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
           updatedAt: now,
         })

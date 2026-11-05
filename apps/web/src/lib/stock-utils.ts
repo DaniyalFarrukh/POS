@@ -95,17 +95,26 @@ export interface MovementBadgeInfo {
 export function getMovementTypeBadge(type: string): MovementBadgeInfo {
   switch (type) {
     case 'purchase':
-      return { label: 'Goods Received (GRN)', className: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+      return {
+        label: 'Goods Received (GRN)',
+        className: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      };
     case 'sale':
       return { label: 'Sale (Invoice)', className: 'bg-blue-100 text-blue-800 border-blue-300' };
     case 'return':
       return { label: 'Return', className: 'bg-purple-100 text-purple-800 border-purple-300' };
     case 'adjustment':
-      return { label: 'Adjustment / Write-off', className: 'bg-amber-100 text-amber-800 border-amber-300' };
+      return {
+        label: 'Adjustment / Write-off',
+        className: 'bg-amber-100 text-amber-800 border-amber-300',
+      };
     case 'transfer_in':
       return { label: 'Transfer In', className: 'bg-teal-100 text-teal-800 border-teal-300' };
     case 'transfer_out':
-      return { label: 'Transfer Out', className: 'bg-orange-100 text-orange-800 border-orange-300' };
+      return {
+        label: 'Transfer Out',
+        className: 'bg-orange-100 text-orange-800 border-orange-300',
+      };
     default:
       return { label: type, className: 'bg-slate-100 text-slate-800 border-slate-300' };
   }
@@ -131,9 +140,7 @@ export function validateWriteOffInput(
   return { isValid: true };
 }
 
-export function validateDiscountInput(
-  mrpPaisa: number
-): { isValid: boolean; error?: string } {
+export function validateDiscountInput(mrpPaisa: number): { isValid: boolean; error?: string } {
   if (!Number.isInteger(mrpPaisa) || mrpPaisa < 0) {
     return { isValid: false, error: 'Price must be a non-negative integer in paisa' };
   }

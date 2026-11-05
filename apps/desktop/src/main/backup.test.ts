@@ -60,7 +60,9 @@ describe('Safe Database Backup & Restore Service (Phase 5)', () => {
 
     // Verify backed up database can be opened and has intact data
     const verifyDb = new Database(backup.filePath);
-    const row = verifyDb.prepare('SELECT name FROM sample_items WHERE id = ?').get('item-1') as { name: string };
+    const row = verifyDb.prepare('SELECT name FROM sample_items WHERE id = ?').get('item-1') as {
+      name: string;
+    };
     expect(row).toBeDefined();
     expect(row.name).toBe('Panadol 500mg');
     verifyDb.close();
@@ -121,7 +123,9 @@ describe('Safe Database Backup & Restore Service (Phase 5)', () => {
 
     // Step 2: Mutate active database (insert item-2)
     db.exec(`INSERT INTO sample_items (id, name) VALUES ('item-2', 'Brufen 400mg');`);
-    const countBefore = (db.prepare('SELECT COUNT(*) as count FROM sample_items').get() as { count: number }).count;
+    const countBefore = (
+      db.prepare('SELECT COUNT(*) as count FROM sample_items').get() as { count: number }
+    ).count;
     expect(countBefore).toBe(2);
 
     // Step 3: Restore initial backup as owner
@@ -136,10 +140,14 @@ describe('Safe Database Backup & Restore Service (Phase 5)', () => {
 
     // Step 4: Verify restored database state
     const restoredDb = getDatabase();
-    const countAfter = (restoredDb.prepare('SELECT COUNT(*) as count FROM sample_items').get() as { count: number }).count;
+    const countAfter = (
+      restoredDb.prepare('SELECT COUNT(*) as count FROM sample_items').get() as { count: number }
+    ).count;
     expect(countAfter).toBe(1);
 
-    const row = restoredDb.prepare('SELECT name FROM sample_items WHERE id = ?').get('item-1') as { name: string };
+    const row = restoredDb.prepare('SELECT name FROM sample_items WHERE id = ?').get('item-1') as {
+      name: string;
+    };
     expect(row.name).toBe('Panadol 500mg');
   });
 

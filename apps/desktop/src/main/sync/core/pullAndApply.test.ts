@@ -30,10 +30,12 @@ describe('pullAndApply (Phase 3.2)', () => {
     }
 
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at)
       VALUES ('tax-default', 'Standard', 0, 0, ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
   });
 
   it('multi-page pull with correct cursor progression', async () => {
@@ -114,13 +116,17 @@ describe('pullAndApply (Phase 3.2)', () => {
     expect(requestedUrls[1]).toContain('cursor=1');
 
     // Verify both products exist locally
-    const p1 = db.prepare('SELECT brand_name, mrp_paisa FROM products WHERE id = ?').get(prod1Id) as {
+    const p1 = db
+      .prepare('SELECT brand_name, mrp_paisa FROM products WHERE id = ?')
+      .get(prod1Id) as {
       brand_name: string;
       mrp_paisa: number;
     };
     expect(p1.brand_name).toBe('Product Page 1');
 
-    const p2 = db.prepare('SELECT brand_name, mrp_paisa FROM products WHERE id = ?').get(prod2Id) as {
+    const p2 = db
+      .prepare('SELECT brand_name, mrp_paisa FROM products WHERE id = ?')
+      .get(prod2Id) as {
       brand_name: string;
       mrp_paisa: number;
     };
@@ -133,7 +139,9 @@ describe('pullAndApply (Phase 3.2)', () => {
     expect(cursor.value).toBe('2');
 
     // Verify last_pull_ok_at and last_online_at updated
-    const lastPull = db.prepare('SELECT value FROM sync_state WHERE key = ?').get('last_pull_ok_at') as {
+    const lastPull = db
+      .prepare('SELECT value FROM sync_state WHERE key = ?')
+      .get('last_pull_ok_at') as {
       value: string;
     };
     expect(lastPull.value).toBeDefined();
@@ -215,22 +223,28 @@ describe('pullAndApply (Phase 3.2)', () => {
       now,
       now
     );
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer, tax_category_id, mrp_paisa, created_at, updated_at
       ) VALUES (?, 'Panadol', 'PCM', '500mg', 'tab', 'GSK', 'tax-default', 200, ?, ?)
-    `).run(productId, now, now);
-    db.prepare(`
+    `
+    ).run(productId, now, now);
+    db.prepare(
+      `
       INSERT INTO batches (
         id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at
       ) VALUES (?, ?, 'B1', '2028-01-01', 100, 200, ?, ?)
-    `).run(batchId, productId, now, now);
+    `
+    ).run(batchId, productId, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (
         id, product_id, batch_id, branch_id, type, quantity_signed, created_at, updated_at
       ) VALUES (?, ?, ?, ?, 'sale', -5, ?, ?)
-    `).run(movementId, productId, batchId, branchId, now, now);
+    `
+    ).run(movementId, productId, batchId, branchId, now, now);
 
     const movementCountBefore = (
       db.prepare('SELECT COUNT(*) as c FROM stock_movements').get() as { c: number }
@@ -283,11 +297,13 @@ describe('pullAndApply (Phase 3.2)', () => {
     const productId = generateUuidV7();
     const now = new Date().toISOString();
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer, tax_category_id, mrp_paisa, created_at, updated_at
       ) VALUES (?, 'Calpol', 'PCM', '120mg', 'syrup', 'GSK', 'tax-default', 150, ?, ?)
-    `).run(productId, now, now);
+    `
+    ).run(productId, now, now);
 
     const page = {
       changes: [
@@ -319,9 +335,9 @@ describe('pullAndApply (Phase 3.2)', () => {
       { serverUrl: 'http://localhost:3001', token: 'token' }
     );
 
-    const updated = db
-      .prepare('SELECT mrp_paisa FROM products WHERE id = ?')
-      .get(productId) as { mrp_paisa: number };
+    const updated = db.prepare('SELECT mrp_paisa FROM products WHERE id = ?').get(productId) as {
+      mrp_paisa: number;
+    };
     expect(updated.mrp_paisa).toBe(250);
   });
 
@@ -329,11 +345,13 @@ describe('pullAndApply (Phase 3.2)', () => {
     const productId = generateUuidV7();
     const now = new Date().toISOString();
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer, tax_category_id, mrp_paisa, is_active, created_at, updated_at
       ) VALUES (?, 'Discontinued Med', 'Disc', '10mg', 'tab', 'Pharma', 'tax-default', 100, 1, ?, ?)
-    `).run(productId, now, now);
+    `
+    ).run(productId, now, now);
 
     const page = {
       changes: [
@@ -360,9 +378,9 @@ describe('pullAndApply (Phase 3.2)', () => {
       { serverUrl: 'http://localhost:3001', token: 'token' }
     );
 
-    const product = db
-      .prepare('SELECT is_active FROM products WHERE id = ?')
-      .get(productId) as { is_active: number };
+    const product = db.prepare('SELECT is_active FROM products WHERE id = ?').get(productId) as {
+      is_active: number;
+    };
     expect(product.is_active).toBe(0);
   });
 
@@ -404,9 +422,8 @@ describe('pullAndApply (Phase 3.2)', () => {
       { serverUrl: 'http://localhost:3001', token: 'token' }
     );
 
-    const outboxCountAfter = (
-      db.prepare('SELECT COUNT(*) as c FROM outbox').get() as { c: number }
-    ).c;
+    const outboxCountAfter = (db.prepare('SELECT COUNT(*) as c FROM outbox').get() as { c: number })
+      .c;
     expect(outboxCountAfter).toBe(0); // Zero outbox rows created!
   });
 
@@ -433,13 +450,13 @@ describe('pullAndApply (Phase 3.2)', () => {
 
     let warnLogged = false;
     const logger = {
-      info: () => { },
+      info: () => {},
       warn: (msg: string) => {
         if (msg.includes('future_unsupported_entity_type')) {
           warnLogged = true;
         }
       },
-      error: () => { },
+      error: () => {},
     };
 
     const summary = await pullAndApply(

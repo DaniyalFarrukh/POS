@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { PurchaseOrderRecord, PurchaseOrderKPIs, LowStockSuggestionItem, OverReceiptPolicy } from '../../types';
+import type {
+  PurchaseOrderRecord,
+  PurchaseOrderKPIs,
+  LowStockSuggestionItem,
+  OverReceiptPolicy,
+} from '../../types';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
@@ -30,7 +35,13 @@ import {
   Trash2,
 } from 'lucide-react';
 import { PurchaseOrderDetailPage } from './PurchaseOrderDetailPage';
-import { validatePOForm, calculatePOTotals, canManagePO, getPOStatusDetails, type POLineInput } from '../../lib/po-utils';
+import {
+  validatePOForm,
+  calculatePOTotals,
+  canManagePO,
+  getPOStatusDetails,
+  type POLineInput,
+} from '../../lib/po-utils';
 
 interface SupplierSimple {
   id: string;
@@ -123,7 +134,9 @@ export const PurchaseOrdersPage: React.FC = () => {
     try {
       const [supRes, brRes, prodRes] = await Promise.all([
         apiFetch<{ items: SupplierSimple[] }>('/api/suppliers').catch(() => ({ items: [] })),
-        apiFetch<{ branches: BranchSimple[] }>('/api/admin/branches').catch(() => ({ branches: [] })),
+        apiFetch<{ branches: BranchSimple[] }>('/api/admin/branches').catch(() => ({
+          branches: [],
+        })),
         apiFetch<{ items: Array<{ productId: string; brandName: string; mrpPaisa: number }> }>(
           '/api/reports/stock-and-expiry'
         ).catch(() => ({ items: [] })),
@@ -252,7 +265,9 @@ export const PurchaseOrdersPage: React.FC = () => {
     setExpectedDeliveryDate('');
     setOverReceiptPolicy('flag');
     setNotes('Generated from low stock suggestions');
-    setFormLines(lines.length > 0 ? lines : [{ productId: '', quantityOrdered: 10, expectedCostPaisa: 1000 }]);
+    setFormLines(
+      lines.length > 0 ? lines : [{ productId: '', quantityOrdered: 10, expectedCostPaisa: 1000 }]
+    );
     setDrawerError(null);
     setIsDrawerOpen(true);
   };
@@ -311,7 +326,9 @@ export const PurchaseOrdersPage: React.FC = () => {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <span className="text-xs font-medium text-slate-500 uppercase">Pending Approval</span>
-              <div className="text-2xl font-bold text-amber-600 mt-1">{kpis.pendingApprovalCount}</div>
+              <div className="text-2xl font-bold text-amber-600 mt-1">
+                {kpis.pendingApprovalCount}
+              </div>
               <div className="text-xs text-slate-400 mt-1">Requires Manager / Owner sign-off</div>
             </div>
             <Clock className="h-8 w-8 text-amber-500/20" />
@@ -334,7 +351,9 @@ export const PurchaseOrdersPage: React.FC = () => {
         <Card>
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-xs font-medium text-slate-500 uppercase">Overdue Deliveries</span>
+              <span className="text-xs font-medium text-slate-500 uppercase">
+                Overdue Deliveries
+              </span>
               <div className="text-2xl font-bold text-red-600 mt-1">{kpis.overdueCount}</div>
               <div className="text-xs text-slate-400 mt-1">Past expected delivery date</div>
             </div>
@@ -542,7 +561,9 @@ export const PurchaseOrdersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Expected Delivery Date</label>
+                <label className="block font-medium text-slate-700 mb-1">
+                  Expected Delivery Date
+                </label>
                 <Input
                   type="date"
                   value={expectedDeliveryDate}
@@ -563,7 +584,9 @@ export const PurchaseOrdersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Notes / Instructions</label>
+                <label className="block font-medium text-slate-700 mb-1">
+                  Notes / Instructions
+                </label>
                 <Input
                   placeholder="Optional memo or terms"
                   value={notes}
@@ -602,7 +625,9 @@ export const PurchaseOrdersPage: React.FC = () => {
                             onChange={(e) => {
                               const val = e.target.value;
                               setFormLines((prev) =>
-                                prev.map((item, i) => (i === idx ? { ...item, productId: val } : item))
+                                prev.map((item, i) =>
+                                  i === idx ? { ...item, productId: val } : item
+                                )
                               );
                             }}
                           >
@@ -622,7 +647,9 @@ export const PurchaseOrdersPage: React.FC = () => {
                             onChange={(e) => {
                               const val = e.target.value;
                               setFormLines((prev) =>
-                                prev.map((item, i) => (i === idx ? { ...item, productId: val } : item))
+                                prev.map((item, i) =>
+                                  i === idx ? { ...item, productId: val } : item
+                                )
                               );
                             }}
                           />

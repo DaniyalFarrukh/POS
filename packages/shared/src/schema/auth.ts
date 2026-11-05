@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
-export const UserRoleSchema = z.enum([
-  'owner',
-  'manager',
-  'accountant',
-  'pharmacist',
-  'cashier',
-]);
+export const UserRoleSchema = z.enum(['owner', 'manager', 'accountant', 'pharmacist', 'cashier']);
 export type UserRole = z.infer<typeof UserRoleSchema>;
 
 // 6 to 8 numeric digits for staff, strictly 8 digits for owner
@@ -100,6 +94,7 @@ export const ALL_PERMISSIONS = [
   'finance.payment.create',
   'finance.expense.view',
   'finance.expense.create',
+  'finance.expense.approve',
   'finance.ar.view',
   'finance.ap.view',
   'finance.cash_bank.view',
@@ -215,6 +210,20 @@ const MANAGER_PERMISSIONS = new Set<AppPermission>([
   'inventory.supplier_return.view',
   'inventory.supplier_return.create',
 
+  'finance.payment.view',
+  'finance.payment.create',
+  'finance.expense.view',
+  'finance.expense.create',
+  'finance.expense.approve',
+  'finance.ar.view',
+  'finance.ap.view',
+  'finance.cash_bank.view',
+  'finance.cash_bank.manage',
+  'finance.sales_ledger.view',
+  'finance.reports.view',
+  'finance.budget.view',
+  'finance.budget.manage',
+
   'hr.employee.view',
   'hr.employee.manage',
   'hr.attendance.view',
@@ -261,6 +270,7 @@ const ACCOUNTANT_PERMISSIONS = new Set<AppPermission>([
   'finance.payment.create',
   'finance.expense.view',
   'finance.expense.create',
+  'finance.expense.approve',
   'finance.ar.view',
   'finance.ap.view',
   'finance.cash_bank.view',

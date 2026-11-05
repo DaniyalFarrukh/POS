@@ -160,7 +160,9 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
 
         const [balRow] = await db
           .select({
-            balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(Number),
+            balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(
+              Number
+            ),
           })
           .from(stockMovements)
           .where(and(...conditions));
@@ -204,10 +206,7 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
       });
 
       // Fetch created record with lines
-      const [newCount] = await db
-        .select()
-        .from(stockCounts)
-        .where(eq(stockCounts.id, countId));
+      const [newCount] = await db.select().from(stockCounts).where(eq(stockCounts.id, countId));
 
       return reply.status(201).send({
         data: {
@@ -258,12 +257,7 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
         .from(stockCountLines)
         .innerJoin(products, eq(stockCountLines.productId, products.id))
         .innerJoin(batches, eq(stockCountLines.batchId, batches.id))
-        .where(
-          and(
-            eq(stockCountLines.countId, id),
-            eq(stockCountLines.pharmacyId, pharmacyId)
-          )
-        )
+        .where(and(eq(stockCountLines.countId, id), eq(stockCountLines.pharmacyId, pharmacyId)))
         .orderBy(asc(products.brandName));
 
       return reply.status(200).send({
@@ -353,10 +347,7 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
             .where(eq(stockCountLines.id, line.id));
         }
 
-        await tx
-          .update(stockCounts)
-          .set({ updatedAt: now })
-          .where(eq(stockCounts.id, id));
+        await tx.update(stockCounts).set({ updatedAt: now }).where(eq(stockCounts.id, id));
       });
 
       const updatedLines = await db
@@ -511,7 +502,9 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
           // Check if balance dropped negative -> alert
           const [balRow] = await tx
             .select({
-              balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(Number),
+              balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(
+                Number
+              ),
             })
             .from(stockMovements)
             .where(
@@ -606,4 +599,3 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
     }
   );
 };
-

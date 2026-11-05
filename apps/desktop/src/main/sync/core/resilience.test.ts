@@ -150,20 +150,26 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
     }
 
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO branches (id, name, created_at, updated_at)
       VALUES ('branch-1', 'Main Branch', ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO counters (id, branch_id, name, code, created_at, updated_at)
       VALUES ('counter-1', 'branch-1', 'Counter 1', 'C-1', ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT OR IGNORE INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at)
       VALUES ('tax-1', 'Standard Rate', 1700, 0, ?, ?)
-    `).run(now, now);
+    `
+    ).run(now, now);
 
     return db;
   }
@@ -177,22 +183,13 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
     status = 'pending'
   ) {
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
-    `).run(
-      id,
-      id,
-      seq,
-      type,
-      type,
-      id,
-      JSON.stringify(payload),
-      now,
-      status,
-      now
-    );
+    `
+    ).run(id, id, seq, type, type, id, JSON.stringify(payload), now, status, now);
   }
 
   // --------------------------------------------------------------------------
@@ -310,10 +307,10 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
       }
 
       if (urlStr.includes('/sync/pull')) {
-        return new Response(
-          JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ changes: [], nextCursor: 0, hasMore: false }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
 
       return new Response(null, { status: 404 });
@@ -417,11 +414,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
       `);
       for (const m of MIGRATIONS) {
         m.up(db1);
-        db1.prepare('INSERT INTO schema_migrations VALUES (?, ?, ?)').run(
-          m.version,
-          m.name,
-          new Date().toISOString()
-        );
+        db1
+          .prepare('INSERT INTO schema_migrations VALUES (?, ?, ?)')
+          .run(m.version, m.name, new Date().toISOString());
       }
 
       // Pre-seed event 1 as already acked
@@ -433,7 +428,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
       insertOutboxEvent(db1, event3, 3, 'invoice.created', { invoiceId: event3 }, 'pending');
 
       // Set initial cursor in sync_state to 42
-      db1.prepare("INSERT OR REPLACE INTO sync_state (key, value) VALUES ('pull_cursor', '42')").run();
+      db1
+        .prepare("INSERT OR REPLACE INTO sync_state (key, value) VALUES ('pull_cursor', '42')")
+        .run();
 
       // Launch Worker 1
       const worker1 = new SyncWorker({
@@ -548,7 +545,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
     const repo = createOutboxRepo(db);
 
     // Event 1 is acked
-    const row1 = db.prepare('SELECT status FROM outbox WHERE id = ?').get(event1) as { status: string };
+    const row1 = db.prepare('SELECT status FROM outbox WHERE id = ?').get(event1) as {
+      status: string;
+    };
     expect(row1.status).toBe('acked');
 
     // Event 2 is exception
@@ -557,7 +556,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
       last_error: string;
     };
     expect(row2.status).toBe('exception');
-    expect(row2.last_error).toContain('[TOTALS_MISMATCH] Invoice line sum does not equal total_paisa');
+    expect(row2.last_error).toContain(
+      '[TOTALS_MISMATCH] Invoice line sum does not equal total_paisa'
+    );
 
     // Event 2 captured in sync_exceptions table
     const exceptions = repo.listExceptions();
@@ -570,7 +571,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
     expect(exc0.payload).toEqual({ invoiceId: event2, invalid: true });
 
     // Event 3 (later event in the same batch) synced successfully!
-    const row3 = db.prepare('SELECT status FROM outbox WHERE id = ?').get(event3) as { status: string };
+    const row3 = db.prepare('SELECT status FROM outbox WHERE id = ?').get(event3) as {
+      status: string;
+    };
     expect(row3.status).toBe('acked');
 
     // Status counts: 0 pending, 2 acked, 1 exception
@@ -648,7 +651,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
     expect(retried0.resolvedAt).toBeTruthy();
 
     // Outbox event is back to 'pending' with 0 attempts and cleared last_error
-    const eventBRow = db.prepare('SELECT status, attempts, last_error FROM outbox WHERE id = ?').get(eventB) as {
+    const eventBRow = db
+      .prepare('SELECT status, attempts, last_error FROM outbox WHERE id = ?')
+      .get(eventB) as {
       status: string;
       attempts: number;
       last_error: string | null;
@@ -668,7 +673,9 @@ describe('Sync Core Resilience Tests (Phase 3.2)', () => {
     await worker.syncNow();
     expect(pushCalls).toBe(1);
 
-    const finalBRow = db.prepare('SELECT status FROM outbox WHERE id = ?').get(eventB) as { status: string };
+    const finalBRow = db.prepare('SELECT status FROM outbox WHERE id = ?').get(eventB) as {
+      status: string;
+    };
     expect(finalBRow.status).toBe('acked');
 
     worker.stop();

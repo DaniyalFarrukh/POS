@@ -85,7 +85,8 @@ export function validateSupplierReturnForm(params: {
       if (!Number.isInteger(line.quantity) || line.quantity <= 0) {
         errors[`line_${i}_qty`] = 'Quantity must be greater than zero';
       } else if (line.quantity > line.availableOnHand) {
-        errors[`line_${i}_qty`] = `Cannot return ${line.quantity} units (only ${line.availableOnHand} on hand)`;
+        errors[`line_${i}_qty`] =
+          `Cannot return ${line.quantity} units (only ${line.availableOnHand} on hand)`;
       }
     });
   }
@@ -95,4 +96,3 @@ export function validateSupplierReturnForm(params: {
     errors,
   };
 }
-

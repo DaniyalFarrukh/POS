@@ -9,18 +9,14 @@ interface LockOverlayProps {
   onSwitchUser: () => void;
 }
 
-export const LockOverlay: React.FC<LockOverlayProps> = ({
-  session,
-  onUnlocked,
-  onSwitchUser,
-}) => {
+export const LockOverlay: React.FC<LockOverlayProps> = ({ session, onUnlocked, onSwitchUser }) => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleUnlock = async () => {
-    if (pin.length < 4) {
-      setError('Please enter your 4-8 digit PIN.');
+    if (pin.length < 6) {
+      setError('PIN must be between 6 and 8 digits (8 digits for Owner).');
       return;
     }
 
@@ -31,8 +27,18 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({
       const updated = await window.api.auth.unlockSession({ pin });
       onUnlocked(updated);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(msg.includes('Invalid PIN') ? 'Incorrect PIN.' : msg);
+      const rawMsg = err instanceof Error ? err.message : String(err);
+      let userMsg = rawMsg;
+      if (rawMsg.includes('Invalid PIN')) {
+        userMsg = 'Incorrect PIN.';
+      } else if (
+        rawMsg.includes('invalid_format') ||
+        rawMsg.includes('regex') ||
+        rawMsg.includes('PIN must be')
+      ) {
+        userMsg = 'PIN must be between 6 and 8 numeric digits.';
+      }
+      setError(userMsg);
       setPin('');
     } finally {
       setLoading(false);
@@ -81,7 +87,15 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({
           <LockIcon size={26} color="#e11d48" />
         </div>
 
-        <h2 style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+        <h2
+          style={{
+            margin: '0 0 4px 0',
+            fontSize: '22px',
+            fontWeight: 800,
+            color: '#0f172a',
+            letterSpacing: '-0.02em',
+          }}
+        >
           Terminal Locked
         </h2>
         <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
@@ -125,7 +139,15 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>
               {session.user.name}
             </div>
-            <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+            <div
+              style={{
+                fontSize: '11px',
+                color: '#64748b',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+              }}
+            >
               Role: {session.user.role}
             </div>
           </div>
@@ -151,12 +173,7 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({
           </div>
         )}
 
-        <PinPad
-          pin={pin}
-          onChange={setPin}
-          onSubmit={handleUnlock}
-          disabled={loading}
-        />
+        <PinPad pin={pin} onChange={setPin} onSubmit={handleUnlock} disabled={loading} />
 
         <button
           type="button"

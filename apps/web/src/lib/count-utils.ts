@@ -75,4 +75,3 @@ export function calculateLineVariance(
 export function canApproveCount(role?: string): boolean {
   return role === 'owner' || role === 'manager';
 }
-

@@ -51,9 +51,7 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
       if (branchId) conditions.push(eq(supplierReturns.branchId, branchId));
       if (supplierId) conditions.push(eq(supplierReturns.supplierId, supplierId));
       if (status && status !== 'all') {
-        conditions.push(
-          eq(supplierReturns.status, status as 'draft' | 'completed' | 'cancelled')
-        );
+        conditions.push(eq(supplierReturns.status, status as 'draft' | 'completed' | 'cancelled'));
       }
 
       const rows = await db
@@ -130,7 +128,9 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
       for (const line of inputLines) {
         const [balRow] = await db
           .select({
-            balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(Number),
+            balance: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(
+              Number
+            ),
           })
           .from(stockMovements)
           .where(
@@ -355,10 +355,7 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
         .innerJoin(products, eq(supplierReturnLines.productId, products.id))
         .innerJoin(batches, eq(supplierReturnLines.batchId, batches.id))
         .where(
-          and(
-            eq(supplierReturnLines.returnId, id),
-            eq(supplierReturnLines.pharmacyId, pharmacyId)
-          )
+          and(eq(supplierReturnLines.returnId, id), eq(supplierReturnLines.pharmacyId, pharmacyId))
         )
         .orderBy(asc(products.brandName));
 
@@ -378,4 +375,3 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
     }
   );
 };
-

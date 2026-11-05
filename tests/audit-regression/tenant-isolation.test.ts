@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '../../packages/shared/src/index';
 import { buildApp } from '../../apps/server/src/app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../../apps/server/src/db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../../apps/server/src/db/test-helper';
 import {
   pharmacies,
   branches,
@@ -19,6 +16,7 @@ import {
   invoiceLines,
   payments,
   stockMovements,
+  fiscalPeriods,
 } from '../../apps/server/src/db/schema';
 import { signDeviceToken, signUserToken } from '../../apps/server/src/auth/jwt';
 import { hashPin } from '../../apps/desktop/src/main/auth';
@@ -258,8 +256,18 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
     });
 
     const deviceToken = signDeviceToken({ pharmacyId, branchId, deviceId });
-    const ownerToken = signUserToken({ userId: ownerId, pharmacyId, role: 'owner', name: 'Dr. Tariq' });
-    const cashierToken = signUserToken({ userId: cashierId, pharmacyId, role: 'cashier', name: 'Ali Khan' });
+    const ownerToken = signUserToken({
+      userId: ownerId,
+      pharmacyId,
+      role: 'owner',
+      name: 'Dr. Tariq',
+    });
+    const cashierToken = signUserToken({
+      userId: cashierId,
+      pharmacyId,
+      role: 'cashier',
+      name: 'Ali Khan',
+    });
 
     return {
       pharmacyId,
@@ -287,7 +295,8 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
     // Public routes that are intentionally accessible without tenant JWT, with justified reasons
     const PUBLIC_ROUTES: Record<string, string> = {
       'GET /health': 'Unauthenticated health check probe for load balancer / orchestrator',
-      'POST /devices/register': 'Initial device registration using a one-time hashed registration code',
+      'POST /devices/register':
+        'Initial device registration using a one-time hashed registration code',
       'POST /api/auth/login': 'Web login requiring pharmacyCode to authenticate tenant user',
     };
 
@@ -321,10 +330,17 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       'POST /api/finance/journals/:id/reverse',
       'GET /api/finance/coa',
       'GET /api/finance/reports/trial-balance',
+      'GET /api/finance/reports/profit-loss',
+      'GET /api/finance/reports/balance-sheet',
+      'GET /api/finance/reports/cash-flow',
+      'GET /api/finance/reports/general-ledger',
+      'GET /api/finance/reports/general-ledger/:accountId',
       'GET /api/finance/accounts/:id/ledger',
       'GET /api/finance/periods',
+      'GET /api/finance/periods/checklist',
       'POST /api/finance/periods/close',
       'POST /api/finance/periods/:id/reopen',
+      'POST /api/finance/periods/year-end-closing',
       'GET /api/finance/reconciliation',
       'GET /api/finance/account-mappings',
       'PUT /api/finance/account-mappings',
@@ -368,6 +384,105 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       'POST /api/inventory/batches/:id/discount',
       'POST /api/inventory/batches/:id/write-off',
       'GET /api/inventory/products/:id/stock-detail',
+      'GET /api/finance/payments',
+      'POST /api/finance/payments',
+      'GET /api/finance/payments/unpaid-documents',
+      'GET /api/finance/payments/:id',
+      'POST /api/finance/payments/:id/clear-cheque',
+      'POST /api/finance/payments/:id/bounce-cheque',
+      'POST /api/finance/payments/:id/reverse',
+      'GET /api/finance/customers',
+      'POST /api/finance/customers',
+      'GET /api/finance/expense-categories',
+      'POST /api/finance/expense-categories',
+      'GET /api/finance/expenses',
+      'POST /api/finance/expenses',
+      'GET /api/finance/expenses/:id',
+      'POST /api/finance/expenses/:id/approve',
+      'POST /api/finance/expenses/:id/reverse',
+      'GET /api/finance/expenses/recurring',
+      'POST /api/finance/expenses/recurring',
+      'GET /api/finance/expenses/recurring/preview',
+      'POST /api/finance/expenses/recurring/generate',
+      'GET /api/finance/ar/summary',
+      'GET /api/finance/ar/customers',
+      'GET /api/finance/ar/products',
+      'GET /api/finance/ar/statement/:customerId',
+      'GET /api/finance/ar/reminders',
+      'POST /api/finance/ar/reminders',
+      'GET /api/finance/ap/summary',
+      'GET /api/finance/ap/suppliers',
+      'GET /api/finance/ap/bills',
+      'GET /api/finance/ap/statement/:supplierId',
+      'GET /api/finance/ap/reminders',
+      'POST /api/finance/ap/reminders',
+      'GET /api/finance/cash-bank/accounts',
+      'POST /api/finance/cash-bank/accounts',
+      'GET /api/finance/cash-bank/transfers',
+      'POST /api/finance/cash-bank/transfers',
+      'POST /api/finance/cash-bank/transfers/:id/reverse',
+      'GET /api/finance/cash-bank/deposits',
+      'POST /api/finance/cash-bank/deposits',
+      'POST /api/finance/cash-bank/deposits/:id/reverse',
+      'GET /api/finance/cash-bank/reconciliation/:bankAccountId/ledger-lines',
+      'POST /api/finance/cash-bank/reconciliation/save',
+      'GET /api/finance/sales-ledger',
+      'GET /api/finance/budgets',
+      'POST /api/finance/budgets/batch',
+      'GET /api/finance/budgets/actual-vs-budget',
+      'POST /api/finance/budgets/copy-previous-year',
+      'GET /api/customers',
+      'POST /api/customers',
+      'GET /api/customers/:id',
+      'PUT /api/customers/:id',
+      'GET /api/customers/:id/invoices',
+      'GET /api/customers/:id/ledger',
+      'GET /api/customers/:id/statement',
+      'GET /api/prescriptions/refill-reminders',
+      'GET /api/prescriptions',
+      'POST /api/prescriptions',
+      'GET /api/prescriptions/:id',
+      'PUT /api/prescriptions/:id',
+      'POST /api/prescriptions/:id/dispense',
+      'GET /api/prescriptions/:id/audit-trail',
+      'GET /api/admin/diagnostics/export',
+      'GET /api/hr/employees',
+      'POST /api/hr/employees',
+      'GET /api/hr/leave/types',
+      'POST /api/hr/leave/types',
+      'GET /api/hr/leave/balances',
+      'POST /api/hr/leave/carry-over',
+      'GET /api/hr/leave/requests',
+      'POST /api/hr/leave/requests',
+      'POST /api/hr/leave/requests/:id/approve',
+      'POST /api/hr/leave/requests/:id/reject',
+      'GET /api/hr/leave/calendar',
+      'GET /api/hr/attendance',
+      'GET /api/hr/payroll/preview',
+      'GET /api/hr/payroll/statutory-rates',
+      'POST /api/hr/payroll/statutory-rates',
+      'PUT /api/hr/payroll/statutory-rates/:id',
+      'GET /api/hr/payroll/tax-slabs',
+      'POST /api/hr/payroll/tax-slabs',
+      'PUT /api/hr/payroll/tax-slabs/:id',
+      'GET /api/hr/payroll/advances',
+      'POST /api/hr/payroll/advances',
+      'GET /api/hr/payroll/runs',
+      'GET /api/hr/payroll/runs/:id',
+      'GET /api/hr/payroll/runs/:id/items',
+      'POST /api/hr/payroll/runs/generate',
+      'PUT /api/hr/payroll/items/:id',
+      'POST /api/hr/payroll/runs/:id/review',
+      'POST /api/hr/payroll/runs/:id/approve',
+      'POST /api/hr/payroll/runs/:id/post',
+      'POST /api/hr/payroll/runs/:id/pay',
+      'POST /api/hr/payroll/runs/:id/adjustment',
+      'GET /api/hr/payroll/items/:id/payslip',
+      'GET /api/notifications',
+      'PATCH /api/notifications/:id/read',
+      'POST /api/notifications/mark-all-read',
+      'POST /api/notifications/refresh',
+      'GET /api/search',
     ]);
 
     const activeRoutes = capturedRoutes.filter((r) => r.method !== 'OPTIONS' && r.url !== '/*');
@@ -619,6 +734,15 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       });
       expect(resForeignReopen.statusCode).toBe(404);
 
+      // 5b. Period checklist and year-end closing are strictly tenant scoped
+      const resChecklistA = await app.inject({
+        method: 'GET',
+        url: '/api/finance/periods/checklist?year=2026&month=8',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resChecklistA.statusCode).toBe(200);
+      expect(resChecklistA.json().pharmacyId).toBe(tenantA.pharmacyId);
+
       // 6. GET /api/finance/reconciliation and GET /api/finance/account-mappings scope to caller's pharmacyId
       const resReconA = await app.inject({
         method: 'GET',
@@ -704,6 +828,339 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       });
       expect(resDeactivateCustom.statusCode).toBe(200);
       expect(resDeactivateCustom.json().account.isActive).toBe(false);
+    });
+
+    it('Finance payments and customer routes strictly enforce tenant isolation', async () => {
+      const nowIso = new Date().toISOString();
+      const year = new Date().getFullYear();
+
+      // Seed fiscal periods for Tenant A and Tenant B
+      await ctx.db.insert(fiscalPeriods).values([
+        {
+          id: generateUuidV7(),
+          pharmacyId: tenantA.pharmacyId,
+          startDate: `${year}-01-01`,
+          endDate: `${year}-12-31`,
+          status: 'open',
+        },
+        {
+          id: generateUuidV7(),
+          pharmacyId: tenantB.pharmacyId,
+          startDate: `${year}-01-01`,
+          endDate: `${year}-12-31`,
+          status: 'open',
+        },
+      ]);
+
+      // 1. Create Customer in Tenant A
+      const custResA = await app.inject({
+        method: 'POST',
+        url: '/api/finance/customers',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          name: 'Clinic Account A',
+          phone: '03001112233',
+          creditLimitPaisa: 100000,
+        },
+      });
+      expect(custResA.statusCode).toBe(201);
+      const custA = custResA.json().data;
+
+      // 2. Tenant B attempts to create payment referencing Tenant A customer -> 404
+      const foreignCustPay = await app.inject({
+        method: 'POST',
+        url: '/api/finance/payments',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: {
+          direction: 'receipt',
+          partyType: 'customer',
+          partyId: custA.id, // Belongs to Tenant A!
+          method: 'cash',
+          amountPaisa: 5000,
+          paymentDate: nowIso.slice(0, 10),
+        },
+      });
+      expect(foreignCustPay.statusCode).toBe(404);
+
+      // 3. Create valid payment in Tenant A
+      const validPayResA = await app.inject({
+        method: 'POST',
+        url: '/api/finance/payments',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          direction: 'receipt',
+          partyType: 'customer',
+          partyId: custA.id,
+          method: 'cheque',
+          amountPaisa: 10000,
+          paymentDate: nowIso.slice(0, 10),
+          chequeNumber: 'CHQ-0099',
+          chequeStatus: 'pending',
+        },
+      });
+      expect(validPayResA.statusCode).toBe(201);
+      const payA = validPayResA.json().data;
+
+      // 4. Tenant B cannot view Tenant A payment (404)
+      const foreignView = await app.inject({
+        method: 'GET',
+        url: `/api/finance/payments/${payA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignView.statusCode).toBe(404);
+
+      // 5. Tenant B cannot clear cheque of Tenant A payment (404)
+      const foreignClear = await app.inject({
+        method: 'POST',
+        url: `/api/finance/payments/${payA.id}/clear-cheque`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignClear.statusCode).toBe(404);
+
+      // 6. Tenant B cannot bounce cheque of Tenant A payment (404)
+      const foreignBounce = await app.inject({
+        method: 'POST',
+        url: `/api/finance/payments/${payA.id}/bounce-cheque`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: { bounceReason: 'Cross tenant bounce' },
+      });
+      expect(foreignBounce.statusCode).toBe(404);
+
+      // 7. Tenant B cannot reverse Tenant A payment (404)
+      const foreignRev = await app.inject({
+        method: 'POST',
+        url: `/api/finance/payments/${payA.id}/reverse`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: { reversalReason: 'Cross tenant reverse' },
+      });
+      expect(foreignRev.statusCode).toBe(404);
+
+      // 8. Tenant B unpaid-documents for Tenant A customer returns no documents
+      const foreignUnpaid = await app.inject({
+        method: 'GET',
+        url: `/api/finance/payments/unpaid-documents?partyType=customer&partyId=${custA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignUnpaid.statusCode).toBe(200);
+      expect(foreignUnpaid.json().data.documents).toHaveLength(0);
+
+      // 9. List payments for Tenant B shows 0 payments
+      const listB = await app.inject({
+        method: 'GET',
+        url: '/api/finance/payments',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(listB.statusCode).toBe(200);
+      expect(listB.json().data.items).toHaveLength(0);
+      expect(listB.json().data.kpis.totalReceiptsPaisa).toBe(0);
+    });
+
+    it('Finance expenses routes strictly enforce tenant isolation', async () => {
+      const nowIso = new Date().toISOString();
+
+      // 1. Get/seed categories for Tenant A
+      const catResA = await app.inject({
+        method: 'GET',
+        url: '/api/finance/expense-categories',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(catResA.statusCode).toBe(200);
+      const catA = catResA.json().data[0];
+      expect(catA).toBeDefined();
+
+      // 2. Tenant B attempts to create expense with Tenant A's category -> 404
+      const foreignCatExp = await app.inject({
+        method: 'POST',
+        url: '/api/finance/expenses',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: {
+          branchId: tenantB.branchId,
+          categoryId: catA.id, // Belongs to Tenant A!
+          amountPaisa: 5000,
+          paymentType: 'paid',
+          paymentMethod: 'cash',
+          expenseDate: nowIso.slice(0, 10),
+        },
+      });
+      expect(foreignCatExp.statusCode).toBe(404);
+
+      // 3. Create valid expense in Tenant A
+      const validExpA = await app.inject({
+        method: 'POST',
+        url: '/api/finance/expenses',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          branchId: tenantA.branchId,
+          categoryId: catA.id,
+          amountPaisa: 5000,
+          paymentType: 'paid',
+          paymentMethod: 'cash',
+          expenseDate: nowIso.slice(0, 10),
+        },
+      });
+      expect(validExpA.statusCode).toBe(201);
+      const expA = validExpA.json().data;
+
+      // 4. Tenant B cannot view Tenant A expense (404)
+      const foreignView = await app.inject({
+        method: 'GET',
+        url: `/api/finance/expenses/${expA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignView.statusCode).toBe(404);
+
+      // 5. Tenant B cannot approve Tenant A expense (404)
+      const foreignApprove = await app.inject({
+        method: 'POST',
+        url: `/api/finance/expenses/${expA.id}/approve`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignApprove.statusCode).toBe(404);
+
+      // 6. Tenant B cannot reverse Tenant A expense (404)
+      const foreignRev = await app.inject({
+        method: 'POST',
+        url: `/api/finance/expenses/${expA.id}/reverse`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: { reversalReason: 'Cross tenant attempt' },
+      });
+      expect(foreignRev.statusCode).toBe(404);
+
+      // 7. Tenant B lists expenses -> sees 0 expenses
+      const listB = await app.inject({
+        method: 'GET',
+        url: '/api/finance/expenses',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(listB.statusCode).toBe(200);
+      expect(listB.json().data.items).toHaveLength(0);
+      expect(listB.json().data.kpis.totalExpensesPaisa).toBe(0);
+    });
+
+    it('Customers routes strictly enforce tenant isolation', async () => {
+      // 1. Create customer in Tenant A
+      const createResA = await app.inject({
+        method: 'POST',
+        url: '/api/customers',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          name: 'Isolation Test Customer A',
+          phone: '03211112233',
+          creditLimitPaisa: 50000,
+        },
+      });
+      expect(createResA.statusCode).toBe(201);
+      const custA = createResA.json().data;
+
+      // 2. Tenant B cannot access Tenant A customer (404)
+      const foreignGet = await app.inject({
+        method: 'GET',
+        url: `/api/customers/${custA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignGet.statusCode).toBe(404);
+
+      // 3. Tenant B cannot update Tenant A customer (404)
+      const foreignPut = await app.inject({
+        method: 'PUT',
+        url: `/api/customers/${custA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: {
+          name: 'Hacked Name',
+        },
+      });
+      expect(foreignPut.statusCode).toBe(404);
+
+      // 4. Tenant B cannot access ledger or invoices of Tenant A customer (404)
+      const foreignLedger = await app.inject({
+        method: 'GET',
+        url: `/api/customers/${custA.id}/ledger`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignLedger.statusCode).toBe(404);
+
+      const foreignInvoices = await app.inject({
+        method: 'GET',
+        url: `/api/customers/${custA.id}/invoices`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignInvoices.statusCode).toBe(404);
+
+      const foreignStatement = await app.inject({
+        method: 'GET',
+        url: `/api/customers/${custA.id}/statement`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignStatement.statusCode).toBe(404);
+
+      // 5. Tenant B customer list does not leak Tenant A customer
+      const listB = await app.inject({
+        method: 'GET',
+        url: '/api/customers',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(listB.statusCode).toBe(200);
+      const leaked = listB.json().data.some((c: { id: string }) => c.id === custA.id);
+      expect(leaked).toBe(false);
+    });
+
+    it('Prescriptions routes strictly enforce tenant isolation', async () => {
+      // 1. Create prescription in Tenant A
+      const createResA = await app.inject({
+        method: 'POST',
+        url: '/api/prescriptions',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+        payload: {
+          patientName: 'Tenant A Patient',
+          prescriptionDate: '2026-11-05',
+          items: [
+            {
+              productId: tenantA.productId,
+              dosageInstructions: '1 tablet daily',
+              quantityPrescribed: 30,
+            },
+          ],
+        },
+      });
+      expect(createResA.statusCode).toBe(201);
+      const rxA = createResA.json().data;
+
+      // 2. Tenant B cannot access Tenant A prescription (404)
+      const foreignGet = await app.inject({
+        method: 'GET',
+        url: `/api/prescriptions/${rxA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignGet.statusCode).toBe(404);
+
+      // 3. Tenant B cannot update Tenant A prescription (404)
+      const foreignPut = await app.inject({
+        method: 'PUT',
+        url: `/api/prescriptions/${rxA.id}`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+        payload: {
+          patientName: 'Breached Name',
+        },
+      });
+      expect(foreignPut.statusCode).toBe(404);
+
+      // 4. Tenant B cannot view audit trail of Tenant A prescription (404)
+      const foreignAudit = await app.inject({
+        method: 'GET',
+        url: `/api/prescriptions/${rxA.id}/audit-trail`,
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(foreignAudit.statusCode).toBe(404);
+
+      // 5. Tenant B prescription list does not leak Tenant A prescription
+      const listB = await app.inject({
+        method: 'GET',
+        url: '/api/prescriptions',
+        headers: { authorization: `Bearer ${tenantB.ownerToken}` },
+      });
+      expect(listB.statusCode).toBe(200);
+      const leaked = listB.json().data.some((r: { id: string }) => r.id === rxA.id);
+      expect(leaked).toBe(false);
     });
   });
 

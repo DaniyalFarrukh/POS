@@ -4,14 +4,20 @@ export const ShiftStatusSchema = z.enum(['open', 'closed']);
 export type ShiftStatus = z.infer<typeof ShiftStatusSchema>;
 
 export const OpenShiftInputSchema = z.object({
-  openingCashPaisa: z.number().int('Opening cash must be integer paisa').min(0, 'Opening cash cannot be negative'),
+  openingCashPaisa: z
+    .number()
+    .int('Opening cash must be integer paisa')
+    .min(0, 'Opening cash cannot be negative'),
   notes: z.string().nullable().optional(),
 });
 export type OpenShiftInput = z.infer<typeof OpenShiftInputSchema>;
 
 export const CloseShiftInputSchema = z.object({
   shiftId: z.string().uuid('shiftId must be a valid UUID'),
-  countedCashPaisa: z.number().int('Counted cash must be integer paisa').min(0, 'Counted cash cannot be negative'),
+  countedCashPaisa: z
+    .number()
+    .int('Counted cash must be integer paisa')
+    .min(0, 'Counted cash cannot be negative'),
   notes: z.string().nullable().optional(),
 });
 export type CloseShiftInput = z.infer<typeof CloseShiftInputSchema>;

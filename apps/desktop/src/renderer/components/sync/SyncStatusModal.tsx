@@ -154,11 +154,15 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
               🔄
             </div>
             <div>
-              <h2 id="sync-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+              <h2
+                id="sync-modal-title"
+                style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}
+              >
                 Cloud Synchronization Center
               </h2>
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                Counter: <strong>{session.counter.name}</strong> • Branch: <strong>{session.branch.name}</strong>
+                Counter: <strong>{session.counter.name}</strong> • Branch:{' '}
+                <strong>{session.branch.name}</strong>
               </div>
             </div>
           </div>
@@ -254,7 +258,9 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
               onRefreshParent={fetchStatus}
             />
           ) : loading && !status ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
+            <div
+              style={{ padding: '40px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}
+            >
               Loading sync status and metrics...
             </div>
           ) : (
@@ -276,11 +282,18 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                     justifyContent: 'space-between',
                   }}
                 >
-                  <span>{actionMsg.isError ? '⚠️' : '✅'} {actionMsg.text}</span>
+                  <span>
+                    {actionMsg.isError ? '⚠️' : '✅'} {actionMsg.text}
+                  </span>
                   <button
                     type="button"
                     onClick={() => setActionMsg(null)}
-                    style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                    }}
                   >
                     ✕
                   </button>
@@ -307,7 +320,10 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                       height: '12px',
                       borderRadius: '50%',
                       backgroundColor: stateStyle.dotColor,
-                      boxShadow: status?.state === 'syncing' ? `0 0 0 3px ${stateStyle.badgeBorder}` : undefined,
+                      boxShadow:
+                        status?.state === 'syncing'
+                          ? `0 0 0 3px ${stateStyle.badgeBorder}`
+                          : undefined,
                     }}
                   />
                   <div>
@@ -330,8 +346,7 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                       </span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
-                      Last Online:{' '}
-                      <strong>{formatKarachiDateTime(status?.lastOnlineAt)}</strong>
+                      Last Online: <strong>{formatKarachiDateTime(status?.lastOnlineAt)}</strong>
                     </div>
                   </div>
                 </div>
@@ -356,7 +371,12 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                     boxShadow: '0 1px 2px rgba(37,99,235,0.2)',
                   }}
                 >
-                  <span style={{ display: 'inline-block', animation: syncing ? 'spin 1s linear infinite' : undefined }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      animation: syncing ? 'spin 1s linear infinite' : undefined,
+                    }}
+                  >
                     ↻
                   </span>
                   <span>{syncing || status?.state === 'syncing' ? 'Syncing...' : 'Retry Now'}</span>
@@ -399,7 +419,14 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
                     PENDING OUTBOX EVENTS
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: (status?.pendingCount ?? 0) > 0 ? '#d97706' : '#16a34a', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 800,
+                      color: (status?.pendingCount ?? 0) > 0 ? '#d97706' : '#16a34a',
+                      marginTop: '6px',
+                    }}
+                  >
                     {status?.pendingCount ?? 0}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
@@ -421,10 +448,26 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
                     SYNC EXCEPTIONS
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: (status?.exceptionCount ?? 0) > 0 ? '#dc2626' : '#16a34a', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 800,
+                      color: (status?.exceptionCount ?? 0) > 0 ? '#dc2626' : '#16a34a',
+                      marginTop: '6px',
+                    }}
+                  >
                     {status?.exceptionCount ?? 0}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: '#64748b',
+                      marginTop: '4px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <span>
                       {(status?.exceptionCount ?? 0) === 0
                         ? 'Zero rejected events'
@@ -462,7 +505,14 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
                     LAST SUCCESSFUL PUSH
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      marginTop: '6px',
+                    }}
+                  >
                     {formatKarachiDateTime(status?.lastPushOkAt)}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
@@ -482,7 +532,14 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>
                     LAST SUCCESSFUL PULL
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '6px' }}>
+                  <div
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      marginTop: '6px',
+                    }}
+                  >
                     {formatKarachiDateTime(status?.lastPullOkAt)}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
@@ -500,7 +557,14 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   padding: '20px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '8px',
+                  }}
+                >
                   <div>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
                       Offline Duration vs. Limit
@@ -541,7 +605,15 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '11px',
+                    color: '#94a3b8',
+                    marginTop: '6px',
+                  }}
+                >
                   <span>0h (Connected)</span>
                   <span>36h (Warning 50%)</span>
                   <span>58h (Critical 80%)</span>
@@ -560,7 +632,8 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                       color: '#92400e',
                     }}
                   >
-                    Notice: POS sales are <strong>never blocked</strong> by offline duration. Connect to network to refresh inventory and cloud backups.
+                    Notice: POS sales are <strong>never blocked</strong> by offline duration.
+                    Connect to network to refresh inventory and cloud backups.
                   </div>
                 )}
               </div>

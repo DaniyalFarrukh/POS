@@ -190,10 +190,9 @@ describe('Multi-Counter Sync & Resilience Integration Tests (Phase 3.4b)', () =>
     expect(sStock).toBe(-20);
 
     // stock_alerts row exists for this batch
-    const alertsRes = await server.runSql(
-      `SELECT * FROM stock_alerts WHERE batch_id = $1`,
-      [batchId]
-    );
+    const alertsRes = await server.runSql(`SELECT * FROM stock_alerts WHERE batch_id = $1`, [
+      batchId,
+    ]);
     expect(alertsRes.rows.length).toBeGreaterThan(0);
     expect(alertsRes.rows[0]?.type).toBe('negative_stock');
     expect(String(alertsRes.rows[0]?.message)).toContain('-20');
@@ -226,7 +225,9 @@ describe('Multi-Counter Sync & Resilience Integration Tests (Phase 3.4b)', () =>
     const initialInvoicesRes = await server.runSql('SELECT COUNT(*) as count FROM invoices');
     const initialInvoicesCount = Number(initialInvoicesRes.rows[0]?.count ?? 0);
 
-    const initialMovementsRes = await server.runSql('SELECT COUNT(*) as count FROM stock_movements');
+    const initialMovementsRes = await server.runSql(
+      'SELECT COUNT(*) as count FROM stock_movements'
+    );
     const initialMovementsCount = Number(initialMovementsRes.rows[0]?.count ?? 0);
 
     // 2. Counter A creates a fresh sale and syncs it
@@ -242,7 +243,9 @@ describe('Multi-Counter Sync & Resilience Integration Tests (Phase 3.4b)', () =>
     const afterFirstSyncInvoices = await countServerInvoices(server);
     expect(afterFirstSyncInvoices).toBe(initialInvoicesCount + 1);
 
-    const afterFirstSyncMovementsRes = await server.runSql('SELECT COUNT(*) as count FROM stock_movements');
+    const afterFirstSyncMovementsRes = await server.runSql(
+      'SELECT COUNT(*) as count FROM stock_movements'
+    );
     const afterFirstSyncMovementsCount = Number(afterFirstSyncMovementsRes.rows[0]?.count ?? 0);
     expect(afterFirstSyncMovementsCount).toBe(initialMovementsCount + 1);
 
@@ -272,7 +275,9 @@ describe('Multi-Counter Sync & Resilience Integration Tests (Phase 3.4b)', () =>
       const currentInvoicesCount = await countServerInvoices(server);
       expect(currentInvoicesCount).toBe(afterFirstSyncInvoices);
 
-      const currentMovementsRes = await server.runSql('SELECT COUNT(*) as count FROM stock_movements');
+      const currentMovementsRes = await server.runSql(
+        'SELECT COUNT(*) as count FROM stock_movements'
+      );
       expect(Number(currentMovementsRes.rows[0]?.count ?? 0)).toBe(afterFirstSyncMovementsCount);
     }
   });
@@ -340,13 +345,17 @@ describe('Multi-Counter Sync & Resilience Integration Tests (Phase 3.4b)', () =>
       ],
     };
 
-    counterA.db.prepare(`
+    counterA.db
+      .prepare(
+        `
       INSERT INTO outbox (
         id, event_id, device_seq, type, event_type, entity_id, payload, occurred_at, status, attempts, created_at
       ) VALUES (
         ?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'invoice.created', 'invoice.created', ?, ?, ?, 'pending', 0, ?
       )
-    `).run(eventId, eventId, fakeInvoiceId, JSON.stringify(invoicePayload), now, now);
+    `
+      )
+      .run(eventId, eventId, fakeInvoiceId, JSON.stringify(invoicePayload), now, now);
 
     expect(countOutbox(counterA, 'pending')).toBe(1);
 

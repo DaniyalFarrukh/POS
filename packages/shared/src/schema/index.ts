@@ -15,8 +15,14 @@ export type MovementType = z.infer<typeof MovementTypeSchema>;
 // Base schema for UUIDv7 and UTC timestamps (Rule 2 & Rule 8)
 const BaseEntitySchema = z.object({
   id: z.string().uuid(),
-  createdAt: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}T/)),
-  updatedAt: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}T/)),
+  createdAt: z
+    .string()
+    .datetime({ offset: true })
+    .or(z.string().regex(/^\d{4}-\d{2}-\d{2}T/)),
+  updatedAt: z
+    .string()
+    .datetime({ offset: true })
+    .or(z.string().regex(/^\d{4}-\d{2}-\d{2}T/)),
 });
 
 export const BranchSchema = BaseEntitySchema.extend({

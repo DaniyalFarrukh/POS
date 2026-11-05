@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
 import { buildApp } from '../app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
   pharmacies,
   users,
@@ -73,25 +70,107 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
     const cashierAId = generateUuidV7();
 
     await ctx.db.insert(users).values([
-      { id: ownerAId, pharmacyId: pharmacyAId, name: 'Owner A', role: 'owner', pinHash: pin, isActive: true, createdAt: now, updatedAt: now },
-      { id: managerAId, pharmacyId: pharmacyAId, name: 'Manager A', role: 'manager', pinHash: pin, isActive: true, createdAt: now, updatedAt: now },
-      { id: accountantAId, pharmacyId: pharmacyAId, name: 'Accountant A', role: 'accountant', pinHash: pin, isActive: true, createdAt: now, updatedAt: now },
-      { id: pharmacistAId, pharmacyId: pharmacyAId, name: 'Pharmacist A', role: 'pharmacist', pinHash: pin, isActive: true, createdAt: now, updatedAt: now },
-      { id: cashierAId, pharmacyId: pharmacyAId, name: 'Cashier A', role: 'cashier', pinHash: pin, isActive: true, createdAt: now, updatedAt: now },
+      {
+        id: ownerAId,
+        pharmacyId: pharmacyAId,
+        name: 'Owner A',
+        role: 'owner',
+        pinHash: pin,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: managerAId,
+        pharmacyId: pharmacyAId,
+        name: 'Manager A',
+        role: 'manager',
+        pinHash: pin,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: accountantAId,
+        pharmacyId: pharmacyAId,
+        name: 'Accountant A',
+        role: 'accountant',
+        pinHash: pin,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: pharmacistAId,
+        pharmacyId: pharmacyAId,
+        name: 'Pharmacist A',
+        role: 'pharmacist',
+        pinHash: pin,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: cashierAId,
+        pharmacyId: pharmacyAId,
+        name: 'Cashier A',
+        role: 'cashier',
+        pinHash: pin,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
     ]);
 
-    ownerTokenA = signUserToken({ userId: ownerAId, pharmacyId: pharmacyAId, role: 'owner', name: 'Owner A' });
-    managerTokenA = signUserToken({ userId: managerAId, pharmacyId: pharmacyAId, role: 'manager', name: 'Manager A' });
-    accountantTokenA = signUserToken({ userId: accountantAId, pharmacyId: pharmacyAId, role: 'accountant', name: 'Accountant A' });
-    pharmacistTokenA = signUserToken({ userId: pharmacistAId, pharmacyId: pharmacyAId, role: 'pharmacist', name: 'Pharmacist A' });
-    cashierTokenA = signUserToken({ userId: cashierAId, pharmacyId: pharmacyAId, role: 'cashier', name: 'Cashier A' });
+    ownerTokenA = signUserToken({
+      userId: ownerAId,
+      pharmacyId: pharmacyAId,
+      role: 'owner',
+      name: 'Owner A',
+    });
+    managerTokenA = signUserToken({
+      userId: managerAId,
+      pharmacyId: pharmacyAId,
+      role: 'manager',
+      name: 'Manager A',
+    });
+    accountantTokenA = signUserToken({
+      userId: accountantAId,
+      pharmacyId: pharmacyAId,
+      role: 'accountant',
+      name: 'Accountant A',
+    });
+    pharmacistTokenA = signUserToken({
+      userId: pharmacistAId,
+      pharmacyId: pharmacyAId,
+      role: 'pharmacist',
+      name: 'Pharmacist A',
+    });
+    cashierTokenA = signUserToken({
+      userId: cashierAId,
+      pharmacyId: pharmacyAId,
+      role: 'cashier',
+      name: 'Cashier A',
+    });
 
     // Create owner for Pharmacy B
     const ownerBId = generateUuidV7();
     await ctx.db.insert(users).values({
-      id: ownerBId, pharmacyId: pharmacyBId, name: 'Owner B', role: 'owner', pinHash: pin, isActive: true, createdAt: now, updatedAt: now,
+      id: ownerBId,
+      pharmacyId: pharmacyBId,
+      name: 'Owner B',
+      role: 'owner',
+      pinHash: pin,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
     });
-    ownerTokenB = signUserToken({ userId: ownerBId, pharmacyId: pharmacyBId, role: 'owner', name: 'Owner B' });
+    ownerTokenB = signUserToken({
+      userId: ownerBId,
+      pharmacyId: pharmacyBId,
+      role: 'owner',
+      name: 'Owner B',
+    });
   });
 
   afterAll(async () => {
@@ -284,10 +363,7 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
         .select()
         .from(journalLines)
         .where(
-          and(
-            eq(journalLines.pharmacyId, pharmacyAId),
-            eq(journalLines.accountId, apAccountId)
-          )
+          and(eq(journalLines.pharmacyId, pharmacyAId), eq(journalLines.accountId, apAccountId))
         );
 
       const ledgerControlBalance = apLines.reduce(
@@ -335,10 +411,7 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
       expect(patchRes.json().data.isActive).toBe(false);
 
       // Verify row still exists in database
-      const [dbRow] = await ctx.db
-        .select()
-        .from(suppliers)
-        .where(eq(suppliers.id, supplierId));
+      const [dbRow] = await ctx.db.select().from(suppliers).where(eq(suppliers.id, supplierId));
       expect(dbRow).toBeDefined();
       if (!dbRow) throw new Error('Expected dbRow');
       expect(dbRow.isActive).toBe(false);
@@ -392,8 +465,9 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
       const groups = dupRes.json().groups;
       expect(groups.length).toBeGreaterThanOrEqual(1);
 
-      const matchingGroup = groups.find((g: { candidateIds: string[] }) =>
-        g.candidateIds.includes(sup1.id) && g.candidateIds.includes(sup2.id)
+      const matchingGroup = groups.find(
+        (g: { candidateIds: string[] }) =>
+          g.candidateIds.includes(sup1.id) && g.candidateIds.includes(sup2.id)
       );
       expect(matchingGroup).toBeDefined();
 
@@ -410,10 +484,7 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
       expect(mergeRes.statusCode).toBe(200);
 
       // 4. Verify sup2 is deactivated and noted
-      const [updatedSup2] = await ctx.db
-        .select()
-        .from(suppliers)
-        .where(eq(suppliers.id, sup2.id));
+      const [updatedSup2] = await ctx.db.select().from(suppliers).where(eq(suppliers.id, sup2.id));
       expect(updatedSup2).toBeDefined();
       if (!updatedSup2) throw new Error('Expected updatedSup2');
       expect(updatedSup2.isActive).toBe(false);

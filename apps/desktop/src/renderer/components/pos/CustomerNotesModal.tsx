@@ -55,11 +55,19 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
             <span style={{ fontSize: '20px' }}>👤</span>
             <h3
               id="customer-notes-modal-title"
-              style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}
+              style={{
+                margin: 0,
+                fontSize: '17px',
+                fontWeight: 800,
+                color: '#0f172a',
+                letterSpacing: '-0.01em',
+              }}
             >
               Customer & Prescription Notes
             </h3>
-            <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 5px' }}>F6</kbd>
+            <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 5px' }}>
+              F6
+            </kbd>
           </div>
           <button
             type="button"
@@ -88,7 +96,13 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '14px' }}>
             <label
               htmlFor="cust-name"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
+              style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#334155',
+                marginBottom: '6px',
+              }}
             >
               Patient / Customer Name
             </label>
@@ -114,7 +128,13 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '14px' }}>
             <label
               htmlFor="cust-phone"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
+              style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#334155',
+                marginBottom: '6px',
+              }}
             >
               Contact Number
             </label>
@@ -139,7 +159,13 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '14px' }}>
             <label
               htmlFor="cust-doctor"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
+              style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#334155',
+                marginBottom: '6px',
+              }}
             >
               Prescribing Doctor / Clinic
             </label>
@@ -164,7 +190,13 @@ export const CustomerNotesModal: React.FC<CustomerNotesModalProps> = ({
           <div style={{ marginBottom: '20px' }}>
             <label
               htmlFor="cust-notes"
-              style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
+              style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#334155',
+                marginBottom: '6px',
+              }}
             >
               Prescription / Dosage Instructions / Notes
             </label>

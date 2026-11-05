@@ -58,7 +58,9 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
         const text = evt.target?.result as string;
         const parsed = parseCsv(text);
         if (parsed.length < 2) {
-          setParseError('The selected CSV file must contain a header row and at least one data row.');
+          setParseError(
+            'The selected CSV file must contain a header row and at least one data row.'
+          );
           return;
         }
         setRawRows(parsed);
@@ -158,19 +160,43 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
               CSV Product Import Wizard
             </h2>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: step === 'upload' ? '#2563eb' : '#64748b' }}>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: step === 'upload' ? '#2563eb' : '#64748b',
+                }}
+              >
                 1. Choose File
               </span>
               <span style={{ color: '#cbd5e1' }}>→</span>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: step === 'mapping' ? '#2563eb' : '#64748b' }}>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: step === 'mapping' ? '#2563eb' : '#64748b',
+                }}
+              >
                 2. Map Columns
               </span>
               <span style={{ color: '#cbd5e1' }}>→</span>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: step === 'preview' ? '#2563eb' : '#64748b' }}>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: step === 'preview' ? '#2563eb' : '#64748b',
+                }}
+              >
                 3. Preview & Validate
               </span>
               <span style={{ color: '#cbd5e1' }}>→</span>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: step === 'summary' ? '#166534' : '#64748b' }}>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: step === 'summary' ? '#166534' : '#64748b',
+                }}
+              >
                 4. Import Summary
               </span>
             </div>
@@ -210,13 +236,30 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
 
           {/* STEP 1: UPLOAD */}
           {step === 'upload' && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', textAlign: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '40px 20px',
+                textAlign: 'center',
+              }}
+            >
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
               <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#1e293b' }}>
                 Select Pharmacy Product CSV
               </h3>
-              <p style={{ margin: '0 0 24px 0', fontSize: '13px', color: '#64748b', maxWidth: '440px', lineHeight: 1.5 }}>
-                Supports standard CSV files with quoted commas (e.g. formula compositions), escaped quotes, and barcoded medicines.
+              <p
+                style={{
+                  margin: '0 0 24px 0',
+                  fontSize: '13px',
+                  color: '#64748b',
+                  maxWidth: '440px',
+                  lineHeight: 1.5,
+                }}
+              >
+                Supports standard CSV files with quoted commas (e.g. formula compositions), escaped
+                quotes, and barcoded medicines.
               </p>
 
               <label
@@ -245,7 +288,14 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
           {/* STEP 2: COLUMN MAPPING */}
           {step === 'mapping' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '16px',
+                }}
+              >
                 <div>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1e293b' }}>
                     Match CSV Columns to Product Fields
@@ -279,7 +329,17 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', backgroundColor: '#f8fafc', padding: '18px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '14px',
+                  backgroundColor: '#f8fafc',
+                  padding: '18px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
                 {[
                   { key: 'brandName', label: 'Brand Name *' },
                   { key: 'genericName', label: 'Generic Name / Formula *' },
@@ -291,7 +351,15 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                   { key: 'isControlled', label: 'Controlled Flag (Optional)' },
                 ].map((field) => (
                   <div key={field.key}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#334155',
+                        marginBottom: '4px',
+                      }}
+                    >
                       {field.label}
                     </label>
                     <select
@@ -323,7 +391,14 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                 ))}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '12px',
+                  marginTop: '24px',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setStep('upload')}
@@ -362,22 +437,48 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
           {/* STEP 3: PREVIEW & VALIDATION */}
           {step === 'preview' && validationResult && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '14px',
+                }}
+              >
                 <div>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#1e293b' }}>
                     Previewing First 20 Rows
                   </h3>
                   <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                    Validation status: {validationResult.validCount} valid, {validationResult.errors.length} errors across file
+                    Validation status: {validationResult.validCount} valid,{' '}
+                    {validationResult.errors.length} errors across file
                   </p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <span style={{ padding: '4px 10px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
+                  <span
+                    style={{
+                      padding: '4px 10px',
+                      backgroundColor: '#dcfce7',
+                      color: '#166534',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                    }}
+                  >
                     {validationResult.validCount} Valid
                   </span>
                   {validationResult.errors.length > 0 && (
-                    <span style={{ padding: '4px 10px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
+                    <span
+                      style={{
+                        padding: '4px 10px',
+                        backgroundColor: '#fee2e2',
+                        color: '#991b1b',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                      }}
+                    >
                       {validationResult.errors.length} Errors Flagged
                     </span>
                   )}
@@ -386,7 +487,14 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
 
               {/* Table Preview */}
               <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    fontSize: '12px',
+                    textAlign: 'left',
+                  }}
+                >
                   <thead>
                     <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
                       <th style={{ padding: '8px 10px', width: '50px' }}>Row</th>
@@ -435,7 +543,10 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                             {isRowValid ? (
                               <span style={{ color: '#166534', fontWeight: 700 }}>✓ Valid</span>
                             ) : (
-                              <span style={{ color: '#dc2626', fontWeight: 600 }} title={row.errors.join(', ')}>
+                              <span
+                                style={{ color: '#dc2626', fontWeight: 600 }}
+                                title={row.errors.join(', ')}
+                              >
                                 ✕ {row.errors[0]}
                               </span>
                             )}
@@ -447,7 +558,14 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                 </table>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '12px',
+                  marginTop: '20px',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setStep('mapping')}
@@ -478,7 +596,9 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                     cursor: validationResult.validCount > 0 && !loading ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  {loading ? 'Importing in 1 Transaction...' : `Import ${validationResult.validCount} Valid Products`}
+                  {loading
+                    ? 'Importing in 1 Transaction...'
+                    : `Import ${validationResult.validCount} Valid Products`}
                 </button>
               </div>
             </div>
@@ -498,17 +618,32 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                 }}
               >
                 <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎉</div>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: '#166534', fontWeight: 700 }}>
+                <h3
+                  style={{
+                    margin: '0 0 6px 0',
+                    fontSize: '20px',
+                    color: '#166534',
+                    fontWeight: 700,
+                  }}
+                >
                   CSV Import Complete
                 </h3>
                 <p style={{ margin: 0, fontSize: '14px', color: '#15803d' }}>
-                  Successfully inserted <strong>{importSummary.importedCount}</strong> products into local SQLite in <strong>ONE transaction</strong> (Rule 5).
+                  Successfully inserted <strong>{importSummary.importedCount}</strong> products into
+                  local SQLite in <strong>ONE transaction</strong> (Rule 5).
                 </p>
               </div>
 
               {importSummary.skippedCount > 0 && (
                 <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 700, color: '#991b1b' }}>
+                  <h4
+                    style={{
+                      margin: '0 0 10px 0',
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: '#991b1b',
+                    }}
+                  >
                     Skipped Rows ({importSummary.skippedCount}):
                   </h4>
                   <div
@@ -522,7 +657,10 @@ export const ProductCsvWizard: React.FC<ProductCsvWizardProps> = ({
                     }}
                   >
                     {importSummary.errors.map((err, i) => (
-                      <div key={i} style={{ fontSize: '12px', color: '#7f1d1d', marginBottom: '6px' }}>
+                      <div
+                        key={i}
+                        style={{ fontSize: '12px', color: '#7f1d1d', marginBottom: '6px' }}
+                      >
                         Row #{err.rowNumber}: {err.barcode ? `[Barcode: ${err.barcode}] ` : ''}
                         {err.reason}
                       </div>

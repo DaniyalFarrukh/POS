@@ -1,11 +1,6 @@
 import { eq, and, gte, lte, lt, asc, sql } from 'drizzle-orm';
 import type { DbClient } from '../sync/types';
-import {
-  accounts,
-  branches,
-  journalEntries,
-  journalLines,
-} from '../db/schema';
+import { accounts, branches, journalEntries, journalLines } from '../db/schema';
 import type { AccountType } from './coa-seed';
 
 export interface TrialBalanceRow {
@@ -107,17 +102,11 @@ export async function trialBalance(
     .from(journalLines)
     .innerJoin(
       journalEntries,
-      and(
-        eq(journalLines.entryId, journalEntries.id),
-        eq(journalEntries.pharmacyId, pharmacyId)
-      )
+      and(eq(journalLines.entryId, journalEntries.id), eq(journalEntries.pharmacyId, pharmacyId))
     )
     .innerJoin(
       accounts,
-      and(
-        eq(journalLines.accountId, accounts.id),
-        eq(accounts.pharmacyId, pharmacyId)
-      )
+      and(eq(journalLines.accountId, accounts.id), eq(accounts.pharmacyId, pharmacyId))
     )
     .where(and(...lineConditions))
     .groupBy(accounts.id, accounts.code, accounts.name, accounts.type)
@@ -242,11 +231,7 @@ export async function accountLedger(
         lte(journalEntries.entryDate, to)
       )
     )
-    .orderBy(
-      asc(journalEntries.entryDate),
-      asc(journalEntries.entryNo),
-      asc(journalLines.id)
-    );
+    .orderBy(asc(journalEntries.entryDate), asc(journalEntries.entryNo), asc(journalLines.id));
 
   let runningBalancePaisa = openingBalancePaisa;
   let totalDebitPaisa = 0;
@@ -292,4 +277,3 @@ export async function accountLedger(
     lines,
   };
 }
-

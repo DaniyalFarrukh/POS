@@ -21,9 +21,7 @@ import {
   invoices,
   changeLog,
 } from '../db/schema';
-import {
-  hashRegistrationCode,
-} from '../auth/jwt';
+import { hashRegistrationCode } from '../auth/jwt';
 import { eq, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 
@@ -174,7 +172,6 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * both see the same batches and stock movements, and stock balance equals the sum of movements.
    */
   it('Scenario 1: Two devices in the same pharmacy push and pull; both see identical batches/movements and stock balance equals sum of movements', async () => {
-
     // 1. Setup Pharmacy with two registration codes for two devices in the same branch
     const tenant = await setupTenant('City Central Pharmacy', 'D101');
     const code2 = await createExtraRegistrationCode(
@@ -351,7 +348,12 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
     });
     expect(pull1Res.statusCode).toBe(200);
     const pull1Body = pull1Res.json() as {
-      changes: Array<{ entity: string; entityId: string; op: string; data: Record<string, unknown> }>;
+      changes: Array<{
+        entity: string;
+        entityId: string;
+        op: string;
+        data: Record<string, unknown>;
+      }>;
     };
 
     // 8. Pull changes from Device 2
@@ -362,7 +364,12 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
     });
     expect(pull2Res.statusCode).toBe(200);
     const pull2Body = pull2Res.json() as {
-      changes: Array<{ entity: string; entityId: string; op: string; data: Record<string, unknown> }>;
+      changes: Array<{
+        entity: string;
+        entityId: string;
+        op: string;
+        data: Record<string, unknown>;
+      }>;
     };
 
     // 9. Both see the exact same batches
@@ -404,7 +411,6 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Replay the same push batch 3 times: results become duplicate, row counts unchanged.
    */
   it('Scenario 2: Replaying the same push batch 3 times results in "duplicate" and leaves database row counts unchanged', async () => {
-
     const tenant = await setupTenant('Replay Pharmacy', 'R201');
     const dev = await registerDevice(tenant.plainCode, 'Replay Device');
 
@@ -599,7 +605,6 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Send 100 events including one invalid one in the middle: the others are accepted.
    */
   it('Scenario 3: 100 events with 1 invalid event in the middle: 99 accepted and 1 rejected into rejected_events', async () => {
-
     const tenant = await setupTenant('Bulk 100 Pharmacy', 'B301');
     const dev = await registerDevice(tenant.plainCode, 'Bulk Device');
 
@@ -733,7 +738,6 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Revoked device token rejected on push and pull.
    */
   it('Scenario 4: Revoked device token is rejected with HTTP 403 on both push and pull', async () => {
-
     const tenant = await setupTenant('Revocation Pharmacy', 'RV401');
     const dev = await registerDevice(tenant.plainCode, 'Terminal To Revoke');
 
@@ -754,10 +758,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
     expect(initialPush.statusCode).toBe(200);
 
     // Revoke the device directly in database
-    await ctx.db
-      .update(devices)
-      .set({ isRevoked: true })
-      .where(eq(devices.id, dev.deviceId));
+    await ctx.db.update(devices).set({ isRevoked: true }).where(eq(devices.id, dev.deviceId));
 
     // Push with revoked token: Must return HTTP 403
     const revokedPush = await app.inject({
@@ -786,7 +787,6 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Device from pharmacy A can never read or write pharmacy B data.
    */
   it('Scenario 5: Multi-tenant isolation: Device from Pharmacy A can never read or write Pharmacy B data', async () => {
-
     // 1. Setup Pharmacy A and Pharmacy B
     const tenantA = await setupTenant('Tenant Alpha', 'A501');
     const tenantB = await setupTenant('Tenant Beta', 'B502');
@@ -901,7 +901,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
             payload: {
               id: maliciousAdjId,
               productId: productBId, // Pharmacy B's product
-              batchId: batchBId,     // Pharmacy B's batch
+              batchId: batchBId, // Pharmacy B's batch
               branchId: tenantA.branchId,
               quantitySigned: 50,
               reason: 'Cross-tenant illegal write attempt',

@@ -77,7 +77,9 @@ export function validateManualJournalDraft(draft: ManualJournalDraft): JournalVa
     const hasCredit = line.creditPaisa > 0;
 
     if ((hasDebit && hasCredit) || (!hasDebit && !hasCredit)) {
-      lineErrors.push(`Line ${i + 1}: Each line must have strictly one of debit or credit greater than zero`);
+      lineErrors.push(
+        `Line ${i + 1}: Each line must have strictly one of debit or credit greater than zero`
+      );
       continue;
     }
 
@@ -93,7 +95,11 @@ export function validateManualJournalDraft(draft: ManualJournalDraft): JournalVa
     entryError = 'Journal entry cannot have zero total debit/credit';
   }
 
-  const isValid = !entryError && lineErrors.length === 0 && totalDebitPaisa === totalCreditPaisa && totalDebitPaisa > 0;
+  const isValid =
+    !entryError &&
+    lineErrors.length === 0 &&
+    totalDebitPaisa === totalCreditPaisa &&
+    totalDebitPaisa > 0;
 
   return {
     isValid,
@@ -122,7 +128,7 @@ export interface ReversibleEntryInput {
 
 export function canReverseJournalEntry(
   entry: ReversibleEntryInput,
-  role: UserRole,
+  role: UserRole
 ): { canReverse: boolean; reason: string | null } {
   if (!canPostManualJournal(role)) {
     return {
@@ -158,9 +164,7 @@ export function canDeactivateAccount(account: AccountItem, role: UserRole): bool
   return canManageChartOfAccounts(role);
 }
 
-export function buildAccountTree(
-  accounts: AccountItem[],
-): Record<AccountType, AccountTreeNode[]> {
+export function buildAccountTree(accounts: AccountItem[]): Record<AccountType, AccountTreeNode[]> {
   const result: Record<AccountType, AccountTreeNode[]> = {
     asset: [],
     liability: [],
@@ -175,7 +179,9 @@ export function buildAccountTree(
   }
 
   // Sort all accounts by code ascending
-  const sortedAccounts = [...accounts].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+  const sortedAccounts = [...accounts].sort((a, b) =>
+    a.code.localeCompare(b.code, undefined, { numeric: true })
+  );
 
   for (const acc of sortedAccounts) {
     const node = accountMap.get(acc.id)!;

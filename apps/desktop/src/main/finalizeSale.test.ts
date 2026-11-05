@@ -2,11 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
 import { MIGRATIONS } from './db';
 import { generateUuidV7, InsufficientStockError } from '@pos/shared';
-import {
-  finalizeSale,
-  type FinalizeSaleInput,
-  type FiscalService,
-} from './finalizeSale';
+import { finalizeSale, type FinalizeSaleInput, type FiscalService } from './finalizeSale';
 
 describe('finalizeSale Transaction Service (Phase 2)', () => {
   let db: DatabaseInstance;
@@ -39,9 +35,11 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
 
     for (const m of MIGRATIONS) {
       m.up(db);
-      db.prepare(
-        'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)'
-      ).run(m.version, m.name, new Date().toISOString());
+      db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+        m.version,
+        m.name,
+        new Date().toISOString()
+      );
     }
 
     const now = '2026-10-26T10:00:00.000Z';
@@ -58,9 +56,12 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
     batchBId = generateUuidV7();
 
     // 1. Branch
-    db.prepare(
-      'INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)'
-    ).run(branchId, 'Main Pharmacy', now, now);
+    db.prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)').run(
+      branchId,
+      'Main Pharmacy',
+      now,
+      now
+    );
 
     // 2. Counter with code 'C1' and last_invoice_seq 0
     db.prepare(
@@ -83,13 +84,15 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
 
     // 5. Products
     // Product A: Rs. 100.00 (10000 paisa), Standard 18% tax
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       productAId,
       'Panadol 500mg',
       'Paracetamol',
@@ -106,13 +109,15 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
     );
 
     // Product B: Rs. 50.00 (5000 paisa), Tax exempt
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       productBId,
       'ORS Sachet',
       'Oral Rehydration Salts',
@@ -130,45 +135,47 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
 
     // 6. Batches for Product A:
     // Batch A-Expired: expired yesterday (2026-10-25)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchAExpiredId, productAId, 'BATCH-EXP', '2026-10-25', 6000, 10000, now, now);
+    `
+    ).run(batchAExpiredId, productAId, 'BATCH-EXP', '2026-10-25', 6000, 10000, now, now);
 
     // Batch A1: expires 2026-12-01 (earlier)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchA1Id, productAId, 'BATCH-A1', '2026-12-01', 6000, 10000, now, now);
+    `
+    ).run(batchA1Id, productAId, 'BATCH-A1', '2026-12-01', 6000, 10000, now, now);
 
     // Batch A2: expires 2027-06-01 (later)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchA2Id, productAId, 'BATCH-A2', '2027-06-01', 6000, 10000, now, now);
+    `
+    ).run(batchA2Id, productAId, 'BATCH-A2', '2027-06-01', 6000, 10000, now, now);
 
     // Batch B: expires 2027-12-31
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batchBId, productBId, 'BATCH-B1', '2027-12-31', 3000, 5000, now, now);
+    `
+    ).run(batchBId, productBId, 'BATCH-B1', '2027-12-31', 3000, 5000, now, now);
 
     // Helper to add purchase stock movement
     const addStock = (batchIdParam: string, productIdParam: string, qty: number) => {
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO stock_movements (
           id, product_id, batch_id, branch_id, type, quantity_signed,
           reference_type, reference_id, reason, created_at, updated_at
         ) VALUES (?, ?, ?, ?, 'purchase', ?, 'grn', 'init', 'Init Stock', ?, ?)
-      `).run(
-        generateUuidV7(),
-        productIdParam,
-        batchIdParam,
-        branchId,
-        qty,
-        now,
-        now
-      );
+      `
+      ).run(generateUuidV7(), productIdParam, batchIdParam, branchId, qty, now, now);
     };
 
     // Initial stock setup:
@@ -280,7 +287,9 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
 
     // Verify stock movements
     const movements = db
-      .prepare('SELECT batch_id, quantity_signed FROM stock_movements WHERE reference_id = ? ORDER BY quantity_signed ASC')
+      .prepare(
+        'SELECT batch_id, quantity_signed FROM stock_movements WHERE reference_id = ? ORDER BY quantity_signed ASC'
+      )
       .all(invoice.id) as { batch_id: string; quantity_signed: number }[];
     expect(movements).toHaveLength(2);
     expect(movements).toEqual([
@@ -345,22 +354,28 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
     expect(paymentCount.c).toBe(0);
 
     // Verify 0 sale stock movements created
-    const saleMovements = db.prepare("SELECT COUNT(*) as c FROM stock_movements WHERE type = 'sale'").get() as { c: number };
+    const saleMovements = db
+      .prepare("SELECT COUNT(*) as c FROM stock_movements WHERE type = 'sale'")
+      .get() as { c: number };
     expect(saleMovements.c).toBe(0);
 
     // Verify counter sequence was NOT incremented (remains 0)
-    const counterRow = db.prepare('SELECT last_invoice_seq FROM counters WHERE id = ?').get(counterId) as { last_invoice_seq: number };
+    const counterRow = db
+      .prepare('SELECT last_invoice_seq FROM counters WHERE id = ?')
+      .get(counterId) as { last_invoice_seq: number };
     expect(counterRow.last_invoice_seq).toBe(0);
   });
 
   it('invoice numbers sequential across 50 rapid calls with zero gaps', () => {
     // Add plenty of stock to Batch B for 50 sales of 1 unit
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (
         id, product_id, batch_id, branch_id, type, quantity_signed,
         reference_type, reference_id, reason, created_at, updated_at
       ) VALUES (?, ?, ?, ?, 'purchase', 100, 'grn', 'bulk', 'Bulk', '2026-10-26T10:00:00.000Z', '2026-10-26T10:00:00.000Z')
-    `).run(generateUuidV7(), productBId, batchBId, branchId);
+    `
+    ).run(generateUuidV7(), productBId, batchBId, branchId);
 
     const generatedNumbers: string[] = [];
 
@@ -456,7 +471,9 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
     // Ensure zero invoices or sequence increment occurred
     const count = db.prepare('SELECT COUNT(*) as c FROM invoices').get() as { c: number };
     expect(count.c).toBe(0);
-    const counterRow = db.prepare('SELECT last_invoice_seq FROM counters WHERE id = ?').get(counterId) as { last_invoice_seq: number };
+    const counterRow = db
+      .prepare('SELECT last_invoice_seq FROM counters WHERE id = ?')
+      .get(counterId) as { last_invoice_seq: number };
     expect(counterRow.last_invoice_seq).toBe(0);
   });
 
@@ -492,14 +509,16 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
     expect(payCount.c).toBe(1);
 
     // Verify stock movement was only deducted ONCE (quantity_signed = -1)
-    const saleMovements = db
-      .prepare("SELECT * FROM stock_movements WHERE type = 'sale'")
-      .all() as { quantity_signed: number }[];
+    const saleMovements = db.prepare("SELECT * FROM stock_movements WHERE type = 'sale'").all() as {
+      quantity_signed: number;
+    }[];
     expect(saleMovements).toHaveLength(1);
     expect(saleMovements[0]?.quantity_signed).toBe(-1);
 
     // Verify counter sequence was only incremented ONCE
-    const counterRow = db.prepare('SELECT last_invoice_seq FROM counters WHERE id = ?').get(counterId) as { last_invoice_seq: number };
+    const counterRow = db
+      .prepare('SELECT last_invoice_seq FROM counters WHERE id = ?')
+      .get(counterId) as { last_invoice_seq: number };
     expect(counterRow.last_invoice_seq).toBe(1);
   });
 

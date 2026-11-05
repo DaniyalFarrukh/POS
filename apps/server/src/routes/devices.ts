@@ -19,10 +19,7 @@ export interface DeviceRoutesOptions {
   registerRateLimitWindow?: string | number;
 }
 
-export const deviceRoutes: FastifyPluginAsync<DeviceRoutesOptions> = async (
-  fastify,
-  options
-) => {
+export const deviceRoutes: FastifyPluginAsync<DeviceRoutesOptions> = async (fastify, options) => {
   const registerMax = options.registerRateLimitMax ?? 5;
   const registerWindow = options.registerRateLimitWindow ?? '1 minute';
 

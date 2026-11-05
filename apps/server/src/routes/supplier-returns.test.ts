@@ -416,9 +416,10 @@ describe('Supplier Returns & Debit Notes Module', () => {
     // Net Payable = 750,000 - 300,000 = 450,000 paisa!
     const [apBalance] = await db
       .select({
-        netPayable: sql<number>`sum(${journalLines.creditPaisa}) - sum(${journalLines.debitPaisa})`.mapWith(
-          Number
-        ),
+        netPayable:
+          sql<number>`sum(${journalLines.creditPaisa}) - sum(${journalLines.debitPaisa})`.mapWith(
+            Number
+          ),
       })
       .from(journalLines)
       .where(

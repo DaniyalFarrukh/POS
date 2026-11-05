@@ -7,10 +7,7 @@
  * @param attempt 0-indexed attempt count (0, 1, 2, ...)
  * @param random Injected random function returning [0, 1), defaults to Math.random
  */
-export function nextDelayMs(
-  attempt: number,
-  random: () => number = Math.random
-): number {
+export function nextDelayMs(attempt: number, random: () => number = Math.random): number {
   const safeAttempt = Math.max(0, Math.floor(attempt));
   const baseMs = 2000 * Math.pow(2, safeAttempt);
   const maxCapMs = 5 * 60 * 1000; // 300,000 ms (5 minutes)

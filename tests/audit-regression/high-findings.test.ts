@@ -2,15 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import {
-  generateUuidV7,
-  convertRupeesToPaisa,
-} from '../../packages/shared/src/index';
+import { generateUuidV7, convertRupeesToPaisa } from '../../packages/shared/src/index';
 import { buildApp } from '../../apps/server/src/app';
-import {
-  createTestContext,
-  type TestDatabaseContext,
-} from '../../apps/server/src/db/test-helper';
+import { createTestContext, type TestDatabaseContext } from '../../apps/server/src/db/test-helper';
 import {
   pharmacies,
   branches,
@@ -23,22 +17,12 @@ import {
   invoices,
   changeLog,
 } from '../../apps/server/src/db/schema';
-import {
-  signDeviceToken,
-  signUserToken,
-} from '../../apps/server/src/auth/jwt';
+import { signDeviceToken, signUserToken } from '../../apps/server/src/auth/jwt';
 import { pullChangeLog } from '../../apps/server/src/sync/pull-service';
 import { insertChangeLog } from '../../apps/server/src/sync/change-log';
-import {
-  getDashboardOverview,
-  getSalesReport,
-} from '../../apps/server/src/reports/queries';
+import { getDashboardOverview, getSalesReport } from '../../apps/server/src/reports/queries';
 import { initDatabase, closeDatabase, getDatabase } from '../../apps/desktop/src/main/db';
-import {
-  hashPin,
-  lockSession,
-  setSessionForTesting,
-} from '../../apps/desktop/src/main/auth';
+import { hashPin, lockSession, setSessionForTesting } from '../../apps/desktop/src/main/auth';
 import { createSupplier, receiveGrn } from '../../apps/desktop/src/main/purchasing';
 import { finalizeSale } from '../../apps/desktop/src/main/finalizeSale';
 import { processReturn } from '../../apps/desktop/src/main/returns';
@@ -84,7 +68,8 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     const batchId = generateUuidV7();
 
     const ownerPinHash = await hashPin('12345678');
-    const pharmacyCode = name.replace(/[^A-Za-z0-9]/g, '_').toUpperCase() + '_' + pharmacyId.slice(0, 8);
+    const pharmacyCode =
+      name.replace(/[^A-Za-z0-9]/g, '_').toUpperCase() + '_' + pharmacyId.slice(0, 8);
 
     await ctx.db.insert(pharmacies).values({
       id: pharmacyId,
@@ -220,7 +205,14 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     ).run(tenant.counterId, tenant.branchId, 'Counter 1', 'C1', now, now);
     db.prepare(
       'INSERT INTO users (id, name, role, pin_hash, is_active, failed_login_attempts, locked_until, created_at, updated_at) VALUES (?, ?, ?, ?, 1, 0, NULL, ?, ?)'
-    ).run(tenant.ownerId, 'Owner', 'owner', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', now, now);
+    ).run(
+      tenant.ownerId,
+      'Owner',
+      'owner',
+      '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+      now,
+      now
+    );
     db.prepare(
       'INSERT INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at) VALUES (?, ?, 0, 1, ?, ?)'
     ).run(tenant.taxCategoryId, 'Standard Exempt', now, now);
@@ -284,10 +276,7 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     );
     expect(pushSummary.acked).toBe(1);
 
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
 
     const afterPullMovements = db
       .prepare('SELECT id FROM stock_movements WHERE reference_id = ? ORDER BY rowid ASC')
@@ -400,11 +389,11 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
   it('H-04: desktop IPC handlers enforce wrapper with role-guards, sender validation, context injection, and sanitization', async () => {
     const { registerAllIpcHandlers } = await import('../../apps/desktop/src/main/index');
     const { registerSyncIpc } = await import('../../apps/desktop/src/main/sync/adapters/syncIpc');
-    const { createTokenStore } = await import('../../apps/desktop/src/main/sync/adapters/tokenStore');
+    const { createTokenStore } =
+      await import('../../apps/desktop/src/main/sync/adapters/tokenStore');
     const { createSyncWorker } = await import('../../apps/desktop/src/main/sync/core/syncWorker');
-    const { getRegisteredIpcHandlers, sanitizeIpcOutput, validateSenderFrame } = await import(
-      '../../apps/desktop/src/main/ipc/wrapper'
-    );
+    const { getRegisteredIpcHandlers, sanitizeIpcOutput, validateSenderFrame } =
+      await import('../../apps/desktop/src/main/ipc/wrapper');
     const { roleGuardedFinalizeSale } = await import('../../apps/desktop/src/main/invoices');
     const { openShift, closeShift } = await import('../../apps/desktop/src/main/shifts');
 
@@ -422,7 +411,14 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     expect(registry.size).toBeGreaterThan(25);
 
     // Legacy un-prefixed duplicates must be removed
-    const legacyAliases = ['getSyncStatus', 'syncNow', 'registerDevice', 'listSyncExceptions', 'retryException', 'dismissException'];
+    const legacyAliases = [
+      'getSyncStatus',
+      'syncNow',
+      'registerDevice',
+      'listSyncExceptions',
+      'retryException',
+      'dismissException',
+    ];
     for (const alias of legacyAliases) {
       expect(registry.has(alias)).toBe(false);
     }
@@ -449,7 +445,16 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     expect(restoreHandler?.isDestructive).toBe(true);
 
     // Public handlers must have an explicit publicReason
-    const publicChannels = ['ping', 'get-db-info', 'auth:get-setup-status', 'auth:complete-setup', 'auth:get-users', 'auth:login', 'auth:unlock-session', 'auth:get-session'];
+    const publicChannels = [
+      'ping',
+      'get-db-info',
+      'auth:get-setup-status',
+      'auth:complete-setup',
+      'auth:get-users',
+      'auth:login',
+      'auth:unlock-session',
+      'auth:get-session',
+    ];
     for (const channel of publicChannels) {
       const handler = registry.get(channel);
       expect(handler).toBeDefined();
@@ -460,11 +465,25 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
 
     // 2. Lockout guard: locked session blocks secured handler
     const now = new Date().toISOString();
-    const cashierUser = { id: generateUuidV7(), name: 'Cashier 1', role: 'cashier' as const, isActive: true };
-    db.prepare(`
+    const cashierUser = {
+      id: generateUuidV7(),
+      name: 'Cashier 1',
+      role: 'cashier' as const,
+      isActive: true,
+    };
+    db.prepare(
+      `
       INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
       VALUES (?, ?, ?, ?, 1, ?, ?)
-    `).run(cashierUser.id, cashierUser.name, cashierUser.role, '$2b$10$dummyhashfortest000000', now, now);
+    `
+    ).run(
+      cashierUser.id,
+      cashierUser.name,
+      cashierUser.role,
+      '$2b$10$dummyhashfortest000000',
+      now,
+      now
+    );
 
     setSessionForTesting({
       user: cashierUser,
@@ -477,9 +496,9 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
 
     const getAllProducts = registry.get('products:get-all');
     expect(getAllProducts).toBeDefined();
-    await expect(
-      getAllProducts!.handler({} as Electron.IpcMainInvokeEvent, {})
-    ).rejects.toThrow(/locked/i);
+    await expect(getAllProducts!.handler({} as Electron.IpcMainInvokeEvent, {})).rejects.toThrow(
+      /locked/i
+    );
 
     // 3. Context Injection: caller passing spoofed cashierUserId has it overridden with session user
     setSessionForTesting({
@@ -540,14 +559,21 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
 
     // 4. Shift close ownership check: cashier cannot close another cashier's shift
     const otherCashierId = generateUuidV7();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO users (id, name, role, pin_hash, is_active, created_at, updated_at)
       VALUES (?, ?, ?, ?, 1, ?, ?)
-    `).run(otherCashierId, 'Other Cashier', 'cashier', '$2b$10$dummyhashfortest000000', now, now);
+    `
+    ).run(otherCashierId, 'Other Cashier', 'cashier', '$2b$10$dummyhashfortest000000', now, now);
 
     const otherShift = openShift(
       { openingCashPaisa: 5000 },
-      { branchId: tenant.branchId, counterId: tenant.counterId, cashierUserId: otherCashierId, rawDb: db }
+      {
+        branchId: tenant.branchId,
+        counterId: tenant.counterId,
+        cashierUserId: otherCashierId,
+        rawDb: db,
+      }
     );
 
     // Current session is cashierUser (not otherCashierId) -> closing otherShift must throw
@@ -694,7 +720,9 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    const body = res.json<{ results: Array<{ eventId: string; status: string; code?: string; message?: string }> }>();
+    const body = res.json<{
+      results: Array<{ eventId: string; status: string; code?: string; message?: string }>;
+    }>();
     expect(body.results).toHaveLength(3);
     expect(body.results[0]?.status).toBe('accepted');
     expect(body.results[1]?.status).toBe('rejected');
@@ -731,10 +759,7 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     expect(createRes.statusCode).toBe(201);
     const created = createRes.json<{ id: string }>();
 
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
 
     // Deactivate user via PATCH /api/admin/users/:id
     const patchRes = await app.inject({
@@ -760,14 +785,10 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
       expect(String(changeData.pinHash)).toMatch(/^\$2[aby]\$/); // bcrypt hash only
     }
 
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
 
-    const localUser = db
-      .prepare('SELECT is_active FROM users WHERE id = ?')
-      .get(created.id) as { is_active: number } | undefined;
+    const localUser = db.prepare('SELECT is_active FROM users WHERE id = ?').get(created.id) as
+      { is_active: number } | undefined;
 
     expect(localUser?.is_active).toBe(0);
   });
@@ -823,10 +844,7 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
       createdAt: now,
     });
 
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
 
     const syncedProd1 = db
       .prepare(
@@ -864,14 +882,11 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
       createdAt: now,
     });
 
-    await pullAndApply(
-      { db, fetch: globalThis.fetch },
-      { serverUrl, token: tenant.deviceToken }
-    );
+    await pullAndApply({ db, fetch: globalThis.fetch }, { serverUrl, token: tenant.deviceToken });
 
-    const syncedProd2 = db
-      .prepare('SELECT barcode FROM products WHERE id = ?')
-      .get(prodId) as { barcode: string | null };
+    const syncedProd2 = db.prepare('SELECT barcode FROM products WHERE id = ?').get(prodId) as {
+      barcode: string | null;
+    };
     expect(syncedProd2.barcode).toBeNull();
 
     // 4. Incomplete product payload (missing mandatory mrpPaisa and brandName) is rejected and logged
@@ -896,9 +911,7 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     );
 
     // The incomplete product must NOT be inserted into SQLite
-    const brokenRow = db
-      .prepare('SELECT id FROM products WHERE id = ?')
-      .get(incompleteProduct.id);
+    const brokenRow = db.prepare('SELECT id FROM products WHERE id = ?').get(incompleteProduct.id);
     expect(brokenRow).toBeUndefined();
     // And pullAndApply recorded exception/rejected change
     expect(pullSummary.changesApplied).toBeGreaterThanOrEqual(0);
@@ -969,7 +982,9 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     expect(pullRes.changes.map((c) => c.entityId)).toEqual(
       expect.arrayContaining([...branchAEntityIds, globalEntityId])
     );
-    expect(pullRes.changes.some((c) => (c.data as Record<string, unknown>).branchId === branchBId)).toBe(false);
+    expect(
+      pullRes.changes.some((c) => (c.data as Record<string, unknown>).branchId === branchBId)
+    ).toBe(false);
 
     // 5. Branch B pulls: must see Branch B rows and global row, but NONE of Branch A rows
     const pullResB = await pullChangeLog(
@@ -1232,7 +1247,8 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
 
     let pushCallCount = 0;
     const customFetch: typeof fetch = async (input, init) => {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       if (url.endsWith('/sync/push')) {
         pushCallCount++;
         if (pushCallCount === 1) {
@@ -1280,8 +1296,9 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     );
 
     // No IPC registrations should happen inside createWindow
-    const registersIpcInsideCreateWindow = createWindowSection.includes("ipcMain.handle") ||
-      createWindowSection.includes("registerSecureIpcHandler");
+    const registersIpcInsideCreateWindow =
+      createWindowSection.includes('ipcMain.handle') ||
+      createWindowSection.includes('registerSecureIpcHandler');
     expect(registersIpcInsideCreateWindow).toBe(false);
 
     // Handlers must be registered via registerAllIpcHandlers outside createWindow
@@ -1290,14 +1307,8 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
   });
 
   it('H-13: desktop and web index.html do not load external Google Fonts CDNs (Rule 10 offline requirement)', () => {
-    const desktopHtml = fs.readFileSync(
-      path.join(REPO_ROOT, 'apps/desktop/index.html'),
-      'utf8'
-    );
-    const webHtml = fs.readFileSync(
-      path.join(REPO_ROOT, 'apps/web/index.html'),
-      'utf8'
-    );
+    const desktopHtml = fs.readFileSync(path.join(REPO_ROOT, 'apps/desktop/index.html'), 'utf8');
+    const webHtml = fs.readFileSync(path.join(REPO_ROOT, 'apps/web/index.html'), 'utf8');
 
     expect(desktopHtml).not.toContain('fonts.googleapis.com');
     expect(desktopHtml).not.toContain('fonts.gstatic.com');

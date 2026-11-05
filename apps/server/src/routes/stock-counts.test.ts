@@ -463,7 +463,9 @@ describe('Stock Counts Module', () => {
 
     // Negative variance (-5 * 25000 = 125,000 paisa)
     // Dr Stock Adjustment 125,000, Cr Inventory 125,000
-    const lossLines = entries.filter((l) => l.debitPaisa === 125000 && l.accountId === adjAccountId);
+    const lossLines = entries.filter(
+      (l) => l.debitPaisa === 125000 && l.accountId === adjAccountId
+    );
     expect(lossLines.length).toBeGreaterThanOrEqual(1);
 
     // Positive variance (+4 * 3000 = 12,000 paisa)

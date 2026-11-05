@@ -49,7 +49,9 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showHeldCartsModal, setShowHeldCartsModal] = useState(false);
-  const [substituteTargetProduct, setSubstituteTargetProduct] = useState<PosCatalogItem | null>(null);
+  const [substituteTargetProduct, setSubstituteTargetProduct] = useState<PosCatalogItem | null>(
+    null
+  );
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -180,7 +182,11 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
   }, []);
 
   const handleDeleteSelectedLine = useCallback(() => {
-    if (selectedLineIndex !== null && selectedLineIndex >= 0 && selectedLineIndex < cartLines.length) {
+    if (
+      selectedLineIndex !== null &&
+      selectedLineIndex >= 0 &&
+      selectedLineIndex < cartLines.length
+    ) {
       setCartLines((prev) => prev.filter((_, idx) => idx !== selectedLineIndex));
       setSelectedLineIndex((prev) => {
         if (prev === null) return null;
@@ -270,11 +276,7 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
     });
   };
 
-  const updateLineDiscount = (
-    idx: number,
-    type: 'none' | 'percent' | 'flat',
-    value: number
-  ) => {
+  const updateLineDiscount = (idx: number, type: 'none' | 'percent' | 'flat', value: number) => {
     setCartLines((prev) => {
       const updated = [...prev];
       const target = updated[idx];
@@ -625,7 +627,9 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
             >
               <span>👤</span>
               <span>Customer / Rx</span>
-              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>F6</kbd>
+              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>
+                F6
+              </kbd>
             </button>
 
             <button
@@ -648,7 +652,9 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
             >
               <span>🛒</span>
               <span>Parked ({heldCarts.length})</span>
-              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>F4</kbd>
+              <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 4px' }}>
+                F4
+              </kbd>
             </button>
           </div>
         </div>
@@ -664,7 +670,8 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
               backgroundColor: '#ffffff',
               borderRadius: '12px',
               border: '1px solid #c7d2fe',
-              boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
+              boxShadow:
+                '0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
               zIndex: 50,
               maxHeight: '360px',
               overflowY: 'auto',
@@ -741,11 +748,26 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', display: 'flex', gap: '12px' }}>
-                      <span>Mfr: <strong>{item.manufacturer}</strong></span>
-                      {item.barcode && <span className="tabular-nums">Barcode: {item.barcode}</span>}
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        color: '#64748b',
+                        marginTop: '3px',
+                        display: 'flex',
+                        gap: '12px',
+                      }}
+                    >
+                      <span>
+                        Mfr: <strong>{item.manufacturer}</strong>
+                      </span>
+                      {item.barcode && (
+                        <span className="tabular-nums">Barcode: {item.barcode}</span>
+                      )}
                       {item.earliestBatch && (
-                        <span className="tabular-nums" style={{ color: '#0284c7', fontWeight: 600 }}>
+                        <span
+                          className="tabular-nums"
+                          style={{ color: '#0284c7', fontWeight: 600 }}
+                        >
                           Batch: {item.earliestBatch.batchNo} (Exp: {item.earliestBatch.expiryDate})
                         </span>
                       )}
@@ -754,7 +776,10 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ textAlign: 'right' }}>
-                      <div className="tabular-nums" style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>
+                      <div
+                        className="tabular-nums"
+                        style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}
+                      >
                         {formatPKR(item.mrpPaisa)}
                       </div>
                       <div
@@ -762,7 +787,11 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                           fontSize: '11px',
                           fontWeight: 700,
                           color: !hasStock ? '#e11d48' : isLowStock ? '#d97706' : '#059669',
-                          backgroundColor: !hasStock ? '#fff1f2' : isLowStock ? '#fffbeb' : '#ecfdf5',
+                          backgroundColor: !hasStock
+                            ? '#fff1f2'
+                            : isLowStock
+                              ? '#fffbeb'
+                              : '#ecfdf5',
                           padding: '1px 6px',
                           borderRadius: '4px',
                           display: 'inline-block',
@@ -866,11 +895,22 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                     }}
                   >
                     <div style={{ fontSize: '36px', marginBottom: '12px' }}>🛒</div>
-                    <div style={{ fontWeight: 800, fontSize: '17px', color: '#334155', letterSpacing: '-0.01em' }}>
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: '17px',
+                        color: '#334155',
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
                       Cart is currently empty
                     </div>
                     <p style={{ margin: '6px 0 16px 0', fontSize: '13px', color: '#64748b' }}>
-                      Scan a product barcode or press <kbd className="kbd-cap" style={{ fontSize: '11px' }}>F3</kbd> to search and add items.
+                      Scan a product barcode or press{' '}
+                      <kbd className="kbd-cap" style={{ fontSize: '11px' }}>
+                        F3
+                      </kbd>{' '}
+                      to search and add items.
                     </p>
                   </td>
                 </tr>
@@ -891,7 +931,14 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       }}
                     >
                       {/* # Number */}
-                      <td style={{ padding: '12px 14px', color: '#94a3b8', fontWeight: 700, fontSize: '12px' }}>
+                      <td
+                        style={{
+                          padding: '12px 14px',
+                          color: '#94a3b8',
+                          fontWeight: 700,
+                          fontSize: '12px',
+                        }}
+                      >
                         {idx + 1}
                       </td>
 
@@ -929,10 +976,16 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       <td style={{ padding: '12px 14px' }}>
                         {line.batchNo ? (
                           <div>
-                            <div className="tabular-nums" style={{ fontWeight: 700, color: '#1e293b', fontSize: '12px' }}>
+                            <div
+                              className="tabular-nums"
+                              style={{ fontWeight: 700, color: '#1e293b', fontSize: '12px' }}
+                            >
                               Batch: {line.batchNo}
                             </div>
-                            <div className="tabular-nums" style={{ fontSize: '11px', color: '#64748b' }}>
+                            <div
+                              className="tabular-nums"
+                              style={{ fontSize: '11px', color: '#64748b' }}
+                            >
                               Exp: {line.expiryDate || 'N/A'}
                             </div>
                           </div>
@@ -1006,7 +1059,16 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                       </td>
 
                       {/* MRP */}
-                      <td className="tabular-nums" style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#334155', fontSize: '14px' }}>
+                      <td
+                        className="tabular-nums"
+                        style={{
+                          padding: '12px 14px',
+                          textAlign: 'right',
+                          fontWeight: 700,
+                          color: '#334155',
+                          fontSize: '14px',
+                        }}
+                      >
                         {formatPKR(line.unitPricePaisa)}
                       </td>
 
@@ -1085,7 +1147,7 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                                 idx,
                                 e.target.value as 'none' | 'percent' | 'flat',
                                 line.discountType === 'percent'
-                                    ? line.discountBp / 100
+                                  ? line.discountBp / 100
                                   : line.flatDiscountPaisa / 100
                               )
                             }
@@ -1143,7 +1205,9 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                           color: '#0f172a',
                         }}
                       >
-                        {formatPKR(computedLine?.lineTotalPaisa ?? line.unitPricePaisa * line.quantity)}
+                        {formatPKR(
+                          computedLine?.lineTotalPaisa ?? line.unitPricePaisa * line.quantity
+                        )}
                       </td>
 
                       {/* Remove Line */}
@@ -1299,7 +1363,9 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
               onClick={handleDeleteSelectedLine}
               title="Remove Selected Item (Del)"
             >
-              <kbd className="pos-kbd" style={{ fontSize: '10px' }}>Del</kbd>
+              <kbd className="pos-kbd" style={{ fontSize: '10px' }}>
+                Del
+              </kbd>
               <span style={{ fontSize: '11px', fontWeight: 600, color: '#334155' }}>Line</span>
             </div>
 
@@ -1513,7 +1579,8 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
                 borderRadius: '5px',
                 backgroundColor: cartLines.length > 0 ? 'rgba(255, 255, 255, 0.22)' : '#e2e8f0',
                 color: cartLines.length > 0 ? '#ffffff' : '#64748b',
-                border: cartLines.length > 0 ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #cbd5e1',
+                border:
+                  cartLines.length > 0 ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid #cbd5e1',
                 boxShadow: cartLines.length > 0 ? '0 1px 2px rgba(0, 0, 0, 0.15)' : 'none',
               }}
             >
@@ -1600,11 +1667,14 @@ export const PosCheckoutScreen: React.FC<PosCheckoutScreenProps> = ({ session })
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
             }}
           >
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+            <h4
+              style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}
+            >
               Clear Active Cart?
             </h4>
             <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-              Are you sure you want to remove all {cartLines.length} item(s) from this transaction? This cannot be undone.
+              Are you sure you want to remove all {cartLines.length} item(s) from this transaction?
+              This cannot be undone.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button

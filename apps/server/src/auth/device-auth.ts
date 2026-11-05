@@ -29,7 +29,7 @@ declare module 'fastify' {
  * 2. Loads the device from the database.
  * 3. Rejects revoked devices (HTTP 403).
  * 4. Strictly attaches pharmacyId, branchId, deviceId to request.deviceContext.
- * 
+ *
  * Note: Tenancy parameters must NEVER be trusted from the request body or query.
  */
 export async function requireDeviceAuth(

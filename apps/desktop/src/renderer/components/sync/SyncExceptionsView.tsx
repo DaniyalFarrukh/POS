@@ -57,7 +57,9 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
     try {
       const res = await window.api.sync.retryException(id);
       if (res.success) {
-        setActionSuccessMsg(`Event ${id.slice(0, 8)}... marked for retry. Sync will dispatch shortly.`);
+        setActionSuccessMsg(
+          `Event ${id.slice(0, 8)}... marked for retry. Sync will dispatch shortly.`
+        );
         await fetchExceptions();
         onRefreshParent?.();
       } else {
@@ -82,7 +84,10 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
     setSubmittingDismiss(true);
     setErrorMsg(null);
     try {
-      const res = await window.api.sync.dismissException(dismissingId, dismissNote.trim() || undefined);
+      const res = await window.api.sync.dismissException(
+        dismissingId,
+        dismissNote.trim() || undefined
+      );
       if (res.success) {
         setActionSuccessMsg(`Exception ${dismissingId.slice(0, 8)}... dismissed successfully.`);
         setDismissingId(null);
@@ -164,7 +169,8 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
             </span>
           </div>
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-            Inspect sync events rejected by the central server. Retry recovered events or dismiss with audit notes.
+            Inspect sync events rejected by the central server. Retry recovered events or dismiss
+            with audit notes.
           </p>
         </div>
 
@@ -251,7 +257,13 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
           <button
             type="button"
             onClick={() => setActionSuccessMsg(null)}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#166534', fontWeight: 700 }}
+            style={{
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color: '#166534',
+              fontWeight: 700,
+            }}
           >
             ✕
           </button>
@@ -310,7 +322,8 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
             No {filterStatus === 'all' ? '' : filterStatus} exceptions found
           </div>
           <p style={{ margin: 0, color: '#64748b', fontSize: '13px', maxWidth: '400px' }}>
-            All outbound transactions and stock events synchronized cleanly without rejected records.
+            All outbound transactions and stock events synchronized cleanly without rejected
+            records.
           </p>
         </div>
       ) : (
@@ -336,7 +349,15 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
                 }}
               >
                 {/* Row Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span
                       style={{
@@ -476,7 +497,14 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
 
                 {/* Actions (Only for Open exceptions) */}
                 {ex.status === 'open' && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '10px',
+                      marginTop: '4px',
+                    }}
+                  >
                     <button
                       type="button"
                       disabled={isRetrying}
@@ -563,15 +591,25 @@ export const SyncExceptionsView: React.FC<SyncExceptionsViewProps> = ({
                 Dismiss Sync Exception
               </h3>
               <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                Provide an audit note explaining why this rejected event is being dismissed (e.g. corrected in backoffice or voided).
+                Provide an audit note explaining why this rejected event is being dismissed (e.g.
+                corrected in backoffice or voided).
               </p>
             </div>
 
-            <form onSubmit={handleConfirmDismiss} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <form
+              onSubmit={handleConfirmDismiss}
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
               <div>
                 <label
                   htmlFor="dismiss-note-input"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
                 >
                   Resolution Note (Required for Audit):
                 </label>

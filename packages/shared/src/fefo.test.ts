@@ -17,9 +17,7 @@ describe('FEFO Stock Allocation (allocateFefo)', () => {
 
       const result = allocateFefo(15, batches, TODAY);
 
-      expect(result).toEqual<BatchAllocation[]>([
-        { batchId: 'batch-001', qty: 15 },
-      ]);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'batch-001', qty: 15 }]);
     });
 
     it('selects the earliest expiring batch when multiple single batches could fulfill the request', () => {
@@ -30,9 +28,7 @@ describe('FEFO Stock Allocation (allocateFefo)', () => {
 
       const result = allocateFefo(10, batches, TODAY);
 
-      expect(result).toEqual<BatchAllocation[]>([
-        { batchId: 'batch-earlier', qty: 10 },
-      ]);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'batch-earlier', qty: 10 }]);
     });
   });
 
@@ -81,9 +77,7 @@ describe('FEFO Stock Allocation (allocateFefo)', () => {
 
       const result = allocateFefo(5, batches, TODAY);
 
-      expect(result).toEqual<BatchAllocation[]>([
-        { batchId: 'batch-valid', qty: 5 },
-      ]);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'batch-valid', qty: 5 }]);
     });
 
     it('considers batches expiring on today as valid (not before today)', () => {
@@ -94,9 +88,7 @@ describe('FEFO Stock Allocation (allocateFefo)', () => {
 
       const result = allocateFefo(8, batches, TODAY);
 
-      expect(result).toEqual<BatchAllocation[]>([
-        { batchId: 'batch-today', qty: 8 },
-      ]);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'batch-today', qty: 8 }]);
     });
 
     it('skips batches with available <= 0 even if not expired', () => {
@@ -108,9 +100,7 @@ describe('FEFO Stock Allocation (allocateFefo)', () => {
 
       const result = allocateFefo(5, batches, TODAY);
 
-      expect(result).toEqual<BatchAllocation[]>([
-        { batchId: 'b-valid', qty: 5 },
-      ]);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'b-valid', qty: 5 }]);
     });
   });
 

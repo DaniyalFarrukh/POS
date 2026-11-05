@@ -6,12 +6,12 @@ describe('backoff: nextDelayMs (Phase 3.2)', () => {
     // When random() returns 0.5, jitterFactor = 0.8 + 0.5 * 0.4 = 1.0 (0% jitter)
     const neutralRandom = () => 0.5;
 
-    expect(nextDelayMs(0, neutralRandom)).toBe(2_000);   // 2s
-    expect(nextDelayMs(1, neutralRandom)).toBe(4_000);   // 4s
-    expect(nextDelayMs(2, neutralRandom)).toBe(8_000);   // 8s
-    expect(nextDelayMs(3, neutralRandom)).toBe(16_000);  // 16s
-    expect(nextDelayMs(4, neutralRandom)).toBe(32_000);  // 32s
-    expect(nextDelayMs(5, neutralRandom)).toBe(64_000);  // 64s
+    expect(nextDelayMs(0, neutralRandom)).toBe(2_000); // 2s
+    expect(nextDelayMs(1, neutralRandom)).toBe(4_000); // 4s
+    expect(nextDelayMs(2, neutralRandom)).toBe(8_000); // 8s
+    expect(nextDelayMs(3, neutralRandom)).toBe(16_000); // 16s
+    expect(nextDelayMs(4, neutralRandom)).toBe(32_000); // 32s
+    expect(nextDelayMs(5, neutralRandom)).toBe(64_000); // 64s
     expect(nextDelayMs(6, neutralRandom)).toBe(128_000); // 128s
     expect(nextDelayMs(7, neutralRandom)).toBe(256_000); // 256s
   });

@@ -130,9 +130,7 @@ export const stockLocations = sqliteTable(
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
   },
-  (table) => [
-    index('idx_stock_locations_branch').on(table.branchId),
-  ]
+  (table) => [index('idx_stock_locations_branch').on(table.branchId)]
 );
 
 export const stockMovements = sqliteTable(
@@ -258,7 +256,9 @@ export const invoices = sqliteTable(
       .references(() => users.id),
     invoiceNumber: text('invoice_number').notNull(),
     clientRequestId: text('client_request_id').notNull(),
-    status: text('status', { enum: ['finalized'] }).notNull().default('finalized'),
+    status: text('status', { enum: ['finalized'] })
+      .notNull()
+      .default('finalized'),
     subtotalPaisa: integer('subtotal_paisa').notNull(),
     discountPaisa: integer('discount_paisa').notNull().default(0),
     taxPaisa: integer('tax_paisa').notNull().default(0),
@@ -343,7 +343,9 @@ export const shifts = sqliteTable(
     cashierUserId: text('cashier_user_id')
       .notNull()
       .references(() => users.id),
-    status: text('status', { enum: ['open', 'closed'] }).notNull().default('open'),
+    status: text('status', { enum: ['open', 'closed'] })
+      .notNull()
+      .default('open'),
     openedAt: text('opened_at').notNull(),
     closedAt: text('closed_at'),
     openingCashPaisa: integer('opening_cash_paisa').notNull().default(0),
@@ -387,15 +389,11 @@ export const creditNotes = sqliteTable(
     totalPaisa: integer('total_paisa').notNull(),
     refundMethod: text('refund_method', {
       enum: ['cash', 'card', 'wallet', 'credit'],
-    }).notNull().default('cash'),
+    })
+      .notNull()
+      .default('cash'),
     reason: text('reason', {
-      enum: [
-        'defective_damaged',
-        'expired',
-        'customer_return',
-        'dispensing_error',
-        'other',
-      ],
+      enum: ['defective_damaged', 'expired', 'customer_return', 'dispensing_error', 'other'],
     }).notNull(),
     notes: text('notes'),
     createdAt: text('created_at').notNull(),
@@ -479,5 +477,3 @@ export type CreditNoteModel = typeof creditNotes.$inferSelect;
 export type CreditNoteLineModel = typeof creditNoteLines.$inferSelect;
 export type SyncStateModel = typeof syncState.$inferSelect;
 export type SyncExceptionModel = typeof syncExceptions.$inferSelect;
-
-

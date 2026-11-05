@@ -43,8 +43,7 @@ export function initAutoUpdater(mainWindow?: BrowserWindow): void {
   // Placeholder URL documented for the pharmacy enterprise deployment
   // In production, this points to your self-hosted or S3/MinIO releases bucket.
   const feedUrl =
-    process.env.POS_UPDATE_FEED_URL ||
-    'https://updates.pos-pharmacy.local/releases/win/';
+    process.env.POS_UPDATE_FEED_URL || 'https://updates.pos-pharmacy.local/releases/win/';
 
   try {
     autoUpdater.setFeedURL({

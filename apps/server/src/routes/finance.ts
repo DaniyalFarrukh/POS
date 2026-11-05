@@ -1,5 +1,18 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, gte, lte, desc, asc, inArray, isNull, isNotNull, or, ilike, sql } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  gte,
+  lte,
+  desc,
+  asc,
+  inArray,
+  isNull,
+  isNotNull,
+  or,
+  ilike,
+  sql,
+} from 'drizzle-orm';
 import { z, generateUuidV7 } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
@@ -10,7 +23,8 @@ import {
   closePeriod,
   reopenPeriod,
 } from '../ledger/service';
-import { trialBalance, accountLedger } from '../ledger/queries';
+import { getMonthEndChecklist, executeYearEndClosing } from '../ledger/period-close';
+import { accountLedger } from '../ledger/queries';
 import {
   ALL_ACCOUNT_ROLES,
   getPharmacyAccountMap,
@@ -54,12 +68,6 @@ const ReverseJournalBodySchema = z.object({
   reversalDate: DateParamSchema.optional(),
 });
 
-const TrialBalanceQuerySchema = z.object({
-  from: DateParamSchema.optional().default('1970-01-01'),
-  to: DateParamSchema.optional().default('2099-12-31'),
-  branchId: z.string().uuid('Invalid branchId format').optional(),
-});
-
 const AccountLedgerQuerySchema = z.object({
   from: DateParamSchema.optional().default('1970-01-01'),
   to: DateParamSchema.optional().default('2099-12-31'),
@@ -97,6 +105,17 @@ const ClosePeriodBodySchema = z.object({
 
 const ReopenPeriodBodySchema = z.object({
   reason: z.string().optional(),
+});
+
+const PeriodChecklistQuerySchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2100),
+  month: z.coerce.number().int().min(1).max(12),
+});
+
+const YearEndClosingBodySchema = z.object({
+  fiscalYear: z.number().int().min(2000).max(2100),
+  closingDate: DateParamSchema,
+  memo: z.string().optional(),
 });
 
 const IdParamSchema = z.object({
@@ -145,10 +164,7 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
       if (parsed.data.search && parsed.data.search.trim()) {
         const q = `%${parsed.data.search.trim()}%`;
         conditions.push(
-          or(
-            ilike(journalEntries.memo, q),
-            sql`${journalEntries.entryNo}::text ILIKE ${q}`
-          )!
+          or(ilike(journalEntries.memo, q), sql`${journalEntries.entryNo}::text ILIKE ${q}`)!
         );
       }
 
@@ -427,10 +443,7 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
         .select({ id: accounts.id })
         .from(accounts)
         .where(
-          and(
-            eq(accounts.pharmacyId, userContext.pharmacyId),
-            eq(accounts.code, parsed.data.code)
-          )
+          and(eq(accounts.pharmacyId, userContext.pharmacyId), eq(accounts.code, parsed.data.code))
         )
         .limit(1);
 
@@ -494,10 +507,7 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
         .select()
         .from(accounts)
         .where(
-          and(
-            eq(accounts.id, paramParsed.data.id),
-            eq(accounts.pharmacyId, userContext.pharmacyId)
-          )
+          and(eq(accounts.id, paramParsed.data.id), eq(accounts.pharmacyId, userContext.pharmacyId))
         )
         .limit(1);
 
@@ -545,12 +555,7 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
       const [updated] = await db
         .update(accounts)
         .set(updateValues)
-        .where(
-          and(
-            eq(accounts.id, existing.id),
-            eq(accounts.pharmacyId, userContext.pharmacyId)
-          )
-        )
+        .where(and(eq(accounts.id, existing.id), eq(accounts.pharmacyId, userContext.pharmacyId)))
         .returning();
 
       return reply.status(200).send({
@@ -558,52 +563,6 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
         account: updated,
         pharmacyId: userContext.pharmacyId,
       });
-    }
-  );
-
-  /**
-   * GET /api/finance/reports/trial-balance
-   * Trial Balance financial statement derived strictly from journal_lines.
-   */
-  fastify.get<{ Querystring: z.infer<typeof TrialBalanceQuerySchema> }>(
-    '/reports/trial-balance',
-    {
-      config: { requiredPermission: 'finance.reports.view' },
-      preHandler: [requirePermission('finance.reports.view')],
-    },
-    async (request, reply) => {
-      const userContext = request.userContext!;
-      const parsed = TrialBalanceQuerySchema.safeParse(request.query);
-      if (!parsed.success) {
-        return reply.status(400).send({
-          statusCode: 400,
-          message: parsed.error.issues[0]?.message || 'Invalid query parameters',
-        });
-      }
-
-      const db = request.server.db || getDb();
-      try {
-        const report = await trialBalance(
-          db,
-          userContext.pharmacyId,
-          parsed.data.from,
-          parsed.data.to,
-          parsed.data.branchId
-        );
-
-        return reply.status(200).send({
-          ...report,
-          items: report.rows,
-          pharmacyId: userContext.pharmacyId,
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to compute trial balance';
-        const isNotFound = /not found|another pharmacy/i.test(message);
-        return reply.status(isNotFound ? 404 : 400).send({
-          statusCode: isNotFound ? 404 : 400,
-          message,
-        });
-      }
     }
   );
 
@@ -780,6 +739,97 @@ export const financeRoutes: FastifyPluginAsync = async (fastify) => {
         items,
         pharmacyId: userContext.pharmacyId,
       });
+    }
+  );
+
+  /**
+   * GET /api/finance/periods/checklist
+   * Month-end close readiness checklist.
+   */
+  fastify.get<{ Querystring: z.infer<typeof PeriodChecklistQuerySchema> }>(
+    '/periods/checklist',
+    {
+      config: { requiredPermission: 'finance.period_close.propose' },
+      preHandler: [requirePermission('finance.period_close.propose')],
+    },
+    async (request, reply) => {
+      const userContext = request.userContext!;
+      const parsed = PeriodChecklistQuerySchema.safeParse(request.query);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: parsed.error.issues[0]?.message || 'Invalid year or month parameter',
+        });
+      }
+
+      const db = request.server.db || getDb();
+      try {
+        const checklist = await getMonthEndChecklist(
+          db,
+          userContext.pharmacyId,
+          parsed.data.year,
+          parsed.data.month
+        );
+        return reply.status(200).send({
+          success: true,
+          data: checklist,
+          pharmacyId: userContext.pharmacyId,
+        });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to retrieve month-end checklist';
+        return reply.status(500).send({
+          statusCode: 500,
+          message,
+        });
+      }
+    }
+  );
+
+  /**
+   * POST /api/finance/periods/year-end-closing
+   * Posts year-end zeroing entries transferring P&L balances to Retained Earnings (owner only).
+   */
+  fastify.post<{ Body: z.infer<typeof YearEndClosingBodySchema> }>(
+    '/periods/year-end-closing',
+    {
+      config: { requiredPermission: 'finance.period_close.execute' },
+      preHandler: [requirePermission('finance.period_close.execute')],
+    },
+    async (request, reply) => {
+      const userContext = request.userContext!;
+      const parsed = YearEndClosingBodySchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: parsed.error.issues[0]?.message || 'Invalid year-end closing input',
+        });
+      }
+
+      const db = request.server.db || getDb();
+      try {
+        const result = await db.transaction((tx) =>
+          executeYearEndClosing(tx, {
+            pharmacyId: userContext.pharmacyId,
+            fiscalYear: parsed.data.fiscalYear,
+            closingDate: parsed.data.closingDate,
+            memo: parsed.data.memo,
+            actorUserId: userContext.userId,
+          })
+        );
+
+        return reply.status(200).send({
+          success: true,
+          data: result,
+          pharmacyId: userContext.pharmacyId,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to execute year-end closing';
+        return reply.status(400).send({
+          statusCode: 400,
+          message,
+        });
+      }
     }
   );
 

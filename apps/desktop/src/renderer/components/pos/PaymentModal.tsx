@@ -60,7 +60,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   // Compute Single Mode Totals
   let singleTenderedPaisa = 0;
   try {
-    singleTenderedPaisa = singleTenderedRupees.trim() ? convertRupeesToPaisa(singleTenderedRupees) : 0;
+    singleTenderedPaisa = singleTenderedRupees.trim()
+      ? convertRupeesToPaisa(singleTenderedRupees)
+      : 0;
   } catch {
     singleTenderedPaisa = 0;
   }
@@ -172,7 +174,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       });
     } catch (err: unknown) {
       console.error('Invoice settlement failed:', err);
-      setErrorMessage(err instanceof Error ? err.message : 'Failed to finalize invoice to database.');
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Failed to finalize invoice to database.'
+      );
       setIsSubmitting(false);
     }
   };
@@ -256,7 +260,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 800,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
             Grand Total Due
           </div>
           <div
@@ -284,7 +296,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           >
             <span className="tabular-nums">Subtotal: {formatPKR(netTotalPaisa)}</span>
             {totalDiscountPaisa > 0 && (
-              <span className="tabular-nums" style={{ color: '#059669', backgroundColor: '#ecfdf5', padding: '1px 6px', borderRadius: '4px' }}>
+              <span
+                className="tabular-nums"
+                style={{
+                  color: '#059669',
+                  backgroundColor: '#ecfdf5',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                }}
+              >
                 Saved: -{formatPKR(totalDiscountPaisa)}
               </span>
             )}
@@ -382,7 +402,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <>
               {/* Method Selector */}
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <div
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
+                >
                   {[
                     { id: 'cash', label: '💵 Cash', sub: 'Cash at Counter' },
                     { id: 'card', label: '💳 Card', sub: 'POS Terminal' },
@@ -410,7 +432,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         }}
                       >
                         <div style={{ fontSize: '14px' }}>{m.label}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', fontWeight: 500 }}>
+                        <div
+                          style={{
+                            fontSize: '11px',
+                            color: '#64748b',
+                            marginTop: '3px',
+                            fontWeight: 500,
+                          }}
+                        >
                           {m.sub}
                         </div>
                       </button>
@@ -432,7 +461,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 >
                   <label
                     htmlFor="single-tendered-amount"
-                    style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}
+                    style={{
+                      display: 'block',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#334155',
+                      marginBottom: '6px',
+                    }}
                   >
                     Cash Tendered (Rupees)
                   </label>
@@ -504,7 +539,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         color: singleChangePaisa >= 0 ? '#047857' : '#be123c',
                       }}
                     >
-                      {singleChangePaisa >= 0 ? '✓ Change to Return:' : '⚠️ Shortfall (Need more cash):'}
+                      {singleChangePaisa >= 0
+                        ? '✓ Change to Return:'
+                        : '⚠️ Shortfall (Need more cash):'}
                     </span>
                     <span
                       className="tabular-nums"
@@ -533,7 +570,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     lineHeight: 1.5,
                   }}
                 >
-                  Recorded as <strong>{singleMethod === 'card' ? 'Card POS Terminal' : 'Mobile Wallet'}</strong> payment for exact amount: <strong className="tabular-nums">{formatPKR(grandTotalPaisa)}</strong>.
+                  Recorded as{' '}
+                  <strong>{singleMethod === 'card' ? 'Card POS Terminal' : 'Mobile Wallet'}</strong>{' '}
+                  payment for exact amount:{' '}
+                  <strong className="tabular-nums">{formatPKR(grandTotalPaisa)}</strong>.
                 </div>
               )}
             </>
@@ -550,20 +590,43 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 marginBottom: '16px',
               }}
             >
-              <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '12px', letterSpacing: '-0.01em' }}>
+              <div
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#334155',
+                  marginBottom: '12px',
+                  letterSpacing: '-0.01em',
+                }}
+              >
                 Split Payment Allocations
               </div>
 
               {/* 1. Cash Row */}
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '4px',
+                  }}
+                >
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
                     💵 Cash Portion (Rupees)
                   </label>
                   <button
                     type="button"
                     onClick={() => handleFillRemaining('cash')}
-                    style={{ fontSize: '11px', color: '#4f46e5', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                    style={{
+                      fontSize: '11px',
+                      color: '#4f46e5',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontWeight: 700,
+                    }}
                   >
                     Fill Remaining
                   </button>
@@ -611,7 +674,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   />
                 </div>
                 {splitCashPaisa > 0 && splitChangePaisa >= 0 && (
-                  <div className="tabular-nums" style={{ fontSize: '12px', color: '#059669', marginTop: '4px', fontWeight: 700 }}>
+                  <div
+                    className="tabular-nums"
+                    style={{
+                      fontSize: '12px',
+                      color: '#059669',
+                      marginTop: '4px',
+                      fontWeight: 700,
+                    }}
+                  >
                     Change: {formatPKR(splitChangePaisa)}
                   </div>
                 )}
@@ -619,14 +690,29 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
               {/* 2. Card Row */}
               <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '4px',
+                  }}
+                >
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
                     💳 Card Portion (Rupees)
                   </label>
                   <button
                     type="button"
                     onClick={() => handleFillRemaining('card')}
-                    style={{ fontSize: '11px', color: '#4f46e5', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                    style={{
+                      fontSize: '11px',
+                      color: '#4f46e5',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontWeight: 700,
+                    }}
                   >
                     Fill Remaining
                   </button>
@@ -652,14 +738,29 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
               {/* 3. Wallet Row */}
               <div style={{ marginBottom: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '4px',
+                  }}
+                >
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
                     📱 Wallet Portion (Rupees)
                   </label>
                   <button
                     type="button"
                     onClick={() => handleFillRemaining('wallet')}
-                    style={{ fontSize: '11px', color: '#4f46e5', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+                    style={{
+                      fontSize: '11px',
+                      color: '#4f46e5',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontWeight: 700,
+                    }}
                   >
                     Fill Remaining
                   </button>
@@ -692,14 +793,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     splitRemainingPaisa === 0
                       ? '#ecfdf5'
                       : splitRemainingPaisa > 0
-                      ? '#fffbeb'
-                      : '#fff1f2',
+                        ? '#fffbeb'
+                        : '#fff1f2',
                   border: `1px solid ${
                     splitRemainingPaisa === 0
                       ? '#a7f3d0'
                       : splitRemainingPaisa > 0
-                      ? '#fde68a'
-                      : '#fecdd3'
+                        ? '#fde68a'
+                        : '#fecdd3'
                   }`,
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -712,8 +813,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   {splitRemainingPaisa === 0
                     ? '✓ Total Covered Exactly:'
                     : splitRemainingPaisa > 0
-                    ? '⚠️ Remaining to Cover:'
-                    : '⚠️ Overpaid by:'}
+                      ? '⚠️ Remaining to Cover:'
+                      : '⚠️ Overpaid by:'}
                 </span>
                 <span className="tabular-nums" style={{ fontSize: '16px', fontWeight: 800 }}>
                   {formatPKR(Math.abs(splitRemainingPaisa))}
@@ -723,7 +824,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '18px' }}>
+          <div
+            style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '18px' }}
+          >
             <button
               type="button"
               className="interactive-btn"
@@ -748,7 +851,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               disabled={!isPayable}
               style={{
                 padding: '11px 26px',
-                background: isPayable ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#cbd5e1',
+                background: isPayable
+                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                  : '#cbd5e1',
                 border: 'none',
                 borderRadius: '10px',
                 fontSize: '15px',
@@ -766,10 +871,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 {isSubmitting
                   ? 'Finalizing Sale...'
                   : isPayable
-                  ? 'Finalize Sale (Enter)'
-                  : isSplitMode
-                  ? 'Cover Total to Finalize'
-                  : 'Enter Tendered Cash'}
+                    ? 'Finalize Sale (Enter)'
+                    : isSplitMode
+                      ? 'Cover Total to Finalize'
+                      : 'Enter Tendered Cash'}
               </span>
             </button>
           </div>

@@ -956,10 +956,7 @@ describe('Ledger Posting Engine, Backfill & Reconciliation (ERP Spec Phase 7)', 
     expect(resA[0]?.code).toBe('MISSING_BATCH_COST');
 
     // Invoice must NOT exist in DB (transaction rolled back!)
-    const [invRowA] = await ctx.db
-      .select()
-      .from(invoices)
-      .where(eq(invoices.id, noBatchInvoiceId));
+    const [invRowA] = await ctx.db.select().from(invoices).where(eq(invoices.id, noBatchInvoiceId));
     expect(invRowA).toBeUndefined();
 
     // Case B: Invoice line referencing a batch with costPaisa = 0 -> must fail with MISSING_BATCH_COST and roll back
@@ -1462,13 +1459,7 @@ describe('Ledger Posting Engine, Backfill & Reconciliation (ERP Spec Phase 7)', 
     }
 
     const availableInvoiceLines: RecordedInvoiceLine[] = [];
-    const dates = [
-      '2026-11-01',
-      '2026-11-02',
-      '2026-11-03',
-      '2026-11-04',
-      '2026-11-05',
-    ] as const;
+    const dates = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'] as const;
     const paymentMethods = ['cash', 'card', 'wallet'] as const;
     const refundMethods = ['cash', 'card', 'wallet', 'credit'] as const;
 
@@ -1566,7 +1557,8 @@ describe('Ledger Posting Engine, Backfill & Reconciliation (ERP Spec Phase 7)', 
             const qty = prng.nextInt(1, 8);
             const unitPricePaisa = b.mrpPaisa;
             const lineSubtotal = qty * unitPricePaisa;
-            const lineDiscount = prng.nextInt(0, 1) === 1 ? prng.nextInt(0, Math.floor(lineSubtotal * 0.1)) : 0;
+            const lineDiscount =
+              prng.nextInt(0, 1) === 1 ? prng.nextInt(0, Math.floor(lineSubtotal * 0.1)) : 0;
             const taxRateBp = prng.nextInt(0, 1) === 1 ? 500 : 0;
             const netAfterDisc = lineSubtotal - lineDiscount;
             const lineTax = Math.round((netAfterDisc * taxRateBp) / 10000);

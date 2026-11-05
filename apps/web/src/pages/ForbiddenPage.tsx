@@ -7,19 +7,14 @@ interface ForbiddenPageProps {
   onGoBack?: () => void;
 }
 
-export const ForbiddenPage: React.FC<ForbiddenPageProps> = ({
-  requiredPermission,
-  onGoBack,
-}) => {
+export const ForbiddenPage: React.FC<ForbiddenPageProps> = ({ requiredPermission, onGoBack }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center animate-in fade-in duration-200">
       <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center mb-4 text-rose-600 shadow-inner">
         <ShieldAlert className="w-8 h-8" />
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">
-        403 - Access Denied
-      </h1>
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">403 - Access Denied</h1>
 
       <p className="text-sm text-slate-600 max-w-md mb-6 leading-relaxed">
         You do not have permission to access this module or view.
@@ -43,4 +38,3 @@ export const ForbiddenPage: React.FC<ForbiddenPageProps> = ({
     </div>
   );
 };
-

@@ -64,24 +64,14 @@ export async function applyStockTransferDispatched(
   );
 
   const batchIds = payload.lines.map((l) => l.batchId);
-  await verifyTenantEntities(
-    tx,
-    batches,
-    batchIds,
-    ctx.pharmacyId,
-    'UNKNOWN_BATCH',
-    'batch'
-  );
+  await verifyTenantEntities(tx, batches, batchIds, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
 
   // 3. Upsert stock_transfers header
   const [existingTransfer] = await tx
     .select()
     .from(stockTransfers)
     .where(
-      and(
-        eq(stockTransfers.id, payload.transferId),
-        eq(stockTransfers.pharmacyId, ctx.pharmacyId)
-      )
+      and(eq(stockTransfers.id, payload.transferId), eq(stockTransfers.pharmacyId, ctx.pharmacyId))
     );
 
   if (!existingTransfer) {
@@ -119,10 +109,7 @@ export async function applyStockTransferDispatched(
       .select()
       .from(stockTransferLines)
       .where(
-        and(
-          eq(stockTransferLines.id, line.id),
-          eq(stockTransferLines.pharmacyId, ctx.pharmacyId)
-        )
+        and(eq(stockTransferLines.id, line.id), eq(stockTransferLines.pharmacyId, ctx.pharmacyId))
       );
 
     const movementId = line.dispatchMovementId || line.id;
@@ -148,12 +135,7 @@ export async function applyStockTransferDispatched(
     const [existingMove] = await tx
       .select()
       .from(stockMovements)
-      .where(
-        and(
-          eq(stockMovements.id, movementId),
-          eq(stockMovements.pharmacyId, ctx.pharmacyId)
-        )
-      );
+      .where(and(eq(stockMovements.id, movementId), eq(stockMovements.pharmacyId, ctx.pharmacyId)));
 
     if (!existingMove) {
       const moveData = {
@@ -221,10 +203,7 @@ export async function applyStockTransferReceived(
     .select()
     .from(stockTransfers)
     .where(
-      and(
-        eq(stockTransfers.id, payload.transferId),
-        eq(stockTransfers.pharmacyId, ctx.pharmacyId)
-      )
+      and(eq(stockTransfers.id, payload.transferId), eq(stockTransfers.pharmacyId, ctx.pharmacyId))
     );
 
   if (!transfer) {

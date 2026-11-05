@@ -76,7 +76,11 @@ export interface ProductApi {
   importProductsCsv: (rows: CreateProductInput[]) => Promise<CsvImportSummary>;
   seedProducts: () => Promise<{ seededCount: number; defaultTaxCategoryId: string }>;
   searchPosCatalog: (query: string, branchId?: string) => Promise<PosCatalogItem[]>;
-  getSubstitutes: (genericName: string, excludeProductId?: string, branchId?: string) => Promise<PosCatalogItem[]>;
+  getSubstitutes: (
+    genericName: string,
+    excludeProductId?: string,
+    branchId?: string
+  ) => Promise<PosCatalogItem[]>;
 }
 
 export interface PurchasingApi {
@@ -89,17 +93,25 @@ export interface PurchasingApi {
 }
 
 export interface StockApi {
-  getOverviewProducts: (params: StockFilterParams) => Promise<StockOverviewResult<StockOverviewProduct>>;
-  getOverviewBatches: (params: StockFilterParams) => Promise<StockOverviewResult<StockOverviewBatch>>;
-  adjustStock: (input: StockAdjustmentInput) => Promise<{ success: boolean; movementId: string; newBalance: number }>;
-  getBatchesForProduct: (productId: string) => Promise<{
-    id: string;
-    batchNo: string;
-    expiryDate: string;
-    costPaisa: number;
-    mrpPaisa: number;
-    balance: number;
-  }[]>;
+  getOverviewProducts: (
+    params: StockFilterParams
+  ) => Promise<StockOverviewResult<StockOverviewProduct>>;
+  getOverviewBatches: (
+    params: StockFilterParams
+  ) => Promise<StockOverviewResult<StockOverviewBatch>>;
+  adjustStock: (
+    input: StockAdjustmentInput
+  ) => Promise<{ success: boolean; movementId: string; newBalance: number }>;
+  getBatchesForProduct: (productId: string) => Promise<
+    {
+      id: string;
+      batchNo: string;
+      expiryDate: string;
+      costPaisa: number;
+      mrpPaisa: number;
+      balance: number;
+    }[]
+  >;
 }
 
 export interface StaffMember {
@@ -201,12 +213,20 @@ export interface BackupRecord {
 export interface BackupApi {
   create: () => Promise<{ success: boolean; filename: string; path: string; sizeBytes: number }>;
   list: () => Promise<BackupRecord[]>;
-  restore: (filename: string, ownerPin: string) => Promise<{ success: boolean; safetyBackupFile: string }>;
+  restore: (
+    filename: string,
+    ownerPin: string
+  ) => Promise<{ success: boolean; safetyBackupFile: string }>;
 }
 
 export interface UpdaterApi {
   check: () => Promise<{ checking: boolean; updateAvailable?: boolean; error?: string }>;
-  getStatus: () => Promise<{ state: string; version?: string; releaseNotes?: string; error?: string }>;
+  getStatus: () => Promise<{
+    state: string;
+    version?: string;
+    releaseNotes?: string;
+    error?: string;
+  }>;
 }
 
 export interface DesktopApi {

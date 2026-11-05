@@ -745,11 +745,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ session, dbInfo, onLoc
             flex: 1,
             overflowY: activeSection === 'pos' ? 'hidden' : 'auto',
             padding:
-              activeSection === 'pos'
-                ? '0'
-                : activeSection === 'settings'
-                  ? '0'
-                  : '24px 32px',
+              activeSection === 'pos' ? '0' : activeSection === 'settings' ? '0' : '24px 32px',
             backgroundColor: '#f8fafc',
             display: activeSection === 'pos' ? 'flex' : 'block',
             flexDirection: 'column',
@@ -873,12 +869,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ session, dbInfo, onLoc
                     }}
                   >
                     <div>
-                      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                      <h3
+                        style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}
+                      >
                         IPC Layer Role Guard Live Verification
                       </h3>
                       <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                        Test real-time IPC protection in the Electron main process for your current role (
-                        <strong>{userRole}</strong>).
+                        Test real-time IPC protection in the Electron main process for your current
+                        role (<strong>{userRole}</strong>).
                       </p>
                     </div>
                     <span

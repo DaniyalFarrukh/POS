@@ -8,11 +8,7 @@ import type { DbClient } from '../sync/types';
 import { batches, invoiceLines } from '../db/schema';
 import { SyncRejectedError } from '../sync/errors';
 import { getPharmacyAccountMap, type AccountRole } from './coa-seed';
-import {
-  postJournalEntry,
-  type JournalEntryWithLines,
-  type JournalLineInput,
-} from './service';
+import { postJournalEntry, type JournalEntryWithLines, type JournalLineInput } from './service';
 
 const ISO_DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -94,7 +90,7 @@ async function loadValidatedBatchCosts(
   return costByBatchId;
 }
 
-function mapPaymentMethodToRole(method: 'cash' | 'card' | 'wallet'): AccountRole {
+function mapPaymentMethodToRole(method: 'cash' | 'card' | 'wallet' | 'credit'): AccountRole {
   switch (method) {
     case 'cash':
       return 'cash';
@@ -102,12 +98,12 @@ function mapPaymentMethodToRole(method: 'cash' | 'card' | 'wallet'): AccountRole
       return 'bank';
     case 'wallet':
       return 'wallet';
+    case 'credit':
+      return 'ar';
   }
 }
 
-function mapRefundMethodToRole(
-  method: 'cash' | 'card' | 'wallet' | 'credit'
-): AccountRole {
+function mapRefundMethodToRole(method: 'cash' | 'card' | 'wallet' | 'credit'): AccountRole {
   switch (method) {
     case 'cash':
       return 'cash';
@@ -284,10 +280,7 @@ export async function postInvoiceCreated(
   const entryDate = toKarachiBusinessDate(invoice.createdAt);
 
   // Aggregate payment debits by mapped accountId while preserving order
-  const paymentDebitsByAccount = new Map<
-    string,
-    { amountPaisa: number; methods: string[] }
-  >();
+  const paymentDebitsByAccount = new Map<string, { amountPaisa: number; methods: string[] }>();
   for (const p of invoice.payments) {
     const role = mapPaymentMethodToRole(p.method);
     const accountId = accountMap[role];
@@ -309,11 +302,14 @@ export async function postInvoiceCreated(
 
   for (const [accountId, info] of paymentDebitsByAccount.entries()) {
     if (info.amountPaisa > 0) {
+      const isArAccount = accountId === accountMap.ar;
       lines.push({
         accountId,
         debitPaisa: info.amountPaisa,
         creditPaisa: 0,
         branchId,
+        partyType: isArAccount && invoice.customerId ? 'customer' : undefined,
+        partyId: isArAccount && invoice.customerId ? invoice.customerId : undefined,
         memo: `Sale #${invoice.invoiceNumber} payment (${info.methods.join(', ')})`,
       });
     }
@@ -411,15 +407,10 @@ export async function postCreditNoteCreated(
       })
       .from(invoiceLines)
       .where(
-        and(
-          eq(invoiceLines.pharmacyId, pharmacyId),
-          inArray(invoiceLines.id, missingOrigLineIds)
-        )
+        and(eq(invoiceLines.pharmacyId, pharmacyId), inArray(invoiceLines.id, missingOrigLineIds))
       );
 
-    const origBatchMap = new Map<string, string | null>(
-      origLines.map((ol) => [ol.id, ol.batchId])
-    );
+    const origBatchMap = new Map<string, string | null>(origLines.map((ol) => [ol.id, ol.batchId]));
 
     for (const line of creditNote.lines) {
       if (!line.batchId) {
@@ -554,10 +545,7 @@ export async function postStockAdjustmentCreated(
 
   const docLabel = `Stock Adjustment (${movementId})`;
   if (!batchId) {
-    throw new SyncRejectedError(
-      'MISSING_BATCH_COST',
-      `${docLabel}: missing batchId`
-    );
+    throw new SyncRejectedError('MISSING_BATCH_COST', `${docLabel}: missing batchId`);
   }
   if (!Number.isInteger(quantitySigned) || quantitySigned === 0) {
     throw new SyncRejectedError(
@@ -819,4 +807,263 @@ export async function postSupplierReturnCompleted(
   });
 }
 
+export interface PostFinancialPaymentInput {
+  pharmacyId: string;
+  paymentId: string;
+  paymentNumber: string;
+  paymentDate: string; // YYYY-MM-DD
+  branchId: string;
+  direction: 'receipt' | 'payment';
+  partyType: 'customer' | 'supplier';
+  partyId: string;
+  partyName: string;
+  method: 'cash' | 'bank' | 'wallet' | 'cheque';
+  amountPaisa: number;
+  allocatedPaisa: number;
+  advancePaisa: number;
+  chequeNumber?: string | null;
+  notes?: string | null;
+  createdBy?: string | null;
+}
 
+/**
+ * Posting rules for ERP financial payments (Customer Receipts & Supplier Payments):
+ * 1. Customer Receipt (direction: 'receipt'):
+ *    - Dr 1000 Cash / 1010 Bank / 1020 Mobile Wallets for amountPaisa
+ *    - Cr 1100 Accounts Receivable for allocatedPaisa (party_type: 'customer', party_id: customerId)
+ *    - Cr 2400 Customer Advances for advancePaisa (party_type: 'customer', party_id: customerId)
+ * 2. Supplier Payment (direction: 'payment'):
+ *    - Dr 2000 Accounts Payable for allocatedPaisa (party_type: 'supplier', party_id: supplierId)
+ *    - Dr 1400 Advances to Suppliers for advancePaisa (party_type: 'supplier', party_id: supplierId)
+ *    - Cr 1000 Cash / 1010 Bank / 1020 Mobile Wallets for amountPaisa
+ */
+export async function postFinancialPaymentCompleted(
+  tx: DbClient,
+  input: PostFinancialPaymentInput
+): Promise<JournalEntryWithLines> {
+  const {
+    pharmacyId,
+    paymentId,
+    paymentNumber,
+    paymentDate,
+    branchId,
+    direction,
+    partyId,
+    partyName,
+    method,
+    amountPaisa,
+    allocatedPaisa,
+    advancePaisa,
+    chequeNumber,
+    createdBy = null,
+  } = input;
+
+  if (amountPaisa !== allocatedPaisa + advancePaisa) {
+    throw new SyncRejectedError(
+      'INVALID_PAYLOAD',
+      `Payment amount (${amountPaisa}) must equal allocated (${allocatedPaisa}) + advance (${advancePaisa})`
+    );
+  }
+
+  const accountMap = await getPharmacyAccountMap(tx, pharmacyId);
+  const entryDate = toKarachiBusinessDate(paymentDate);
+
+  // Mapped liquid asset account
+  let liquidAccountId = accountMap.cash;
+  if (method === 'bank' || method === 'cheque') {
+    liquidAccountId = accountMap.bank;
+  } else if (method === 'wallet') {
+    liquidAccountId = accountMap.wallet;
+  }
+
+  const methodLabel =
+    method === 'cheque' && chequeNumber ? `Cheque #${chequeNumber}` : method.toUpperCase();
+  const lines: JournalLineInput[] = [];
+
+  if (direction === 'receipt') {
+    // Dr Liquid Account
+    lines.push({
+      accountId: liquidAccountId,
+      debitPaisa: amountPaisa,
+      creditPaisa: 0,
+      branchId,
+      memo: `Receipt #${paymentNumber} from ${partyName} via ${methodLabel}`,
+    });
+
+    // Cr Accounts Receivable for allocated portion
+    if (allocatedPaisa > 0) {
+      lines.push({
+        accountId: accountMap.ar,
+        debitPaisa: 0,
+        creditPaisa: allocatedPaisa,
+        branchId,
+        partyType: 'customer',
+        partyId,
+        memo: `Receipt #${paymentNumber} applied against invoice balance`,
+      });
+    }
+
+    // Cr Customer Advances for unallocated / overpayment portion
+    if (advancePaisa > 0) {
+      lines.push({
+        accountId: accountMap.customer_advances,
+        debitPaisa: 0,
+        creditPaisa: advancePaisa,
+        branchId,
+        partyType: 'customer',
+        partyId,
+        memo: `Receipt #${paymentNumber} customer advance balance`,
+      });
+    }
+  } else {
+    // Direction === 'payment' (Supplier Payment)
+    // Dr Accounts Payable for allocated portion
+    if (allocatedPaisa > 0) {
+      lines.push({
+        accountId: accountMap.ap,
+        debitPaisa: allocatedPaisa,
+        creditPaisa: 0,
+        branchId,
+        partyType: 'supplier',
+        partyId,
+        memo: `Payment #${paymentNumber} to ${partyName} applied against purchase bill`,
+      });
+    }
+
+    // Dr Advances to Suppliers for unallocated / overpayment portion
+    if (advancePaisa > 0) {
+      lines.push({
+        accountId: accountMap.advance_suppliers,
+        debitPaisa: advancePaisa,
+        creditPaisa: 0,
+        branchId,
+        partyType: 'supplier',
+        partyId,
+        memo: `Payment #${paymentNumber} supplier advance balance`,
+      });
+    }
+
+    // Cr Liquid Account
+    lines.push({
+      accountId: liquidAccountId,
+      debitPaisa: 0,
+      creditPaisa: amountPaisa,
+      branchId,
+      memo: `Payment #${paymentNumber} to ${partyName} via ${methodLabel}`,
+    });
+  }
+
+  return executePostJournalEntry(tx, {
+    pharmacyId,
+    entryDate,
+    sourceType: direction === 'receipt' ? 'customer_receipt' : 'supplier_payment',
+    sourceId: paymentId,
+    memo: `${direction === 'receipt' ? 'Customer Receipt' : 'Supplier Payment'} #${paymentNumber} (${partyName})`,
+    createdBy,
+    lines,
+  });
+}
+
+export interface PostExpenseInput {
+  expenseId: string;
+  expenseNumber: string;
+  pharmacyId: string;
+  branchId: string;
+  expenseDate: string; // ISO or YYYY-MM-DD
+  expenseAccountId: string;
+  amountPaisa: number;
+  paymentType: 'paid' | 'credit';
+  paymentMethod?: 'cash' | 'bank' | 'wallet' | null;
+  vendorName?: string | null;
+  notes?: string | null;
+  createdBy?: string | null;
+}
+
+/**
+ * Posting rules for ERP Expenses:
+ * 1. Paid Expense:
+ *    - Dr Expense Account (from Expense Category) for amountPaisa
+ *    - Cr 1000 Cash / 1010 Bank / 1020 Mobile Wallets for amountPaisa
+ * 2. Credit Expense (Payable):
+ *    - Dr Expense Account (from Expense Category) for amountPaisa
+ *    - Cr 2000 Accounts Payable for amountPaisa (party_type: 'supplier')
+ */
+export async function postExpenseCompleted(
+  tx: DbClient,
+  input: PostExpenseInput
+): Promise<JournalEntryWithLines> {
+  const {
+    pharmacyId,
+    expenseId,
+    expenseNumber,
+    expenseDate,
+    expenseAccountId,
+    branchId,
+    amountPaisa,
+    paymentType,
+    paymentMethod = 'cash',
+    vendorName,
+    notes,
+    createdBy = null,
+  } = input;
+
+  if (amountPaisa <= 0) {
+    throw new SyncRejectedError(
+      'INVALID_PAYLOAD',
+      `Expense amount (${amountPaisa}) must be positive integer paisa`
+    );
+  }
+
+  const accountMap = await getPharmacyAccountMap(tx, pharmacyId);
+  const entryDate = toKarachiBusinessDate(expenseDate);
+  const lines: JournalLineInput[] = [];
+
+  // Dr Expense Account
+  lines.push({
+    accountId: expenseAccountId,
+    debitPaisa: amountPaisa,
+    creditPaisa: 0,
+    branchId,
+    partyType: vendorName ? 'supplier' : null,
+    memo: `Expense #${expenseNumber}${notes ? ` - ${notes}` : ''}`,
+  });
+
+  // Cr Credit Account (Liquid Asset if Paid, Accounts Payable if Credit)
+  if (paymentType === 'paid') {
+    let liquidAccountId = accountMap.cash;
+    if (paymentMethod === 'bank') {
+      liquidAccountId = accountMap.bank;
+    } else if (paymentMethod === 'wallet') {
+      liquidAccountId = accountMap.wallet;
+    }
+
+    const methodLabel = (paymentMethod || 'cash').toUpperCase();
+    lines.push({
+      accountId: liquidAccountId,
+      debitPaisa: 0,
+      creditPaisa: amountPaisa,
+      branchId,
+      memo: `Expense #${expenseNumber} paid via ${methodLabel}`,
+    });
+  } else {
+    // Payment type === 'credit'
+    lines.push({
+      accountId: accountMap.ap,
+      debitPaisa: 0,
+      creditPaisa: amountPaisa,
+      branchId,
+      partyType: 'supplier',
+      memo: `Expense #${expenseNumber} payable to ${vendorName || 'Vendor'}`,
+    });
+  }
+
+  return executePostJournalEntry(tx, {
+    pharmacyId,
+    entryDate,
+    sourceType: 'expense',
+    sourceId: expenseId,
+    memo: `Expense #${expenseNumber}${vendorName ? ` (${vendorName})` : ''}`,
+    createdBy,
+    lines,
+  });
+}

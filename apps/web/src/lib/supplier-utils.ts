@@ -126,7 +126,10 @@ function normalizePhone(p?: string | null): string {
 }
 
 function normalizeName(n: string): string {
-  return n.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  return n
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
 }
 
 export interface DuplicateGroup {
@@ -157,8 +160,8 @@ export function findDuplicateSuppliers(suppliers: SupplierItem[]): DuplicateGrou
               nameMatch && phoneMatch
                 ? 'Matching Name and Phone Number'
                 : nameMatch
-                ? 'Identical Supplier Name'
-                : 'Identical Phone Number',
+                  ? 'Identical Supplier Name'
+                  : 'Identical Phone Number',
             candidates: [s1, s2],
           });
         }

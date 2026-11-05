@@ -7,11 +7,7 @@ import {
   computeInvoiceTotals,
   roundHalfUp,
 } from '@pos/shared';
-import {
-  finalizeSale,
-  type FinalizeSaleInput,
-  type FinalizeSaleLineInput,
-} from './finalizeSale';
+import { finalizeSale, type FinalizeSaleInput, type FinalizeSaleLineInput } from './finalizeSale';
 
 describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
   let db: DatabaseInstance;
@@ -45,9 +41,11 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
 
     for (const m of MIGRATIONS) {
       m.up(db);
-      db.prepare(
-        'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)'
-      ).run(m.version, m.name, new Date().toISOString());
+      db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+        m.version,
+        m.name,
+        new Date().toISOString()
+      );
     }
 
     const now = '2026-10-26T10:00:00.000Z';
@@ -65,9 +63,12 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
     batch5Id = generateUuidV7();
 
     // 1. Branch
-    db.prepare(
-      'INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)'
-    ).run(branchId, 'Main Branch', now, now);
+    db.prepare('INSERT INTO branches (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)').run(
+      branchId,
+      'Main Branch',
+      now,
+      now
+    );
 
     // 2. Counter with code 'C1' and last_invoice_seq 0
     db.prepare(
@@ -90,13 +91,15 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
 
     // 5. Products
     // Product 1: Taxable 18%, MRP 10,000 paisa
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       product1Id,
       'Amoxil 500mg',
       'Amoxicillin',
@@ -113,13 +116,15 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
     );
 
     // Product 2: Exempt 0%, MRP 5,000 paisa
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer,
         barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+    `
+    ).run(
       product2Id,
       'Panadol Drops',
       'Paracetamol',
@@ -137,31 +142,41 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
 
     // 6. Batches
     // Product 1 batches: 1000 units each across 3 batches
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batch1Id, product1Id, 'B1-202701', '2027-01-01', 8000, 10000, now, now);
+    `
+    ).run(batch1Id, product1Id, 'B1-202701', '2027-01-01', 8000, 10000, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batch2Id, product1Id, 'B2-202706', '2027-06-01', 8000, 10000, now, now);
+    `
+    ).run(batch2Id, product1Id, 'B2-202706', '2027-06-01', 8000, 10000, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batch3Id, product1Id, 'B3-202712', '2027-12-01', 8000, 10000, now, now);
+    `
+    ).run(batch3Id, product1Id, 'B3-202712', '2027-12-01', 8000, 10000, now, now);
 
     // Product 2 batches: 800 units each across 2 batches
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batch4Id, product2Id, 'B4-202612', '2026-12-01', 4000, 5000, now, now);
+    `
+    ).run(batch4Id, product2Id, 'B4-202612', '2026-12-01', 4000, 5000, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(batch5Id, product2Id, 'B5-202703', '2027-03-01', 4000, 5000, now, now);
+    `
+    ).run(batch5Id, product2Id, 'B5-202703', '2027-03-01', 4000, 5000, now, now);
 
     // 7. Initial Stock Movements (purchase receiving)
     const initialBatches = [
@@ -308,9 +323,7 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
     expect(sumPaymentsRow.totalPaid).toBe(sumInvoicesRow.totalInvoiced);
 
     // C. Verify invoice numbers are contiguous
-    const countRow = db
-      .prepare('SELECT COUNT(*) as c FROM invoices')
-      .get() as { c: number };
+    const countRow = db.prepare('SELECT COUNT(*) as c FROM invoices').get() as { c: number };
     expect(countRow.c).toBe(200);
 
     const counterRow = db
@@ -389,9 +402,8 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
     const postPaymentsCount = (
       db.prepare('SELECT COUNT(*) as c FROM payments').get() as { c: number }
     ).c;
-    const postOutboxCount = (
-      db.prepare('SELECT COUNT(*) as c FROM outbox').get() as { c: number }
-    ).c;
+    const postOutboxCount = (db.prepare('SELECT COUNT(*) as c FROM outbox').get() as { c: number })
+      .c;
     const postFiscalCount = (
       db.prepare('SELECT COUNT(*) as c FROM fiscal_submissions').get() as { c: number }
     ).c;
@@ -411,7 +423,9 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
 
     // Verify stock balance for batch 1 is completely intact (still 1000)
     const stockBal = (
-      db.prepare('SELECT SUM(quantity_signed) as bal FROM stock_movements WHERE batch_id = ?').get(batch1Id) as {
+      db
+        .prepare('SELECT SUM(quantity_signed) as bal FROM stock_movements WHERE batch_id = ?')
+        .get(batch1Id) as {
         bal: number;
       }
     ).bal;
@@ -438,19 +452,32 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
     // Verify every finalized invoice has exactly 1 outbox row
     const outboxRows = db
       .prepare('SELECT * FROM outbox WHERE event_type = ?')
-      .all('invoice.created') as { id: string; event_type: string; payload: string; synced_at: string | null }[];
+      .all('invoice.created') as {
+      id: string;
+      event_type: string;
+      payload: string;
+      synced_at: string | null;
+    }[];
 
     expect(outboxRows).toHaveLength(5);
 
     for (const inv of finalizedInvoices) {
       const matching = outboxRows.filter((r) => {
-        const payload = JSON.parse(r.payload) as { id: string; invoiceNumber: string; totalPaisa: number };
+        const payload = JSON.parse(r.payload) as {
+          id: string;
+          invoiceNumber: string;
+          totalPaisa: number;
+        };
         return payload.id === inv.id;
       });
       expect(matching).toHaveLength(1);
       const row = matching[0]!;
       expect(row.synced_at).toBeNull();
-      const payload = JSON.parse(row.payload) as { id: string; invoiceNumber: string; totalPaisa: number };
+      const payload = JSON.parse(row.payload) as {
+        id: string;
+        invoiceNumber: string;
+        totalPaisa: number;
+      };
       expect(payload.invoiceNumber).toBe(inv.invoiceNumber);
       expect(payload.totalPaisa).toBe(inv.totalPaisa);
     }
@@ -570,17 +597,23 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
     }).toThrow(/finalized records are immutable/);
 
     // Verify all records remain completely intact and unaltered
-    const invRow = db.prepare('SELECT total_paisa FROM invoices WHERE id = ?').get(inv.id) as { total_paisa: number };
+    const invRow = db.prepare('SELECT total_paisa FROM invoices WHERE id = ?').get(inv.id) as {
+      total_paisa: number;
+    };
     expect(invRow.total_paisa).toBe(11800);
 
-    const lineRow = db.prepare('SELECT quantity, unit_price_paisa FROM invoice_lines WHERE id = ?').get(lineId) as {
+    const lineRow = db
+      .prepare('SELECT quantity, unit_price_paisa FROM invoice_lines WHERE id = ?')
+      .get(lineId) as {
       quantity: number;
       unit_price_paisa: number;
     };
     expect(lineRow.quantity).toBe(1);
     expect(lineRow.unit_price_paisa).toBe(10000);
 
-    const payRow = db.prepare('SELECT amount_paisa, method FROM payments WHERE id = ?').get(paymentId) as {
+    const payRow = db
+      .prepare('SELECT amount_paisa, method FROM payments WHERE id = ?')
+      .get(paymentId) as {
       amount_paisa: number;
       method: string;
     };
@@ -613,7 +646,9 @@ describe('finalizeSale Stress & Failure Tests (Phase 2)', () => {
 
     // Verify nothing was written to invoices or lines
     const invCount = (
-      db.prepare('SELECT COUNT(*) as c FROM invoices WHERE client_request_id = ?').get(tamperedInputA.clientRequestId) as {
+      db
+        .prepare('SELECT COUNT(*) as c FROM invoices WHERE client_request_id = ?')
+        .get(tamperedInputA.clientRequestId) as {
         c: number;
       }
     ).c;

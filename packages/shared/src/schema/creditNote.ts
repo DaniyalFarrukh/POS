@@ -14,7 +14,10 @@ export type RefundMethod = z.infer<typeof RefundMethodSchema>;
 
 export const ProcessReturnLineInputSchema = z.object({
   invoiceLineId: z.string().uuid('invoiceLineId must be a valid UUID'),
-  quantity: z.number().int('Return quantity must be an integer').min(1, 'Quantity must be at least 1'),
+  quantity: z
+    .number()
+    .int('Return quantity must be an integer')
+    .min(1, 'Quantity must be at least 1'),
 });
 export type ProcessReturnLineInput = z.infer<typeof ProcessReturnLineInputSchema>;
 
@@ -24,7 +27,9 @@ export const ProcessReturnInputSchema = z.object({
   refundMethod: RefundMethodSchema.default('cash'),
   reason: ReturnReasonSchema,
   notes: z.string().nullable().optional(),
-  lines: z.array(ProcessReturnLineInputSchema).min(1, 'At least one line item must be selected for return'),
+  lines: z
+    .array(ProcessReturnLineInputSchema)
+    .min(1, 'At least one line item must be selected for return'),
 });
 export type ProcessReturnInput = z.infer<typeof ProcessReturnInputSchema>;
 

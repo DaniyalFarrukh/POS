@@ -45,9 +45,7 @@ export async function pullAndApply(
 
   // 1. Read current pull_cursor from sync_state (default: 0)
   const cursorRow = db
-    .prepare<[string], { value: string }>(
-      'SELECT value FROM sync_state WHERE key = ?'
-    )
+    .prepare<[string], { value: string }>('SELECT value FROM sync_state WHERE key = ?')
     .get('pull_cursor');
   let currentCursor = cursorRow ? parseInt(cursorRow.value, 10) : 0;
   if (Number.isNaN(currentCursor) || currentCursor < 0) {
@@ -198,9 +196,7 @@ export async function pullAndApply(
           deleteProductStmt.run(now, change.entityId);
         } else {
           const rawData =
-            typeof data === 'object' && data !== null
-              ? { id: change.entityId, ...data }
-              : data;
+            typeof data === 'object' && data !== null ? { id: change.entityId, ...data } : data;
           const parsed = SyncProductChangeDataSchema.safeParse(rawData);
           if (!parsed.success) {
             deps.logger?.warn?.(
@@ -292,7 +288,15 @@ export async function pullAndApply(
             (data.name || '') as string,
             (data.role || 'cashier') as string,
             (data.pinHash || data.pin_hash || '') as string,
-            (data.isActive !== undefined ? data.isActive : data.is_active !== undefined ? data.is_active : true) ? 1 : 0,
+            (
+              data.isActive !== undefined
+                ? data.isActive
+                : data.is_active !== undefined
+                  ? data.is_active
+                  : true
+            )
+              ? 1
+              : 0,
             (data.createdAt || data.created_at || now) as string,
             (data.updatedAt || data.updated_at || now) as string
           );
@@ -330,7 +334,15 @@ export async function pullAndApply(
             (data.name || '') as string,
             (data.code ?? null) as string | null,
             data.isDefault || data.is_default ? 1 : 0,
-            (data.isActive !== undefined ? data.isActive : data.is_active !== undefined ? data.is_active : true) ? 1 : 0,
+            (
+              data.isActive !== undefined
+                ? data.isActive
+                : data.is_active !== undefined
+                  ? data.is_active
+                  : true
+            )
+              ? 1
+              : 0,
             (data.createdAt || data.created_at || now) as string,
             (data.updatedAt || data.updated_at || now) as string
           );
@@ -366,7 +378,8 @@ export async function pullAndApply(
           const quantitySigned = Number(
             data.quantitySigned !== undefined ? data.quantitySigned : data.quantity_signed || 0
           );
-          const referenceType = ((data.referenceType || data.reference_type) ?? null) as string | null;
+          const referenceType = ((data.referenceType || data.reference_type) ?? null) as
+            string | null;
           const referenceId = ((data.referenceId || data.reference_id) ?? null) as string | null;
           const reason = (data.reason ?? null) as string | null;
           const createdAt = (data.createdAt || data.created_at || now) as string;
@@ -552,12 +565,16 @@ export async function pullAndApply(
 
   // 4. Update sync_state timestamps on success
   const successTime = nowFn();
-  db.prepare(`
+  db.prepare(
+    `
     INSERT OR REPLACE INTO sync_state (key, value) VALUES ('last_pull_ok_at', ?);
-  `).run(successTime);
-  db.prepare(`
+  `
+  ).run(successTime);
+  db.prepare(
+    `
     INSERT OR REPLACE INTO sync_state (key, value) VALUES ('last_online_at', ?);
-  `).run(successTime);
+  `
+  ).run(successTime);
 
   return {
     pages: pagesCount,

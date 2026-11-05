@@ -12,7 +12,13 @@ import type {
   ProductListResult,
   TaxCategory,
 } from '@pos/shared';
-import type { DesktopApi, CsvImportSummary, StaffMember, CreateStaffInput, UpdateStaffInput } from './index.d';
+import type {
+  DesktopApi,
+  CsvImportSummary,
+  StaffMember,
+  CreateStaffInput,
+  UpdateStaffInput,
+} from './index.d';
 import type { SyncStatus } from '../main/sync/core/types';
 
 const api: DesktopApi = {
@@ -64,7 +70,8 @@ const api: DesktopApi = {
     getSuppliers: () => ipcRenderer.invoke('purchasing:get-suppliers'),
     getSupplier: (id: string) => ipcRenderer.invoke('purchasing:get-supplier', id),
     createSupplier: (input) => ipcRenderer.invoke('purchasing:create-supplier', input),
-    updateSupplier: (id: string, input) => ipcRenderer.invoke('purchasing:update-supplier', id, input),
+    updateSupplier: (id: string, input) =>
+      ipcRenderer.invoke('purchasing:update-supplier', id, input),
     deleteSupplier: (id: string) => ipcRenderer.invoke('purchasing:delete-supplier', id),
     receiveGrn: (input) => ipcRenderer.invoke('purchasing:receive-grn', input),
   },

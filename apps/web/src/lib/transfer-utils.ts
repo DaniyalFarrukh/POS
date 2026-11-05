@@ -18,7 +18,8 @@ export function getTransferStatusDetails(status: StockTransferStatus): TransferS
       return {
         label: 'In Transit',
         badgeClass: 'bg-blue-100 text-blue-700 border-blue-300',
-        description: 'Dispatched from source; stock is in-transit and not sellable at either location.',
+        description:
+          'Dispatched from source; stock is in-transit and not sellable at either location.',
       };
     case 'received':
       return {
@@ -155,10 +156,14 @@ export function validateReceiveTransferForm(lines: ReceiveLineInput[]): {
     }
 
     if (line.quantityReceived + line.shortageQuantity !== line.quantityDispatched) {
-      errors[`line_${i}_balance`] = `Received (${line.quantityReceived}) + Shortage (${line.shortageQuantity}) must equal Dispatched (${line.quantityDispatched})`;
+      errors[`line_${i}_balance`] =
+        `Received (${line.quantityReceived}) + Shortage (${line.shortageQuantity}) must equal Dispatched (${line.quantityDispatched})`;
     }
 
-    if (line.shortageQuantity > 0 && (!line.shortageReason || line.shortageReason.trim().length === 0)) {
+    if (
+      line.shortageQuantity > 0 &&
+      (!line.shortageReason || line.shortageReason.trim().length === 0)
+    ) {
       errors[`line_${i}_reason`] = 'Shortage reason is required when shortage is reported';
     }
   });

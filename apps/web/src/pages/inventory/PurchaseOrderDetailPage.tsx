@@ -49,7 +49,10 @@ interface ReceiveLineInput {
   remainingQty: number;
 }
 
-export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = ({ poId, onBack }) => {
+export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = ({
+  poId,
+  onBack,
+}) => {
   const { user } = useAuth();
   const userRole = user?.role;
 
@@ -224,7 +227,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
   const isDraft = po.status === 'draft';
   const isApproved = po.status === 'approved';
   const isReceivable = ['approved', 'sent', 'partially_received'].includes(po.status);
-  const canCancel = ['draft', 'approved', 'sent'].includes(po.status) && (po.lines?.every((l) => l.quantityReceived === 0) ?? true);
+  const canCancel =
+    ['draft', 'approved', 'sent'].includes(po.status) &&
+    (po.lines?.every((l) => l.quantityReceived === 0) ?? true);
 
   return (
     <div className="p-6 space-y-6">
@@ -240,7 +245,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
               <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
             </div>
             <p className="text-sm text-slate-500">
-              Supplier: <span className="font-semibold text-slate-700">{po.supplierName || 'Supplier'}</span> | Branch: {po.branchName || 'Main'}
+              Supplier:{' '}
+              <span className="font-semibold text-slate-700">{po.supplierName || 'Supplier'}</span>{' '}
+              | Branch: {po.branchName || 'Main'}
             </p>
           </div>
         </div>
@@ -302,7 +309,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <span className="text-xs font-medium text-slate-500 uppercase">Total Expected Cost</span>
+            <span className="text-xs font-medium text-slate-500 uppercase">
+              Total Expected Cost
+            </span>
             <div className="text-2xl font-bold text-slate-900 mt-1 font-mono">
               {formatPaisa(po.totalExpectedCostPaisa)}
             </div>
@@ -326,7 +335,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
             <span className="text-xs font-medium text-slate-500 uppercase">Expected Delivery</span>
             <div className="text-lg font-semibold text-slate-800 mt-1 flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-blue-600" />
-              {po.expectedDeliveryDate ? formatKarachiDateOnly(po.expectedDeliveryDate) : 'Not specified'}
+              {po.expectedDeliveryDate
+                ? formatKarachiDateOnly(po.expectedDeliveryDate)
+                : 'Not specified'}
             </div>
             <div className="text-xs text-slate-400 mt-1">Due Date</div>
           </CardContent>
@@ -334,7 +345,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
 
         <Card>
           <CardContent className="p-4">
-            <span className="text-xs font-medium text-slate-500 uppercase">Over-Receipt Policy</span>
+            <span className="text-xs font-medium text-slate-500 uppercase">
+              Over-Receipt Policy
+            </span>
             <div className="text-lg font-semibold text-slate-800 mt-1 capitalize flex items-center gap-1.5">
               <ShieldCheck className="h-4 w-4 text-amber-600" />
               {po.overReceiptPolicy === 'reject' ? 'Strict Reject' : 'Flag & Accept'}
@@ -365,7 +378,10 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
             <TableBody>
               {po.lines && po.lines.length > 0 ? (
                 po.lines.map((l) => {
-                  const pct = Math.min(100, Math.round((l.quantityReceived / l.quantityOrdered) * 100));
+                  const pct = Math.min(
+                    100,
+                    Math.round((l.quantityReceived / l.quantityOrdered) * 100)
+                  );
                   const isOver = l.quantityReceived > l.quantityOrdered;
 
                   return (
@@ -376,9 +392,13 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                           <div className="text-xs text-slate-500">{l.product.genericName}</div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-mono font-medium">{l.quantityOrdered}</TableCell>
                       <TableCell className="text-right font-mono font-medium">
-                        <span className={isOver ? 'text-amber-600 font-bold' : ''}>{l.quantityReceived}</span>
+                        {l.quantityOrdered}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-medium">
+                        <span className={isOver ? 'text-amber-600 font-bold' : ''}>
+                          {l.quantityReceived}
+                        </span>
                         {isOver && <span className="ml-1 text-xs text-amber-600">(Over)</span>}
                       </TableCell>
                       <TableCell className="text-center">
@@ -386,7 +406,11 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                           <div className="w-24 bg-slate-200 rounded-full h-2 overflow-hidden">
                             <div
                               className={`h-2 rounded-full ${
-                                pct === 100 ? 'bg-emerald-600' : isOver ? 'bg-amber-500' : 'bg-blue-600'
+                                pct === 100
+                                  ? 'bg-emerald-600'
+                                  : isOver
+                                    ? 'bg-amber-500'
+                                    : 'bg-blue-600'
                               }`}
                               style={{ width: `${pct}%` }}
                             />
@@ -394,8 +418,12 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                           <span className="text-xs font-mono text-slate-600">{pct}%</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-mono">{formatPaisa(l.expectedCostPaisa)}</TableCell>
-                      <TableCell className="text-right font-mono font-bold">{formatPaisa(l.totalCostPaisa)}</TableCell>
+                      <TableCell className="text-right font-mono">
+                        {formatPaisa(l.expectedCostPaisa)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-bold">
+                        {formatPaisa(l.totalCostPaisa)}
+                      </TableCell>
                     </TableRow>
                   );
                 })
@@ -417,7 +445,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
           <div className="p-4 border-b border-slate-200 flex justify-between items-center">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Goods Receiving History</h2>
-              <p className="text-xs text-slate-500">Deliveries received against this purchase order (Payable posted)</p>
+              <p className="text-xs text-slate-500">
+                Deliveries received against this purchase order (Payable posted)
+              </p>
             </div>
             <Badge variant="outline">{po.receipts?.length || 0} deliveries</Badge>
           </div>
@@ -487,7 +517,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Receipt Date</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Receipt Date
+                </label>
                 <Input
                   type="date"
                   value={receiptDate}
@@ -497,7 +529,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
             </div>
 
             <div className="border border-slate-200 rounded-md overflow-hidden">
-              <div className="bg-slate-100 p-2 font-semibold text-xs text-slate-700">Delivery Line Items</div>
+              <div className="bg-slate-100 p-2 font-semibold text-xs text-slate-700">
+                Delivery Line Items
+              </div>
               <table className="w-full text-xs">
                 <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
                   <tr>
@@ -513,7 +547,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                     <tr key={line.poLineId}>
                       <td className="p-2">
                         <div className="font-semibold text-slate-900">{line.brandName}</div>
-                        <div className="text-[10px] text-slate-500">Remaining: {line.remainingQty}</div>
+                        <div className="text-[10px] text-slate-500">
+                          Remaining: {line.remainingQty}
+                        </div>
                       </td>
                       <td className="p-2">
                         <input
@@ -536,7 +572,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                           onChange={(e) => {
                             const val = e.target.value;
                             setReceiveLines((prev) =>
-                              prev.map((item, i) => (i === idx ? { ...item, expiryDate: val } : item))
+                              prev.map((item, i) =>
+                                i === idx ? { ...item, expiryDate: val } : item
+                              )
                             );
                           }}
                         />
@@ -564,7 +602,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                           onChange={(e) => {
                             const val = Math.round(parseFloat(e.target.value || '0') * 100);
                             setReceiveLines((prev) =>
-                              prev.map((item, i) => (i === idx ? { ...item, costPaisa: val } : item))
+                              prev.map((item, i) =>
+                                i === idx ? { ...item, costPaisa: val } : item
+                              )
                             );
                           }}
                         />
@@ -613,7 +653,9 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                 <div className="text-lg font-mono font-bold text-slate-900">{po.poNumber}</div>
                 <div className="text-xs text-slate-500 mt-1">Date: {po.issueDate}</div>
                 {po.expectedDeliveryDate && (
-                  <div className="text-xs text-slate-500">Delivery Due: {po.expectedDeliveryDate}</div>
+                  <div className="text-xs text-slate-500">
+                    Delivery Due: {po.expectedDeliveryDate}
+                  </div>
                 )}
               </div>
             </div>
@@ -621,13 +663,21 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
             {/* Vendor Details */}
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div className="p-3 bg-slate-50 border border-slate-200 rounded">
-                <span className="font-bold uppercase text-slate-500 block mb-1">Vendor / Supplier</span>
+                <span className="font-bold uppercase text-slate-500 block mb-1">
+                  Vendor / Supplier
+                </span>
                 <div className="font-semibold text-slate-800 text-sm">{po.supplierName}</div>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-200 rounded">
-                <span className="font-bold uppercase text-slate-500 block mb-1">Status & Terms</span>
-                <div>Status: <span className="font-semibold uppercase">{po.status}</span></div>
-                <div>Policy: <span className="capitalize">{po.overReceiptPolicy}</span></div>
+                <span className="font-bold uppercase text-slate-500 block mb-1">
+                  Status & Terms
+                </span>
+                <div>
+                  Status: <span className="font-semibold uppercase">{po.status}</span>
+                </div>
+                <div>
+                  Policy: <span className="capitalize">{po.overReceiptPolicy}</span>
+                </div>
               </div>
             </div>
 
@@ -646,14 +696,20 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                   <tr key={line.id}>
                     <td className="p-2 font-medium">{line.product?.brandName}</td>
                     <td className="p-2 text-right font-mono">{line.quantityOrdered}</td>
-                    <td className="p-2 text-right font-mono">{formatPaisa(line.expectedCostPaisa)}</td>
-                    <td className="p-2 text-right font-mono font-semibold">{formatPaisa(line.totalCostPaisa)}</td>
+                    <td className="p-2 text-right font-mono">
+                      {formatPaisa(line.expectedCostPaisa)}
+                    </td>
+                    <td className="p-2 text-right font-mono font-semibold">
+                      {formatPaisa(line.totalCostPaisa)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="border-t-2 border-slate-300 bg-slate-50 font-bold">
                 <tr>
-                  <td colSpan={3} className="p-2 text-right uppercase">Total Expected Amount:</td>
+                  <td colSpan={3} className="p-2 text-right uppercase">
+                    Total Expected Amount:
+                  </td>
                   <td className="p-2 text-right font-mono text-emerald-800 font-bold">
                     {formatPaisa(po.totalExpectedCostPaisa)}
                   </td>
@@ -668,8 +724,12 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                 <div className="text-slate-500">{po.creatorName || 'Authorized Staff'}</div>
               </div>
               <div>
-                <div className="border-t border-slate-400 pt-1 font-semibold">Approved By (Manager / Owner)</div>
-                <div className="text-slate-500">{po.approvedAt ? 'Digitally Approved' : 'Pending Approval'}</div>
+                <div className="border-t border-slate-400 pt-1 font-semibold">
+                  Approved By (Manager / Owner)
+                </div>
+                <div className="text-slate-500">
+                  {po.approvedAt ? 'Digitally Approved' : 'Pending Approval'}
+                </div>
               </div>
             </div>
 

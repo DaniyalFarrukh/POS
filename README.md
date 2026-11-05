@@ -6,8 +6,10 @@ HexaPharm Clinical Pharmacy Point of Sale system built as a TypeScript monorepo 
 
 - `apps/desktop`: HexaPharm Electron + React + Vite Windows counter application (`@pos/desktop`)
 - `apps/server`: Fastify API backend for cloud synchronization (`@pos/server`)
-- `packages/shared`: Shared TypeScript definitions and logic (`@pos/shared`)
-- `docs/`: System documentation (`RULES.md`, `ARCHITECTURE.md`, `SPEC.md`)
+- `apps/web`: React + Vite back-office pharmacy management and ERP portal (`@pos/web`)
+- `packages/shared`: Shared TypeScript types, schemas, and accounting utilities (`@pos/shared`)
+- `packages/ui`: Shared design system UI components and icons (`@pos/ui`)
+- `docs/`: System documentation (`RULES.md`, `ARCHITECTURE.md`, `SPEC.md`, `ERP_SPEC.md`, `UI_GUIDELINES.md`)
 
 ## Prerequisites
 
@@ -27,6 +29,7 @@ pnpm install
 ### 2. Run quality checks
 
 > **Note:** `pnpm test` requires PostgreSQL to be running. Start the container before running tests:
+>
 > ```powershell
 > docker compose up -d
 > ```

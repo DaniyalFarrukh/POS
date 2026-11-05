@@ -56,24 +56,30 @@ describe('device_seq & Outbox Migration (Phase 3.2)', () => {
     db.prepare(
       'INSERT INTO tax_categories (id, name, rate_bp, is_exempt, created_at, updated_at) VALUES (?, ?, 0, 0, ?, ?)'
     ).run(taxCategoryId, 'Zero Tax', now, now);
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO products (
         id, brand_name, generic_name, strength, form, manufacturer, barcode, tax_category_id, mrp_paisa, is_controlled, is_active, created_at, updated_at
       ) VALUES (?, 'Panadol', 'Paracetamol', '500mg', 'tablet', 'GSK', '123456', ?, 500, 0, 1, ?, ?)
-    `).run(productId, taxCategoryId, now, now);
+    `
+    ).run(productId, taxCategoryId, now, now);
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO batches (
         id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at
       ) VALUES (?, ?, 'B-100', '2028-12-31', 300, 500, ?, ?)
-    `).run(batchId, productId, now, now);
+    `
+    ).run(batchId, productId, now, now);
 
     // Initial stock movement (+10,000 units to support 100 sales)
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO stock_movements (
         id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, reference_id, reason, created_at, updated_at
       ) VALUES (?, ?, ?, ?, 'purchase', 10000, 'manual', ?, 'Initial stock', ?, ?)
-    `).run(generateUuidV7(), productId, batchId, branchId, generateUuidV7(), now, now);
+    `
+    ).run(generateUuidV7(), productId, batchId, branchId, generateUuidV7(), now, now);
 
     // Run 100 sales in a loop
     for (let i = 1; i <= 100; i++) {
@@ -115,11 +121,13 @@ describe('device_seq & Outbox Migration (Phase 3.2)', () => {
 
     // Verify UNIQUE constraint rejects duplicate device_seq
     expect(() => {
-      db.prepare(`
+      db.prepare(
+        `
         INSERT INTO outbox (
           id, event_id, device_seq, type, event_type, payload, occurred_at, status, attempts, created_at
         ) VALUES (?, ?, 50, 'duplicate.test', 'duplicate.test', '{}', ?, 'pending', 0, ?)
-      `).run(generateUuidV7(), generateUuidV7(), now, now);
+      `
+      ).run(generateUuidV7(), generateUuidV7(), now, now);
     }).toThrow(/UNIQUE constraint failed/i);
   });
 
@@ -139,11 +147,9 @@ describe('device_seq & Outbox Migration (Phase 3.2)', () => {
 
     for (const m of MIGRATIONS.filter((m) => m.version <= 6)) {
       m.up(legacyDb);
-      legacyDb.prepare('INSERT INTO schema_migrations VALUES (?, ?, ?)').run(
-        m.version,
-        m.name,
-        new Date().toISOString()
-      );
+      legacyDb
+        .prepare('INSERT INTO schema_migrations VALUES (?, ?, ?)')
+        .run(m.version, m.name, new Date().toISOString());
     }
 
     // Insert 3 pre-migration outbox rows in arbitrary physical order with distinct created_at timestamps
@@ -158,7 +164,13 @@ describe('device_seq & Outbox Migration (Phase 3.2)', () => {
 
     // Physical insertion: Late, Early, Mid
     insertLegacy.run(idLate, 'invoice.created', '{"val":"late"}', '2026-10-26T14:00:00.000Z', null);
-    insertLegacy.run(idEarly, 'invoice.created', '{"val":"early"}', '2026-10-26T10:00:00.000Z', '2026-10-26T10:05:00.000Z');
+    insertLegacy.run(
+      idEarly,
+      'invoice.created',
+      '{"val":"early"}',
+      '2026-10-26T10:00:00.000Z',
+      '2026-10-26T10:05:00.000Z'
+    );
     insertLegacy.run(idMid, 'stock.adjusted', '{"val":"mid"}', '2026-10-26T12:00:00.000Z', null);
 
     // Apply migration 7
@@ -171,7 +183,9 @@ describe('device_seq & Outbox Migration (Phase 3.2)', () => {
     // 2: idMid   (12:00 UTC)
     // 3: idLate  (14:00 UTC)
     const backfilledRows = legacyDb
-      .prepare('SELECT id, event_id, device_seq, type, status, occurred_at FROM outbox ORDER BY device_seq ASC')
+      .prepare(
+        'SELECT id, event_id, device_seq, type, status, occurred_at FROM outbox ORDER BY device_seq ASC'
+      )
       .all() as Array<{
       id: string;
       event_id: string;

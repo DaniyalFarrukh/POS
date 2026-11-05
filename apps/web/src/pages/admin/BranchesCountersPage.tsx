@@ -200,12 +200,8 @@ export const BranchesCountersPage: React.FC = () => {
                 <TableBody>
                   {branches.map((b) => (
                     <TableRow key={b.id}>
-                      <TableCell className="text-xs font-bold text-slate-900">
-                        {b.name}
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-600">
-                        {b.address || '—'}
-                      </TableCell>
+                      <TableCell className="text-xs font-bold text-slate-900">{b.name}</TableCell>
+                      <TableCell className="text-xs text-slate-600">{b.address || '—'}</TableCell>
                       <TableCell className="text-xs font-mono text-slate-600">
                         {b.phone || '—'}
                       </TableCell>
@@ -247,12 +243,8 @@ export const BranchesCountersPage: React.FC = () => {
                 <TableBody>
                   {counters.map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell className="text-xs font-bold text-slate-900">
-                        {c.name}
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-600">
-                        {c.branchName}
-                      </TableCell>
+                      <TableCell className="text-xs font-bold text-slate-900">{c.name}</TableCell>
+                      <TableCell className="text-xs text-slate-600">{c.branchName}</TableCell>
                       <TableCell className="text-xs">
                         <Badge variant="outline" className="font-mono text-[10px] font-bold">
                           {c.code || 'C1'}

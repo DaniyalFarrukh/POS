@@ -58,7 +58,8 @@ export function getReturnableInvoiceLines(
   const db = rawDb ?? getDatabase();
 
   const lines = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         il.*,
         p.brand_name,
@@ -70,7 +71,8 @@ export function getReturnableInvoiceLines(
       LEFT JOIN batches b ON il.batch_id = b.id
       WHERE il.invoice_id = ?
       ORDER BY il.rowid ASC
-    `)
+    `
+    )
     .all(invoiceId) as RawInvoiceLine[];
 
   const sumReturnedStmt = db.prepare<[string]>(`
@@ -104,12 +106,10 @@ export function getReturnableInvoiceLines(
 /**
  * Loads an existing credit note by ID or clientRequestId.
  */
-function loadCreditNote(
-  db: DatabaseInstance,
-  cnId: string
-): CreditNoteRecord | null {
+function loadCreditNote(db: DatabaseInstance, cnId: string): CreditNoteRecord | null {
   const row = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         cn.*,
         inv.invoice_number as original_invoice_number,
@@ -120,13 +120,15 @@ function loadCreditNote(
       LEFT JOIN users u ON cn.cashier_user_id = u.id
       LEFT JOIN counters c ON cn.counter_id = c.id
       WHERE cn.id = ?
-    `)
+    `
+    )
     .get(cnId) as RawCreditNoteRow | undefined;
 
   if (!row) return null;
 
   const lines = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         cnl.*,
         p.brand_name,
@@ -138,7 +140,8 @@ function loadCreditNote(
       LEFT JOIN batches b ON cnl.batch_id = b.id
       WHERE cnl.credit_note_id = ?
       ORDER BY cnl.rowid ASC
-    `)
+    `
+    )
     .all(row.id) as {
     id: string;
     credit_note_id: string;
@@ -279,8 +282,7 @@ export function processReturn(
   const executeReturnTx = db.transaction(() => {
     // 1. Idempotency Check
     const existing = selectExistingStmt.get(validated.clientRequestId) as
-      | { id: string }
-      | undefined;
+      { id: string } | undefined;
     if (existing) {
       const loaded = loadCreditNote(db, existing.id);
       if (loaded) return loaded;
@@ -288,15 +290,20 @@ export function processReturn(
 
     // 2. Load and validate original invoice
     const invoice = selectInvoiceStmt.get(validated.originalInvoiceId) as
-      | { id: string; counter_id: string; invoice_number: string; status: string }
-      | undefined;
+      { id: string; counter_id: string; invoice_number: string; status: string } | undefined;
     if (!invoice) {
       throw new Error(`Original invoice not found with id: ${validated.originalInvoiceId}`);
     }
 
     const counterId = options.counterId || invoice.counter_id;
     const counter = selectCounterStmt.get(counterId) as
-      | { id: string; branch_id: string; name: string; code: string | null; last_credit_note_seq: number }
+      | {
+          id: string;
+          branch_id: string;
+          name: string;
+          code: string | null;
+          last_credit_note_seq: number;
+        }
       | undefined;
     if (!counter) {
       throw new Error(`Counter not found with id: ${counterId}`);
@@ -356,10 +363,7 @@ export function processReturn(
         origLine.line_total_paisa * item.quantity,
         origLine.quantity
       );
-      const lineRefundTaxPaisa = roundHalfUp(
-        origLine.tax_paisa * item.quantity,
-        origLine.quantity
-      );
+      const lineRefundTaxPaisa = roundHalfUp(origLine.tax_paisa * item.quantity, origLine.quantity);
       const lineRefundSubtotalPaisa = lineRefundTotalPaisa - lineRefundTaxPaisa;
 
       creditSubtotalPaisa += lineRefundSubtotalPaisa;

@@ -92,9 +92,11 @@ describe('Local Authentication & IPC Role Guard', () => {
       // 4. Verify DB records
       const branchRow = rawDb.prepare('SELECT name FROM branches').get() as { name: string };
       const counterRow = rawDb.prepare('SELECT name FROM counters').get() as { name: string };
-      const userRow = rawDb
-        .prepare('SELECT name, role, pin_hash FROM users')
-        .get() as { name: string; role: string; pin_hash: string };
+      const userRow = rawDb.prepare('SELECT name, role, pin_hash FROM users').get() as {
+        name: string;
+        role: string;
+        pin_hash: string;
+      };
 
       expect(branchRow.name).toBe('City Pharmacy - Saddar');
       expect(counterRow.name).toBe('Counter 01');
@@ -282,7 +284,9 @@ describe('Local Authentication & IPC Role Guard', () => {
       // Cashier CANNOT manage products or stock
       const productHandler = requireRole(['pharmacist', 'owner'], async () => 'product_saved');
       await expect(productHandler()).rejects.toThrow(ForbiddenError);
-      await expect(productHandler()).rejects.toThrow(/Access denied: role 'cashier' is not authorized/);
+      await expect(productHandler()).rejects.toThrow(
+        /Access denied: role 'cashier' is not authorized/
+      );
 
       // Cashier CANNOT manage users
       const userHandler = requireRole(['owner'], async () => 'user_created');
@@ -309,7 +313,9 @@ describe('Local Authentication & IPC Role Guard', () => {
       // Pharmacist CANNOT manage users
       const userHandler = requireRole(['owner'], async () => 'user_created');
       await expect(userHandler()).rejects.toThrow(ForbiddenError);
-      await expect(userHandler()).rejects.toThrow(/Access denied: role 'pharmacist' is not authorized/);
+      await expect(userHandler()).rejects.toThrow(
+        /Access denied: role 'pharmacist' is not authorized/
+      );
     });
 
     it('permits owner role for all actions', async () => {
@@ -426,21 +432,11 @@ describe('Local Authentication & IPC Role Guard', () => {
 
     it('prevents owner from deactivating or demoting their own active account', async () => {
       await expect(
-        updateStaffMember(
-          ownerSession.user.id,
-          { isActive: false },
-          ownerSession,
-          rawDb
-        )
+        updateStaffMember(ownerSession.user.id, { isActive: false }, ownerSession, rawDb)
       ).rejects.toThrow(AuthError);
 
       await expect(
-        updateStaffMember(
-          ownerSession.user.id,
-          { role: 'cashier' },
-          ownerSession,
-          rawDb
-        )
+        updateStaffMember(ownerSession.user.id, { role: 'cashier' }, ownerSession, rawDb)
       ).rejects.toThrow(AuthError);
     });
 
@@ -475,13 +471,8 @@ describe('Local Authentication & IPC Role Guard', () => {
 
       expect(() => getStaffList(cashierSession, rawDb)).toThrow(ForbiddenError);
       await expect(
-        createStaffMember(
-          { name: 'Test', role: 'cashier', pin: '123456' },
-          cashierSession,
-          rawDb
-        )
+        createStaffMember({ name: 'Test', role: 'cashier', pin: '123456' }, cashierSession, rawDb)
       ).rejects.toThrow(ForbiddenError);
     });
   });
 });
-

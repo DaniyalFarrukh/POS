@@ -44,8 +44,7 @@ function resolveCounterAndBranch(
 
   if (!counterId) {
     const counter = db.prepare(`SELECT id, branch_id FROM counters LIMIT 1;`).get() as
-      | { id: string; branch_id: string }
-      | undefined;
+      { id: string; branch_id: string } | undefined;
     if (!counter) {
       throw new Error('No counters found in system. Please configure a counter first.');
     }
@@ -53,12 +52,12 @@ function resolveCounterAndBranch(
     branchId = branchId || counter.branch_id;
   } else if (!branchId) {
     const counter = db.prepare(`SELECT branch_id FROM counters WHERE id = ?;`).get(counterId) as
-      | { branch_id: string }
-      | undefined;
+      { branch_id: string } | undefined;
     if (counter) {
       branchId = counter.branch_id;
     } else {
-      const branch = db.prepare(`SELECT id FROM branches LIMIT 1;`).get() as { id: string } | undefined;
+      const branch = db.prepare(`SELECT id FROM branches LIMIT 1;`).get() as
+        { id: string } | undefined;
       if (!branch) throw new Error('No branches found in system.');
       branchId = branch.id;
     }
@@ -171,28 +170,30 @@ export function openShift(
     if (session) {
       cashierUserId = session.user.id;
     } else {
-      const firstUser = db.prepare(`SELECT id FROM users LIMIT 1;`).get() as { id: string } | undefined;
+      const firstUser = db.prepare(`SELECT id FROM users LIMIT 1;`).get() as
+        { id: string } | undefined;
       if (!firstUser) throw new Error('No users found in system.');
       cashierUserId = firstUser.id;
     }
   }
   const resolvedCashierUserId: string = cashierUserId;
 
-  return db.transaction(() => {
-    // 1. Check if there is already an open shift for this counter
-    const existingOpen = db
-      .prepare(`SELECT id FROM shifts WHERE counter_id = ? AND status = 'open' LIMIT 1;`)
-      .get(counterId) as { id: string } | undefined;
+  return db
+    .transaction(() => {
+      // 1. Check if there is already an open shift for this counter
+      const existingOpen = db
+        .prepare(`SELECT id FROM shifts WHERE counter_id = ? AND status = 'open' LIMIT 1;`)
+        .get(counterId) as { id: string } | undefined;
 
-    if (existingOpen) {
-      throw new Error('An active shift is already open for this counter. Please close it first.');
-    }
+      if (existingOpen) {
+        throw new Error('An active shift is already open for this counter. Please close it first.');
+      }
 
-    const shiftId = generateUuidV7();
-    const now = new Date().toISOString();
+      const shiftId = generateUuidV7();
+      const now = new Date().toISOString();
 
-    db.prepare(
-      `
+      db.prepare(
+        `
       INSERT INTO shifts (
         id,
         branch_id,
@@ -214,23 +215,23 @@ export function openShift(
         updated_at
       ) VALUES (?, ?, ?, ?, 'open', ?, NULL, ?, NULL, ?, NULL, 0, 0, 0, 0, ?, ?, ?);
     `
-    ).run(
-      shiftId,
-      branchId,
-      counterId,
-      resolvedCashierUserId,
-      now,
-      validated.openingCashPaisa,
-      validated.openingCashPaisa, // expected cash is opening cash at start
-      validated.notes ?? null,
-      now,
-      now
-    );
+      ).run(
+        shiftId,
+        branchId,
+        counterId,
+        resolvedCashierUserId,
+        now,
+        validated.openingCashPaisa,
+        validated.openingCashPaisa, // expected cash is opening cash at start
+        validated.notes ?? null,
+        now,
+        now
+      );
 
-    // Outbox event
-    const outboxEventId = generateUuidV7();
-    db.prepare(
-      `
+      // Outbox event
+      const outboxEventId = generateUuidV7();
+      db.prepare(
+        `
       INSERT INTO outbox (
         id,
         event_id,
@@ -246,67 +247,66 @@ export function openShift(
         synced_at
       ) VALUES (?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'shift.opened', 'shift.opened', ?, ?, ?, 'pending', 0, ?, null);
     `
-    ).run(
-      outboxEventId,
-      outboxEventId,
-      shiftId,
-      JSON.stringify({
+      ).run(
+        outboxEventId,
+        outboxEventId,
         shiftId,
-        counterId,
-        cashierUserId: resolvedCashierUserId,
-        openingCashPaisa: validated.openingCashPaisa,
-        openedAt: now,
-      }),
-      now,
-      now
-    );
+        JSON.stringify({
+          shiftId,
+          counterId,
+          cashierUserId: resolvedCashierUserId,
+          openingCashPaisa: validated.openingCashPaisa,
+          openedAt: now,
+        }),
+        now,
+        now
+      );
 
-    // Fetch names for record
-    const names = db
-      .prepare(
-        `
+      // Fetch names for record
+      const names = db
+        .prepare(
+          `
       SELECT u.name AS cashier_name, c.name AS counter_name
       FROM users u, counters c
       WHERE u.id = ? AND c.id = ?;
     `
-      )
-      .get(resolvedCashierUserId, counterId) as { cashier_name: string; counter_name: string } | undefined;
+        )
+        .get(resolvedCashierUserId, counterId) as
+        { cashier_name: string; counter_name: string } | undefined;
 
-    return {
-      id: shiftId,
-      branchId,
-      counterId,
-      cashierUserId: resolvedCashierUserId,
-      status: 'open' as const,
-      openedAt: now,
-      closedAt: null,
-      openingCashPaisa: validated.openingCashPaisa,
-      countedCashPaisa: null,
-      expectedCashPaisa: validated.openingCashPaisa,
-      differencePaisa: null,
-      salesCashPaisa: 0,
-      salesCardPaisa: 0,
-      salesWalletPaisa: 0,
-      salesTotalPaisa: 0,
-      returnsCashPaisa: 0,
-      salesCount: 0,
-      returnsCount: 0,
-      cashierName: names?.cashier_name ?? undefined,
-      counterName: names?.counter_name ?? undefined,
-      notes: validated.notes ?? null,
-      createdAt: now,
-      updatedAt: now,
-    };
-  }).immediate();
+      return {
+        id: shiftId,
+        branchId,
+        counterId,
+        cashierUserId: resolvedCashierUserId,
+        status: 'open' as const,
+        openedAt: now,
+        closedAt: null,
+        openingCashPaisa: validated.openingCashPaisa,
+        countedCashPaisa: null,
+        expectedCashPaisa: validated.openingCashPaisa,
+        differencePaisa: null,
+        salesCashPaisa: 0,
+        salesCardPaisa: 0,
+        salesWalletPaisa: 0,
+        salesTotalPaisa: 0,
+        returnsCashPaisa: 0,
+        salesCount: 0,
+        returnsCount: 0,
+        cashierName: names?.cashier_name ?? undefined,
+        counterName: names?.counter_name ?? undefined,
+        notes: validated.notes ?? null,
+        createdAt: now,
+        updatedAt: now,
+      };
+    })
+    .immediate();
 }
 
 /**
  * Get the currently open shift for a counter (with dynamic live sales and returns totals).
  */
-export function getCurrentShift(
-  counterId?: string,
-  rawDb?: DatabaseInstance
-): ShiftRecord | null {
+export function getCurrentShift(counterId?: string, rawDb?: DatabaseInstance): ShiftRecord | null {
   const db = rawDb ?? getDatabase();
   const { counterId: targetCounterId } = resolveCounterAndBranch(db, counterId);
 
@@ -374,10 +374,11 @@ export function closeShift(
   const validated = CloseShiftInputSchema.parse(input);
   const db = options?.rawDb ?? getDatabase();
 
-  return db.transaction(() => {
-    const row = db
-      .prepare(
-        `
+  return db
+    .transaction(() => {
+      const row = db
+        .prepare(
+          `
         SELECT
           s.*,
           u.name AS cashier_name,
@@ -387,35 +388,36 @@ export function closeShift(
         LEFT JOIN counters c ON s.counter_id = c.id
         WHERE s.id = ?;
       `
-      )
-      .get(validated.shiftId) as RawShiftRow | undefined;
+        )
+        .get(validated.shiftId) as RawShiftRow | undefined;
 
-    if (!row) {
-      throw new Error(`Shift not found: ${validated.shiftId}`);
-    }
+      if (!row) {
+        throw new Error(`Shift not found: ${validated.shiftId}`);
+      }
 
-    if (row.status !== 'open') {
-      throw new Error(`Shift is already ${row.status}.`);
-    }
+      if (row.status !== 'open') {
+        throw new Error(`Shift is already ${row.status}.`);
+      }
 
-    // Role ownership check: cashier may only close their own shift
-    if (
-      options?.cashierUserId &&
-      options?.userRole === 'cashier' &&
-      row.cashier_user_id !== options.cashierUserId
-    ) {
-      throw new Error('Unauthorized: Cashier may only close their own shift.');
-    }
+      // Role ownership check: cashier may only close their own shift
+      if (
+        options?.cashierUserId &&
+        options?.userRole === 'cashier' &&
+        row.cashier_user_id !== options.cashierUserId
+      ) {
+        throw new Error('Unauthorized: Cashier may only close their own shift.');
+      }
 
-    const now = new Date().toISOString();
-    const live = computeLiveShiftTotals(db, row.counter_id, row.opened_at, now);
+      const now = new Date().toISOString();
+      const live = computeLiveShiftTotals(db, row.counter_id, row.opened_at, now);
 
-    const expectedCashPaisa = row.opening_cash_paisa + live.salesCashPaisa - live.returnsCashPaisa;
-    const differencePaisa = validated.countedCashPaisa - expectedCashPaisa;
-    const finalNotes = validated.notes !== undefined ? validated.notes : row.notes;
+      const expectedCashPaisa =
+        row.opening_cash_paisa + live.salesCashPaisa - live.returnsCashPaisa;
+      const differencePaisa = validated.countedCashPaisa - expectedCashPaisa;
+      const finalNotes = validated.notes !== undefined ? validated.notes : row.notes;
 
-    db.prepare(
-      `
+      db.prepare(
+        `
       UPDATE shifts SET
         status = 'closed',
         closed_at = ?,
@@ -430,24 +432,24 @@ export function closeShift(
         updated_at = ?
       WHERE id = ?;
     `
-    ).run(
-      now,
-      validated.countedCashPaisa,
-      expectedCashPaisa,
-      differencePaisa,
-      live.salesCashPaisa,
-      live.salesCardPaisa,
-      live.salesWalletPaisa,
-      live.returnsCashPaisa,
-      finalNotes ?? null,
-      now,
-      row.id
-    );
+      ).run(
+        now,
+        validated.countedCashPaisa,
+        expectedCashPaisa,
+        differencePaisa,
+        live.salesCashPaisa,
+        live.salesCardPaisa,
+        live.salesWalletPaisa,
+        live.returnsCashPaisa,
+        finalNotes ?? null,
+        now,
+        row.id
+      );
 
-    // Outbox event
-    const outboxEventId = generateUuidV7();
-    db.prepare(
-      `
+      // Outbox event
+      const outboxEventId = generateUuidV7();
+      db.prepare(
+        `
       INSERT INTO outbox (
         id,
         event_id,
@@ -463,14 +465,35 @@ export function closeShift(
         synced_at
       ) VALUES (?, ?, (SELECT COALESCE(MAX(device_seq), 0) + 1 FROM outbox), 'shift.closed', 'shift.closed', ?, ?, ?, 'pending', 0, ?, null);
     `
-    ).run(
-      outboxEventId,
-      outboxEventId,
-      row.id,
-      JSON.stringify({
-        shiftId: row.id,
+      ).run(
+        outboxEventId,
+        outboxEventId,
+        row.id,
+        JSON.stringify({
+          shiftId: row.id,
+          counterId: row.counter_id,
+          cashierUserId: row.cashier_user_id,
+          openedAt: row.opened_at,
+          closedAt: now,
+          openingCashPaisa: row.opening_cash_paisa,
+          countedCashPaisa: validated.countedCashPaisa,
+          expectedCashPaisa,
+          differencePaisa,
+          salesCashPaisa: live.salesCashPaisa,
+          salesCardPaisa: live.salesCardPaisa,
+          salesWalletPaisa: live.salesWalletPaisa,
+          returnsCashPaisa: live.returnsCashPaisa,
+        }),
+        now,
+        now
+      );
+
+      return {
+        id: row.id,
+        branchId: row.branch_id,
         counterId: row.counter_id,
         cashierUserId: row.cashier_user_id,
+        status: 'closed' as const,
         openedAt: row.opened_at,
         closedAt: now,
         openingCashPaisa: row.opening_cash_paisa,
@@ -480,52 +503,30 @@ export function closeShift(
         salesCashPaisa: live.salesCashPaisa,
         salesCardPaisa: live.salesCardPaisa,
         salesWalletPaisa: live.salesWalletPaisa,
+        salesTotalPaisa: live.salesTotalPaisa,
         returnsCashPaisa: live.returnsCashPaisa,
-      }),
-      now,
-      now
-    );
-
-    return {
-      id: row.id,
-      branchId: row.branch_id,
-      counterId: row.counter_id,
-      cashierUserId: row.cashier_user_id,
-      status: 'closed' as const,
-      openedAt: row.opened_at,
-      closedAt: now,
-      openingCashPaisa: row.opening_cash_paisa,
-      countedCashPaisa: validated.countedCashPaisa,
-      expectedCashPaisa,
-      differencePaisa,
-      salesCashPaisa: live.salesCashPaisa,
-      salesCardPaisa: live.salesCardPaisa,
-      salesWalletPaisa: live.salesWalletPaisa,
-      salesTotalPaisa: live.salesTotalPaisa,
-      returnsCashPaisa: live.returnsCashPaisa,
-      salesCount: live.salesCount,
-      returnsCount: live.returnsCount,
-      cashierName: row.cashier_name ?? undefined,
-      counterName: row.counter_name ?? undefined,
-      notes: finalNotes ?? null,
-      createdAt: row.created_at,
-      updatedAt: now,
-    };
-  }).immediate();
+        salesCount: live.salesCount,
+        returnsCount: live.returnsCount,
+        cashierName: row.cashier_name ?? undefined,
+        counterName: row.counter_name ?? undefined,
+        notes: finalNotes ?? null,
+        createdAt: row.created_at,
+        updatedAt: now,
+      };
+    })
+    .immediate();
 }
 
 /**
  * Get shift history for a branch or counter.
  */
-export function getShiftHistory(
-  options?: {
-    branchId?: string;
-    counterId?: string;
-    limit?: number;
-    offset?: number;
-    rawDb?: DatabaseInstance;
-  }
-): ShiftRecord[] {
+export function getShiftHistory(options?: {
+  branchId?: string;
+  counterId?: string;
+  limit?: number;
+  offset?: number;
+  rawDb?: DatabaseInstance;
+}): ShiftRecord[] {
   const db = options?.rawDb ?? getDatabase();
   const limit = options?.limit ?? 50;
   const offset = options?.offset ?? 0;

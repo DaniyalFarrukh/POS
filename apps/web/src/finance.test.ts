@@ -125,7 +125,9 @@ describe('Finance Screens Domain Logic & UI Validation (ERP Phase 7)', () => {
         status: 'posted' as const,
         reversesEntryId: null,
       };
-      const allowedRoles = roles.filter((role) => canReverseJournalEntry(postedEntry, role).canReverse);
+      const allowedRoles = roles.filter(
+        (role) => canReverseJournalEntry(postedEntry, role).canReverse
+      );
       expect(allowedRoles).toEqual(['owner', 'accountant']);
     });
   });
@@ -202,10 +204,42 @@ describe('Finance Screens Domain Logic & UI Validation (ERP Phase 7)', () => {
 
     it('builds a hierarchical tree grouped by type and sorted by code', () => {
       const accountList: AccountItem[] = [
-        { id: '1', code: '1000', name: 'Cash in Hand', type: 'asset', parentId: null, isActive: true, isSystem: true },
-        { id: '2', code: '1001', name: 'Petty Cash', type: 'asset', parentId: '1', isActive: true, isSystem: false },
-        { id: '3', code: '2000', name: 'Accounts Payable', type: 'liability', parentId: null, isActive: true, isSystem: true },
-        { id: '4', code: '1200', name: 'Inventory', type: 'asset', parentId: null, isActive: true, isSystem: true },
+        {
+          id: '1',
+          code: '1000',
+          name: 'Cash in Hand',
+          type: 'asset',
+          parentId: null,
+          isActive: true,
+          isSystem: true,
+        },
+        {
+          id: '2',
+          code: '1001',
+          name: 'Petty Cash',
+          type: 'asset',
+          parentId: '1',
+          isActive: true,
+          isSystem: false,
+        },
+        {
+          id: '3',
+          code: '2000',
+          name: 'Accounts Payable',
+          type: 'liability',
+          parentId: null,
+          isActive: true,
+          isSystem: true,
+        },
+        {
+          id: '4',
+          code: '1200',
+          name: 'Inventory',
+          type: 'asset',
+          parentId: null,
+          isActive: true,
+          isSystem: true,
+        },
       ];
 
       const tree = buildAccountTree(accountList);
@@ -254,4 +288,3 @@ describe('Finance Screens Domain Logic & UI Validation (ERP Phase 7)', () => {
     });
   });
 });
-

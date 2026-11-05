@@ -70,4 +70,3 @@ describe('Stock Counts Web Utilities & Logic', () => {
     expect(canApproveCount(undefined)).toBe(false);
   });
 });
-

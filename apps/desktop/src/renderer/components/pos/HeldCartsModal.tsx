@@ -65,11 +65,19 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
             <span style={{ fontSize: '20px' }}>🛒</span>
             <h3
               id="held-carts-modal-title"
-              style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}
+              style={{
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: 800,
+                color: '#0f172a',
+                letterSpacing: '-0.01em',
+              }}
             >
               Park / Recall Transactions
             </h3>
-            <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 5px' }}>F4</kbd>
+            <kbd className="kbd-cap" style={{ fontSize: '10px', padding: '1px 5px' }}>
+              F4
+            </kbd>
           </div>
           <button
             type="button"
@@ -106,18 +114,31 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
                 marginBottom: '20px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div>
                   <div style={{ fontWeight: 800, color: '#065f46', fontSize: '14px' }}>
-                    Park Active Cart ({activeLines.length} items • <span className="tabular-nums">{formatPKR(grandTotalPaisa)}</span>)
+                    Park Active Cart ({activeLines.length} items •{' '}
+                    <span className="tabular-nums">{formatPKR(grandTotalPaisa)}</span>)
                   </div>
-                  <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px', fontWeight: 500 }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      color: '#047857',
+                      marginTop: '2px',
+                      fontWeight: 500,
+                    }}
+                  >
                     Patient: {customer.name || 'Walk-in Customer'}
                   </div>
                 </div>
               </div>
 
-              <form onSubmit={handlePark} style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
+              <form
+                onSubmit={handlePark}
+                style={{ marginTop: '12px', display: 'flex', gap: '10px' }}
+              >
                 <input
                   type="text"
                   placeholder="Optional reference / note (e.g. Customer getting prescription / cash)..."
@@ -157,7 +178,16 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
 
           {/* Held Carts List */}
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div
+              style={{
+                fontSize: '13px',
+                fontWeight: 800,
+                color: '#334155',
+                marginBottom: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}
+            >
               Parked Transactions ({heldCarts.length})
             </div>
 
@@ -172,7 +202,8 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
                   fontSize: '13px',
                 }}
               >
-                No parked carts in memory. Press <kbd className="kbd-cap">F4</kbd> whenever you need to serve another customer while keeping an existing cart open.
+                No parked carts in memory. Press <kbd className="kbd-cap">F4</kbd> whenever you need
+                to serve another customer while keeping an existing cart open.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -195,14 +226,25 @@ export const HeldCartsModal: React.FC<HeldCartsModalProps> = ({
                         <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>
                           {held.customer.name || 'Walk-in Customer'}
                         </span>
-                        <span className="tabular-nums" style={{ fontSize: '11px', color: '#64748b' }}>
+                        <span
+                          className="tabular-nums"
+                          style={{ fontSize: '11px', color: '#64748b' }}
+                        >
                           • {held.heldAt}
                         </span>
                       </div>
                       <div style={{ fontSize: '12px', color: '#475569', marginTop: '3px' }}>
-                        {held.cartLines.length} items • <strong className="tabular-nums">{formatPKR(held.totalPaisa)}</strong>
+                        {held.cartLines.length} items •{' '}
+                        <strong className="tabular-nums">{formatPKR(held.totalPaisa)}</strong>
                         {held.note && (
-                          <span style={{ marginLeft: '10px', color: '#4f46e5', fontStyle: 'italic', fontWeight: 600 }}>
+                          <span
+                            style={{
+                              marginLeft: '10px',
+                              color: '#4f46e5',
+                              fontStyle: 'italic',
+                              fontWeight: 600,
+                            }}
+                          >
                             "{held.note}"
                           </span>
                         )}

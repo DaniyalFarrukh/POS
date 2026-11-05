@@ -77,7 +77,8 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
         conditions.push(
           eq(
             purchaseOrders.status,
-            status as 'draft' | 'approved' | 'sent' | 'partially_received' | 'received' | 'cancelled'
+            status as
+              'draft' | 'approved' | 'sent' | 'partially_received' | 'received' | 'cancelled'
           )
         );
       }

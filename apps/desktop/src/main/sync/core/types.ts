@@ -1,21 +1,8 @@
-import type {
-  SyncEventEnvelope,
-  SyncResultItem,
-  SyncPushResponse,
-} from '@pos/shared';
+import type { SyncEventEnvelope, SyncResultItem, SyncPushResponse } from '@pos/shared';
 
-export type SyncConnectionState =
-  | 'offline'
-  | 'online_idle'
-  | 'syncing'
-  | 'auth_error'
-  | 'error';
+export type SyncConnectionState = 'offline' | 'online_idle' | 'syncing' | 'auth_error' | 'error';
 
-export type OfflineWarningLevel =
-  | 'ok'
-  | 'warning'
-  | 'critical'
-  | 'exceeded';
+export type OfflineWarningLevel = 'ok' | 'warning' | 'critical' | 'exceeded';
 
 export interface OfflineLevelResult {
   level: OfflineWarningLevel;
@@ -107,8 +94,4 @@ export interface OutboxCounts {
   total: number;
 }
 
-export type {
-  SyncEventEnvelope,
-  SyncResultItem,
-  SyncPushResponse,
-};
+export type { SyncEventEnvelope, SyncResultItem, SyncPushResponse };

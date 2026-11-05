@@ -12,8 +12,14 @@ import { branches, users } from '../db/schema';
 import { getDb } from '../db';
 
 const SalesQuerySchema = z.object({
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid startDate format').optional(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid endDate format').optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid startDate format')
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}/, 'Invalid endDate format')
+    .optional(),
   branchId: z.string().uuid('Invalid branchId format').optional(),
   cashierUserId: z.string().uuid('Invalid cashierUserId format').optional(),
 });
@@ -55,7 +61,9 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
           .limit(1);
 
         if (!branch) {
-          return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+          return reply
+            .status(404)
+            .send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
         }
       }
 
@@ -67,7 +75,10 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
           .limit(1);
 
         if (!user) {
-          return reply.status(404).send({ statusCode: 404, message: 'Cashier user not found or belongs to another pharmacy' });
+          return reply.status(404).send({
+            statusCode: 404,
+            message: 'Cashier user not found or belongs to another pharmacy',
+          });
         }
       }
 
@@ -112,15 +123,13 @@ export const reportRoutes: FastifyPluginAsync = async (fastify) => {
           .limit(1);
 
         if (!branch) {
-          return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+          return reply
+            .status(404)
+            .send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
         }
       }
 
-      const result = await getStockAndExpiryReport(
-        db,
-        userContext.pharmacyId,
-        branchId
-      );
+      const result = await getStockAndExpiryReport(db, userContext.pharmacyId, branchId);
 
       return reply.status(200).send({ items: result });
     }

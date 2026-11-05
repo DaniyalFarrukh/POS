@@ -40,10 +40,7 @@ export async function pullChangeLog(
   // The client deduplicates and idempotently applies changes in monotonic seq order.
   const effectiveCursor = Math.max(0, cursor - overlap);
 
-  const conditions = [
-    eq(changeLog.pharmacyId, ctx.pharmacyId),
-    gt(changeLog.seq, effectiveCursor),
-  ];
+  const conditions = [eq(changeLog.pharmacyId, ctx.pharmacyId), gt(changeLog.seq, effectiveCursor)];
 
   if (ctx.branchId) {
     conditions.push(or(isNull(changeLog.branchId), eq(changeLog.branchId, ctx.branchId))!);

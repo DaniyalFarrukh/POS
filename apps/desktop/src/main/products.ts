@@ -23,7 +23,9 @@ export interface CsvImportSummary {
 export function getTaxCategories(rawDb?: DatabaseInstance): TaxCategory[] {
   const db = rawDb ?? getDatabase();
   const rows = db
-    .prepare('SELECT id, name, rate_bp, is_exempt, created_at, updated_at FROM tax_categories ORDER BY name ASC')
+    .prepare(
+      'SELECT id, name, rate_bp, is_exempt, created_at, updated_at FROM tax_categories ORDER BY name ASC'
+    )
     .all() as {
     id: string;
     name: string;
@@ -157,7 +159,8 @@ export function getProducts(
 export function getProduct(id: string, rawDb?: DatabaseInstance): ProductWithTax | null {
   const db = rawDb ?? getDatabase();
   const row = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
         p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled, p.is_active,
@@ -167,7 +170,8 @@ export function getProduct(id: string, rawDb?: DatabaseInstance): ProductWithTax
       FROM products p
       INNER JOIN tax_categories tc ON p.tax_category_id = tc.id
       WHERE p.id = ?
-    `)
+    `
+    )
     .get(id) as
     | {
         id: string;
@@ -209,18 +213,14 @@ export function getProduct(id: string, rawDb?: DatabaseInstance): ProductWithTax
   };
 }
 
-export function createProduct(
-  input: CreateProductInput,
-  rawDb?: DatabaseInstance
-): ProductWithTax {
+export function createProduct(input: CreateProductInput, rawDb?: DatabaseInstance): ProductWithTax {
   const data = CreateProductInputSchema.parse(input);
   const db = rawDb ?? getDatabase();
 
   // Check unique barcode if barcode provided
   if (data.barcode) {
-    const existing = db
-      .prepare('SELECT id FROM products WHERE barcode = ?')
-      .get(data.barcode) as { id: string } | undefined;
+    const existing = db.prepare('SELECT id FROM products WHERE barcode = ?').get(data.barcode) as
+      { id: string } | undefined;
     if (existing) {
       throw new Error(`A product with barcode '${data.barcode}' already exists.`);
     }
@@ -229,13 +229,15 @@ export function createProduct(
   const id = generateUuidV7();
   const now = new Date().toISOString();
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO products (
       id, brand_name, generic_name, strength, form, manufacturer,
       barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
       created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `
+  ).run(
     id,
     data.brandName,
     data.genericName,
@@ -279,7 +281,8 @@ export function updateProduct(
 
   const now = new Date().toISOString();
 
-  db.prepare(`
+  db.prepare(
+    `
     UPDATE products SET
       brand_name = COALESCE(?, brand_name),
       generic_name = COALESCE(?, generic_name),
@@ -293,7 +296,8 @@ export function updateProduct(
       is_active = COALESCE(?, is_active),
       updated_at = ?
     WHERE id = ?
-  `).run(
+  `
+  ).run(
     data.brandName ?? null,
     data.genericName ?? null,
     data.strength ?? null,
@@ -325,7 +329,9 @@ export function importProductsCsv(
   const now = new Date().toISOString();
 
   // Find all existing barcodes to skip collisions
-  const existingRows = db.prepare('SELECT barcode FROM products WHERE barcode IS NOT NULL').all() as {
+  const existingRows = db
+    .prepare('SELECT barcode FROM products WHERE barcode IS NOT NULL')
+    .all() as {
     barcode: string;
   }[];
   const existingBarcodes = new Set(existingRows.map((r) => r.barcode));
@@ -441,7 +447,8 @@ export function searchPosCatalog(
   // Determine branch ID
   let branchId = rawBranchId;
   if (!branchId) {
-    const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as { id: string } | undefined;
+    const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as
+      { id: string } | undefined;
     branchId = branchRow?.id ?? '';
   }
 
@@ -465,7 +472,8 @@ export function searchPosCatalog(
 
   if (isBarcode) {
     rows = db
-      .prepare(`
+      .prepare(
+        `
         SELECT
           p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
           p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled,
@@ -474,12 +482,14 @@ export function searchPosCatalog(
         INNER JOIN tax_categories tc ON p.tax_category_id = tc.id
         WHERE p.is_active = 1 AND p.barcode = ?
         LIMIT 1
-      `)
+      `
+      )
       .all(trimmed) as typeof rows;
   } else {
     const term = `%${trimmed}%`;
     rows = db
-      .prepare(`
+      .prepare(
+        `
         SELECT
           p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
           p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled,
@@ -493,7 +503,8 @@ export function searchPosCatalog(
           CASE WHEN p.brand_name LIKE ? THEN 0 ELSE 1 END,
           p.brand_name ASC
         LIMIT 20
-      `)
+      `
+      )
       .all(term, term, term, `${trimmed}%`) as typeof rows;
   }
 
@@ -561,7 +572,8 @@ export function getSubstitutes(
 
   let branchId = rawBranchId;
   if (!branchId) {
-    const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as { id: string } | undefined;
+    const branchRow = db.prepare('SELECT id FROM branches LIMIT 1').get() as
+      { id: string } | undefined;
     branchId = branchRow?.id ?? '';
   }
 
@@ -573,7 +585,8 @@ export function getSubstitutes(
   }
 
   const rows = db
-    .prepare(`
+    .prepare(
+      `
       SELECT
         p.id, p.brand_name, p.generic_name, p.strength, p.form, p.manufacturer,
         p.barcode, p.tax_category_id, p.mrp_paisa, p.is_controlled,
@@ -583,7 +596,8 @@ export function getSubstitutes(
       WHERE p.is_active = 1 AND LOWER(p.generic_name) = ? ${excludeClause}
       ORDER BY p.brand_name ASC
       LIMIT 15
-    `)
+    `
+    )
     .all(...queryParams) as {
     id: string;
     brand_name: string;

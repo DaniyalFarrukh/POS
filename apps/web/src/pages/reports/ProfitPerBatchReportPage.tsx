@@ -26,14 +26,10 @@ export const ProfitPerBatchReportPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiFetch<{ items: ProfitPerBatchItem[] }>(
-        '/api/reports/profit-per-batch'
-      );
+      const res = await apiFetch<{ items: ProfitPerBatchItem[] }>('/api/reports/profit-per-batch');
       setItems(res.items);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch profit per batch report'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to fetch profit per batch report');
     } finally {
       setIsLoading(false);
     }
@@ -47,9 +43,7 @@ export const ProfitPerBatchReportPage: React.FC = () => {
   const totalCostPaisa = items.reduce((acc, i) => acc + i.costPaisa, 0);
   const totalProfitPaisa = totalRevenuePaisa - totalCostPaisa;
   const overallMargin =
-    totalRevenuePaisa > 0
-      ? Math.round((totalProfitPaisa / totalRevenuePaisa) * 1000) / 10
-      : 0;
+    totalRevenuePaisa > 0 ? Math.round((totalProfitPaisa / totalRevenuePaisa) * 1000) / 10 : 0;
 
   return (
     <div className="space-y-6">
@@ -60,7 +54,9 @@ export const ProfitPerBatchReportPage: React.FC = () => {
             Batch-Level Profit &amp; Margin Intelligence
           </h2>
           <p className="text-xs text-slate-500">
-            Exact gross margin per product batch: <span className="font-mono">Revenue - (Units Sold &times; Batch Cost)</span> strictly in integer paisa (Rule 1)
+            Exact gross margin per product batch:{' '}
+            <span className="font-mono">Revenue - (Units Sold &times; Batch Cost)</span> strictly in
+            integer paisa (Rule 1)
           </p>
         </div>
         <Button
@@ -133,7 +129,9 @@ export const ProfitPerBatchReportPage: React.FC = () => {
                     <TableRow key={item.batchId}>
                       <TableCell className="text-xs">
                         <div className="font-bold text-slate-900">{item.brandName}</div>
-                        <div className="text-[11px] font-mono text-slate-500 font-medium">{item.batchNo}</div>
+                        <div className="text-[11px] font-mono text-slate-500 font-medium">
+                          {item.batchNo}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs font-mono">
                         {formatKarachiDateOnly(item.expiryDate)}
@@ -150,7 +148,9 @@ export const ProfitPerBatchReportPage: React.FC = () => {
                       <TableCell className="text-right text-xs font-mono text-slate-600">
                         {formatPaisa(item.costPaisa)}
                       </TableCell>
-                      <TableCell className={`text-right text-xs font-mono font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <TableCell
+                        className={`text-right text-xs font-mono font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}
+                      >
                         {formatPaisa(item.profitPaisa)}
                       </TableCell>
                       <TableCell className="text-right text-xs">
@@ -168,7 +168,9 @@ export const ProfitPerBatchReportPage: React.FC = () => {
             </Table>
           ) : (
             <div className="p-12 text-center text-xs text-slate-400">
-              {isLoading ? 'Calculating batch profits...' : 'No sales registered yet to calculate profit margins.'}
+              {isLoading
+                ? 'Calculating batch profits...'
+                : 'No sales registered yet to calculate profit margins.'}
             </div>
           )}
         </CardContent>

@@ -155,17 +155,15 @@ export const UsersPage: React.FC = () => {
               <TableBody>
                 {usersList.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="text-xs font-bold text-slate-900">
-                      {user.name}
-                    </TableCell>
+                    <TableCell className="text-xs font-bold text-slate-900">{user.name}</TableCell>
                     <TableCell className="text-xs">
                       <Badge
                         variant={
                           user.role === 'owner'
                             ? 'default'
                             : user.role === 'pharmacist'
-                            ? 'secondary'
-                            : 'outline'
+                              ? 'secondary'
+                              : 'outline'
                         }
                         className="text-[10px] uppercase font-bold"
                       >
@@ -240,9 +238,7 @@ export const UsersPage: React.FC = () => {
             <label className="text-xs font-semibold text-slate-700">Role</label>
             <select
               value={newUserRole}
-              onChange={(e) =>
-                setNewUserRole(e.target.value as 'owner' | 'pharmacist' | 'cashier')
-              }
+              onChange={(e) => setNewUserRole(e.target.value as 'owner' | 'pharmacist' | 'cashier')}
               className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isSubmitting}
             >

@@ -76,8 +76,13 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
       setError('Staff member name must be at least 2 characters');
       return;
     }
-    if (!/^\d{4,8}$/.test(newPin)) {
-      setError('Terminal PIN must be between 4 and 8 numeric digits');
+    const pinRegex = newRole === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
+    if (!pinRegex.test(newPin)) {
+      setError(
+        newRole === 'owner'
+          ? 'Owner PIN must be exactly 8 numeric digits'
+          : 'Terminal PIN must be between 6 and 8 numeric digits'
+      );
       return;
     }
 
@@ -91,7 +96,9 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
       };
 
       const created = await window.api.auth.createStaffMember(input);
-      setSuccessMessage(`Staff member "${created.name}" created with role "${created.role.toUpperCase()}".`);
+      setSuccessMessage(
+        `Staff member "${created.name}" created with role "${created.role.toUpperCase()}".`
+      );
       setIsAddModalOpen(false);
       await loadStaff();
     } catch (err) {
@@ -110,9 +117,17 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
       return;
     }
 
-    if (editPin && !/^\d{4,8}$/.test(editPin)) {
-      setError('New PIN must be between 4 and 8 numeric digits (or leave blank to keep current PIN)');
-      return;
+    if (editPin) {
+      const effectiveRole = editRole || editingStaff.role;
+      const pinRegex = effectiveRole === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
+      if (!pinRegex.test(editPin)) {
+        setError(
+          effectiveRole === 'owner'
+            ? 'Owner PIN must be exactly 8 numeric digits'
+            : 'New PIN must be between 6 and 8 numeric digits (or leave blank to keep current PIN)'
+        );
+        return;
+      }
     }
 
     try {
@@ -370,7 +385,9 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '18px' }}>💊</span>
-            <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>Pharmacist Role</span>
+            <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>
+              Pharmacist Role
+            </span>
           </div>
           <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b', lineHeight: 1.5 }}>
             Clinical & stock operations. Can create medicines, receive purchase orders (GRNs),
@@ -389,11 +406,13 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '18px' }}>🏷️</span>
-            <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>Cashier Role</span>
+            <span style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a' }}>
+              Cashier Role
+            </span>
           </div>
           <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b', lineHeight: 1.5 }}>
-            Counter POS operations. High-speed barcode scanning, receipt printing, processing cash/card
-            payments, and shift float counting. Restricted from altering prices.
+            Counter POS operations. High-speed barcode scanning, receipt printing, processing
+            cash/card payments, and shift float counting. Restricted from altering prices.
           </p>
         </div>
       </div>
@@ -438,19 +457,55 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 20px', fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                <th
+                  style={{
+                    padding: '12px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                  }}
+                >
                   STAFF MEMBER
                 </th>
-                <th style={{ padding: '12px 20px', fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                <th
+                  style={{
+                    padding: '12px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                  }}
+                >
                   ASSIGNED ROLE
                 </th>
-                <th style={{ padding: '12px 20px', fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                <th
+                  style={{
+                    padding: '12px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                  }}
+                >
                   STATUS
                 </th>
-                <th style={{ padding: '12px 20px', fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                <th
+                  style={{
+                    padding: '12px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                  }}
+                >
                   REGISTERED
                 </th>
-                <th style={{ padding: '12px 20px', fontSize: '12px', fontWeight: 700, color: '#64748b', textAlign: 'right' }}>
+                <th
+                  style={{
+                    padding: '12px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                    textAlign: 'right',
+                  }}
+                >
                   ACTIONS
                 </th>
               </tr>
@@ -473,8 +528,18 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                             width: '36px',
                             height: '36px',
                             borderRadius: '50%',
-                            backgroundColor: staff.role === 'owner' ? '#f5f3ff' : staff.role === 'pharmacist' ? '#eff6ff' : '#ecfdf5',
-                            color: staff.role === 'owner' ? '#7c3aed' : staff.role === 'pharmacist' ? '#2563eb' : '#059669',
+                            backgroundColor:
+                              staff.role === 'owner'
+                                ? '#f5f3ff'
+                                : staff.role === 'pharmacist'
+                                  ? '#eff6ff'
+                                  : '#ecfdf5',
+                            color:
+                              staff.role === 'owner'
+                                ? '#7c3aed'
+                                : staff.role === 'pharmacist'
+                                  ? '#2563eb'
+                                  : '#059669',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -512,9 +577,7 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                       </div>
                     </td>
 
-                    <td style={{ padding: '14px 20px' }}>
-                      {getRoleBadge(staff.role)}
-                    </td>
+                    <td style={{ padding: '14px 20px' }}>{getRoleBadge(staff.role)}</td>
 
                     <td style={{ padding: '14px 20px' }}>
                       <span
@@ -584,12 +647,14 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                             color: isCurrentUser
                               ? '#94a3b8'
                               : staff.isActive
-                              ? '#dc2626'
-                              : '#16a34a',
+                                ? '#dc2626'
+                                : '#16a34a',
                             cursor: isCurrentUser ? 'not-allowed' : 'pointer',
                             opacity: isCurrentUser ? 0.6 : 1,
                           }}
-                          title={isCurrentUser ? 'Cannot deactivate your own active account' : undefined}
+                          title={
+                            isCurrentUser ? 'Cannot deactivate your own active account' : undefined
+                          }
                         >
                           {staff.isActive ? 'Deactivate' : 'Activate'}
                         </button>
@@ -627,7 +692,14 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
                 Add New Staff Member
               </h3>
@@ -646,9 +718,20 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               </button>
             </div>
 
-            <form onSubmit={handleCreateStaff} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form
+              onSubmit={handleCreateStaff}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Full Name
                 </label>
                 <input
@@ -670,7 +753,15 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Select Operational Role
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -691,7 +782,14 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                       <div style={{ fontSize: '16px', marginBottom: '2px' }}>
                         {role === 'owner' ? '👑' : role === 'pharmacist' ? '💊' : '🏷️'}
                       </div>
-                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a', textTransform: 'capitalize' }}>
+                      <div
+                        style={{
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          textTransform: 'capitalize',
+                        }}
+                      >
                         {role}
                       </div>
                     </button>
@@ -700,14 +798,28 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '6px',
+                  }}
+                >
                   <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
                     Offline Login PIN (4 to 8 Digits)
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowNewPin(!showNewPin)}
-                    style={{ background: 'none', border: 'none', fontSize: '12px', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '12px',
+                      color: '#2563eb',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
                   >
                     {showNewPin ? 'Hide PIN' : 'Show PIN'}
                   </button>
@@ -715,7 +827,9 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                 <input
                   type={showNewPin ? 'text' : 'password'}
                   required
-                  placeholder="Enter 4-8 numeric digits"
+                  placeholder={
+                    newRole === 'owner' ? 'Enter 8 numeric digits' : 'Enter 6-8 numeric digits'
+                  }
                   value={newPin}
                   onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   style={{
@@ -729,12 +843,26 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                     boxSizing: 'border-box',
                   }}
                 />
-                <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                <span
+                  style={{
+                    fontSize: '11.5px',
+                    color: '#64748b',
+                    marginTop: '4px',
+                    display: 'block',
+                  }}
+                >
                   PIN will be securely hashed with bcrypt. Never shared over the network.
                 </span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '10px',
+                  marginTop: '8px',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
@@ -797,7 +925,14 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
                 Edit Staff Member & Role
               </h3>
@@ -816,9 +951,20 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               </button>
             </div>
 
-            <form onSubmit={handleUpdateStaff} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form
+              onSubmit={handleUpdateStaff}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Full Name
                 </label>
                 <input
@@ -839,7 +985,15 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#334155',
+                    marginBottom: '6px',
+                  }}
+                >
                   Assign Role
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
@@ -865,7 +1019,14 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                         <div style={{ fontSize: '16px', marginBottom: '2px' }}>
                           {role === 'owner' ? '👑' : role === 'pharmacist' ? '💊' : '🏷️'}
                         </div>
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a', textTransform: 'capitalize' }}>
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            color: '#0f172a',
+                            textTransform: 'capitalize',
+                          }}
+                        >
                           {role}
                         </div>
                       </button>
@@ -875,14 +1036,28 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '6px',
+                  }}
+                >
                   <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
                     Reset PIN (Optional)
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowEditPin(!showEditPin)}
-                    style={{ background: 'none', border: 'none', fontSize: '12px', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '12px',
+                      color: '#2563eb',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
                   >
                     {showEditPin ? 'Hide PIN' : 'Show PIN'}
                   </button>
@@ -927,7 +1102,14 @@ export const StaffManagementScreen: React.FC<StaffManagementScreenProps> = ({ se
                 </label>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '10px',
+                  marginTop: '8px',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setEditingStaff(null)}

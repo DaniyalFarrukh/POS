@@ -1,8 +1,5 @@
 import type { Database as DatabaseInstance } from 'better-sqlite3';
-import {
-  SyncPushResponseSchema,
-  type SyncEventEnvelope,
-} from '@pos/shared';
+import { SyncPushResponseSchema, type SyncEventEnvelope } from '@pos/shared';
 import { createOutboxRepo, type OutboxRepository } from './outboxRepo';
 import type { PushSummary } from './types';
 
@@ -104,7 +101,9 @@ export async function pushPending(
 
   // 4. HTTP 401 / 403: authError, events unchanged
   if (response.status === 401 || response.status === 403) {
-    deps.logger?.warn(`[SyncPush] Authentication error (HTTP ${response.status}). Events unchanged.`);
+    deps.logger?.warn(
+      `[SyncPush] Authentication error (HTTP ${response.status}). Events unchanged.`
+    );
     return {
       sent: envelopes.length,
       acked: 0,
@@ -117,7 +116,9 @@ export async function pushPending(
 
   // 5. HTTP 400: clientBug, events unchanged
   if (response.status === 400) {
-    deps.logger?.error('[SyncPush] Server returned HTTP 400 Bad Request (client bug). Events unchanged.');
+    deps.logger?.error(
+      '[SyncPush] Server returned HTTP 400 Bad Request (client bug). Events unchanged.'
+    );
     return {
       sent: envelopes.length,
       acked: 0,
@@ -160,9 +161,7 @@ export async function pushPending(
 
   const parsed = SyncPushResponseSchema.safeParse(responseData);
   if (!parsed.success) {
-    deps.logger?.error(
-      `[SyncPush] Invalid response shape from server: ${parsed.error.message}`
-    );
+    deps.logger?.error(`[SyncPush] Invalid response shape from server: ${parsed.error.message}`);
     return {
       sent: envelopes.length,
       acked: 0,

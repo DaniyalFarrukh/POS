@@ -102,228 +102,240 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     '/users',
     { preHandler: [requirePermission('admin.users.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const parsed = CreateUserSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({
-        statusCode: 400,
-        message: parsed.error.issues[0]?.message || 'Invalid user input',
+      const userContext = request.userContext!;
+      const parsed = CreateUserSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: parsed.error.issues[0]?.message || 'Invalid user input',
+        });
+      }
+      const { name, role, pin } = parsed.data;
+
+      const pinRegex = role === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
+      if (!pinRegex.test(pin.trim())) {
+        const msg =
+          role === 'owner'
+            ? 'Owner PIN must be exactly 8 digits'
+            : 'PIN must be between 6 and 8 digits';
+        return reply.status(400).send({ statusCode: 400, message: msg });
+      }
+
+      const db = request.server.db || getDb();
+      const userId = generateUuidV7();
+      const now = new Date().toISOString();
+      const pinHash = await bcrypt.hash(pin.trim(), 10);
+
+      await db.transaction(async (tx) => {
+        await tx.insert(users).values({
+          id: userId,
+          pharmacyId: userContext.pharmacyId,
+          name: name.trim(),
+          role,
+          pinHash,
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        await insertChangeLog(tx, {
+          pharmacyId: userContext.pharmacyId,
+          entity: 'user',
+          entityId: userId,
+          op: 'upsert',
+          data: { id: userId, name: name.trim(), role, pinHash, isActive: true },
+          createdAt: now,
+        });
       });
-    }
-    const { name, role, pin } = parsed.data;
 
-    const pinRegex = role === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
-    if (!pinRegex.test(pin.trim())) {
-      const msg = role === 'owner' ? 'Owner PIN must be exactly 8 digits' : 'PIN must be between 6 and 8 digits';
-      return reply.status(400).send({ statusCode: 400, message: msg });
-    }
-
-    const db = request.server.db || getDb();
-    const userId = generateUuidV7();
-    const now = new Date().toISOString();
-    const pinHash = await bcrypt.hash(pin.trim(), 10);
-
-    await db.transaction(async (tx) => {
-      await tx.insert(users).values({
+      return reply.status(201).send({
         id: userId,
-        pharmacyId: userContext.pharmacyId,
         name: name.trim(),
         role,
-        pinHash,
         isActive: true,
-        createdAt: now,
-        updatedAt: now,
       });
-
-      await insertChangeLog(tx, {
-        pharmacyId: userContext.pharmacyId,
-        entity: 'user',
-        entityId: userId,
-        op: 'upsert',
-        data: { id: userId, name: name.trim(), role, pinHash, isActive: true },
-        createdAt: now,
-      });
-    });
-
-    return reply.status(201).send({
-      id: userId,
-      name: name.trim(),
-      role,
-      isActive: true,
-    });
-  });
+    }
+  );
 
   fastify.patch<{ Params: { id: string }; Body: { role?: UserRole; isActive?: boolean } }>(
     '/users/:id',
     { preHandler: [requirePermission('admin.users.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const paramParsed = IdParamSchema.safeParse(request.params);
-    if (!paramParsed.success) {
-      return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
-    }
-    const { id } = paramParsed.data;
+      const userContext = request.userContext!;
+      const paramParsed = IdParamSchema.safeParse(request.params);
+      if (!paramParsed.success) {
+        return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+      }
+      const { id } = paramParsed.data;
 
-    const bodyParsed = UpdateUserSchema.safeParse(request.body);
-    if (!bodyParsed.success) {
-      return reply.status(400).send({
-        statusCode: 400,
-        message: bodyParsed.error.issues[0]?.message || 'Invalid update input',
-      });
-    }
-    const { role, isActive } = bodyParsed.data;
-
-    const db = request.server.db || getDb();
-    const now = new Date().toISOString();
-
-    // Verify user exists and belongs to this pharmacy tenant
-    const [existingUser] = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        role: users.role,
-        isActive: users.isActive,
-      })
-      .from(users)
-      .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
-      .limit(1);
-
-    if (!existingUser) {
-      return reply.status(404).send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
-    }
-
-    // Owner protection: cannot demote or deactivate own active owner account
-    const isDemoting = role !== undefined && role !== 'owner' && existingUser.role === 'owner';
-    const isDeactivating = isActive === false && existingUser.isActive;
-
-    if (existingUser.role === 'owner' && (isDemoting || isDeactivating)) {
-      if (id === userContext.userId) {
+      const bodyParsed = UpdateUserSchema.safeParse(request.body);
+      if (!bodyParsed.success) {
         return reply.status(400).send({
           statusCode: 400,
-          message: 'Cannot demote or deactivate your own active owner account',
+          message: bodyParsed.error.issues[0]?.message || 'Invalid update input',
         });
       }
+      const { role, isActive } = bodyParsed.data;
 
-      // Check if this is the last active owner for this pharmacy
-      const activeOwners = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(
-          and(
-            eq(users.pharmacyId, userContext.pharmacyId),
-            eq(users.role, 'owner'),
-            eq(users.isActive, true)
-          )
-        );
+      const db = request.server.db || getDb();
+      const now = new Date().toISOString();
 
-      if (activeOwners.length <= 1) {
-        return reply.status(400).send({
-          statusCode: 400,
-          message: 'Cannot demote or deactivate the last active owner account for this pharmacy',
-        });
-      }
-    }
-
-    const updateFields: Record<string, unknown> = { updatedAt: now };
-    if (role && ['owner', 'manager', 'accountant', 'pharmacist', 'cashier'].includes(role)) {
-      updateFields.role = role;
-    }
-    if (typeof isActive === 'boolean') {
-      updateFields.isActive = isActive;
-    }
-
-    const updatedUser = await db.transaction(async (tx) => {
-      const updatedUsers = await tx
-        .update(users)
-        .set(updateFields)
-        .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
-        .returning({
+      // Verify user exists and belongs to this pharmacy tenant
+      const [existingUser] = await db
+        .select({
           id: users.id,
           name: users.name,
           role: users.role,
           isActive: users.isActive,
-          pinHash: users.pinHash,
-        });
+        })
+        .from(users)
+        .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
+        .limit(1);
 
-      if (updatedUsers.length === 0) {
-        return null;
+      if (!existingUser) {
+        return reply
+          .status(404)
+          .send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
       }
 
-      const u = updatedUsers[0]!;
-      await insertChangeLog(tx, {
-        pharmacyId: userContext.pharmacyId,
-        entity: 'user',
-        entityId: u.id,
-        op: 'upsert',
-        data: {
-          id: u.id,
-          name: u.name,
-          role: u.role,
-          isActive: u.isActive,
-          pinHash: u.pinHash,
-        },
-        createdAt: now,
+      // Owner protection: cannot demote or deactivate own active owner account
+      const isDemoting = role !== undefined && role !== 'owner' && existingUser.role === 'owner';
+      const isDeactivating = isActive === false && existingUser.isActive;
+
+      if (existingUser.role === 'owner' && (isDemoting || isDeactivating)) {
+        if (id === userContext.userId) {
+          return reply.status(400).send({
+            statusCode: 400,
+            message: 'Cannot demote or deactivate your own active owner account',
+          });
+        }
+
+        // Check if this is the last active owner for this pharmacy
+        const activeOwners = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(
+            and(
+              eq(users.pharmacyId, userContext.pharmacyId),
+              eq(users.role, 'owner'),
+              eq(users.isActive, true)
+            )
+          );
+
+        if (activeOwners.length <= 1) {
+          return reply.status(400).send({
+            statusCode: 400,
+            message: 'Cannot demote or deactivate the last active owner account for this pharmacy',
+          });
+        }
+      }
+
+      const updateFields: Record<string, unknown> = { updatedAt: now };
+      if (role && ['owner', 'manager', 'accountant', 'pharmacist', 'cashier'].includes(role)) {
+        updateFields.role = role;
+      }
+      if (typeof isActive === 'boolean') {
+        updateFields.isActive = isActive;
+      }
+
+      const updatedUser = await db.transaction(async (tx) => {
+        const updatedUsers = await tx
+          .update(users)
+          .set(updateFields)
+          .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
+          .returning({
+            id: users.id,
+            name: users.name,
+            role: users.role,
+            isActive: users.isActive,
+            pinHash: users.pinHash,
+          });
+
+        if (updatedUsers.length === 0) {
+          return null;
+        }
+
+        const u = updatedUsers[0]!;
+        await insertChangeLog(tx, {
+          pharmacyId: userContext.pharmacyId,
+          entity: 'user',
+          entityId: u.id,
+          op: 'upsert',
+          data: {
+            id: u.id,
+            name: u.name,
+            role: u.role,
+            isActive: u.isActive,
+            pinHash: u.pinHash,
+          },
+          createdAt: now,
+        });
+
+        // Audit log for staff account/role modification
+        await logAuditEvent(tx, {
+          pharmacyId: userContext.pharmacyId,
+          userId: userContext.userId,
+          userName: userContext.name,
+          userRole: userContext.role,
+          action: 'user.update',
+          entity: 'user',
+          entityId: u.id,
+          summary: `Updated user ${u.name} (role: ${existingUser.role} -> ${u.role}, active: ${existingUser.isActive} -> ${u.isActive})`,
+          beforeState: {
+            role: existingUser.role,
+            isActive: existingUser.isActive,
+          },
+          afterState: {
+            role: u.role,
+            isActive: u.isActive,
+          },
+        });
+
+        return u;
       });
 
-      // Audit log for staff account/role modification
-      await logAuditEvent(tx, {
-        pharmacyId: userContext.pharmacyId,
-        userId: userContext.userId,
-        userName: userContext.name,
-        userRole: userContext.role,
-        action: 'user.update',
-        entity: 'user',
-        entityId: u.id,
-        summary: `Updated user ${u.name} (role: ${existingUser.role} -> ${u.role}, active: ${existingUser.isActive} -> ${u.isActive})`,
-        beforeState: {
-          role: existingUser.role,
-          isActive: existingUser.isActive,
-        },
-        afterState: {
-          role: u.role,
-          isActive: u.isActive,
-        },
-      });
+      if (!updatedUser) {
+        return reply
+          .status(404)
+          .send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
+      }
 
-      return u;
-    });
-
-    if (!updatedUser) {
-      return reply.status(404).send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
+      return reply.status(200).send({ ok: true });
     }
-
-    return reply.status(200).send({ ok: true });
-  });
+  );
 
   fastify.post<{ Params: { id: string } }>(
     '/users/:id/unlock',
     { preHandler: [requirePermission('admin.users.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const paramParsed = IdParamSchema.safeParse(request.params);
-    if (!paramParsed.success) {
-      return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+      const userContext = request.userContext!;
+      const paramParsed = IdParamSchema.safeParse(request.params);
+      if (!paramParsed.success) {
+        return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+      }
+      const { id } = paramParsed.data;
+      const db = request.server.db || getDb();
+      const now = new Date().toISOString();
+
+      const updatedUsers = await db
+        .update(users)
+        .set({
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: now,
+        })
+        .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
+        .returning({ id: users.id });
+
+      if (updatedUsers.length === 0) {
+        return reply
+          .status(404)
+          .send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
+      }
+
+      return reply.status(200).send({ ok: true, message: 'User account unlocked' });
     }
-    const { id } = paramParsed.data;
-    const db = request.server.db || getDb();
-    const now = new Date().toISOString();
-
-    const updatedUsers = await db
-      .update(users)
-      .set({
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        updatedAt: now,
-      })
-      .where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId)))
-      .returning({ id: users.id });
-
-    if (updatedUsers.length === 0) {
-      return reply.status(404).send({ statusCode: 404, message: 'User not found or belongs to another pharmacy' });
-    }
-
-    return reply.status(200).send({ ok: true, message: 'User account unlocked' });
-  });
+  );
 
   // -------------------------------------------------------------------------
   // 2. Branch & Counter Management
@@ -332,153 +344,162 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     '/branches',
     { preHandler: [requirePermission('settings.branches.view')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const db = request.server.db || getDb();
+      const userContext = request.userContext!;
+      const db = request.server.db || getDb();
 
-    const branchList = await db
-      .select({
-        id: branches.id,
-        name: branches.name,
-        address: branches.address,
-        phone: branches.phone,
-        createdAt: branches.createdAt,
-      })
-      .from(branches)
-      .where(eq(branches.pharmacyId, userContext.pharmacyId))
-      .orderBy(asc(branches.name));
+      const branchList = await db
+        .select({
+          id: branches.id,
+          name: branches.name,
+          address: branches.address,
+          phone: branches.phone,
+          createdAt: branches.createdAt,
+        })
+        .from(branches)
+        .where(eq(branches.pharmacyId, userContext.pharmacyId))
+        .orderBy(asc(branches.name));
 
-    return reply.status(200).send({ items: branchList });
-  });
+      return reply.status(200).send({ items: branchList });
+    }
+  );
 
   fastify.post<{ Body: CreateBranchBody }>(
     '/branches',
     { preHandler: [requirePermission('settings.branches.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const parsed = CreateBranchSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({
-        statusCode: 400,
-        message: parsed.error.issues[0]?.message || 'Invalid branch input',
+      const userContext = request.userContext!;
+      const parsed = CreateBranchSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: parsed.error.issues[0]?.message || 'Invalid branch input',
+        });
+      }
+      const { name, address, phone } = parsed.data;
+
+      const db = request.server.db || getDb();
+      const branchId = generateUuidV7();
+      const now = new Date().toISOString();
+
+      await db.transaction(async (tx) => {
+        await tx.insert(branches).values({
+          id: branchId,
+          pharmacyId: userContext.pharmacyId,
+          name: name.trim(),
+          address: address?.trim() ?? null,
+          phone: phone?.trim() ?? null,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        await insertChangeLog(tx, {
+          pharmacyId: userContext.pharmacyId,
+          entity: 'branch',
+          entityId: branchId,
+          op: 'upsert',
+          data: { id: branchId, name: name.trim() },
+          createdAt: now,
+        });
       });
+
+      return reply.status(201).send({ id: branchId, name: name.trim() });
     }
-    const { name, address, phone } = parsed.data;
-
-    const db = request.server.db || getDb();
-    const branchId = generateUuidV7();
-    const now = new Date().toISOString();
-
-    await db.transaction(async (tx) => {
-      await tx.insert(branches).values({
-        id: branchId,
-        pharmacyId: userContext.pharmacyId,
-        name: name.trim(),
-        address: address?.trim() ?? null,
-        phone: phone?.trim() ?? null,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      await insertChangeLog(tx, {
-        pharmacyId: userContext.pharmacyId,
-        entity: 'branch',
-        entityId: branchId,
-        op: 'upsert',
-        data: { id: branchId, name: name.trim() },
-        createdAt: now,
-      });
-    });
-
-    return reply.status(201).send({ id: branchId, name: name.trim() });
-  });
+  );
 
   fastify.get(
     '/counters',
     { preHandler: [requirePermission('settings.counters.view')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const db = request.server.db || getDb();
+      const userContext = request.userContext!;
+      const db = request.server.db || getDb();
 
-    const counterList = await db
-      .select({
-        id: counters.id,
-        branchId: counters.branchId,
-        branchName: branches.name,
-        name: counters.name,
-        code: counters.code,
-        lastInvoiceSeq: counters.lastInvoiceSeq,
-        createdAt: counters.createdAt,
-      })
-      .from(counters)
-      .innerJoin(
-        branches,
-        and(eq(counters.branchId, branches.id), eq(branches.pharmacyId, userContext.pharmacyId))
-      )
-      .where(eq(counters.pharmacyId, userContext.pharmacyId))
-      .orderBy(asc(counters.name));
+      const counterList = await db
+        .select({
+          id: counters.id,
+          branchId: counters.branchId,
+          branchName: branches.name,
+          name: counters.name,
+          code: counters.code,
+          lastInvoiceSeq: counters.lastInvoiceSeq,
+          createdAt: counters.createdAt,
+        })
+        .from(counters)
+        .innerJoin(
+          branches,
+          and(eq(counters.branchId, branches.id), eq(branches.pharmacyId, userContext.pharmacyId))
+        )
+        .where(eq(counters.pharmacyId, userContext.pharmacyId))
+        .orderBy(asc(counters.name));
 
-    return reply.status(200).send({ items: counterList });
-  });
+      return reply.status(200).send({ items: counterList });
+    }
+  );
 
   fastify.post<{ Body: { branchId: string; name: string; code?: string } }>(
     '/counters',
     { preHandler: [requirePermission('settings.counters.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const parsed = CreateCounterSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({ statusCode: 400, message: parsed.error.issues[0]?.message || 'Invalid counter input' });
-    }
-    const { branchId, name, code } = parsed.data;
+      const userContext = request.userContext!;
+      const parsed = CreateCounterSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: parsed.error.issues[0]?.message || 'Invalid counter input',
+        });
+      }
+      const { branchId, name, code } = parsed.data;
 
-    const db = request.server.db || getDb();
-    const counterId = generateUuidV7();
-    const now = new Date().toISOString();
-    const codeVal = code?.trim().toUpperCase() || 'C1';
+      const db = request.server.db || getDb();
+      const counterId = generateUuidV7();
+      const now = new Date().toISOString();
+      const codeVal = code?.trim().toUpperCase() || 'C1';
 
-    const created = await db.transaction(async (tx) => {
-      // Verify branch belongs to caller's pharmacy tenant
-      const [branch] = await tx
-        .select({ id: branches.id })
-        .from(branches)
-        .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
-        .limit(1);
+      const created = await db.transaction(async (tx) => {
+        // Verify branch belongs to caller's pharmacy tenant
+        const [branch] = await tx
+          .select({ id: branches.id })
+          .from(branches)
+          .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+          .limit(1);
 
-      if (!branch) {
-        return null;
+        if (!branch) {
+          return null;
+        }
+
+        await tx.insert(counters).values({
+          id: counterId,
+          pharmacyId: userContext.pharmacyId,
+          branchId,
+          name: name.trim(),
+          code: codeVal,
+          lastInvoiceSeq: 0,
+          lastCreditNoteSeq: 0,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        await insertChangeLog(tx, {
+          pharmacyId: userContext.pharmacyId,
+          branchId,
+          entity: 'counter',
+          entityId: counterId,
+          op: 'upsert',
+          data: { id: counterId, branchId, name: name.trim(), code: codeVal },
+          createdAt: now,
+        });
+
+        return counterId;
+      });
+
+      if (!created) {
+        return reply
+          .status(404)
+          .send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
       }
 
-      await tx.insert(counters).values({
-        id: counterId,
-        pharmacyId: userContext.pharmacyId,
-        branchId,
-        name: name.trim(),
-        code: codeVal,
-        lastInvoiceSeq: 0,
-        lastCreditNoteSeq: 0,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      await insertChangeLog(tx, {
-        pharmacyId: userContext.pharmacyId,
-        branchId,
-        entity: 'counter',
-        entityId: counterId,
-        op: 'upsert',
-        data: { id: counterId, branchId, name: name.trim(), code: codeVal },
-        createdAt: now,
-      });
-
-      return counterId;
-    });
-
-    if (!created) {
-      return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+      return reply.status(201).send({ id: counterId, name: name.trim(), code: codeVal });
     }
-
-    return reply.status(201).send({ id: counterId, name: name.trim(), code: codeVal });
-  });
+  );
 
   // -------------------------------------------------------------------------
   // 3. Registered Devices
@@ -487,128 +508,141 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     '/devices',
     { preHandler: [requirePermission('settings.devices.view')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const db = request.server.db || getDb();
+      const userContext = request.userContext!;
+      const db = request.server.db || getDb();
 
-    const deviceList = await db
-      .select({
-        id: devices.id,
-        deviceName: devices.deviceName,
-        branchId: devices.branchId,
-        branchName: branches.name,
-        counterId: devices.counterId,
-        counterName: counters.name,
-        counterCode: counters.code,
-        isRevoked: devices.isRevoked,
-        lastSeenAt: devices.lastSeenAt,
-        createdAt: devices.createdAt,
-      })
-      .from(devices)
-      .leftJoin(
-        branches,
-        and(eq(devices.branchId, branches.id), eq(branches.pharmacyId, userContext.pharmacyId))
-      )
-      .leftJoin(
-        counters,
-        and(eq(devices.counterId, counters.id), eq(counters.pharmacyId, userContext.pharmacyId))
-      )
-      .where(eq(devices.pharmacyId, userContext.pharmacyId))
-      .orderBy(desc(devices.createdAt));
+      const deviceList = await db
+        .select({
+          id: devices.id,
+          deviceName: devices.deviceName,
+          branchId: devices.branchId,
+          branchName: branches.name,
+          counterId: devices.counterId,
+          counterName: counters.name,
+          counterCode: counters.code,
+          isRevoked: devices.isRevoked,
+          lastSeenAt: devices.lastSeenAt,
+          createdAt: devices.createdAt,
+        })
+        .from(devices)
+        .leftJoin(
+          branches,
+          and(eq(devices.branchId, branches.id), eq(branches.pharmacyId, userContext.pharmacyId))
+        )
+        .leftJoin(
+          counters,
+          and(eq(devices.counterId, counters.id), eq(counters.pharmacyId, userContext.pharmacyId))
+        )
+        .where(eq(devices.pharmacyId, userContext.pharmacyId))
+        .orderBy(desc(devices.createdAt));
 
-    return reply.status(200).send({ items: deviceList });
-  });
+      return reply.status(200).send({ items: deviceList });
+    }
+  );
 
   fastify.patch<{ Params: { id: string }; Body: { isRevoked: boolean } }>(
     '/devices/:id/revoke',
     { preHandler: [requirePermission('settings.devices.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const paramParsed = IdParamSchema.safeParse(request.params);
-    if (!paramParsed.success) {
-      return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+      const userContext = request.userContext!;
+      const paramParsed = IdParamSchema.safeParse(request.params);
+      if (!paramParsed.success) {
+        return reply.status(400).send({ statusCode: 400, message: 'Invalid ID format' });
+      }
+      const { id } = paramParsed.data;
+      const { isRevoked } = request.body || {};
+
+      const db = request.server.db || getDb();
+      const now = new Date().toISOString();
+
+      const updatedDevices = await db
+        .update(devices)
+        .set({ isRevoked: Boolean(isRevoked), updatedAt: now })
+        .where(and(eq(devices.id, id), eq(devices.pharmacyId, userContext.pharmacyId)))
+        .returning({ id: devices.id });
+
+      if (updatedDevices.length === 0) {
+        return reply
+          .status(404)
+          .send({ statusCode: 404, message: 'Device not found or belongs to another pharmacy' });
+      }
+
+      return reply.status(200).send({ ok: true, isRevoked: Boolean(isRevoked) });
     }
-    const { id } = paramParsed.data;
-    const { isRevoked } = request.body || {};
-
-    const db = request.server.db || getDb();
-    const now = new Date().toISOString();
-
-    const updatedDevices = await db
-      .update(devices)
-      .set({ isRevoked: Boolean(isRevoked), updatedAt: now })
-      .where(and(eq(devices.id, id), eq(devices.pharmacyId, userContext.pharmacyId)))
-      .returning({ id: devices.id });
-
-    if (updatedDevices.length === 0) {
-      return reply.status(404).send({ statusCode: 404, message: 'Device not found or belongs to another pharmacy' });
-    }
-
-    return reply.status(200).send({ ok: true, isRevoked: Boolean(isRevoked) });
-  });
+  );
 
   fastify.post<{ Body: { branchId: string; counterId: string; expiresInHours?: number } }>(
     '/registration-codes',
     { preHandler: [requirePermission('settings.devices.manage')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const parsed = CreateRegCodeSchema.safeParse(request.body);
-    if (!parsed.success) {
-      return reply.status(400).send({ statusCode: 400, message: parsed.error.issues[0]?.message || 'Invalid registration code input' });
-    }
-    const { branchId, counterId, expiresInHours } = parsed.data;
+      const userContext = request.userContext!;
+      const parsed = CreateRegCodeSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          message: parsed.error.issues[0]?.message || 'Invalid registration code input',
+        });
+      }
+      const { branchId, counterId, expiresInHours } = parsed.data;
 
-    const db = request.server.db || getDb();
+      const db = request.server.db || getDb();
 
-    // Verify branch belongs to caller's pharmacy tenant
-    const [branch] = await db
-      .select({ id: branches.id })
-      .from(branches)
-      .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
-      .limit(1);
+      // Verify branch belongs to caller's pharmacy tenant
+      const [branch] = await db
+        .select({ id: branches.id })
+        .from(branches)
+        .where(and(eq(branches.id, branchId), eq(branches.pharmacyId, userContext.pharmacyId)))
+        .limit(1);
 
-    if (!branch) {
-      return reply.status(404).send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
-    }
+      if (!branch) {
+        return reply
+          .status(404)
+          .send({ statusCode: 404, message: 'Branch not found or belongs to another pharmacy' });
+      }
 
-    // Verify counter belongs to caller's pharmacy tenant and to the specified branch
-    const [counter] = await db
-      .select({ id: counters.id })
-      .from(counters)
-      .where(
-        and(
-          eq(counters.id, counterId),
-          eq(counters.pharmacyId, userContext.pharmacyId),
-          eq(counters.branchId, branchId)
+      // Verify counter belongs to caller's pharmacy tenant and to the specified branch
+      const [counter] = await db
+        .select({ id: counters.id })
+        .from(counters)
+        .where(
+          and(
+            eq(counters.id, counterId),
+            eq(counters.pharmacyId, userContext.pharmacyId),
+            eq(counters.branchId, branchId)
+          )
         )
-      )
-      .limit(1);
+        .limit(1);
 
-    if (!counter) {
-      return reply.status(404).send({ statusCode: 404, message: 'Counter not found or does not belong to specified branch' });
+      if (!counter) {
+        return reply.status(404).send({
+          statusCode: 404,
+          message: 'Counter not found or does not belong to specified branch',
+        });
+      }
+
+      const plainCode = generatePlainRegistrationCode();
+      const codeHash = hashRegistrationCode(plainCode);
+      const codeId = generateUuidV7();
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + expiresInHours * 3600000).toISOString();
+
+      await db.insert(deviceRegistrationCodes).values({
+        id: codeId,
+        pharmacyId: userContext.pharmacyId,
+        branchId,
+        counterId,
+        codeHash,
+        expiresAt,
+        createdAt: now.toISOString(),
+      });
+
+      return reply.status(201).send({
+        id: codeId,
+        code: plainCode,
+        expiresAt,
+      });
     }
-
-    const plainCode = generatePlainRegistrationCode();
-    const codeHash = hashRegistrationCode(plainCode);
-    const codeId = generateUuidV7();
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + expiresInHours * 3600000).toISOString();
-
-    await db.insert(deviceRegistrationCodes).values({
-      id: codeId,
-      pharmacyId: userContext.pharmacyId,
-      branchId,
-      counterId,
-      codeHash,
-      expiresAt,
-      createdAt: now.toISOString(),
-    });
-
-    return reply.status(201).send({
-      id: codeId,
-      code: plainCode,
-      expiresAt,
-    });
-  });
+  );
 
   // -------------------------------------------------------------------------
   // 4. Audit Log Viewer (Read-only timeline of change_log records)
@@ -617,125 +651,126 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     '/audit-logs',
     { preHandler: [requirePermission('admin.audit_log.view')] },
     async (request, reply) => {
-    const userContext = request.userContext!;
-    const db = request.server.db || getDb();
+      const userContext = request.userContext!;
+      const db = request.server.db || getDb();
 
-    const page = Math.max(1, parseInt(request.query.page || '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(request.query.limit || '50', 10)));
-    const offset = (page - 1) * limit;
+      const page = Math.max(1, parseInt(request.query.page || '1', 10));
+      const limit = Math.min(100, Math.max(1, parseInt(request.query.limit || '50', 10)));
+      const offset = (page - 1) * limit;
 
-    const { entity, userId, action, startDate, endDate, search } = request.query;
+      const { entity, userId, action, startDate, endDate, search } = request.query;
 
-    // Check if rich audit_logs exist for this pharmacy
-    const auditConditions = [eq(auditLogs.pharmacyId, userContext.pharmacyId)];
-    if (entity) auditConditions.push(eq(auditLogs.entity, entity));
-    if (userId) auditConditions.push(eq(auditLogs.userId, userId));
-    if (action) auditConditions.push(eq(auditLogs.action, action));
-    if (startDate) auditConditions.push(gte(auditLogs.createdAt, startDate));
-    if (endDate) auditConditions.push(lte(auditLogs.createdAt, endDate));
-    if (search) {
-      auditConditions.push(
-        or(
-          ilike(auditLogs.summary, `%${search}%`),
-          ilike(auditLogs.userName, `%${search}%`),
-          ilike(auditLogs.action, `%${search}%`)
-        )!
-      );
-    }
+      // Check if rich audit_logs exist for this pharmacy
+      const auditConditions = [eq(auditLogs.pharmacyId, userContext.pharmacyId)];
+      if (entity) auditConditions.push(eq(auditLogs.entity, entity));
+      if (userId) auditConditions.push(eq(auditLogs.userId, userId));
+      if (action) auditConditions.push(eq(auditLogs.action, action));
+      if (startDate) auditConditions.push(gte(auditLogs.createdAt, startDate));
+      if (endDate) auditConditions.push(lte(auditLogs.createdAt, endDate));
+      if (search) {
+        auditConditions.push(
+          or(
+            ilike(auditLogs.summary, `%${search}%`),
+            ilike(auditLogs.userName, `%${search}%`),
+            ilike(auditLogs.action, `%${search}%`)
+          )!
+        );
+      }
 
-    const [auditCountRow] = await db
-      .select({ total: sql<number>`COUNT(*)` })
-      .from(auditLogs)
-      .where(and(...auditConditions));
-
-    const auditCount = Number(auditCountRow?.total ?? 0);
-
-    if (auditCount > 0) {
-      const rows = await db
-        .select()
+      const [auditCountRow] = await db
+        .select({ total: sql<number>`COUNT(*)` })
         .from(auditLogs)
-        .where(and(...auditConditions))
-        .orderBy(desc(auditLogs.createdAt))
+        .where(and(...auditConditions));
+
+      const auditCount = Number(auditCountRow?.total ?? 0);
+
+      if (auditCount > 0) {
+        const rows = await db
+          .select()
+          .from(auditLogs)
+          .where(and(...auditConditions))
+          .orderBy(desc(auditLogs.createdAt))
+          .limit(limit)
+          .offset(offset);
+
+        const items = rows.map((r, idx) => ({
+          id: r.id,
+          seq: offset + idx + 1,
+          entity: r.entity,
+          op: r.action,
+          action: r.action,
+          userId: r.userId,
+          userName: r.userName,
+          userRole: r.userRole,
+          summary: r.summary,
+          beforeState: r.beforeState,
+          afterState: r.afterState,
+          data: r.afterState || r.beforeState || {},
+          ipAddress: r.ipAddress,
+          createdAt: r.createdAt,
+        }));
+
+        return reply.status(200).send({
+          items,
+          total: auditCount,
+          page,
+          limit,
+          totalPages: Math.ceil(auditCount / limit) || 1,
+        });
+      }
+
+      // Fallback to changeLog
+      const conditions = [eq(changeLog.pharmacyId, userContext.pharmacyId)];
+      if (entity) {
+        conditions.push(eq(changeLog.entity, entity));
+      }
+
+      const [countRow] = await db
+        .select({ total: sql<number>`COUNT(*)` })
+        .from(changeLog)
+        .where(and(...conditions));
+
+      const total = Number(countRow?.total ?? 0);
+
+      const logs = await db
+        .select({
+          seq: changeLog.seq,
+          entity: changeLog.entity,
+          entityId: changeLog.entityId,
+          op: changeLog.op,
+          data: changeLog.data,
+          createdAt: changeLog.createdAt,
+        })
+        .from(changeLog)
+        .where(and(...conditions))
+        .orderBy(desc(changeLog.seq))
         .limit(limit)
         .offset(offset);
 
-      const items = rows.map((r, idx) => ({
-        id: r.id,
-        seq: offset + idx + 1,
-        entity: r.entity,
-        op: r.action,
-        action: r.action,
-        userId: r.userId,
-        userName: r.userName,
-        userRole: r.userRole,
-        summary: r.summary,
-        beforeState: r.beforeState,
-        afterState: r.afterState,
-        data: r.afterState || r.beforeState || {},
-        ipAddress: r.ipAddress,
-        createdAt: r.createdAt,
+      const items = logs.map((l) => ({
+        id: l.entityId,
+        seq: l.seq,
+        entity: l.entity,
+        op: l.op,
+        action: l.op,
+        userName: 'System',
+        userRole: 'system',
+        summary: `${l.op.toUpperCase()} ${l.entity} (${l.entityId})`,
+        data: l.data,
+        beforeState: null,
+        afterState: (l.data as Record<string, unknown>) ?? null,
+        createdAt: l.createdAt,
       }));
 
       return reply.status(200).send({
         items,
-        total: auditCount,
+        total,
         page,
         limit,
-        totalPages: Math.ceil(auditCount / limit) || 1,
+        totalPages: Math.ceil(total / limit) || 1,
       });
     }
-
-    // Fallback to changeLog
-    const conditions = [eq(changeLog.pharmacyId, userContext.pharmacyId)];
-    if (entity) {
-      conditions.push(eq(changeLog.entity, entity));
-    }
-
-    const [countRow] = await db
-      .select({ total: sql<number>`COUNT(*)` })
-      .from(changeLog)
-      .where(and(...conditions));
-
-    const total = Number(countRow?.total ?? 0);
-
-    const logs = await db
-      .select({
-        seq: changeLog.seq,
-        entity: changeLog.entity,
-        entityId: changeLog.entityId,
-        op: changeLog.op,
-        data: changeLog.data,
-        createdAt: changeLog.createdAt,
-      })
-      .from(changeLog)
-      .where(and(...conditions))
-      .orderBy(desc(changeLog.seq))
-      .limit(limit)
-      .offset(offset);
-
-    const items = logs.map((l) => ({
-      id: l.entityId,
-      seq: l.seq,
-      entity: l.entity,
-      op: l.op,
-      action: l.op,
-      userName: 'System',
-      userRole: 'system',
-      summary: `${l.op.toUpperCase()} ${l.entity} (${l.entityId})`,
-      data: l.data,
-      beforeState: null,
-      afterState: l.data as any,
-      createdAt: l.createdAt,
-    }));
-
-    return reply.status(200).send({
-      items,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1,
-    });
-  });
+  );
 
   // -------------------------------------------------------------------------
   // 5. Diagnostics & Support Bundle Export (Strictly Zero-PHI)

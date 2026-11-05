@@ -1,12 +1,6 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { generateUuidV7, StockAdjustmentCreatedPayloadSchema } from '@pos/shared';
-import {
-  stockMovements,
-  products,
-  batches,
-  branches,
-  stockAlerts,
-} from '../../db/schema';
+import { stockMovements, products, batches, branches, stockAlerts } from '../../db/schema';
 import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
 import { verifyTenantEntity } from './common';
@@ -59,14 +53,7 @@ export async function applyStockAdjustmentCreated(
   );
 
   // 4. Verify referenced batch belongs to this pharmacy
-  await verifyTenantEntity(
-    tx,
-    batches,
-    payload.batchId,
-    ctx.pharmacyId,
-    'UNKNOWN_BATCH',
-    'batch'
-  );
+  await verifyTenantEntity(tx, batches, payload.batchId, ctx.pharmacyId, 'UNKNOWN_BATCH', 'batch');
 
   // 3. Insert stock movement row (Rule 2: preserve client-generated movementId)
   const movementId = payload.movementId || payload.id || envelopeEntityId;

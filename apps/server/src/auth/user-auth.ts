@@ -122,9 +122,7 @@ export function requirePermission(permission: AppPermission) {
  * Creates a Fastify preHandler hook for user authentication and role-based access control (RBAC).
  * Maintained for backward compatibility; maps allowed roles to user authorization.
  */
-export function requireUserAuth(
-  allowedRoles: Array<UserRole> = ['owner']
-) {
+export function requireUserAuth(allowedRoles: Array<UserRole> = ['owner']) {
   return async function (request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const authHeader = request.headers.authorization;
 

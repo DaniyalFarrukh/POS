@@ -21,11 +21,29 @@ import {
   ClipboardCheck,
   RotateCcw,
   CalendarClock,
+  CreditCard,
+  Receipt,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Landmark,
+  FileText,
+  PiggyBank,
+  CalendarCheck,
+  HeartPulse,
+  CalendarDays,
+  Banknote,
 } from 'lucide-react';
 import { Badge } from '@pos/ui';
+import { Search } from 'lucide-react';
+import { CommandPalette } from '../components/CommandPalette';
+import { NotificationBell } from '../components/NotificationBell';
 
 export type NavItem =
   | 'overview'
+  | 'customers'
+  | 'prescriptions'
+  | 'hr-leave'
+  | 'hr-payroll'
   | 'stock-management'
   | 'batches-expiry'
   | 'stock-transfers'
@@ -36,6 +54,15 @@ export type NavItem =
   | 'suppliers'
   | 'finance-coa'
   | 'finance-journals'
+  | 'finance-payments'
+  | 'finance-expenses'
+  | 'finance-ar'
+  | 'finance-ap'
+  | 'finance-cash-bank'
+  | 'finance-sales-ledger'
+  | 'finance-reports'
+  | 'finance-budgets'
+  | 'finance-period-close'
   | 'reports-sales'
   | 'reports-stock'
   | 'reports-profit'
@@ -47,6 +74,10 @@ export type NavItem =
 
 export const NAV_PERMISSIONS: Record<NavItem, AppPermission> = {
   overview: 'reports.view',
+  customers: 'sales.customer.view',
+  prescriptions: 'sales.prescription.view',
+  'hr-leave': 'hr.leave.view',
+  'hr-payroll': 'hr.payroll.view',
   'stock-management': 'inventory.stock.view',
   'batches-expiry': 'inventory.batch.view',
   'stock-transfers': 'inventory.transfer.view',
@@ -57,6 +88,15 @@ export const NAV_PERMISSIONS: Record<NavItem, AppPermission> = {
   suppliers: 'inventory.supplier.view',
   'finance-coa': 'finance.coa.view',
   'finance-journals': 'finance.journal.view',
+  'finance-payments': 'finance.payment.view',
+  'finance-expenses': 'finance.expense.view',
+  'finance-ar': 'finance.ar.view',
+  'finance-ap': 'finance.ap.view',
+  'finance-cash-bank': 'finance.cash_bank.view',
+  'finance-sales-ledger': 'finance.sales_ledger.view',
+  'finance-reports': 'finance.reports.view',
+  'finance-budgets': 'finance.budget.view',
+  'finance-period-close': 'finance.period_close.propose',
   'reports-sales': 'reports.sales.view',
   'reports-stock': 'reports.stock.view',
   'reports-profit': 'reports.profit.view',
@@ -92,6 +132,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const { user, logout, can } = useAuth();
   const [karachiTime, setKarachiTime] = useState<string>('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  const handleNavigate = (link: string) => {
+    // Extract base tab from link like "/customers?customerId=123" -> "customers"
+    const clean = link.replace(/^\//, '').split('?')[0] || 'overview';
+    onTabChange(clean as NavItem);
+  };
 
   useEffect(() => {
     const updateTime = () => {
@@ -121,6 +179,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           icon: LayoutDashboard,
           permission: NAV_PERMISSIONS.overview,
         },
+        {
+          id: 'customers',
+          label: 'Customers',
+          icon: Users,
+          permission: NAV_PERMISSIONS.customers,
+        },
+        {
+          id: 'prescriptions',
+          label: 'Prescriptions',
+          icon: HeartPulse,
+          permission: NAV_PERMISSIONS.prescriptions,
+        },
       ],
     },
     {
@@ -137,6 +207,77 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           label: 'General Journal',
           icon: Scale,
           permission: NAV_PERMISSIONS['finance-journals'],
+        },
+        {
+          id: 'finance-payments',
+          label: 'Payments & Receipts',
+          icon: CreditCard,
+          permission: NAV_PERMISSIONS['finance-payments'],
+        },
+        {
+          id: 'finance-expenses',
+          label: 'Expenses & Recurring',
+          icon: Receipt,
+          permission: NAV_PERMISSIONS['finance-expenses'],
+        },
+        {
+          id: 'finance-ar',
+          label: 'Accounts Receivable',
+          icon: ArrowDownLeft,
+          permission: NAV_PERMISSIONS['finance-ar'],
+        },
+        {
+          id: 'finance-ap',
+          label: 'Accounts Payable',
+          icon: ArrowUpRight,
+          permission: NAV_PERMISSIONS['finance-ap'],
+        },
+        {
+          id: 'finance-cash-bank',
+          label: 'Cash & Bank',
+          icon: Landmark,
+          permission: NAV_PERMISSIONS['finance-cash-bank'],
+        },
+        {
+          id: 'finance-sales-ledger',
+          label: 'Sales Ledger',
+          icon: ReceiptText,
+          permission: NAV_PERMISSIONS['finance-sales-ledger'],
+        },
+        {
+          id: 'finance-reports',
+          label: 'Financial Statements',
+          icon: FileText,
+          permission: NAV_PERMISSIONS['finance-reports'],
+        },
+        {
+          id: 'finance-budgets',
+          label: 'Budget Planning',
+          icon: PiggyBank,
+          permission: NAV_PERMISSIONS['finance-budgets'],
+        },
+        {
+          id: 'finance-period-close',
+          label: 'Period Close & Year-End',
+          icon: CalendarCheck,
+          permission: NAV_PERMISSIONS['finance-period-close'],
+        },
+      ],
+    },
+    {
+      title: 'Human Resources',
+      items: [
+        {
+          id: 'hr-leave',
+          label: 'Leave & Attendance',
+          icon: CalendarDays,
+          permission: NAV_PERMISSIONS['hr-leave'],
+        },
+        {
+          id: 'hr-payroll',
+          label: 'Payroll Runs',
+          icon: Banknote,
+          permission: NAV_PERMISSIONS['hr-payroll'],
         },
       ],
     },
@@ -271,9 +412,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <h1 className="font-bold text-sm tracking-tight truncate text-white">
               {user?.pharmacyName || 'Pharmacy POS'}
             </h1>
-            <p className="text-xs text-slate-400 font-medium tracking-wide">
-              Management Portal
-            </p>
+            <p className="text-xs text-slate-400 font-medium tracking-wide">Management Portal</p>
           </div>
         </div>
 
@@ -302,16 +441,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <Icon
-                          className={`w-4 h-4 ${
-                            isActive ? 'text-white' : 'text-slate-400'
-                          }`}
-                        />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                         <span className="truncate">{item.label}</span>
                       </div>
-                      {isActive && (
-                        <ChevronRight className="w-3.5 h-3.5 opacity-80" />
-                      )}
+                      {isActive && <ChevronRight className="w-3.5 h-3.5 opacity-80" />}
                     </button>
                   );
                 })}
@@ -324,17 +457,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="p-4 border-t border-slate-800 bg-slate-950/40">
           <div className="flex items-center justify-between">
             <div className="overflow-hidden mr-2">
-              <p className="text-xs font-semibold text-white truncate">
-                {user?.name}
-              </p>
+              <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
               <div className="mt-0.5">
                 <Badge
                   variant={
                     user?.role === 'owner'
                       ? 'default'
                       : user?.role === 'pharmacist'
-                      ? 'secondary'
-                      : 'outline'
+                        ? 'secondary'
+                        : 'outline'
                   }
                   className="text-[10px] uppercase font-bold py-0 px-1.5"
                 >
@@ -357,16 +488,36 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-slate-200/80 px-8 flex items-center justify-between flex-shrink-0 shadow-sm">
-          <div>
-            <h2 className="text-lg font-bold text-slate-800 tracking-tight capitalize">
-              {currentTab.replace('-', ' ')}
-            </h2>
-            <p className="text-xs text-slate-500">
-              Live enterprise sync &amp; multi-branch ledger
-            </p>
+          <div className="flex items-center gap-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 tracking-tight capitalize">
+                {currentTab.replace('-', ' ')}
+              </h2>
+              <p className="text-xs text-slate-500">
+                Live enterprise sync &amp; multi-branch ledger
+              </p>
+            </div>
+
+            {/* Quick Global Search Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-100/80 text-xs transition-all shadow-xs"
+            >
+              <Search className="w-3.5 h-3.5 text-slate-400" />
+              <span>Search invoices, medicines, customers...</span>
+              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono font-semibold text-slate-500 shadow-xs">
+                Ctrl+K
+              </kbd>
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Notification Bell with per-user read state */}
+            <NotificationBell onNavigate={handleNavigate} />
+
+            <div className="h-6 w-px bg-slate-200" />
+
             {/* Asia/Karachi Live Time */}
             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200/60 text-slate-700 text-xs font-medium">
               <Clock className="w-3.5 h-3.5 text-blue-600" />
@@ -382,6 +533,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
           </div>
         </header>
+
+        {/* Global Ctrl+K Command Palette Modal */}
+        <CommandPalette
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onNavigate={handleNavigate}
+        />
 
         {/* Scrollable Viewport */}
         <main className="flex-1 overflow-y-auto p-8 bg-slate-50/60">

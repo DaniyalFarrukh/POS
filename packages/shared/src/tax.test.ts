@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  roundHalfUp,
-  computeLineTax,
-  computeInvoiceTotals,
-  type InvoiceLineInput,
-} from './tax';
+import { roundHalfUp, computeLineTax, computeInvoiceTotals, type InvoiceLineInput } from './tax';
 
 describe('Tax & Invoice Calculation Utilities (Phase 2)', () => {
   describe('roundHalfUp (Documented ONE Rounding Rule)', () => {

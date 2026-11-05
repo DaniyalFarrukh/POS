@@ -157,7 +157,10 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>🔄</span>
-              <h2 id="return-modal-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}>
+              <h2
+                id="return-modal-title"
+                style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.01em' }}
+              >
                 Process Return & Credit Note
               </h2>
               <kbd className="kbd-cap-dark" style={{ fontSize: '11px', padding: '1px 6px' }}>
@@ -165,7 +168,8 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
               </kbd>
             </div>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-              Invoice <strong style={{ color: '#ffffff' }}>#{invoice.invoiceNumber}</strong> • Created:{' '}
+              Invoice <strong style={{ color: '#ffffff' }}>#{invoice.invoiceNumber}</strong> •
+              Created:{' '}
               {new Date(invoice.createdAt).toLocaleDateString('en-GB', {
                 timeZone: 'Asia/Karachi',
               })}
@@ -287,7 +291,9 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                       const qty = returnQuantities[line.invoiceLineId] || 0;
                       const isFullyReturned = line.returnableQuantity <= 0;
                       const unitNetPaisa =
-                        line.soldQuantity > 0 ? roundHalfUp(line.lineTotalPaisa, line.soldQuantity) : 0;
+                        line.soldQuantity > 0
+                          ? roundHalfUp(line.lineTotalPaisa, line.soldQuantity)
+                          : 0;
 
                       return (
                         <tr
@@ -297,8 +303,8 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                             backgroundColor: isFullyReturned
                               ? '#f8fafc'
                               : qty > 0
-                              ? '#f0fdf4'
-                              : '#ffffff',
+                                ? '#f0fdf4'
+                                : '#ffffff',
                             opacity: isFullyReturned ? 0.6 : 1,
                           }}
                         >
@@ -326,7 +332,11 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                           >
                             <span style={{ fontWeight: 600 }}>{line.soldQuantity}</span>
                             <span style={{ color: '#94a3b8', margin: '0 4px' }}>/</span>
-                            <span style={{ color: line.alreadyReturnedQuantity > 0 ? '#dc2626' : '#64748b' }}>
+                            <span
+                              style={{
+                                color: line.alreadyReturnedQuantity > 0 ? '#dc2626' : '#64748b',
+                              }}
+                            >
                               {line.alreadyReturnedQuantity}
                             </span>
                             <div style={{ fontSize: '11px', color: '#16a34a' }}>
@@ -371,7 +381,11 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                                   type="button"
                                   disabled={qty <= 0 || submitting}
                                   onClick={() =>
-                                    handleQuantityChange(line.invoiceLineId, qty - 1, line.returnableQuantity)
+                                    handleQuantityChange(
+                                      line.invoiceLineId,
+                                      qty - 1,
+                                      line.returnableQuantity
+                                    )
                                   }
                                   style={{
                                     border: 'none',
@@ -409,7 +423,11 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                                   type="button"
                                   disabled={qty >= line.returnableQuantity || submitting}
                                   onClick={() =>
-                                    handleQuantityChange(line.invoiceLineId, qty + 1, line.returnableQuantity)
+                                    handleQuantityChange(
+                                      line.invoiceLineId,
+                                      qty + 1,
+                                      line.returnableQuantity
+                                    )
                                   }
                                   style={{
                                     border: 'none',
@@ -471,7 +489,9 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
                   backgroundColor: '#ffffff',
                 }}
               >
-                <option value="customer_return">Customer Return (Not Needed / Change of Mind)</option>
+                <option value="customer_return">
+                  Customer Return (Not Needed / Change of Mind)
+                </option>
                 <option value="defective_damaged">Defective / Damaged Packaging</option>
                 <option value="expired">Near Expiry / Expired</option>
                 <option value="dispensing_error">Dispensing Error / Wrong Medicine Sold</option>
@@ -554,15 +574,34 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
             }}
           >
             <div>
-              <div style={{ fontSize: '12px', color: '#047857', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#047857',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
                 Estimated Refund Summary
               </div>
               <div style={{ fontSize: '12px', color: '#065f46', marginTop: '2px' }}>
-                <span className="tabular-nums" style={{ fontWeight: 700 }}>{totalReturnUnits}</span> items selected • Automatically restored to original inventory batches
+                <span className="tabular-nums" style={{ fontWeight: 700 }}>
+                  {totalReturnUnits}
+                </span>{' '}
+                items selected • Automatically restored to original inventory batches
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="tabular-nums" style={{ fontSize: '24px', fontWeight: 800, color: '#065f46', letterSpacing: '-0.02em' }}>
+              <div
+                className="tabular-nums"
+                style={{
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  color: '#065f46',
+                  letterSpacing: '-0.02em',
+                }}
+              >
                 {formatPKR(estimatedRefundPaisa)}
               </div>
             </div>
@@ -600,7 +639,9 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
             }}
           >
             <span>Cancel</span>
-            <kbd className="kbd-cap" style={{ fontSize: '10px' }}>Esc</kbd>
+            <kbd className="kbd-cap" style={{ fontSize: '10px' }}>
+              Esc
+            </kbd>
           </button>
           <button
             type="button"
@@ -611,9 +652,10 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
               padding: '8px 22px',
               borderRadius: '8px',
               border: 'none',
-              background: totalReturnUnits > 0 && !submitting
-                ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
-                : '#cbd5e1',
+              background:
+                totalReturnUnits > 0 && !submitting
+                  ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
+                  : '#cbd5e1',
               color: '#ffffff',
               fontWeight: 700,
               fontSize: '13px',
@@ -621,10 +663,13 @@ export const ReturnModal: React.FC<ReturnModalProps> = ({ invoice, onClose, onSu
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: totalReturnUnits > 0 && !submitting ? '0 2px 4px rgba(225, 29, 72, 0.25)' : 'none',
+              boxShadow:
+                totalReturnUnits > 0 && !submitting ? '0 2px 4px rgba(225, 29, 72, 0.25)' : 'none',
             }}
           >
-            {submitting ? '⏳ Processing...' : `Confirm Return (${formatPKR(estimatedRefundPaisa)})`}
+            {submitting
+              ? '⏳ Processing...'
+              : `Confirm Return (${formatPKR(estimatedRefundPaisa)})`}
           </button>
         </div>
       </div>

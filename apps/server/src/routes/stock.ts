@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, sql, desc, asc } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import { z, generateUuidV7 } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
@@ -13,7 +13,6 @@ import {
   accounts,
 } from '../db/schema';
 import { postStockAdjustmentCreated } from '../ledger/posting-engine';
-import { toKarachiBusinessDate } from '../ledger/journal';
 
 const StockQuerySchema = z.object({
   view: z.enum(['product', 'batch']).default('product'),
@@ -68,17 +67,8 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { pharmacyId } = request.userContext!;
       const db = request.server.db || getDb();
-      const {
-        view,
-        branchId,
-        locationId,
-        search,
-        status,
-        page,
-        pageSize,
-        sortBy,
-        sortOrder,
-      } = parsed.data;
+      const { view, branchId, locationId, search, status, page, pageSize, sortBy, sortOrder } =
+        parsed.data;
 
       const now = new Date();
       const nowIsoDate = now.toISOString().slice(0, 10);
@@ -99,7 +89,10 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
           expiryDate: batches.expiryDate,
         })
         .from(stockMovements)
-        .innerJoin(batches, and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId)))
+        .innerJoin(
+          batches,
+          and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+        )
         .where(eq(stockMovements.pharmacyId, pharmacyId))
         .groupBy(
           stockMovements.batchId,
@@ -138,7 +131,10 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       if (inventoryAccount) {
         const [ledgerBalRow] = await db
           .select({
-            balance: sql<number>`COALESCE(SUM(${journalLines.debitPaisa} - ${journalLines.creditPaisa}), 0)`.mapWith(Number),
+            balance:
+              sql<number>`COALESCE(SUM(${journalLines.debitPaisa} - ${journalLines.creditPaisa}), 0)`.mapWith(
+                Number
+              ),
           })
           .from(journalLines)
           .where(
@@ -188,7 +184,7 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       // --- 2. Build Filtered and Paginated Items ---
       if (view === 'product') {
         // Fetch products with their metadata
-        let query = db
+        const query = db
           .select({
             id: products.id,
             brandName: products.brandName,
@@ -210,7 +206,15 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
 
         // Apply filters in memory or SQL
         // Group batch balances filtered by branch/location if specified
-        const productValuationMap = new Map<string, { totalStock: number; stockValuePaisa: number; hasNearExpiry: boolean; hasExpired: boolean }>();
+        const productValuationMap = new Map<
+          string,
+          {
+            totalStock: number;
+            stockValuePaisa: number;
+            hasNearExpiry: boolean;
+            hasExpired: boolean;
+          }
+        >();
 
         for (const b of batchStockBalances) {
           if (branchId && b.branchId !== branchId) continue;
@@ -318,7 +322,6 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
           .where(eq(stockLocations.pharmacyId, pharmacyId));
         const locMap = new Map(allLocations.map((l) => [l.id, l.name]));
 
-        const prodMap = new Map(allPharmacyProducts.map((p) => [p.id, p]));
         const prodDetails = await db
           .select({
             id: products.id,
@@ -454,7 +457,9 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
           productId: stockMovements.productId,
           branchId: stockMovements.branchId,
           locationId: stockMovements.locationId,
-          onHandQuantity: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(Number),
+          onHandQuantity: sql<number>`COALESCE(SUM(${stockMovements.quantitySigned}), 0)`.mapWith(
+            Number
+          ),
           batchNo: batches.batchNo,
           expiryDate: batches.expiryDate,
           costPaisa: batches.costPaisa,
@@ -466,10 +471,25 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
           locationName: stockLocations.name,
         })
         .from(stockMovements)
-        .innerJoin(batches, and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId)))
-        .innerJoin(products, and(eq(stockMovements.productId, products.id), eq(products.pharmacyId, pharmacyId)))
-        .innerJoin(branches, and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId)))
-        .leftJoin(stockLocations, and(eq(stockMovements.locationId, stockLocations.id), eq(stockLocations.pharmacyId, pharmacyId)))
+        .innerJoin(
+          batches,
+          and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+        )
+        .innerJoin(
+          products,
+          and(eq(stockMovements.productId, products.id), eq(products.pharmacyId, pharmacyId))
+        )
+        .innerJoin(
+          branches,
+          and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId))
+        )
+        .leftJoin(
+          stockLocations,
+          and(
+            eq(stockMovements.locationId, stockLocations.id),
+            eq(stockLocations.pharmacyId, pharmacyId)
+          )
+        )
         .where(eq(stockMovements.pharmacyId, pharmacyId))
         .groupBy(
           stockMovements.batchId,
@@ -811,9 +831,21 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
           locationName: stockLocations.name,
         })
         .from(stockMovements)
-        .innerJoin(batches, and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId)))
-        .innerJoin(branches, and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId)))
-        .leftJoin(stockLocations, and(eq(stockMovements.locationId, stockLocations.id), eq(stockLocations.pharmacyId, pharmacyId)))
+        .innerJoin(
+          batches,
+          and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+        )
+        .innerJoin(
+          branches,
+          and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId))
+        )
+        .leftJoin(
+          stockLocations,
+          and(
+            eq(stockMovements.locationId, stockLocations.id),
+            eq(stockLocations.pharmacyId, pharmacyId)
+          )
+        )
         .where(
           and(
             eq(stockMovements.pharmacyId, pharmacyId),
@@ -874,9 +906,21 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
           locationName: stockLocations.name,
         })
         .from(stockMovements)
-        .innerJoin(batches, and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId)))
-        .innerJoin(branches, and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId)))
-        .leftJoin(stockLocations, and(eq(stockMovements.locationId, stockLocations.id), eq(stockLocations.pharmacyId, pharmacyId)))
+        .innerJoin(
+          batches,
+          and(eq(stockMovements.batchId, batches.id), eq(batches.pharmacyId, pharmacyId))
+        )
+        .innerJoin(
+          branches,
+          and(eq(stockMovements.branchId, branches.id), eq(branches.pharmacyId, pharmacyId))
+        )
+        .leftJoin(
+          stockLocations,
+          and(
+            eq(stockMovements.locationId, stockLocations.id),
+            eq(stockLocations.pharmacyId, pharmacyId)
+          )
+        )
         .where(
           and(
             eq(stockMovements.pharmacyId, pharmacyId),

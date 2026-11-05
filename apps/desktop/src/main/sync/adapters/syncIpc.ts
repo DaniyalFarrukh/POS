@@ -66,7 +66,9 @@ export function registerSyncIpc({
     roles: ['owner'],
     handler: async (
       _ctx,
-      serverUrlOrPayload: string | { serverUrl: string; code: string; deviceName?: string; confirmReRegistration?: boolean },
+      serverUrlOrPayload:
+        | string
+        | { serverUrl: string; code: string; deviceName?: string; confirmReRegistration?: boolean },
       codeArg?: string,
       deviceNameArg?: string,
       confirmArg?: boolean
@@ -80,7 +82,8 @@ export function registerSyncIpc({
         serverUrl = serverUrlOrPayload.serverUrl;
         code = serverUrlOrPayload.code;
         if (serverUrlOrPayload.deviceName) deviceName = serverUrlOrPayload.deviceName;
-        if (serverUrlOrPayload.confirmReRegistration) confirmReRegistration = serverUrlOrPayload.confirmReRegistration;
+        if (serverUrlOrPayload.confirmReRegistration)
+          confirmReRegistration = serverUrlOrPayload.confirmReRegistration;
       } else {
         serverUrl = serverUrlOrPayload;
         code = codeArg || '';

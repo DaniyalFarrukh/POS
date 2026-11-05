@@ -14,7 +14,11 @@ export type UpdateSupplierInput = z.infer<typeof UpdateSupplierInputSchema>;
 
 export const SupplierSchema = SupplierInputSchema.extend({
   id: z.string().uuid(),
-  isActive: z.boolean().or(z.number()).transform((v) => Boolean(v)).default(true),
+  isActive: z
+    .boolean()
+    .or(z.number())
+    .transform((v) => Boolean(v))
+    .default(true),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -23,7 +27,9 @@ export type Supplier = z.infer<typeof SupplierSchema>;
 export const PurchaseLineInputSchema = z.object({
   productId: z.string().uuid('Product must be selected'),
   batchNo: z.string().trim().min(1, 'Batch number is required'),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Expiry date must be in YYYY-MM or YYYY-MM-DD format'),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Expiry date must be in YYYY-MM or YYYY-MM-DD format'),
   quantity: z.number().int('Quantity must be an integer').min(1, 'Quantity must be at least 1'),
   costPaisa: z.number().int('Cost must be in integer paisa').min(0, 'Cost cannot be negative'),
   mrpPaisa: z.number().int('MRP must be in integer paisa').min(0, 'MRP cannot be negative'),
@@ -77,9 +83,12 @@ export const StockAdjustmentInputSchema = z.object({
   productId: z.string().uuid('Product must be selected'),
   batchId: z.string().uuid('Batch must be selected'),
   branchId: z.string().uuid().optional(),
-  quantitySigned: z.number().int('Adjustment quantity must be an integer').refine((val) => val !== 0, {
-    message: 'Adjustment quantity cannot be zero',
-  }),
+  quantitySigned: z
+    .number()
+    .int('Adjustment quantity must be an integer')
+    .refine((val) => val !== 0, {
+      message: 'Adjustment quantity cannot be zero',
+    }),
   reasonType: AdjustmentReasonTypeSchema,
   reason: z.string().trim().min(1, 'Reason explanation is required'),
 });

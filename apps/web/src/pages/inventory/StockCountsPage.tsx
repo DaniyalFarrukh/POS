@@ -60,7 +60,9 @@ export const StockCountsPage: React.FC = () => {
   const [selectedCountId, setSelectedCountId] = useState<string | null>(null);
   const [countDetail, setCountDetail] = useState<StockCountRecord | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [lineCounts, setLineCounts] = useState<Record<string, { counted: number; notes: string }>>({});
+  const [lineCounts, setLineCounts] = useState<Record<string, { counted: number; notes: string }>>(
+    {}
+  );
 
   // List & KPIs
   const [counts, setCounts] = useState<StockCountRecord[]>([]);
@@ -105,7 +107,9 @@ export const StockCountsPage: React.FC = () => {
   // Load auxiliary data
   const loadAuxData = useCallback(async () => {
     try {
-      const bRes = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>('/api/branches');
+      const bRes = await apiFetch<{ data?: BranchRecord[]; items?: BranchRecord[] }>(
+        '/api/branches'
+      );
       const bList = bRes.data || bRes.items || [];
       setBranches(bList);
       if (bList.length > 0 && bList[0]) {
@@ -337,7 +341,12 @@ export const StockCountsPage: React.FC = () => {
           <div className="flex items-center gap-2">
             {isDraft && canCreate && (
               <>
-                <Button variant="outline" size="sm" onClick={handleSaveLines} disabled={detailLoading}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveLines}
+                  disabled={detailLoading}
+                >
                   <Check className="w-4 h-4 mr-1.5" /> Save Quantities
                 </Button>
                 <Button size="sm" onClick={handleSubmitForApproval} disabled={detailLoading}>
@@ -412,7 +421,9 @@ export const StockCountsPage: React.FC = () => {
                           <div className="text-xs text-slate-400">{line.product.genericName}</div>
                         )}
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{line.batch?.batchNo || '—'}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {line.batch?.batchNo || '—'}
+                      </TableCell>
                       <TableCell className="text-right font-medium text-slate-600">
                         {line.systemQuantity}
                       </TableCell>
@@ -426,7 +437,11 @@ export const StockCountsPage: React.FC = () => {
                               const val = parseInt(e.target.value, 10) || 0;
                               setLineCounts((prev) => ({
                                 ...prev,
-                                [line.id]: { ...prev[line.id], counted: val, notes: prev[line.id]?.notes || '' },
+                                [line.id]: {
+                                  ...prev[line.id],
+                                  counted: val,
+                                  notes: prev[line.id]?.notes || '',
+                                },
                               }));
                             }}
                             className="w-24 text-right inline-block text-xs"
@@ -446,9 +461,13 @@ export const StockCountsPage: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">
                         {variance.variancePaisa < 0 ? (
-                          <span className="text-rose-600">{formatPaisa(variance.variancePaisa)}</span>
+                          <span className="text-rose-600">
+                            {formatPaisa(variance.variancePaisa)}
+                          </span>
                         ) : variance.variancePaisa > 0 ? (
-                          <span className="text-emerald-600">+{formatPaisa(variance.variancePaisa)}</span>
+                          <span className="text-emerald-600">
+                            +{formatPaisa(variance.variancePaisa)}
+                          </span>
                         ) : (
                           <span className="text-slate-400">Rs. 0.00</span>
                         )}
@@ -462,7 +481,11 @@ export const StockCountsPage: React.FC = () => {
                               const val = e.target.value;
                               setLineCounts((prev) => ({
                                 ...prev,
-                                [line.id]: { ...prev[line.id], notes: val, counted: prev[line.id]?.counted ?? line.countedQuantity },
+                                [line.id]: {
+                                  ...prev[line.id],
+                                  notes: val,
+                                  counted: prev[line.id]?.counted ?? line.countedQuantity,
+                                },
                               }));
                             }}
                             className="text-xs max-w-xs"
@@ -504,7 +527,8 @@ export const StockCountsPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900">Stock Counts &amp; Audits</h1>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Conduct shelf inventory counts, record physical counts per batch, and reconcile variances into the ledger.
+            Conduct shelf inventory counts, record physical counts per batch, and reconcile
+            variances into the ledger.
           </p>
         </div>
 
@@ -782,4 +806,3 @@ export const StockCountsPage: React.FC = () => {
     </div>
   );
 };
-

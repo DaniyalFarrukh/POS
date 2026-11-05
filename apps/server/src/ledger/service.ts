@@ -104,7 +104,15 @@ export async function postJournalEntry(
   tx: DbClient,
   input: PostJournalEntryInput
 ): Promise<JournalEntryWithLines> {
-  const { pharmacyId, entryDate, sourceType = null, sourceId = null, memo = null, createdBy = null, lines } = input;
+  const {
+    pharmacyId,
+    entryDate,
+    sourceType = null,
+    sourceId = null,
+    memo = null,
+    createdBy = null,
+    lines,
+  } = input;
 
   if (!pharmacyId) {
     throw new Error('pharmacyId is required');
@@ -171,10 +179,7 @@ export async function postJournalEntry(
         .select()
         .from(journalLines)
         .where(
-          and(
-            eq(journalLines.entryId, existingEntry.id),
-            eq(journalLines.pharmacyId, pharmacyId)
-          )
+          and(eq(journalLines.entryId, existingEntry.id), eq(journalLines.pharmacyId, pharmacyId))
         )
         .orderBy(asc(journalLines.id));
 
@@ -193,12 +198,7 @@ export async function postJournalEntry(
       isActive: accounts.isActive,
     })
     .from(accounts)
-    .where(
-      and(
-        eq(accounts.pharmacyId, pharmacyId),
-        inArray(accounts.id, uniqueAccountIds)
-      )
-    );
+    .where(and(eq(accounts.pharmacyId, pharmacyId), inArray(accounts.id, uniqueAccountIds)));
 
   if (foundAccounts.length !== uniqueAccountIds.length) {
     throw new Error('One or more accounts were not found or belong to another pharmacy');
@@ -218,12 +218,7 @@ export async function postJournalEntry(
     const foundBranches = await tx
       .select({ id: branches.id })
       .from(branches)
-      .where(
-        and(
-          eq(branches.pharmacyId, pharmacyId),
-          inArray(branches.id, uniqueBranchIds)
-        )
-      );
+      .where(and(eq(branches.pharmacyId, pharmacyId), inArray(branches.id, uniqueBranchIds)));
 
     if (foundBranches.length !== uniqueBranchIds.length) {
       throw new Error('One or more branches were not found or belong to another pharmacy');
@@ -232,7 +227,11 @@ export async function postJournalEntry(
 
   // 5. Check that entryDate does not fall inside a closed fiscal period for this pharmacy
   const closedPeriods = await tx
-    .select({ id: fiscalPeriods.id, startDate: fiscalPeriods.startDate, endDate: fiscalPeriods.endDate })
+    .select({
+      id: fiscalPeriods.id,
+      startDate: fiscalPeriods.startDate,
+      endDate: fiscalPeriods.endDate,
+    })
     .from(fiscalPeriods)
     .where(
       and(
@@ -293,10 +292,7 @@ export async function postJournalEntry(
     memo: line.memo ?? null,
   }));
 
-  const insertedLines = await tx
-    .insert(journalLines)
-    .values(lineValues)
-    .returning();
+  const insertedLines = await tx.insert(journalLines).values(lineValues).returning();
 
   return {
     ...insertedEntry!,
@@ -341,13 +337,13 @@ export async function reverseJournalEntry(
   const pharmacyId = original.pharmacyId;
 
   // Lock pharmacy row FOR UPDATE to serialize reversal check + entry_no assignment
-  await tx.execute(
-    sql`SELECT "id" FROM "pharmacies" WHERE "id" = ${pharmacyId} FOR UPDATE`
-  );
+  await tx.execute(sql`SELECT "id" FROM "pharmacies" WHERE "id" = ${pharmacyId} FOR UPDATE`);
 
   // Reject if this entry is itself a reversing entry or has already been reversed
   if (original.reversesEntryId !== null) {
-    throw new Error(`Journal entry #${original.entryNo} is a reversal entry and cannot be reversed`);
+    throw new Error(
+      `Journal entry #${original.entryNo} is a reversal entry and cannot be reversed`
+    );
   }
 
   const [existingReversal] = await tx
@@ -370,12 +366,7 @@ export async function reverseJournalEntry(
   const originalLines = await tx
     .select()
     .from(journalLines)
-    .where(
-      and(
-        eq(journalLines.entryId, original.id),
-        eq(journalLines.pharmacyId, pharmacyId)
-      )
-    )
+    .where(and(eq(journalLines.entryId, original.id), eq(journalLines.pharmacyId, pharmacyId)))
     .orderBy(asc(journalLines.id));
 
   if (originalLines.length < 2) {
@@ -387,7 +378,11 @@ export async function reverseJournalEntry(
 
   // Verify reversalDate does not fall inside a closed fiscal period
   const closedPeriods = await tx
-    .select({ id: fiscalPeriods.id, startDate: fiscalPeriods.startDate, endDate: fiscalPeriods.endDate })
+    .select({
+      id: fiscalPeriods.id,
+      startDate: fiscalPeriods.startDate,
+      endDate: fiscalPeriods.endDate,
+    })
     .from(fiscalPeriods)
     .where(
       and(
@@ -411,12 +406,7 @@ export async function reverseJournalEntry(
   const foundAccounts = await tx
     .select({ id: accounts.id, isActive: accounts.isActive })
     .from(accounts)
-    .where(
-      and(
-        eq(accounts.pharmacyId, pharmacyId),
-        inArray(accounts.id, uniqueAccountIds)
-      )
-    );
+    .where(and(eq(accounts.pharmacyId, pharmacyId), inArray(accounts.id, uniqueAccountIds)));
 
   if (foundAccounts.length !== uniqueAccountIds.length) {
     throw new Error('One or more accounts on the original entry were not found');
@@ -463,10 +453,7 @@ export async function reverseJournalEntry(
     memo: line.memo ? `Reversal: ${line.memo}` : `Reversal of entry #${original.entryNo}`,
   }));
 
-  const insertedLines = await tx
-    .insert(journalLines)
-    .values(reversedLineValues)
-    .returning();
+  const insertedLines = await tx.insert(journalLines).values(reversedLineValues).returning();
 
   return {
     ...insertedReversal!,
@@ -504,6 +491,7 @@ export async function closePeriod(
     throw new Error('Pharmacy not found');
   }
 
+  const now = new Date().toISOString();
   let period: typeof fiscalPeriods.$inferSelect | undefined;
 
   if (periodId) {
@@ -519,7 +507,11 @@ export async function closePeriod(
 
     const [updated] = await tx
       .update(fiscalPeriods)
-      .set({ status: 'closed' })
+      .set({
+        status: 'closed',
+        closedAt: now,
+        closedBy: actorUserId,
+      })
       .where(and(eq(fiscalPeriods.id, periodId), eq(fiscalPeriods.pharmacyId, pharmacyId)))
       .returning();
     period = updated!;
@@ -539,12 +531,13 @@ export async function closePeriod(
     if (existingByRange) {
       const [updated] = await tx
         .update(fiscalPeriods)
-        .set({ status: 'closed' })
+        .set({
+          status: 'closed',
+          closedAt: now,
+          closedBy: actorUserId,
+        })
         .where(
-          and(
-            eq(fiscalPeriods.id, existingByRange.id),
-            eq(fiscalPeriods.pharmacyId, pharmacyId)
-          )
+          and(eq(fiscalPeriods.id, existingByRange.id), eq(fiscalPeriods.pharmacyId, pharmacyId))
         )
         .returning();
       period = updated!;
@@ -558,6 +551,8 @@ export async function closePeriod(
           startDate,
           endDate,
           status: 'closed',
+          closedAt: now,
+          closedBy: actorUserId,
         })
         .returning();
       period = inserted!;
@@ -607,9 +602,15 @@ export async function reopenPeriod(
     throw new Error('Fiscal period not found or belongs to another pharmacy');
   }
 
+  const now = new Date().toISOString();
   const [updated] = await tx
     .update(fiscalPeriods)
-    .set({ status: 'open' })
+    .set({
+      status: 'open',
+      reopenedAt: now,
+      reopenedBy: actorUserId,
+      reopenReason: reason ?? null,
+    })
     .where(and(eq(fiscalPeriods.id, periodId), eq(fiscalPeriods.pharmacyId, pharmacyId)))
     .returning();
 
@@ -634,4 +635,3 @@ export async function reopenPeriod(
 
   return period;
 }
-
