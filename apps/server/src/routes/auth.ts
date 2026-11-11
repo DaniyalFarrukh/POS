@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { z, isWeakOrSequentialPin } from '@pos/shared';
 import { users, pharmacies } from '../db/schema';
-import { signUserToken, revokeUserToken } from '../auth/jwt';
+import { signUserToken, persistRevokedToken } from '../auth/jwt';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import { insertChangeLog } from '../sync/change-log';
@@ -264,7 +264,8 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
     async (request, reply) => {
       const userContext = request.userContext!;
       if (userContext.jti) {
-        revokeUserToken(userContext.jti);
+        const db = request.server.db || getDb();
+        await persistRevokedToken(db, userContext.jti, userContext.userId);
       }
       return reply.status(200).send({ ok: true });
     }
@@ -280,7 +281,8 @@ export const authRoutes: FastifyPluginAsync<AuthRoutesOptions> = async (fastify,
     async (request, reply) => {
       const userContext = request.userContext!;
       if (userContext.jti) {
-        revokeUserToken(userContext.jti);
+        const db = request.server.db || getDb();
+        await persistRevokedToken(db, userContext.jti, userContext.userId);
       }
 
       const token = signUserToken({

@@ -22,6 +22,9 @@ export const pharmacies = pgTable('pharmacies', {
   expenseApprovalThresholdPaisa: integer('expense_approval_threshold_paisa')
     .notNull()
     .default(2500000),
+  ntn: text('ntn'),
+  strn: text('strn'),
+  drugSaleLicenseNo: text('drug_sale_license_no'),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull(),
 });
@@ -37,6 +40,7 @@ export const branches = pgTable(
     name: text('name').notNull(),
     address: text('address'),
     phone: text('phone'),
+    drugSaleLicenseNo: text('drug_sale_license_no'),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'string' }).notNull(),
   },
@@ -1991,4 +1995,16 @@ export const auditLogs = pgTable(
     index('idx_audit_logs_pharmacy_entity').on(table.pharmacyId, table.entity),
     index('idx_audit_logs_pharmacy_user').on(table.pharmacyId, table.userId),
   ]
+);
+
+// 64. Revoked Tokens (Persisted JWT JTI Revocation)
+export const revokedTokens = pgTable(
+  'revoked_tokens',
+  {
+    jti: text('jti').primaryKey(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'string' }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' }).notNull(),
+  },
+  (table) => [index('idx_revoked_tokens_expires').on(table.expiresAt)]
 );

@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import type { Database as DatabaseInstance } from 'better-sqlite3';
 import {
+  z,
   generateUuidV7,
   type UserRole,
   type SetupInput,
@@ -429,12 +430,25 @@ export interface CreateStaffInput {
   pin: string;
 }
 
+export const CreateStaffInputSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  role: UserRoleSchema,
+  pin: PinSchema,
+});
+
 export interface UpdateStaffInput {
   name?: string;
   role?: UserRole;
   pin?: string;
   isActive?: boolean;
 }
+
+export const UpdateStaffInputSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  role: UserRoleSchema.optional(),
+  pin: PinSchema.optional(),
+  isActive: z.boolean().optional(),
+});
 
 export function getStaffList(
   sessionOverride?: AuthSession | null,

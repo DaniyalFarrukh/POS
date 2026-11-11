@@ -109,14 +109,54 @@ export async function verifyOwnerPinForDestructive(
     throw new Error('Owner PIN confirmation is required for destructive operations.');
   }
   const db = rawDb ?? getDatabase();
-  const owner = db.prepare('SELECT pin_hash FROM users WHERE id = ?').get(session.user.id) as
-    { pin_hash: string } | undefined;
+  const owner = db
+    .prepare(
+      'SELECT id, pin_hash, is_active, failed_login_attempts, locked_until FROM users WHERE id = ?'
+    )
+    .get(session.user.id) as
+    | {
+        id: string;
+        pin_hash: string;
+        is_active: number;
+        failed_login_attempts: number;
+        locked_until: string | null;
+      }
+    | undefined;
+
   if (!owner || !owner.pin_hash) {
     throw new Error('Owner credentials not found in database.');
   }
+  if (owner.is_active !== 1) {
+    throw new Error('Owner account is inactive.');
+  }
+
+  const now = new Date().toISOString();
+  if (owner.locked_until && new Date(owner.locked_until) > new Date(now)) {
+    throw new Error(`Owner account is locked until ${owner.locked_until}. Please try again later.`);
+  }
+
   const isValid = await verifyPin(ownerPin, owner.pin_hash);
   if (!isValid) {
+    const attempts = (owner.failed_login_attempts || 0) + 1;
+    let lockUntil: string | null = null;
+    if (attempts >= 5) {
+      const lockMinutes = Math.min(60, Math.pow(2, attempts - 5) * 15);
+      lockUntil = new Date(Date.now() + lockMinutes * 60 * 1000).toISOString();
+    }
+    db.prepare(
+      'UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?'
+    ).run(attempts, lockUntil, now, owner.id);
+
+    if (lockUntil) {
+      throw new Error(`Owner account locked until ${lockUntil} due to too many failed attempts.`);
+    }
     throw new Error('Invalid Owner PIN.');
+  }
+
+  if (owner.failed_login_attempts > 0 || owner.locked_until) {
+    db.prepare(
+      'UPDATE users SET failed_login_attempts = 0, locked_until = NULL, updated_at = ? WHERE id = ?'
+    ).run(now, owner.id);
   }
 }
 

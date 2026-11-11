@@ -16,13 +16,39 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getStoredItem = (key: string): string | null => {
+  try {
+    return sessionStorage.getItem(key) || localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const setStoredItem = (key: string, value: string): void => {
+  try {
+    sessionStorage.setItem(key, value);
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage quota / access errors
+  }
+};
+
+const removeStoredItem = (key: string): void => {
+  try {
+    sessionStorage.removeItem(key);
+    localStorage.removeItem(key);
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserContext | null>(() => {
-    const saved = localStorage.getItem('pos_user_context');
+    const saved = getStoredItem('pos_user_context');
     return saved ? JSON.parse(saved) : null;
   });
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('pos_auth_token');
+    return getStoredItem('pos_auth_token');
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -39,13 +65,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       apiFetch<{ user: UserContext }>('/api/auth/me')
         .then((res) => {
           setUser(res.user);
-          localStorage.setItem('pos_user_context', JSON.stringify(res.user));
+          setStoredItem('pos_user_context', JSON.stringify(res.user));
         })
         .catch(() => {
           setUser(null);
           setToken(null);
-          localStorage.removeItem('pos_auth_token');
-          localStorage.removeItem('pos_user_context');
+          removeStoredItem('pos_auth_token');
+          removeStoredItem('pos_user_context');
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -65,15 +91,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setToken(res.token);
     setUser(res.user);
-    localStorage.setItem('pos_auth_token', res.token);
-    localStorage.setItem('pos_user_context', JSON.stringify(res.user));
+    setStoredItem('pos_auth_token', res.token);
+    setStoredItem('pos_user_context', JSON.stringify(res.user));
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('pos_auth_token');
-    localStorage.removeItem('pos_user_context');
+    removeStoredItem('pos_auth_token');
+    removeStoredItem('pos_user_context');
   };
 
   const can = (permission: AppPermission): boolean => {

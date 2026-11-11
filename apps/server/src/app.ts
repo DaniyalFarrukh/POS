@@ -38,6 +38,7 @@ import { requireDeviceAuth } from './auth/device-auth';
 export interface BuildAppOptions {
   logger?: boolean | object;
   db?: NodePgDatabase<typeof schema>;
+  trustProxy?: boolean | string | string[];
   deviceRateLimitMax?: number;
   deviceRateLimitWindow?: string | number;
   loginRateLimitMax?: number;
@@ -72,10 +73,20 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
             },
           };
 
+  const trustProxyEnv = process.env.TRUST_PROXY;
+  const trustProxyConfig: boolean | string | string[] =
+    options.trustProxy !== undefined
+      ? options.trustProxy
+      : trustProxyEnv === 'true'
+        ? true
+        : trustProxyEnv && trustProxyEnv !== 'false'
+          ? trustProxyEnv
+          : false;
+
   const app = Fastify({
     logger: loggerConfig,
     bodyLimit: 1048576, // 1 MiB max request body size
-    trustProxy: true,
+    trustProxy: trustProxyConfig,
   });
   const sharedInfo = getSharedInfo();
 
@@ -86,11 +97,8 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   // Enforce HTTPS in production when ENFORCE_HTTPS=true
   app.addHook('onRequest', async (request, reply) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENFORCE_HTTPS === 'true') {
-      const forwardedProto = request.headers['x-forwarded-proto'];
-      const proto = Array.isArray(forwardedProto)
-        ? forwardedProto[0]
-        : forwardedProto?.split(',')[0]?.trim() || request.protocol;
-      if (proto !== 'https' && request.url !== '/health') {
+      const isHttps = request.protocol === 'https';
+      if (!isHttps && request.url !== '/health') {
         return reply.status(403).send({
           statusCode: 403,
           error: 'Forbidden',

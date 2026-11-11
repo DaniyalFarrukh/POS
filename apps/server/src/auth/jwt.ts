@@ -1,12 +1,37 @@
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { generateUuidV7, type UserRole } from '@pos/shared';
+import { revokedTokens } from '../db/schema';
 
 const revokedUserTokenJtis = new Map<string, number>();
 
 export function revokeUserToken(jti: string, ttlMs = 7 * 24 * 60 * 60 * 1000): void {
   if (!jti) return;
   revokedUserTokenJtis.set(jti, Date.now() + ttlMs);
+}
+
+export async function persistRevokedToken(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  jti: string,
+  userId?: string,
+  ttlMs = 7 * 24 * 60 * 60 * 1000
+): Promise<void> {
+  if (!jti) return;
+  revokeUserToken(jti, ttlMs);
+  if (db && typeof db.insert === 'function') {
+    const expiresAt = new Date(Date.now() + ttlMs).toISOString();
+    const now = new Date().toISOString();
+    await db
+      .insert(revokedTokens)
+      .values({
+        jti,
+        userId: userId || null,
+        expiresAt,
+        createdAt: now,
+      })
+      .onConflictDoNothing();
+  }
 }
 
 export function isUserTokenRevoked(jti?: string): boolean {
@@ -46,6 +71,31 @@ export function getJwtSecret(): string {
   return secret || DEV_DEFAULT;
 }
 
+export function getDeviceJwtSecret(): string {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const secret = process.env.DEVICE_JWT_SECRET;
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (isProduction) {
+    if (!secret) {
+      throw new Error('FATAL: DEVICE_JWT_SECRET environment variable is required in production');
+    }
+    const DEV_DEFAULT = 'dev_pos_device_jwt_secret_change_in_production';
+    if (secret === DEV_DEFAULT) {
+      throw new Error('FATAL: Production DEVICE_JWT_SECRET cannot use default development secret');
+    }
+    if (secret.length < 32) {
+      throw new Error('FATAL: Production DEVICE_JWT_SECRET must be at least 32 characters long');
+    }
+    if (jwtSecret && secret === jwtSecret) {
+      throw new Error('FATAL: Production DEVICE_JWT_SECRET must be distinct from JWT_SECRET');
+    }
+    return secret;
+  }
+
+  return secret || jwtSecret || getJwtSecret();
+}
+
 /**
  * Normalizes and hashes a one-time registration code using SHA-256.
  * The database only stores this hash.
@@ -78,7 +128,7 @@ export function signDeviceToken(
   payload: DeviceTokenPayload,
   options?: SignDeviceTokenOptions
 ): string {
-  const secret = options?.secret || getJwtSecret();
+  const secret = options?.secret || getDeviceJwtSecret();
   const expiresIn = options?.expiresIn ?? '90d';
 
   return jwt.sign(
@@ -109,7 +159,7 @@ export function verifyDeviceToken(
   token: string,
   options?: VerifyDeviceTokenOptions
 ): DeviceTokenPayload {
-  const secret = options?.secret || getJwtSecret();
+  const secret = options?.secret || getDeviceJwtSecret();
 
   const decoded = jwt.verify(token, secret, {
     algorithms: ['HS256'],

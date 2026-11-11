@@ -20,25 +20,36 @@ import {
   getStaffList,
   createStaffMember,
   updateStaffMember,
+  CreateStaffInputSchema,
   type CreateStaffInput,
   type UpdateStaffInput,
 } from './auth';
-import type {
-  SetupInput,
-  LoginInput,
-  UnlockInput,
-  UserRole,
-  CreateProductInput,
-  UpdateProductInput,
-  ProductSearchParams,
-  CreateSupplierInput,
-  UpdateSupplierInput,
-  ReceiveGrnInput,
-  StockAdjustmentInput,
-  StockFilterParams,
-  FinalizeSaleInput,
-  InvoiceSearchParams,
+import {
+  SetupInputSchema,
+  LoginInputSchema,
+  UnlockInputSchema,
+  FinalizeSaleInputSchema,
+  type SetupInput,
+  type LoginInput,
+  type UnlockInput,
+  type UserRole,
+  type CreateProductInput,
+  type UpdateProductInput,
+  type ProductSearchParams,
+  type CreateSupplierInput,
+  type UpdateSupplierInput,
+  type ReceiveGrnInput,
+  type StockAdjustmentInput,
+  type StockFilterParams,
+  type FinalizeSaleInput,
+  type InvoiceSearchParams,
 } from '@pos/shared';
+import {
+  getCustomers,
+  getCustomerById,
+  recordCustomerReceipt,
+  type CustomerReceiptInput,
+} from './customers';
 import {
   getProducts,
   getProduct,
@@ -127,6 +138,9 @@ let win: BrowserWindow | null = null;
 let syncWorker: SyncWorker | null = null;
 
 export function registerAllIpcHandlers(): void {
+  const ALL_STAFF_ROLES: UserRole[] = ['owner', 'manager', 'accountant', 'pharmacist', 'cashier'];
+  const INVENTORY_ROLES: UserRole[] = ['owner', 'manager', 'pharmacist'];
+
   // Round-trip diagnostic ping
   registerSecureIpcHandler({
     channel: 'ping',
@@ -155,6 +169,7 @@ export function registerAllIpcHandlers(): void {
     channel: 'auth:complete-setup',
     isPublic: true,
     publicReason: 'Initial setup wizard establishes initial branch, counter, and owner credentials',
+    schema: SetupInputSchema,
     handler: async (_ctx, data: SetupInput) => completeSetup(data),
   });
 
@@ -169,12 +184,13 @@ export function registerAllIpcHandlers(): void {
     channel: 'auth:login',
     isPublic: true,
     publicReason: 'Accepts user ID and PIN to authenticate session',
+    schema: LoginInputSchema,
     handler: async (_ctx, data: LoginInput) => login(data.userId, data.pin),
   });
 
   registerSecureIpcHandler({
     channel: 'auth:logout',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async () => {
       logout();
     },
@@ -182,7 +198,7 @@ export function registerAllIpcHandlers(): void {
 
   registerSecureIpcHandler({
     channel: 'auth:lock-session',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async () => {
       lockSession();
     },
@@ -192,6 +208,7 @@ export function registerAllIpcHandlers(): void {
     channel: 'auth:unlock-session',
     isPublic: true,
     publicReason: 'Accepts PIN to unlock terminal without destroying active session',
+    schema: UnlockInputSchema,
     handler: async (_ctx, data: UnlockInput) => unlockSession(data.pin),
   });
 
@@ -212,6 +229,7 @@ export function registerAllIpcHandlers(): void {
   registerSecureIpcHandler({
     channel: 'auth:create-staff-member',
     roles: ['owner'],
+    schema: CreateStaffInputSchema,
     handler: async (_ctx, input: CreateStaffInput) => createStaffMember(input),
   });
 
@@ -225,11 +243,11 @@ export function registerAllIpcHandlers(): void {
   if (!app?.isPackaged) {
     registerSecureIpcHandler({
       channel: 'auth:test-role-action',
-      roles: ['cashier', 'pharmacist', 'owner'],
+      roles: ALL_STAFF_ROLES,
       handler: async (_ctx, requiredRole: UserRole) => {
         let allowed: UserRole[] = [];
-        if (requiredRole === 'cashier') allowed = ['cashier', 'pharmacist', 'owner'];
-        else if (requiredRole === 'pharmacist') allowed = ['pharmacist', 'owner'];
+        if (requiredRole === 'cashier') allowed = ALL_STAFF_ROLES;
+        else if (requiredRole === 'pharmacist') allowed = INVENTORY_ROLES;
         else allowed = ['owner'];
 
         const h = requireRole(allowed, (s) => ({
@@ -250,50 +268,50 @@ export function registerAllIpcHandlers(): void {
   // Products & Inventory Handlers
   registerSecureIpcHandler({
     channel: 'products:get-all',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, params: ProductSearchParams) => getProducts(params),
   });
 
   registerSecureIpcHandler({
     channel: 'products:get-one',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, id: string) => getProduct(id),
   });
 
   registerSecureIpcHandler({
     channel: 'products:create',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, input: CreateProductInput) => roleGuardedCreateProduct(input),
   });
 
   registerSecureIpcHandler({
     channel: 'products:update',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, id: string, input: UpdateProductInput) =>
       roleGuardedUpdateProduct(id, input),
   });
 
   registerSecureIpcHandler({
     channel: 'products:get-tax-categories',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async () => getTaxCategories(),
   });
 
   registerSecureIpcHandler({
     channel: 'products:import-csv',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, rows: CreateProductInput[]) => roleGuardedImportCsv(rows),
   });
 
   registerSecureIpcHandler({
     channel: 'products:search-pos-catalog',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, query: string, branchId?: string) => searchPosCatalog(query, branchId),
   });
 
   registerSecureIpcHandler({
     channel: 'products:get-substitutes',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, genericName: string, excludeProductId?: string, branchId?: string) =>
       getSubstitutes(genericName, excludeProductId, branchId),
   });
@@ -301,70 +319,71 @@ export function registerAllIpcHandlers(): void {
   // Purchasing & Suppliers Handlers
   registerSecureIpcHandler({
     channel: 'purchasing:get-suppliers',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async () => getSuppliers(),
   });
 
   registerSecureIpcHandler({
     channel: 'purchasing:get-supplier',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, id: string) => getSupplier(id),
   });
 
   registerSecureIpcHandler({
     channel: 'purchasing:create-supplier',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, input: CreateSupplierInput) => roleGuardedCreateSupplier(input),
   });
 
   registerSecureIpcHandler({
     channel: 'purchasing:update-supplier',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, id: string, input: UpdateSupplierInput) =>
       roleGuardedUpdateSupplier(id, input),
   });
 
   registerSecureIpcHandler({
     channel: 'purchasing:delete-supplier',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, id: string) => deactivateSupplier(id),
   });
 
   registerSecureIpcHandler({
     channel: 'purchasing:receive-grn',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, input: ReceiveGrnInput) => roleGuardedReceiveGrn(input),
   });
 
   // Stock Overview & Adjustment Handlers
   registerSecureIpcHandler({
     channel: 'stock:get-overview-products',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, params: StockFilterParams) => getStockOverviewByProduct(params),
   });
 
   registerSecureIpcHandler({
     channel: 'stock:get-overview-batches',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, params: StockFilterParams) => getStockOverviewByBatch(params),
   });
 
   registerSecureIpcHandler({
     channel: 'stock:adjust',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, input: StockAdjustmentInput) => roleGuardedAdjustStock(input),
   });
 
   registerSecureIpcHandler({
     channel: 'stock:get-batches-for-product',
-    roles: ['pharmacist', 'owner'],
+    roles: INVENTORY_ROLES,
     handler: async (_ctx, productId: string) => getBatchesForProduct(productId),
   });
 
   // Invoice & Sales Handlers
   registerSecureIpcHandler({
     channel: 'sales:finalize',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
+    schema: FinalizeSaleInputSchema,
     handler: async (_ctx, input: FinalizeSaleInput) => {
       const result = await roleGuardedFinalizeSale(input);
       if (syncWorker) {
@@ -376,25 +395,25 @@ export function registerAllIpcHandlers(): void {
 
   registerSecureIpcHandler({
     channel: 'invoices:get-recent',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, limit?: number) => roleGuardedGetRecentInvoices(limit),
   });
 
   registerSecureIpcHandler({
     channel: 'invoices:search',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, params?: InvoiceSearchParams) => roleGuardedSearchInvoices(params),
   });
 
   registerSecureIpcHandler({
     channel: 'invoices:get-one',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, invoiceId: string) => roleGuardedGetInvoiceById(invoiceId),
   });
 
   registerSecureIpcHandler({
     channel: 'invoices:print-receipt',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, htmlContent: string, options?: PrintReceiptOptions) =>
       printReceiptHtml(htmlContent, options),
   });
@@ -402,45 +421,75 @@ export function registerAllIpcHandlers(): void {
   // Returns & Credit Notes Handlers
   registerSecureIpcHandler({
     channel: 'returns:get-returnable',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, invoiceId: string) => roleGuardedGetReturnableLines(invoiceId),
   });
 
   registerSecureIpcHandler({
     channel: 'returns:process',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, input) => roleGuardedProcessReturn(input),
   });
 
   // Shifts & Day-End Handlers
   registerSecureIpcHandler({
     channel: 'shifts:get-current',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, counterId?: string) => roleGuardedGetCurrentShift(counterId),
   });
 
   registerSecureIpcHandler({
     channel: 'shifts:open',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, input) => roleGuardedOpenShift(input),
   });
 
   registerSecureIpcHandler({
     channel: 'shifts:close',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, input) => roleGuardedCloseShift(input),
   });
 
   registerSecureIpcHandler({
     channel: 'shifts:get-history',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async (_ctx, options) => roleGuardedGetShiftHistory(options),
+  });
+
+  // Customer Handlers (D3)
+  registerSecureIpcHandler({
+    channel: 'customers:list',
+    roles: ALL_STAFF_ROLES,
+    handler: async (_ctx, search?: string) => getCustomers(getDatabase(), search),
+  });
+
+  registerSecureIpcHandler({
+    channel: 'customers:get-by-id',
+    roles: ALL_STAFF_ROLES,
+    handler: async (_ctx, id: string) => getCustomerById(getDatabase(), id),
+  });
+
+  registerSecureIpcHandler({
+    channel: 'customers:record-receipt',
+    roles: ALL_STAFF_ROLES,
+    handler: async (ctx, input: CustomerReceiptInput) => {
+      const result = recordCustomerReceipt(getDatabase(), {
+        ...input,
+        counterId: input.counterId || ctx.counterId,
+        cashierUserId: input.cashierUserId || ctx.cashierUserId,
+        branchId: input.branchId || ctx.branchId,
+      });
+      if (syncWorker) {
+        syncWorker.triggerDebouncedSync(2000);
+      }
+      return result;
+    },
   });
 
   // System, Diagnostics, and Hardware Handlers
   registerSecureIpcHandler({
     channel: 'system:get-printers',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async () => {
       if (win && win.webContents) {
         try {
@@ -466,7 +515,7 @@ export function registerAllIpcHandlers(): void {
 
   registerSecureIpcHandler({
     channel: 'system:get-integrity-status',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async () => {
       const meta = gatherDiagnosticsMetadata();
       return {
@@ -517,7 +566,7 @@ export function registerAllIpcHandlers(): void {
 
   registerSecureIpcHandler({
     channel: 'updater:get-status',
-    roles: ['cashier', 'pharmacist', 'owner'],
+    roles: ALL_STAFF_ROLES,
     handler: async () => getUpdaterStatus(),
   });
 }

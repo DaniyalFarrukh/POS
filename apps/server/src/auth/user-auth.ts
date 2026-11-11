@@ -1,8 +1,8 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { eq, and } from 'drizzle-orm';
-import { users } from '../db/schema';
+import { users, revokedTokens } from '../db/schema';
 import { getDb } from '../db';
-import { verifyUserToken, type UserTokenPayload } from './jwt';
+import { verifyUserToken, isUserTokenRevoked, revokeUserToken, type UserTokenPayload } from './jwt';
 import { hasPermission, type AppPermission, type UserRole } from '@pos/shared';
 
 export interface UserContext {
@@ -57,6 +57,35 @@ export function requirePermission(permission: AppPermission) {
     }
 
     const db = request.server.db || getDb();
+
+    if (payload.jti) {
+      if (isUserTokenRevoked(payload.jti)) {
+        reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'User token has been revoked',
+        });
+        return;
+      }
+      try {
+        const [revoked] = await db
+          .select({ jti: revokedTokens.jti })
+          .from(revokedTokens)
+          .where(eq(revokedTokens.jti, payload.jti))
+          .limit(1);
+        if (revoked) {
+          revokeUserToken(payload.jti);
+          reply.status(401).send({
+            statusCode: 401,
+            error: 'Unauthorized',
+            message: 'User token has been revoked',
+          });
+          return;
+        }
+      } catch {
+        // In case revokedTokens table is not queried
+      }
+    }
 
     try {
       const [user] = await db
