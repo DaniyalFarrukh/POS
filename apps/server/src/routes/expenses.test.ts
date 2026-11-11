@@ -306,7 +306,7 @@ describe('ERP Expenses Module (Categories, Entries, Approvals, Recurring, Postin
 
     // Verify GL Posting:
     // Dr 6050 Repairs = 80,000
-    // Cr 2000 AP = 80,000
+    // Cr 2300 Other Payables = 80,000 (unlinked vendor routes to 2300 per F-C-03)
     const lines = await ctx.db
       .select()
       .from(journalLines)
@@ -314,11 +314,10 @@ describe('ERP Expenses Module (Categories, Entries, Approvals, Recurring, Postin
 
     expect(lines).toHaveLength(2);
     const accountMap = await getPharmacyAccountMap(ctx.db, pharmacyAId);
-    const crAP = lines.find((l) => l.accountId === accountMap.ap);
+    const crLine = lines.find((l) => l.creditPaisa === 80000);
 
-    expect(crAP).toBeDefined();
-    expect(crAP!.creditPaisa).toBe(80000);
-    expect(crAP!.partyType).toBe('supplier');
+    expect(crLine).toBeDefined();
+    expect(crLine!.accountId).toBe(accountMap.other_payables);
   });
 
   it('enforces approval workflow for expense amounts above threshold (pending_approval -> approved -> posted)', async () => {
