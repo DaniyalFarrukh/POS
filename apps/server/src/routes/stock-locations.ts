@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, asc } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, isValidUuid } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import { stockLocations, branches } from '../db/schema';
@@ -110,42 +110,46 @@ export const stockLocationRoutes: FastifyPluginAsync = async (app) => {
       const id = generateUuidV7();
       const now = new Date().toISOString();
 
-      if (data.isDefault) {
-        // Reset existing defaults in this branch
-        await db
-          .update(stockLocations)
-          .set({ isDefault: false, updatedAt: now })
-          .where(
-            and(
-              eq(stockLocations.pharmacyId, pharmacyId),
-              eq(stockLocations.branchId, data.branchId)
-            )
-          );
-      }
+      const inserted = await db.transaction(async (tx) => {
+        if (data.isDefault) {
+          // Reset existing defaults in this branch
+          await tx
+            .update(stockLocations)
+            .set({ isDefault: false, updatedAt: now })
+            .where(
+              and(
+                eq(stockLocations.pharmacyId, pharmacyId),
+                eq(stockLocations.branchId, data.branchId)
+              )
+            );
+        }
 
-      const [inserted] = await db
-        .insert(stockLocations)
-        .values({
-          id,
+        const [row] = await tx
+          .insert(stockLocations)
+          .values({
+            id,
+            pharmacyId,
+            branchId: data.branchId,
+            name: data.name,
+            code: data.code || null,
+            isDefault: data.isDefault,
+            isActive: true,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .returning();
+
+        await insertChangeLog(tx, {
           pharmacyId,
           branchId: data.branchId,
-          name: data.name,
-          code: data.code || null,
-          isDefault: data.isDefault,
-          isActive: true,
+          entity: 'stock_location',
+          entityId: id,
+          op: 'upsert',
+          data: row!,
           createdAt: now,
-          updatedAt: now,
-        })
-        .returning();
+        });
 
-      await insertChangeLog(db, {
-        pharmacyId,
-        branchId: data.branchId,
-        entity: 'stock_location',
-        entityId: id,
-        op: 'upsert',
-        data: inserted!,
-        createdAt: now,
+        return row;
       });
 
       return reply.status(201).send({ data: inserted });
@@ -161,6 +165,14 @@ export const stockLocationRoutes: FastifyPluginAsync = async (app) => {
       const user = request.userContext!;
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid stock location ID format',
+        });
+      }
 
       const [location] = await db
         .select()
@@ -187,38 +199,42 @@ export const stockLocationRoutes: FastifyPluginAsync = async (app) => {
       const data = parsed.data;
       const now = new Date().toISOString();
 
-      if (data.isDefault) {
-        await db
+      const updated = await db.transaction(async (tx) => {
+        if (data.isDefault) {
+          await tx
+            .update(stockLocations)
+            .set({ isDefault: false, updatedAt: now })
+            .where(
+              and(
+                eq(stockLocations.pharmacyId, pharmacyId),
+                eq(stockLocations.branchId, location.branchId)
+              )
+            );
+        }
+
+        const [row] = await tx
           .update(stockLocations)
-          .set({ isDefault: false, updatedAt: now })
-          .where(
-            and(
-              eq(stockLocations.pharmacyId, pharmacyId),
-              eq(stockLocations.branchId, location.branchId)
-            )
-          );
-      }
+          .set({
+            name: data.name ?? location.name,
+            code: data.code !== undefined ? data.code : location.code,
+            isDefault: data.isDefault !== undefined ? data.isDefault : location.isDefault,
+            isActive: data.isActive !== undefined ? data.isActive : location.isActive,
+            updatedAt: now,
+          })
+          .where(and(eq(stockLocations.id, id), eq(stockLocations.pharmacyId, pharmacyId)))
+          .returning();
 
-      const [updated] = await db
-        .update(stockLocations)
-        .set({
-          name: data.name ?? location.name,
-          code: data.code !== undefined ? data.code : location.code,
-          isDefault: data.isDefault !== undefined ? data.isDefault : location.isDefault,
-          isActive: data.isActive !== undefined ? data.isActive : location.isActive,
-          updatedAt: now,
-        })
-        .where(eq(stockLocations.id, id))
-        .returning();
+        await insertChangeLog(tx, {
+          pharmacyId,
+          branchId: location.branchId,
+          entity: 'stock_location',
+          entityId: id,
+          op: 'upsert',
+          data: row!,
+          createdAt: now,
+        });
 
-      await insertChangeLog(db, {
-        pharmacyId,
-        branchId: location.branchId,
-        entity: 'stock_location',
-        entityId: id,
-        op: 'upsert',
-        data: updated!,
-        createdAt: now,
+        return row;
       });
 
       return reply.status(200).send({ data: updated });

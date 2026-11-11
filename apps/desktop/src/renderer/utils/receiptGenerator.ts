@@ -110,7 +110,7 @@ export function generateThermalReceiptHtml(
       const name = line.brandName || line.genericName || 'Medicine Item';
       const batchInfo =
         showBatchExpiry && (line.batchNo || line.expiryDate)
-          ? `<div class="sub-item">${t.batch}: ${line.batchNo || 'N/A'} | ${t.exp}: ${line.expiryDate || 'N/A'}</div>`
+          ? `<div class="sub-item">${t.batch}: ${escapeHtml(line.batchNo || 'N/A')} | ${t.exp}: ${escapeHtml(line.expiryDate || 'N/A')}</div>`
           : '';
 
       return `
@@ -148,7 +148,7 @@ export function generateThermalReceiptHtml(
 <html lang="${locale}" dir="${locale === 'ur' ? 'rtl' : 'ltr'}">
 <head>
   <meta charset="utf-8">
-  <title>Receipt #${invoice.invoiceNumber}</title>
+  <title>Receipt #${escapeHtml(invoice.invoiceNumber)}</title>
   <style>
     @page {
       size: ${pageSize};
@@ -384,7 +384,7 @@ export function generateThermalReceiptHtml(
     <div class="bold">${t.fiscalHeading}</div>
     <div style="font-size: 8.5px; color: #444; margin: 2px 0;">${t.fiscalStatusOffline}</div>
     <div class="qr-placeholder">${invoice.qrPayload ? 'QR CODE' : t.fiscalQrNotice}</div>
-    <div>${t.invoiceNo}: ${invoice.fiscalInvoiceNumber || invoice.invoiceNumber}</div>
+    <div>${t.invoiceNo}: ${escapeHtml(invoice.fiscalInvoiceNumber || invoice.invoiceNumber)}</div>
     <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed #888; font-size: 8.5px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
       ${t.poweredBy}
     </div>

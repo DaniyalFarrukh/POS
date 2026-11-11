@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate, isValidUuid } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -149,7 +149,15 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
-      const body = CreateAccountSchema.parse(request.body);
+      const parsed = CreateAccountSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsed.error.issues[0]?.message || 'Invalid account payload',
+        });
+      }
+      const body = parsed.data;
 
       // Verify accountId belongs to this pharmacy and is an asset
       const [ledgerAcct] = await db
@@ -257,7 +265,15 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
-      const body = CreateTransferSchema.parse(request.body);
+      const parsed = CreateTransferSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsed.error.issues[0]?.message || 'Invalid transfer payload',
+        });
+      }
+      const body = parsed.data;
 
       if (body.fromAccountId === body.toAccountId) {
         return reply.status(400).send({
@@ -372,7 +388,24 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
       const { id } = request.params as { id: string };
-      const body = ReverseTransferSchema.parse(request.body);
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid transfer ID format',
+        });
+      }
+
+      const parsed = ReverseTransferSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsed.error.issues[0]?.message || 'Invalid reversal payload',
+        });
+      }
+      const body = parsed.data;
 
       const [transfer] = await db
         .select()
@@ -507,7 +540,15 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
-      const body = CreateDepositSchema.parse(request.body);
+      const parsed = CreateDepositSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsed.error.issues[0]?.message || 'Invalid deposit payload',
+        });
+      }
+      const body = parsed.data;
 
       // Verify source & target accounts
       const [sourceAcct] = await db
@@ -645,7 +686,24 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
       const { id } = request.params as { id: string };
-      const body = ReverseTransferSchema.parse(request.body);
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid transfer ID format',
+        });
+      }
+
+      const parsed = ReverseTransferSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsed.error.issues[0]?.message || 'Invalid reversal payload',
+        });
+      }
+      const body = parsed.data;
 
       const [deposit] = await db
         .select()
@@ -802,7 +860,15 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
-      const body = SaveReconciliationSchema.parse(request.body);
+      const parsed = SaveReconciliationSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parsed.error.issues[0]?.message || 'Invalid reconciliation payload',
+        });
+      }
+      const body = parsed.data;
 
       const [bankAcct] = await db
         .select()

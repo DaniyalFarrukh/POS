@@ -2,11 +2,13 @@ import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, sql, ilike, or } from 'drizzle-orm';
 import {
   generateUuidV7,
+  isValidUuid,
   CreatePrescriptionInputSchema,
   UpdatePrescriptionInputSchema,
   DispensePrescriptionInputSchema,
   RefillReminderQuerySchema,
 } from '@pos/shared';
+import type { DbClient } from '../sync/types';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -38,7 +40,7 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
    * Helper to write immutable prescription access log entry
    */
   async function logPrescriptionAccess(
-    db: ReturnType<typeof getDb>,
+    client: DbClient,
     pharmacyId: string,
     prescriptionId: string | null,
     userId: string,
@@ -47,7 +49,7 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       'view_detail' | 'view_list' | 'view_reminders' | 'create' | 'update' | 'dispense' | 'refill',
     details?: string
   ) {
-    await db.insert(prescriptionAccessLogs).values({
+    await client.insert(prescriptionAccessLogs).values({
       id: generateUuidV7(),
       pharmacyId,
       prescriptionId,
@@ -355,89 +357,93 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       const datePart = body.prescriptionDate.replace(/-/g, '');
       const prescriptionNumber = `RX-${datePart}-${randomSuffix}`;
 
-      // Insert prescription header
-      const [newRx] = await db
-        .insert(prescriptions)
-        .values({
-          id: prescriptionId,
+      const result = await db.transaction(async (tx) => {
+        // Insert prescription header
+        const [newRx] = await tx
+          .insert(prescriptions)
+          .values({
+            id: prescriptionId,
+            pharmacyId,
+            prescriptionNumber,
+            customerId: body.customerId || null,
+            patientName: body.patientName.trim(),
+            patientPhone: body.patientPhone?.trim() || null,
+            patientAge: body.patientAge ?? null,
+            patientGender: body.patientGender || null,
+            doctorName: body.doctorName?.trim() || null,
+            doctorRegistrationNumber: body.doctorRegistrationNumber?.trim() || null,
+            doctorClinic: body.doctorClinic?.trim() || null,
+            prescriptionDate: body.prescriptionDate,
+            diagnosis: body.diagnosis?.trim() || null,
+            repeatCount: body.repeatCount,
+            repeatsUsed: 0,
+            refillIntervalDays: body.refillIntervalDays,
+            nextRefillDate,
+            isControlledDrug: isControlled,
+            invoiceId: body.invoiceId || null,
+            status: 'active',
+            notes: body.notes?.trim() || null,
+            retentionStatus: 'active',
+            statutoryRetentionUntil,
+            createdBy: userContext.userId,
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          })
+          .returning();
+
+        // Insert prescription items
+        const itemRows = body.items.map((item) => ({
+          id: item.id || generateUuidV7(),
           pharmacyId,
-          prescriptionNumber,
-          customerId: body.customerId || null,
-          patientName: body.patientName.trim(),
-          patientPhone: body.patientPhone?.trim() || null,
-          patientAge: body.patientAge ?? null,
-          patientGender: body.patientGender || null,
-          doctorName: body.doctorName?.trim() || null,
-          doctorRegistrationNumber: body.doctorRegistrationNumber?.trim() || null,
-          doctorClinic: body.doctorClinic?.trim() || null,
-          prescriptionDate: body.prescriptionDate,
-          diagnosis: body.diagnosis?.trim() || null,
-          repeatCount: body.repeatCount,
-          repeatsUsed: 0,
-          refillIntervalDays: body.refillIntervalDays,
-          nextRefillDate,
-          isControlledDrug: isControlled,
-          invoiceId: body.invoiceId || null,
-          status: 'active',
-          notes: body.notes?.trim() || null,
-          retentionStatus: 'active',
-          statutoryRetentionUntil,
-          createdBy: userContext.userId,
+          prescriptionId,
+          productId: item.productId,
+          dosageInstructions: item.dosageInstructions.trim(),
+          quantityPrescribed: item.quantityPrescribed,
+          quantityDispensed: 0,
+          daysSupply: item.daysSupply,
+          isControlled: Boolean(item.isControlled),
+          notes: item.notes?.trim() || null,
           createdAt: nowIso,
-          updatedAt: nowIso,
-        })
-        .returning();
+        }));
 
-      // Insert prescription items
-      const itemRows = body.items.map((item) => ({
-        id: item.id || generateUuidV7(),
-        pharmacyId,
-        prescriptionId,
-        productId: item.productId,
-        dosageInstructions: item.dosageInstructions.trim(),
-        quantityPrescribed: item.quantityPrescribed,
-        quantityDispensed: 0,
-        daysSupply: item.daysSupply,
-        isControlled: Boolean(item.isControlled),
-        notes: item.notes?.trim() || null,
-        createdAt: nowIso,
-      }));
+        await tx.insert(prescriptionItems).values(itemRows);
 
-      await db.insert(prescriptionItems).values(itemRows);
+        // Log creation in access audit log
+        await logPrescriptionAccess(
+          tx,
+          pharmacyId,
+          prescriptionId,
+          userContext.userId,
+          userContext.role,
+          'create',
+          `Prescription ${prescriptionNumber} registered with ${body.items.length} items (Controlled: ${isControlled})`
+        );
 
-      // Log creation in access audit log
-      await logPrescriptionAccess(
-        db,
-        pharmacyId,
-        prescriptionId,
-        userContext.userId,
-        userContext.role,
-        'create',
-        `Prescription ${prescriptionNumber} registered with ${body.items.length} items (Controlled: ${isControlled})`
-      );
+        // Non-PHI change log for sync (no patient medical details leaked into change_log)
+        await insertChangeLog(tx, {
+          pharmacyId,
+          entity: 'prescription',
+          entityId: prescriptionId,
+          op: 'upsert',
+          data: {
+            id: prescriptionId,
+            prescriptionNumber,
+            prescriptionDate: body.prescriptionDate,
+            isControlledDrug: isControlled,
+            status: 'active',
+          },
+          createdAt: nowIso,
+        });
 
-      // Non-PHI change log for sync (no patient medical details leaked into change_log)
-      await insertChangeLog(db, {
-        pharmacyId,
-        entity: 'prescription',
-        entityId: prescriptionId,
-        op: 'upsert',
-        data: {
-          id: prescriptionId,
-          prescriptionNumber,
-          prescriptionDate: body.prescriptionDate,
-          isControlledDrug: isControlled,
-          status: 'active',
-        },
-        createdAt: nowIso,
+        return {
+          ...newRx,
+          items: itemRows,
+        };
       });
 
       return reply.status(201).send({
         success: true,
-        data: {
-          ...newRx,
-          items: itemRows,
-        },
+        data: result,
       });
     }
   );
@@ -457,6 +463,13 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       const userContext = request.userContext!;
       const pharmacyId = userContext.pharmacyId;
       const { id } = request.params as { id: string };
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid prescription ID format',
+        });
+      }
       const db = request.server.db || getDb();
 
       const [rx] = await db
@@ -568,6 +581,15 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       const userContext = request.userContext!;
       const pharmacyId = userContext.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid prescription ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
 
       const [existing] = await db
@@ -596,53 +618,59 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       const body = parseResult.data;
       const nowIso = new Date().toISOString();
 
-      const [updated] = await db
-        .update(prescriptions)
-        .set({
-          patientName:
-            body.patientName !== undefined ? body.patientName.trim() : existing.patientName,
-          patientPhone:
-            body.patientPhone !== undefined
-              ? body.patientPhone?.trim() || null
-              : existing.patientPhone,
-          patientAge: body.patientAge !== undefined ? body.patientAge : existing.patientAge,
-          patientGender:
-            body.patientGender !== undefined ? body.patientGender : existing.patientGender,
-          doctorName:
-            body.doctorName !== undefined ? body.doctorName?.trim() || null : existing.doctorName,
-          doctorRegistrationNumber:
-            body.doctorRegistrationNumber !== undefined
-              ? body.doctorRegistrationNumber?.trim() || null
-              : existing.doctorRegistrationNumber,
-          doctorClinic:
-            body.doctorClinic !== undefined
-              ? body.doctorClinic?.trim() || null
-              : existing.doctorClinic,
-          diagnosis:
-            body.diagnosis !== undefined ? body.diagnosis?.trim() || null : existing.diagnosis,
-          repeatCount: body.repeatCount !== undefined ? body.repeatCount : existing.repeatCount,
-          refillIntervalDays:
-            body.refillIntervalDays !== undefined
-              ? body.refillIntervalDays
-              : existing.refillIntervalDays,
-          isControlledDrug:
-            body.isControlledDrug !== undefined ? body.isControlledDrug : existing.isControlledDrug,
-          status: body.status !== undefined ? body.status : existing.status,
-          notes: body.notes !== undefined ? body.notes?.trim() || null : existing.notes,
-          updatedAt: nowIso,
-        })
-        .where(and(eq(prescriptions.id, id), eq(prescriptions.pharmacyId, pharmacyId)))
-        .returning();
+      const updated = await db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(prescriptions)
+          .set({
+            patientName:
+              body.patientName !== undefined ? body.patientName.trim() : existing.patientName,
+            patientPhone:
+              body.patientPhone !== undefined
+                ? body.patientPhone?.trim() || null
+                : existing.patientPhone,
+            patientAge: body.patientAge !== undefined ? body.patientAge : existing.patientAge,
+            patientGender:
+              body.patientGender !== undefined ? body.patientGender : existing.patientGender,
+            doctorName:
+              body.doctorName !== undefined ? body.doctorName?.trim() || null : existing.doctorName,
+            doctorRegistrationNumber:
+              body.doctorRegistrationNumber !== undefined
+                ? body.doctorRegistrationNumber?.trim() || null
+                : existing.doctorRegistrationNumber,
+            doctorClinic:
+              body.doctorClinic !== undefined
+                ? body.doctorClinic?.trim() || null
+                : existing.doctorClinic,
+            diagnosis:
+              body.diagnosis !== undefined ? body.diagnosis?.trim() || null : existing.diagnosis,
+            repeatCount: body.repeatCount !== undefined ? body.repeatCount : existing.repeatCount,
+            refillIntervalDays:
+              body.refillIntervalDays !== undefined
+                ? body.refillIntervalDays
+                : existing.refillIntervalDays,
+            isControlledDrug:
+              body.isControlledDrug !== undefined
+                ? body.isControlledDrug
+                : existing.isControlledDrug,
+            status: body.status !== undefined ? body.status : existing.status,
+            notes: body.notes !== undefined ? body.notes?.trim() || null : existing.notes,
+            updatedAt: nowIso,
+          })
+          .where(and(eq(prescriptions.id, id), eq(prescriptions.pharmacyId, pharmacyId)))
+          .returning();
 
-      await logPrescriptionAccess(
-        db,
-        pharmacyId,
-        id,
-        userContext.userId,
-        userContext.role,
-        'update',
-        `Prescription ${existing.prescriptionNumber} updated`
-      );
+        await logPrescriptionAccess(
+          tx,
+          pharmacyId,
+          id,
+          userContext.userId,
+          userContext.role,
+          'update',
+          `Prescription ${existing.prescriptionNumber} updated`
+        );
+
+        return row;
+      });
 
       return reply.send({
         success: true,
@@ -665,6 +693,15 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       const userContext = request.userContext!;
       const pharmacyId = userContext.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid prescription ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
 
       const [existing] = await db
@@ -678,6 +715,26 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
           success: false,
           error: 'NOT_FOUND',
           message: 'Prescription not found',
+        });
+      }
+
+      if (
+        existing.status === 'cancelled' ||
+        existing.status === 'fulfilled' ||
+        existing.status === 'expired'
+      ) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_STATUS',
+          message: `Cannot dispense prescription with status '${existing.status}'`,
+        });
+      }
+
+      if (existing.repeatsUsed >= existing.repeatCount) {
+        return reply.status(400).send({
+          success: false,
+          error: 'REPEATS_EXHAUSTED',
+          message: `Prescription has already used all ${existing.repeatCount} allowed dispensations`,
         });
       }
 
@@ -717,28 +774,32 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
         nextRefillDate = addDaysToDate(today, existing.refillIntervalDays);
       }
 
-      const [updated] = await db
-        .update(prescriptions)
-        .set({
-          invoiceId,
-          repeatsUsed,
-          status: isFulfilled ? 'fulfilled' : 'active',
-          nextRefillDate,
-          notes: notes ? `${existing.notes || ''}\n${notes}`.trim() : existing.notes,
-          updatedAt: nowIso,
-        })
-        .where(and(eq(prescriptions.id, id), eq(prescriptions.pharmacyId, pharmacyId)))
-        .returning();
+      const updated = await db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(prescriptions)
+          .set({
+            invoiceId,
+            repeatsUsed,
+            status: isFulfilled ? 'fulfilled' : 'active',
+            nextRefillDate,
+            notes: notes ? `${existing.notes || ''}\n${notes}`.trim() : existing.notes,
+            updatedAt: nowIso,
+          })
+          .where(and(eq(prescriptions.id, id), eq(prescriptions.pharmacyId, pharmacyId)))
+          .returning();
 
-      await logPrescriptionAccess(
-        db,
-        pharmacyId,
-        id,
-        userContext.userId,
-        userContext.role,
-        'dispense',
-        `Prescription ${existing.prescriptionNumber} dispensed against Invoice #${inv.invoiceNumber} (Repeats: ${repeatsUsed}/${existing.repeatCount})`
-      );
+        await logPrescriptionAccess(
+          tx,
+          pharmacyId,
+          id,
+          userContext.userId,
+          userContext.role,
+          'dispense',
+          `Prescription ${existing.prescriptionNumber} dispensed against Invoice #${inv.invoiceNumber} (Repeats: ${repeatsUsed}/${existing.repeatCount})`
+        );
+
+        return row;
+      });
 
       return reply.send({
         success: true,
@@ -761,6 +822,13 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
       const userContext = request.userContext!;
       const pharmacyId = userContext.pharmacyId;
       const { id } = request.params as { id: string };
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid prescription ID format',
+        });
+      }
       const db = request.server.db || getDb();
 
       const [rx] = await db

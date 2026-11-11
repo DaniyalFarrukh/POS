@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateUuidV7, isValidUuidV7 } from './uuid';
+import { generateUuidV7, isValidUuidV7, isValidUuid } from './uuid';
 
 describe('UUIDv7 Utility', () => {
   it('generates valid RFC 9562 UUIDv7 strings', () => {
@@ -7,11 +7,19 @@ describe('UUIDv7 Utility', () => {
     expect(id).toBeDefined();
     expect(typeof id).toBe('string');
     expect(isValidUuidV7(id)).toBe(true);
+    expect(isValidUuid(id)).toBe(true);
 
     // Character 14 should be '7' indicating version 7
     expect(id.charAt(14)).toBe('7');
     // Variant should be 8, 9, a, or b
     expect(['8', '9', 'a', 'b']).toContain(id.charAt(19).toLowerCase());
+  });
+
+  it('validates standard UUID formats and rejects non-UUID strings', () => {
+    expect(isValidUuid('123e4567-e89b-12d3-a456-426614174000')).toBe(true);
+    expect(isValidUuid('invalid-uuid')).toBe(false);
+    expect(isValidUuid('123')).toBe(false);
+    expect(isValidUuid('')).toBe(false);
   });
 
   it('generates monotonic sequential IDs over time', async () => {

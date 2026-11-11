@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc, asc, ilike, or } from 'drizzle-orm';
-import { z, generateUuidV7, normalizePhone } from '@pos/shared';
+import { z, generateUuidV7, normalizePhone, isValidUuid } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import { customers, invoices, journalEntries, journalLines, pharmacies } from '../db/schema';
@@ -269,6 +269,15 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const pharmacyId = request.userContext!.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid customer ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
 
       const [customer] = await db
@@ -330,6 +339,15 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const pharmacyId = request.userContext!.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid customer ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
 
       const [existing] = await db
@@ -384,45 +402,51 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
         }
       }
 
-      const [updated] = await db
-        .update(customers)
-        .set({
-          name: body.name !== undefined ? body.name.trim() : existing.name,
-          phone: normalized,
-          email:
-            body.email !== undefined ? (body.email ? body.email.trim() : null) : existing.email,
-          address:
-            body.address !== undefined
-              ? body.address
-                ? body.address.trim()
-                : null
-              : existing.address,
-          creditLimitPaisa:
-            body.creditLimitPaisa !== undefined ? body.creditLimitPaisa : existing.creditLimitPaisa,
-          priceTier: body.priceTier !== undefined ? body.priceTier : existing.priceTier,
-          isActive: body.isActive !== undefined ? body.isActive : existing.isActive,
-          updatedAt: nowIso,
-        })
-        .where(and(eq(customers.id, id), eq(customers.pharmacyId, pharmacyId)))
-        .returning();
+      const updated = await db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(customers)
+          .set({
+            name: body.name !== undefined ? body.name.trim() : existing.name,
+            phone: normalized,
+            email:
+              body.email !== undefined ? (body.email ? body.email.trim() : null) : existing.email,
+            address:
+              body.address !== undefined
+                ? body.address
+                  ? body.address.trim()
+                  : null
+                : existing.address,
+            creditLimitPaisa:
+              body.creditLimitPaisa !== undefined
+                ? body.creditLimitPaisa
+                : existing.creditLimitPaisa,
+            priceTier: body.priceTier !== undefined ? body.priceTier : existing.priceTier,
+            isActive: body.isActive !== undefined ? body.isActive : existing.isActive,
+            updatedAt: nowIso,
+          })
+          .where(and(eq(customers.id, id), eq(customers.pharmacyId, pharmacyId)))
+          .returning();
 
-      await insertChangeLog(db, {
-        pharmacyId,
-        entity: 'customer',
-        entityId: id,
-        op: 'upsert',
-        data: {
-          id,
-          name: updated!.name,
-          phone: updated!.phone,
-          email: updated!.email,
-          address: updated!.address,
-          creditLimitPaisa: updated!.creditLimitPaisa,
-          priceTier: updated!.priceTier,
-          isActive: updated!.isActive,
-          updatedAt: nowIso,
-        },
-        createdAt: nowIso,
+        await insertChangeLog(tx, {
+          pharmacyId,
+          entity: 'customer',
+          entityId: id,
+          op: 'upsert',
+          data: {
+            id,
+            name: row!.name,
+            phone: row!.phone,
+            email: row!.email,
+            address: row!.address,
+            creditLimitPaisa: row!.creditLimitPaisa,
+            priceTier: row!.priceTier,
+            isActive: row!.isActive,
+            updatedAt: nowIso,
+          },
+          createdAt: nowIso,
+        });
+
+        return row;
       });
 
       return reply.send({
@@ -445,6 +469,15 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const pharmacyId = request.userContext!.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid customer ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
 
       const [customer] = await db
@@ -487,6 +520,15 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const pharmacyId = request.userContext!.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid customer ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
       const query = request.query as {
         startDate?: string;
@@ -606,6 +648,15 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const pharmacyId = request.userContext!.pharmacyId;
       const { id } = request.params as { id: string };
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'INVALID_ID',
+          message: 'Invalid customer ID format',
+        });
+      }
+
       const db = request.server.db || getDb();
       const query = request.query as {
         startDate?: string;

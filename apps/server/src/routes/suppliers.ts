@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, ilike, or, inArray } from 'drizzle-orm';
-import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate, isValidUuid } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import { suppliers, journalEntries, journalLines, fiscalPeriods } from '../db/schema';
@@ -616,6 +616,14 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
 
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid supplier ID format',
+        });
+      }
+
       const [supplier] = await db
         .select()
         .from(suppliers)
@@ -721,6 +729,14 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
 
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid supplier ID format',
+        });
+      }
+
       const parsed = UpdateSupplierSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.status(400).send({
@@ -746,50 +762,55 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
       const data = parsed.data;
       const now = new Date().toISOString();
 
-      const [updated] = await db
-        .update(suppliers)
-        .set({
-          name: data.name !== undefined ? data.name : existing.name,
-          contactPerson:
-            data.contactPerson !== undefined ? data.contactPerson : existing.contactPerson,
-          phone: data.phone !== undefined ? data.phone : existing.phone,
-          email: data.email !== undefined ? (data.email ? data.email : null) : existing.email,
-          address: data.address !== undefined ? data.address : existing.address,
-          taxNumber: data.taxNumber !== undefined ? data.taxNumber : existing.taxNumber,
-          paymentTermsDays:
-            data.paymentTermsDays !== undefined ? data.paymentTermsDays : existing.paymentTermsDays,
-          creditLimitPaisa:
-            data.creditLimitPaisa !== undefined ? data.creditLimitPaisa : existing.creditLimitPaisa,
-          isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
-          updatedAt: now,
-        })
-        .where(eq(suppliers.id, id))
-        .returning();
+      const updated = await db.transaction(async (tx) => {
+        const [row] = await tx
+          .update(suppliers)
+          .set({
+            name: data.name !== undefined ? data.name : existing.name,
+            contactPerson:
+              data.contactPerson !== undefined ? data.contactPerson : existing.contactPerson,
+            phone: data.phone !== undefined ? data.phone : existing.phone,
+            email: data.email !== undefined ? (data.email ? data.email : null) : existing.email,
+            address: data.address !== undefined ? data.address : existing.address,
+            taxNumber: data.taxNumber !== undefined ? data.taxNumber : existing.taxNumber,
+            paymentTermsDays:
+              data.paymentTermsDays !== undefined
+                ? data.paymentTermsDays
+                : existing.paymentTermsDays,
+            creditLimitPaisa:
+              data.creditLimitPaisa !== undefined
+                ? data.creditLimitPaisa
+                : existing.creditLimitPaisa,
+            isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
+            updatedAt: now,
+          })
+          .where(and(eq(suppliers.id, id), eq(suppliers.pharmacyId, pharmacyId)))
+          .returning();
 
-      if (!updated) {
-        return reply.status(500).send({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update supplier',
+        if (!row) {
+          throw new Error('Failed to update supplier');
+        }
+
+        // Emit changeLog
+        await insertChangeLog(tx, {
+          pharmacyId,
+          entity: 'supplier',
+          entityId: id,
+          op: 'upsert',
+          data: {
+            id,
+            name: row.name,
+            contactPerson: row.contactPerson,
+            phone: row.phone,
+            email: row.email,
+            address: row.address,
+            isActive: row.isActive,
+            updatedAt: now,
+          },
+          createdAt: now,
         });
-      }
 
-      // Emit changeLog
-      await insertChangeLog(db, {
-        pharmacyId,
-        entity: 'supplier',
-        entityId: id,
-        op: 'upsert',
-        data: {
-          id,
-          name: updated.name,
-          contactPerson: updated.contactPerson,
-          phone: updated.phone,
-          email: updated.email,
-          address: updated.address,
-          isActive: updated.isActive,
-          updatedAt: now,
-        },
-        createdAt: now,
+        return row;
       });
 
       return reply.status(200).send({ data: updated });

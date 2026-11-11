@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, gte, lte, inArray } from 'drizzle-orm';
 import {
   generateUuidV7,
+  isValidUuid,
   calculateLeaveDays,
   calculateCarryOver,
   calculateUnpaidLeaveDeduction,
@@ -554,88 +555,88 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
 
       const nowIso = new Date().toISOString();
 
-      // 4. If paid leave, check allocation balance and reserve pending days
-      if (lt.isPaid) {
-        let [alloc] = await db
-          .select()
-          .from(leaveAllocations)
-          .where(
-            and(
-              eq(leaveAllocations.pharmacyId, pharmacyId),
-              eq(leaveAllocations.employeeId, input.employeeId),
-              eq(leaveAllocations.leaveTypeId, lt.id),
-              eq(leaveAllocations.year, reqYear)
-            )
-          );
+      const created = await db.transaction(async (tx) => {
+        // 4. If paid leave, check allocation balance and reserve pending days
+        if (lt.isPaid) {
+          let [alloc] = await tx
+            .select()
+            .from(leaveAllocations)
+            .where(
+              and(
+                eq(leaveAllocations.pharmacyId, pharmacyId),
+                eq(leaveAllocations.employeeId, input.employeeId),
+                eq(leaveAllocations.leaveTypeId, lt.id),
+                eq(leaveAllocations.year, reqYear)
+              )
+            );
 
-        if (!alloc) {
-          const allocId = generateUuidV7();
-          [alloc] = await db
-            .insert(leaveAllocations)
-            .values({
-              id: allocId,
-              pharmacyId,
-              employeeId: input.employeeId,
-              leaveTypeId: lt.id,
-              year: reqYear,
-              entitledDays: lt.yearlyEntitlementDays,
-              carriedOverDays: 0,
-              manualAdjustmentDays: 0,
-              usedDays: 0,
-              pendingDays: 0,
-              createdAt: nowIso,
+          if (!alloc) {
+            const allocId = generateUuidV7();
+            [alloc] = await tx
+              .insert(leaveAllocations)
+              .values({
+                id: allocId,
+                pharmacyId,
+                employeeId: input.employeeId,
+                leaveTypeId: lt.id,
+                year: reqYear,
+                entitledDays: lt.yearlyEntitlementDays,
+                carriedOverDays: 0,
+                manualAdjustmentDays: 0,
+                usedDays: 0,
+                pendingDays: 0,
+                createdAt: nowIso,
+                updatedAt: nowIso,
+              })
+              .returning();
+          }
+
+          if (!alloc) {
+            throw new Error('Failed to initialize leave allocation');
+          }
+
+          const totalAllocated =
+            alloc.entitledDays + alloc.carriedOverDays + alloc.manualAdjustmentDays;
+          const remaining = totalAllocated - alloc.usedDays - alloc.pendingDays;
+
+          if (remaining < daysCount) {
+            const err = new Error(
+              `Insufficient leave balance: requested ${daysCount} days, but only ${remaining} days remaining`
+            );
+            (err as unknown as { statusCode: number }).statusCode = 400;
+            throw err;
+          }
+
+          // Reserve pending days
+          await tx
+            .update(leaveAllocations)
+            .set({
+              pendingDays: alloc.pendingDays + daysCount,
               updatedAt: nowIso,
             })
-            .returning();
+            .where(eq(leaveAllocations.id, alloc.id));
         }
 
-        if (!alloc) {
-          return reply.status(500).send({
-            statusCode: 500,
-            error: 'Internal Server Error',
-            message: 'Failed to initialize leave allocation',
-          });
-        }
-
-        const totalAllocated =
-          alloc.entitledDays + alloc.carriedOverDays + alloc.manualAdjustmentDays;
-        const remaining = totalAllocated - alloc.usedDays - alloc.pendingDays;
-
-        if (remaining < daysCount) {
-          return reply.status(400).send({
-            statusCode: 400,
-            error: 'Bad Request',
-            message: `Insufficient leave balance: requested ${daysCount} days, but only ${remaining} days remaining`,
-          });
-        }
-
-        // Reserve pending days
-        await db
-          .update(leaveAllocations)
-          .set({
-            pendingDays: alloc.pendingDays + daysCount,
+        const reqId = generateUuidV7();
+        const [row] = await tx
+          .insert(leaveRequests)
+          .values({
+            id: reqId,
+            pharmacyId,
+            employeeId: input.employeeId,
+            leaveTypeId: input.leaveTypeId,
+            startDate: input.startDate,
+            endDate: input.endDate,
+            daysCount,
+            reason: input.reason,
+            status: 'pending',
+            createdAt: nowIso,
             updatedAt: nowIso,
           })
-          .where(eq(leaveAllocations.id, alloc.id));
-      }
+          .returning();
 
-      const reqId = generateUuidV7();
-      const [created] = await db
-        .insert(leaveRequests)
-        .values({
-          id: reqId,
-          pharmacyId,
-          employeeId: input.employeeId,
-          leaveTypeId: input.leaveTypeId,
-          startDate: input.startDate,
-          endDate: input.endDate,
-          daysCount,
-          reason: input.reason,
-          status: 'pending',
-          createdAt: nowIso,
-          updatedAt: nowIso,
-        })
-        .returning();
+        return row;
+      });
 
       return reply.status(201).send({ success: true, data: created });
     }
@@ -649,6 +650,14 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
       const { pharmacyId, userId } = request.userContext!;
       const db = request.server.db || getDb();
       const { id } = request.params;
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid leave request ID format',
+        });
+      }
 
       const [req] = await db
         .select()
@@ -678,88 +687,92 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
       const nowIso = new Date().toISOString();
       const reqYear = parseInt(req.startDate.substring(0, 4), 10);
 
-      // 1. Update allocation: move from pending to used
-      if (lt && lt.isPaid) {
-        const [alloc] = await db
-          .select()
-          .from(leaveAllocations)
-          .where(
-            and(
-              eq(leaveAllocations.pharmacyId, pharmacyId),
-              eq(leaveAllocations.employeeId, req.employeeId),
-              eq(leaveAllocations.leaveTypeId, lt.id),
-              eq(leaveAllocations.year, reqYear)
-            )
-          );
+      const updatedReq = await db.transaction(async (tx) => {
+        // 1. Update allocation: move from pending to used
+        if (lt && lt.isPaid) {
+          const [alloc] = await tx
+            .select()
+            .from(leaveAllocations)
+            .where(
+              and(
+                eq(leaveAllocations.pharmacyId, pharmacyId),
+                eq(leaveAllocations.employeeId, req.employeeId),
+                eq(leaveAllocations.leaveTypeId, lt.id),
+                eq(leaveAllocations.year, reqYear)
+              )
+            );
 
-        if (alloc) {
-          await db
-            .update(leaveAllocations)
-            .set({
-              pendingDays: Math.max(0, alloc.pendingDays - req.daysCount),
-              usedDays: alloc.usedDays + req.daysCount,
-              updatedAt: nowIso,
-            })
-            .where(eq(leaveAllocations.id, alloc.id));
+          if (alloc) {
+            await tx
+              .update(leaveAllocations)
+              .set({
+                pendingDays: Math.max(0, alloc.pendingDays - req.daysCount),
+                usedDays: alloc.usedDays + req.daysCount,
+                updatedAt: nowIso,
+              })
+              .where(eq(leaveAllocations.id, alloc.id));
+          }
         }
-      }
 
-      // 2. Mark attendance records as on_leave for all dates in range
-      const startDateObj = new Date(`${req.startDate}T00:00:00Z`);
-      const endDateObj = new Date(`${req.endDate}T00:00:00Z`);
-      const curDate = new Date(startDateObj);
+        // 2. Mark attendance records as on_leave for all dates in range
+        const startDateObj = new Date(`${req.startDate}T00:00:00Z`);
+        const endDateObj = new Date(`${req.endDate}T00:00:00Z`);
+        const curDate = new Date(startDateObj);
 
-      while (curDate <= endDateObj) {
-        const dateStr = curDate.toISOString().substring(0, 10);
+        while (curDate <= endDateObj) {
+          const dateStr = curDate.toISOString().substring(0, 10);
 
-        const [existingAtt] = await db
-          .select()
-          .from(attendanceRecords)
-          .where(
-            and(
-              eq(attendanceRecords.pharmacyId, pharmacyId),
-              eq(attendanceRecords.employeeId, req.employeeId),
-              eq(attendanceRecords.date, dateStr)
-            )
-          );
+          const [existingAtt] = await tx
+            .select()
+            .from(attendanceRecords)
+            .where(
+              and(
+                eq(attendanceRecords.pharmacyId, pharmacyId),
+                eq(attendanceRecords.employeeId, req.employeeId),
+                eq(attendanceRecords.date, dateStr)
+              )
+            );
 
-        if (existingAtt) {
-          await db
-            .update(attendanceRecords)
-            .set({
+          if (existingAtt) {
+            await tx
+              .update(attendanceRecords)
+              .set({
+                status: 'on_leave',
+                leaveRequestId: req.id,
+                updatedAt: nowIso,
+              })
+              .where(eq(attendanceRecords.id, existingAtt.id));
+          } else {
+            await tx.insert(attendanceRecords).values({
+              id: generateUuidV7(),
+              pharmacyId,
+              branchId: emp?.branchId || null,
+              employeeId: req.employeeId,
+              date: dateStr,
               status: 'on_leave',
               leaveRequestId: req.id,
+              createdAt: nowIso,
               updatedAt: nowIso,
-            })
-            .where(eq(attendanceRecords.id, existingAtt.id));
-        } else {
-          await db.insert(attendanceRecords).values({
-            id: generateUuidV7(),
-            pharmacyId,
-            branchId: emp?.branchId || null,
-            employeeId: req.employeeId,
-            date: dateStr,
-            status: 'on_leave',
-            leaveRequestId: req.id,
-            createdAt: nowIso,
-            updatedAt: nowIso,
-          });
+            });
+          }
+
+          curDate.setUTCDate(curDate.getUTCDate() + 1);
         }
 
-        curDate.setUTCDate(curDate.getUTCDate() + 1);
-      }
+        // 3. Mark request approved
+        const [row] = await tx
+          .update(leaveRequests)
+          .set({
+            status: 'approved',
+            approvedBy: userId,
+            approvedAt: nowIso,
+            updatedAt: nowIso,
+          })
+          .where(eq(leaveRequests.id, req.id))
+          .returning();
 
-      // 3. Mark request approved
-      const [updatedReq] = await db
-        .update(leaveRequests)
-        .set({
-          status: 'approved',
-          approvedBy: userId,
-          approvedAt: nowIso,
-          updatedAt: nowIso,
-        })
-        .where(eq(leaveRequests.id, req.id))
-        .returning();
+        return row;
+      });
 
       return reply.send({ success: true, data: updatedReq });
     }
@@ -773,6 +786,14 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
       const { pharmacyId } = request.userContext!;
       const db = request.server.db || getDb();
       const { id } = request.params;
+
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid leave request ID format',
+        });
+      }
 
       const parsed = RejectLeaveRequestSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -809,40 +830,44 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
       const nowIso = new Date().toISOString();
       const reqYear = parseInt(req.startDate.substring(0, 4), 10);
 
-      // Restore pending days
-      if (lt && lt.isPaid) {
-        const [alloc] = await db
-          .select()
-          .from(leaveAllocations)
-          .where(
-            and(
-              eq(leaveAllocations.pharmacyId, pharmacyId),
-              eq(leaveAllocations.employeeId, req.employeeId),
-              eq(leaveAllocations.leaveTypeId, lt.id),
-              eq(leaveAllocations.year, reqYear)
-            )
-          );
+      const updatedReq = await db.transaction(async (tx) => {
+        // Restore pending days
+        if (lt && lt.isPaid) {
+          const [alloc] = await tx
+            .select()
+            .from(leaveAllocations)
+            .where(
+              and(
+                eq(leaveAllocations.pharmacyId, pharmacyId),
+                eq(leaveAllocations.employeeId, req.employeeId),
+                eq(leaveAllocations.leaveTypeId, lt.id),
+                eq(leaveAllocations.year, reqYear)
+              )
+            );
 
-        if (alloc) {
-          await db
-            .update(leaveAllocations)
-            .set({
-              pendingDays: Math.max(0, alloc.pendingDays - req.daysCount),
-              updatedAt: nowIso,
-            })
-            .where(eq(leaveAllocations.id, alloc.id));
+          if (alloc) {
+            await tx
+              .update(leaveAllocations)
+              .set({
+                pendingDays: Math.max(0, alloc.pendingDays - req.daysCount),
+                updatedAt: nowIso,
+              })
+              .where(eq(leaveAllocations.id, alloc.id));
+          }
         }
-      }
 
-      const [updatedReq] = await db
-        .update(leaveRequests)
-        .set({
-          status: 'rejected',
-          rejectionReason: parsed.data.rejectionReason,
-          updatedAt: nowIso,
-        })
-        .where(eq(leaveRequests.id, req.id))
-        .returning();
+        const [row] = await tx
+          .update(leaveRequests)
+          .set({
+            status: 'rejected',
+            rejectionReason: parsed.data.rejectionReason,
+            updatedAt: nowIso,
+          })
+          .where(eq(leaveRequests.id, req.id))
+          .returning();
+
+        return row;
+      });
 
       return reply.send({ success: true, data: updatedReq });
     }

@@ -206,6 +206,47 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     expect(htmlUrdu).toContain('پاورڈ بائی ہیکسالوجک ٹیک');
   });
 
+  it('escapes HTML in batchNo, expiryDate, invoiceNumber and fiscalInvoiceNumber to prevent XSS (F-M-08)', () => {
+    const maliciousInvoice: ReceiptInvoiceData = {
+      id: generateUuidV7(),
+      invoiceNumber: '<script>alert("inv")</script>',
+      fiscalInvoiceNumber: '<img src=x onerror=alert(1)>',
+      createdAt: '2026-10-26T14:30:00.000Z',
+      subtotalPaisa: 20000,
+      discountPaisa: 0,
+      taxPaisa: 0,
+      totalPaisa: 20000,
+      customerName: 'Safe Customer',
+      cashierName: 'Cashier 1',
+      counterName: 'Counter 1',
+      branchName: 'Main Branch',
+      branchAddress: 'Address',
+      lines: [
+        {
+          id: 'l1',
+          brandName: 'Test Med',
+          batchNo: '<b>BATCH-1</b>',
+          expiryDate: '"><script>alert(2)</script>',
+          quantity: 1,
+          unitPricePaisa: 20000,
+          lineTotalPaisa: 20000,
+        },
+      ],
+      payments: [{ method: 'cash', amountPaisa: 20000 }],
+    };
+
+    const html = generateThermalReceiptHtml(maliciousInvoice, { showBatchExpiry: true });
+    expect(html).not.toContain('<script>alert("inv")</script>');
+    expect(html).not.toContain('<img src=x onerror=alert(1)>');
+    expect(html).not.toContain('<b>BATCH-1</b>');
+    expect(html).not.toContain('"><script>alert(2)</script>');
+
+    expect(html).toContain('&lt;script&gt;alert(&quot;inv&quot;)&lt;/script&gt;');
+    expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
+    expect(html).toContain('&lt;b&gt;BATCH-1&lt;/b&gt;');
+    expect(html).toContain('&quot;&gt;&lt;script&gt;alert(2)&lt;/script&gt;');
+  });
+
   it('finalizes a sale via roleGuardedFinalizeSale with split payments and persists to DB', async () => {
     // 2 units of Augmentin: 2 * 10000 + 18% tax = 23600 paisa
     // Split payment: Cash Rs. 136.00 (13600 paisa) + Card Rs. 100.00 (10000 paisa) = exactly 23600 paisa
