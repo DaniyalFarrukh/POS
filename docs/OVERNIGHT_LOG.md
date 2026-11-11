@@ -182,3 +182,17 @@
 - **Test Results:** `sales-ledger.test.ts`: `6 passed (6)`; `suppliers.test.ts`: `11 passed (11)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
 - **Decisions Made:** Changed status filter in `sales-ledger.ts:121` to `inArray(invoices.status, ['finalized', 'completed'])`; updated `purchaseCount` check in `suppliers.ts:162` to include `'purchase'`, `'purchase.received'`, and `'po_receipt'`; updated `suppliers.ts:683` statement query to filter `inArray(journalEntries.sourceType, ['purchase', 'purchase.received', 'po_receipt'])`.
 - **NEEDS-REVIEW:** None.
+
+### Task 1.5 — Invert Stage 3 Reproductions to Regressions & Ledger Audit Script
+- **Finding IDs:** `F-C-02`, `F-C-03`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `tests/audit-final/stage3-ledger-simulation.test.ts`
+  - `apps/server/src/scripts/repair-ledger-audit.ts` (added)
+  - `apps/server/src/scripts/repair-ledger-audit.test.ts` (added)
+- **Tests Added:**
+  - `tests/audit-final/stage3-ledger-simulation.test.ts`: test 3.3 inverted to assert 0 reconciliation differences (`status: 'passed'`, `count: 0`) after credit expenses and customer receipt reversals.
+  - `apps/server/src/scripts/repair-ledger-audit.test.ts`: test verifying non-destructive diagnostic scan across legacy reversing entries and unlinked party lines.
+- **Test Results:** `stage3-ledger-simulation.test.ts`: `4 passed (4)` across full 5,050 documents and 100k line benchmark; `repair-ledger-audit.test.ts`: `1 passed (1)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Inverted Stage 3 reproduction test 3.3 to regression assertion; implemented `runLedgerRepairScan` diagnostic tool respecting DB-level ledger immutability triggers.
+- **NEEDS-REVIEW:** None.
