@@ -12,7 +12,7 @@
   - [x] `F-H-01`: Register `0021_notifications_and_audit_logs` properly in Drizzle journal and test migrations on empty + previous-version DB
   - [x] `F-M-01`: Replace hardcoded dates in `prescriptions.test.ts` with dynamic dates relative to test clock
   - [x] `F-M-02`: Exclude `*.test.ts` from `@pos/server` build output (`tsconfig.json` & `vitest.config.ts`)
-  - [ ] `F-M-03`: Fix `minimatch` vulnerability so `pnpm audit` exits `0`
+  - [x] `F-M-03`: Fix `minimatch` vulnerability so `pnpm audit` exits `0`
   - [ ] `F-M-04`: Update `.github/workflows/ci.yml` (`format:check`, `lint`, `typecheck`, tests with Postgres & `DEVICE_JWT_SECRET`, `pnpm audit`, production builds, all branches/PRs)
   - [ ] `F-L-01` & `F-L-02`: Add `.gitattributes` (`eol=lf`), move `pnpm` build settings to `pnpm-workspace.yaml`, fix Electron extraction race
 - **BATCH 1: Ledger Correctness (HIGH RISK — `NEEDS-REVIEW`)**
@@ -84,4 +84,16 @@
 - **Tests Added:** `F-M-02` test in `apps/server/src/app.test.ts` verifying `exclude` in `apps/server/tsconfig.json` and `vitest.config.ts`.
 - **Test Results:** `app.test.ts`: `2 passed (2)`; `dist test files count`: `0`; `eslint`: `0 errors`; `tsc`: `0 errors`.
 - **Decisions Made:** Excluded `src/**/*.test.ts` in both `apps/server/tsconfig.json` and `packages/shared/tsconfig.json`, and excluded `**/dist/**`, `**/dist-electron/**`, `**/dist-release/**` in root `vitest.config.ts`.
+- **NEEDS-REVIEW:** None.
+
+### Task 0.5 — `F-M-03`: Fix `minimatch` Vulnerability (`GHSA-g3hv-75wg-m249`)
+- **Finding IDs:** `F-M-03`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `pnpm-workspace.yaml`
+  - `pnpm-lock.yaml`
+  - `apps/server/src/app.test.ts`
+- **Tests Added:** `F-M-03` test in `apps/server/src/app.test.ts` asserting `minimatch: '>=11.0.1'` override in `pnpm-workspace.yaml`.
+- **Test Results:** `pnpm audit`: `No known vulnerabilities found (exit code 0)`; `app.test.ts`: `3 passed (3)`; `typecheck`: `0 errors`.
+- **Decisions Made:** Added `minimatch: '>=11.0.1'` to `pnpm-workspace.yaml` `overrides` and updated `pnpm-lock.yaml`.
 - **NEEDS-REVIEW:** None.

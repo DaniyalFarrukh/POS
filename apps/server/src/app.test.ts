@@ -35,4 +35,12 @@ describe('GET /health', () => {
     );
     expect(rootVitestConfig).toContain('**/dist/**');
   });
+
+  it('F-M-03: overrides minimatch to >=11.0.1 in pnpm-workspace.yaml so pnpm audit exits 0', () => {
+    const workspaceYaml = fs.readFileSync(
+      path.resolve(__dirname, '../../../pnpm-workspace.yaml'),
+      'utf8'
+    );
+    expect(workspaceYaml).toContain("minimatch: '>=11.0.1'");
+  });
 });

@@ -4,6 +4,7 @@ packages:
   - 'tests/*'
 overrides:
   esbuild: '>=0.25.0'
+  minimatch: '>=11.0.1'
 allowBuilds:
   electron: true
   electron-winstaller: true
