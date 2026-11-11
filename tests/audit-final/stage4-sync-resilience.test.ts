@@ -1087,7 +1087,13 @@ describe('Stage 4 Final Audit: Sync & Offline Guarantees', () => {
       { serverUrl: 'http://localhost:3000', token: 'tok-1' }
     );
 
-    expect(warnings.some((w) => w.includes('Unknown entity type "customer"'))).toBe(true);
+    expect(warnings.some((w) => w.includes('Unknown entity type "customer"'))).toBe(false);
+    const pulledCustomer = localDb
+      .prepare('SELECT * FROM customers WHERE id = ?')
+      .get(customerId) as { name: string; credit_limit_paisa: number } | undefined;
+    expect(pulledCustomer).toBeDefined();
+    expect(pulledCustomer?.name).toBe('Counter Sync Customer Updated');
+    expect(pulledCustomer?.credit_limit_paisa).toBe(100_000);
 
     localDb.close();
   });

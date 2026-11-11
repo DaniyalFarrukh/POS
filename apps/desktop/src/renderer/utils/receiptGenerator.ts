@@ -15,7 +15,7 @@ export interface ReceiptLineItem {
 }
 
 export interface ReceiptPaymentItem {
-  method: 'cash' | 'card' | 'wallet' | 'bank' | 'other';
+  method: 'cash' | 'card' | 'wallet' | 'bank' | 'credit' | 'other';
   amountPaisa: number;
   tenderedPaisa?: number | null;
   changePaisa?: number | null;

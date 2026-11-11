@@ -244,6 +244,27 @@ export const outbox = sqliteTable(
   ]
 );
 
+export const customers = sqliteTable(
+  'customers',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    phone: text('phone'),
+    email: text('email'),
+    address: text('address'),
+    cnic: text('cnic'),
+    creditLimitPaisa: integer('credit_limit_paisa').notNull().default(0),
+    balancePaisa: integer('balance_paisa').notNull().default(0),
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    index('idx_customers_phone').on(table.phone),
+    index('idx_customers_name').on(table.name),
+  ]
+);
+
 export const invoices = sqliteTable(
   'invoices',
   {
@@ -254,6 +275,7 @@ export const invoices = sqliteTable(
     cashierUserId: text('cashier_user_id')
       .notNull()
       .references(() => users.id),
+    customerId: text('customer_id').references(() => customers.id),
     invoiceNumber: text('invoice_number').notNull(),
     clientRequestId: text('client_request_id').notNull(),
     status: text('status', { enum: ['finalized'] })
@@ -304,7 +326,7 @@ export const payments = sqliteTable(
     invoiceId: text('invoice_id')
       .notNull()
       .references(() => invoices.id),
-    method: text('method', { enum: ['cash', 'card', 'wallet'] }).notNull(),
+    method: text('method', { enum: ['cash', 'card', 'wallet', 'credit'] }).notNull(),
     amountPaisa: integer('amount_paisa').notNull(),
   },
   (table) => [index('idx_payments_invoice').on(table.invoiceId)]

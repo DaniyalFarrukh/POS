@@ -25,6 +25,39 @@ export interface PullAndApplyParams {
   limit?: number;
 }
 
+const ENTITY_PRIORITY: Record<string, number> = {
+  branch: 10,
+  branches: 10,
+  tax_category: 20,
+  tax_categories: 20,
+  product: 30,
+  products: 30,
+  supplier: 40,
+  suppliers: 40,
+  customer: 50,
+  customers: 50,
+  user: 60,
+  users: 60,
+  counter: 70,
+  counters: 70,
+  stock_location: 80,
+  stock_locations: 80,
+  batch: 90,
+  batches: 90,
+  stock_movement: 100,
+  stock_movements: 100,
+  invoice: 110,
+  invoices: 110,
+  invoice_line: 120,
+  invoice_lines: 120,
+  payment: 130,
+  payments: 130,
+  credit_note: 140,
+  credit_notes: 140,
+  credit_note_line: 150,
+  credit_note_lines: 150,
+};
+
 /**
  * Executes the client pull step per docs/SYNC_CLIENT.md:
  * - Loops GET /sync/pull?cursor=&limit=200 while hasMore
@@ -117,7 +150,28 @@ export async function pullAndApply(
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       code = excluded.code,
+      last_invoice_seq = MAX(counters.last_invoice_seq, excluded.last_invoice_seq),
+      last_credit_note_seq = MAX(counters.last_credit_note_seq, excluded.last_credit_note_seq),
       updated_at = excluded.updated_at
+  `);
+
+  const upsertCustomerStmt = db.prepare(`
+    INSERT INTO customers (
+      id, name, phone, email, address, cnic, credit_limit_paisa, balance_paisa, is_active, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      phone = excluded.phone,
+      email = excluded.email,
+      address = excluded.address,
+      cnic = excluded.cnic,
+      credit_limit_paisa = excluded.credit_limit_paisa,
+      balance_paisa = excluded.balance_paisa,
+      is_active = excluded.is_active,
+      updated_at = excluded.updated_at
+  `);
+  const deleteCustomerStmt = db.prepare(`
+    UPDATE customers SET is_active = 0, updated_at = ? WHERE id = ?
   `);
 
   const upsertUserStmt = db.prepare(`
@@ -327,6 +381,36 @@ export async function pullAndApply(
         break;
       }
 
+      case 'customer':
+      case 'customers': {
+        if (op === 'delete') {
+          deleteCustomerStmt.run(now, change.entityId);
+        } else {
+          upsertCustomerStmt.run(
+            change.entityId,
+            (data.name || '') as string,
+            (data.phone ?? null) as string | null,
+            (data.email ?? null) as string | null,
+            (data.address ?? null) as string | null,
+            (data.cnic ?? null) as string | null,
+            Number(data.creditLimitPaisa || data.credit_limit_paisa || 0),
+            Number(data.balancePaisa || data.balance_paisa || 0),
+            (
+              data.isActive !== undefined
+                ? data.isActive
+                : data.is_active !== undefined
+                  ? data.is_active
+                  : true
+            )
+              ? 1
+              : 0,
+            (data.createdAt || data.created_at || now) as string,
+            (data.updatedAt || data.updated_at || now) as string
+          );
+        }
+        break;
+      }
+
       case 'stock_location':
       case 'stock_locations': {
         if (op === 'delete') {
@@ -524,8 +608,15 @@ export async function pullAndApply(
     // 3. Apply this page in ONE atomic database transaction
     try {
       const applyPageTx = db.transaction(() => {
-        // Sort in monotonic seq order
-        const sortedChanges = [...changes].sort((a, b) => a.seq - b.seq);
+        // Sort topologically so parent entities apply before child entities (F-M-07)
+        const sortedChanges = [...changes].sort((a, b) => {
+          const prioA = ENTITY_PRIORITY[a.entity] ?? 999;
+          const prioB = ENTITY_PRIORITY[b.entity] ?? 999;
+          if (prioA !== prioB) {
+            return prioA - prioB;
+          }
+          return a.seq - b.seq;
+        });
         for (const change of sortedChanges) {
           applyChange(change, now);
         }

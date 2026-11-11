@@ -18,7 +18,7 @@ export interface FinalizeSaleLineInput {
 }
 
 export interface FinalizeSalePaymentInput {
-  method: 'cash' | 'card' | 'wallet';
+  method: 'cash' | 'card' | 'wallet' | 'credit';
   amountPaisa: number;
 }
 
@@ -26,6 +26,7 @@ export interface FinalizeSaleInput {
   clientRequestId: string;
   counterId: string;
   cashierUserId: string;
+  customerId?: string | null;
   lines: FinalizeSaleLineInput[];
   payments: FinalizeSalePaymentInput[];
   notes?: string | null;
@@ -52,7 +53,7 @@ export interface FinalizedInvoiceLine {
 export interface FinalizedInvoicePayment {
   id: string;
   invoiceId: string;
-  method: 'cash' | 'card' | 'wallet';
+  method: 'cash' | 'card' | 'wallet' | 'credit';
   amountPaisa: number;
 }
 
@@ -61,6 +62,7 @@ export interface FinalizedInvoice {
   invoiceNumber: string;
   counterId: string;
   cashierUserId: string;
+  customerId?: string | null;
   clientRequestId: string;
   status: 'finalized';
   subtotalPaisa: number;
@@ -138,6 +140,7 @@ interface InvoiceDbRow {
   id: string;
   counter_id: string;
   cashier_user_id: string;
+  customer_id?: string | null;
   invoice_number: string;
   client_request_id: string;
   status: 'finalized';
@@ -191,7 +194,7 @@ function loadExistingInvoice(db: DatabaseInstance, inv: InvoiceDbRow): Finalized
     .all(inv.id) as {
     id: string;
     invoice_id: string;
-    method: 'cash' | 'card' | 'wallet';
+    method: 'cash' | 'card' | 'wallet' | 'credit';
     amount_paisa: number;
   }[];
 
@@ -204,6 +207,7 @@ function loadExistingInvoice(db: DatabaseInstance, inv: InvoiceDbRow): Finalized
     invoiceNumber: inv.invoice_number,
     counterId: inv.counter_id,
     cashierUserId: inv.cashier_user_id,
+    customerId: inv.customer_id ?? null,
     clientRequestId: inv.client_request_id,
     status: inv.status,
     subtotalPaisa: inv.subtotal_paisa,
@@ -315,10 +319,10 @@ export function finalizeSale(
   );
   const insertInvoiceStmt = db.prepare(`
     INSERT INTO invoices (
-      id, counter_id, cashier_user_id, invoice_number, client_request_id,
+      id, counter_id, cashier_user_id, customer_id, invoice_number, client_request_id,
       status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa,
       notes, created_at
-    ) VALUES (?, ?, ?, ?, ?, 'finalized', ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, 'finalized', ?, ?, ?, ?, ?, ?)
   `);
   const insertLineStmt = db.prepare(`
     INSERT INTO invoice_lines (
@@ -550,10 +554,11 @@ export function finalizeSale(
 
     // Validate payments
     let totalPaidPaisa = 0;
+    let creditPaidPaisa = 0;
     for (const p of input.payments) {
-      if (!['cash', 'card', 'wallet'].includes(p.method)) {
+      if (!['cash', 'card', 'wallet', 'credit'].includes(p.method)) {
         throw new Error(
-          `Invalid payment method: "${p.method}". Must be 'cash', 'card', or 'wallet'.`
+          `Invalid payment method: "${p.method}". Must be 'cash', 'card', 'wallet', or 'credit'.`
         );
       }
       assertIntegerPaisa(p.amountPaisa, 'payment.amountPaisa');
@@ -561,12 +566,48 @@ export function finalizeSale(
         throw new Error(`Payment amount must be positive, received: ${p.amountPaisa}`);
       }
       totalPaidPaisa += p.amountPaisa;
+      if (p.method === 'credit') {
+        creditPaidPaisa += p.amountPaisa;
+      }
     }
 
     if (totalPaidPaisa !== invoiceTotals.grandTotalPaisa) {
       throw new Error(
         `Payment total (${totalPaidPaisa} paisa) does not match invoice total (${invoiceTotals.grandTotalPaisa} paisa)`
       );
+    }
+
+    if (creditPaidPaisa > 0) {
+      if (!input.customerId) {
+        throw new Error('Credit payment requires a valid customerId');
+      }
+      const customer = db
+        .prepare(
+          'SELECT id, name, credit_limit_paisa, balance_paisa, is_active FROM customers WHERE id = ?'
+        )
+        .get(input.customerId) as
+        | {
+            id: string;
+            name: string;
+            credit_limit_paisa: number;
+            balance_paisa: number;
+            is_active: number;
+          }
+        | undefined;
+      if (!customer) {
+        throw new Error(`Customer not found with id: ${input.customerId}`);
+      }
+      if (customer.is_active !== 1) {
+        throw new Error(`Customer ${customer.name} is inactive`);
+      }
+      if (
+        customer.credit_limit_paisa > 0 &&
+        customer.balance_paisa + creditPaidPaisa > customer.credit_limit_paisa
+      ) {
+        throw new Error(
+          `Credit limit exceeded for customer ${customer.name}: limit is ${customer.credit_limit_paisa} paisa, current balance is ${customer.balance_paisa} paisa, attempted credit is ${creditPaidPaisa} paisa`
+        );
+      }
     }
 
     // 5. Increment Counter Sequence & Format Invoice Number (atomic rollback on failure)
@@ -579,11 +620,19 @@ export function finalizeSale(
     const now = new Date().toISOString();
     const invoiceId = generateUuidV7();
 
+    // If credit payment was made, update customer balance
+    if (creditPaidPaisa > 0 && input.customerId) {
+      db.prepare(
+        'UPDATE customers SET balance_paisa = balance_paisa + ?, updated_at = ? WHERE id = ?'
+      ).run(creditPaidPaisa, now, input.customerId);
+    }
+
     // 6. Insert Invoice Header
     insertInvoiceStmt.run(
       invoiceId,
       input.counterId,
       input.cashierUserId,
+      input.customerId ?? null,
       invoiceNumber,
       input.clientRequestId,
       invoiceTotals.subtotalPaisa,
@@ -671,6 +720,7 @@ export function finalizeSale(
       invoiceNumber,
       counterId: input.counterId,
       cashierUserId: input.cashierUserId,
+      customerId: input.customerId ?? null,
       clientRequestId: input.clientRequestId,
       status: 'finalized',
       subtotalPaisa: invoiceTotals.subtotalPaisa,

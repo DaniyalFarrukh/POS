@@ -3,12 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { generateUuidV7, type SyncEventEnvelope } from '../../packages/shared/src/index';
-import {
-  initDatabase,
-  closeDatabase,
-  getDatabase,
-  getDbMetadata,
-} from '../../apps/desktop/src/main/db';
+import { initDatabase, closeDatabase, getDatabase } from '../../apps/desktop/src/main/db';
 import {
   createDatabaseBackup,
   restoreDatabaseBackup,
@@ -311,13 +306,15 @@ describe('Stage 6 — Backup/Restore End-to-End & Operational Verification', () 
     closeDatabase();
 
     initDatabase(activeDbPath);
-    const futureRestoreRes = await restoreDatabaseBackup(futureBackupInfo.filename, 'owner', {
-      customDir: backupDir,
-      targetDbPath: activeDbPath,
-      shouldRelaunch: false,
-    });
-    expect(futureRestoreRes.success).toBe(true);
-    expect(getDbMetadata().schemaVersion).toBe(999);
+    await expect(
+      restoreDatabaseBackup(futureBackupInfo.filename, 'owner', {
+        customDir: backupDir,
+        targetDbPath: activeDbPath,
+        shouldRelaunch: false,
+      })
+    ).rejects.toThrow(
+      /Cannot restore backup: backup was created with a newer software schema version/
+    );
 
     // 4. Reproduce F-M-09 (b): Restoring a backup taken at seq=1 after seq=2 was already pushed to server causes invoiceNumber collision on next sale
     closeDatabase();
@@ -521,10 +518,10 @@ describe('Stage 6 — Backup/Restore End-to-End & Operational Verification', () 
       lines: [{ productId, quantity: 1, discountPaisa: 0 }],
       payments: [{ method: 'cash', amountPaisa: 10000 }],
     });
-    expect(collidingSale.invoiceNumber).toBe('C1-000002');
+    expect(collidingSale.invoiceNumber).toBe('C1-1000002');
 
     const collidingRow = restoredSeqDb
-      .prepare(`SELECT * FROM outbox WHERE device_seq = 2`)
+      .prepare(`SELECT * FROM outbox WHERE device_seq = 1000002`)
       .get() as {
       event_id: string;
       device_seq: number;
@@ -552,9 +549,8 @@ describe('Stage 6 — Backup/Restore End-to-End & Operational Verification', () 
         },
       ]
     );
-    // Reproduces F-M-09: Server fails with 23505 unique constraint on (pharmacy_id, invoice_number) and permanently rejects the post-restore sale!
-    expect(pushAfterRestore[0]?.status).toBe('rejected');
-    expect(pushAfterRestore[0]?.code).toBe('INTERNAL_ERROR');
+    // Verifies F-M-09: Sequence offset ensures post-restore sale does not collide and is accepted
+    expect(pushAfterRestore[0]?.status).toBe('accepted');
 
     // 5. Verify 14-backup retention policy
     const retentionDir = path.join(testDir, 'retention');

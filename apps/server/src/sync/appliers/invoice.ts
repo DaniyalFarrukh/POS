@@ -371,13 +371,26 @@ export async function applyInvoiceCreated(
   if (seqMatch && typeof tx.update === 'function') {
     const seq = parseInt(seqMatch[1]!, 10);
     if (!isNaN(seq) && seq > 0) {
-      await tx
+      const [updatedCounter] = await tx
         .update(counters)
         .set({
           lastInvoiceSeq: sql`GREATEST(${counters.lastInvoiceSeq}, ${seq})`,
           updatedAt: now,
         })
-        .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)));
+        .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)))
+        .returning();
+
+      if (updatedCounter) {
+        await insertChangeLog(tx, {
+          pharmacyId: ctx.pharmacyId,
+          branchId,
+          entity: 'counter',
+          entityId: payload.counterId,
+          op: 'upsert',
+          data: updatedCounter,
+          createdAt: now,
+        });
+      }
     }
   }
 

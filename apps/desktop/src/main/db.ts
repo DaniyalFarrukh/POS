@@ -858,6 +858,60 @@ export const MIGRATIONS: Migration[] = [
       ).run();
     },
   },
+  {
+    version: 12,
+    name: '0012_customers_and_credit_sales',
+    up: (db: DatabaseInstance): void => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS customers (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          phone TEXT,
+          email TEXT,
+          address TEXT,
+          cnic TEXT,
+          credit_limit_paisa INTEGER NOT NULL DEFAULT 0,
+          balance_paisa INTEGER NOT NULL DEFAULT 0,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
+        CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
+      `);
+
+      const invCols = new Set(
+        (db.pragma('table_info(invoices)') as Array<{ name: string }>).map((c) => c.name)
+      );
+      if (!invCols.has('customer_id')) {
+        db.exec('ALTER TABLE invoices ADD COLUMN customer_id TEXT;');
+      }
+
+      try {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS payments_new (
+            id TEXT PRIMARY KEY,
+            invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE RESTRICT,
+            method TEXT NOT NULL CHECK(method IN ('cash', 'card', 'wallet', 'credit')),
+            amount_paisa INTEGER NOT NULL
+          );
+          INSERT INTO payments_new SELECT id, invoice_id, method, amount_paisa FROM payments;
+          DROP TABLE payments;
+          ALTER TABLE payments_new RENAME TO payments;
+          CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
+        `);
+      } catch {
+        // In case payments table is already migrated
+      }
+
+      db.prepare(
+        `
+        INSERT OR REPLACE INTO app_meta (key, value)
+        VALUES ('schema_version', '12')
+      `
+      ).run();
+    },
+  },
 ];
 
 let dbInstance: DatabaseInstance | null = null;

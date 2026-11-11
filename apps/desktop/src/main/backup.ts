@@ -2,7 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { app } from 'electron';
 import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
-import { getDatabase, getDbPath, closeDatabase, initDatabase } from './db';
+import { getDatabase, getDbPath, closeDatabase, initDatabase, MIGRATIONS } from './db';
 
 export interface BackupInfo {
   filename: string;
@@ -233,14 +233,61 @@ export async function restoreDatabaseBackup(
   }
   fs.copyFileSync(backupFilePath, tempDbPath);
 
-  // (c) Execute PRAGMA integrity_check on temporary file
+  // (c) Execute PRAGMA integrity_check and schema version check on temporary file
   let tempDb: DatabaseInstance | null = null;
   try {
-    tempDb = new Database(tempDbPath, { readonly: true, fileMustExist: true });
+    tempDb = new Database(tempDbPath, { fileMustExist: true });
     const checkResult = tempDb.pragma('integrity_check', { simple: true }) as string;
     if (checkResult !== 'ok') {
       throw new Error(`Restored database failed integrity check: ${checkResult}`);
     }
+
+    let backupSchemaVersion = 0;
+    try {
+      const versionRow = tempDb
+        .prepare("SELECT value FROM app_meta WHERE key = 'schema_version'")
+        .get() as { value?: string } | undefined;
+      backupSchemaVersion = versionRow?.value ? parseInt(versionRow.value, 10) : 0;
+    } catch {
+      // app_meta might not exist in ancient schemas
+    }
+
+    if (backupSchemaVersion > MIGRATIONS.length) {
+      throw new Error(
+        `Cannot restore backup: backup was created with a newer software schema version (${backupSchemaVersion} > ${MIGRATIONS.length})`
+      );
+    }
+
+    // Advance counter sequence and device_seq to avoid collisions on post-restore sales (F-M-09)
+    try {
+      tempDb
+        .prepare(
+          `UPDATE counters SET 
+             last_invoice_seq = last_invoice_seq + 1000000, 
+             last_credit_note_seq = last_credit_note_seq + 1000000`
+        )
+        .run();
+    } catch {
+      // Ignore if counters table does not exist
+    }
+
+    try {
+      tempDb.prepare(`UPDATE outbox SET device_seq = device_seq + 1000000`).run();
+    } catch {
+      // Ignore if outbox table does not exist
+    }
+
+    try {
+      tempDb
+        .prepare(
+          `UPDATE sync_state SET value = CAST(CAST(value AS INTEGER) + 1000000 AS TEXT) WHERE key = 'device_seq'`
+        )
+        .run();
+    } catch {
+      // Ignore if sync_state table does not exist
+    }
+
+    tempDb.pragma('wal_checkpoint(TRUNCATE)');
   } finally {
     if (tempDb) {
       tempDb.close();
