@@ -288,3 +288,56 @@
   - `vitest run`: 104 test files passed, 721 / 721 tests passed (0 skipped, 0 failed, 0 flaky)
 - **Batch Findings Completed:** `F-H-02`, `F-H-04`, `F-M-08`
 - **Artifacts Added:** `transactions-validation.test.ts` regression suite, `isValidUuid` shared utility
+
+
+## BATCH 3: Sync Completeness
+
+### Task 3.1 — `F-H-05`: Stock Transfer Validation, Movement Consistency & Cancellation `change_log`
+- **Finding IDs:** `F-H-05`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/src/routes/stock-transfers.ts`
+  - `apps/server/src/routes/stock-transfers.test.ts`
+- **Tests Added:**
+  - `apps/server/src/routes/stock-transfers.test.ts`:
+    - asserts rejection with `OVER_DISPATCH` when attempting to dispatch more than requested quantity or when source branch stock is insufficient.
+    - asserts rejection with `QUANTITY_MISMATCH` when receiving with `quantityReceived + shortageQuantity !== quantityDispatched`.
+    - asserts `change_log` reversal record insertion for desktop sync when cancelling an in-transit transfer.
+- **Test Results:** `stock-transfers.test.ts`: `10 passed (10)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Filtered sequential transfer number generation with `ilike(stockTransfers.transferNumber, 'TR-${year}-%')` and extracted max numeric suffix to prevent collision with synced transfer codes (e.g. `TR-SYNC-001`).
+  - Added `isValidUuid` validation on `:id` parameter across dispatch, receive, and cancel endpoints.
+  - Enforced line-level dispatch checks against source branch batch inventory and requested quantity (`OVER_DISPATCH` / `INSUFFICIENT_STOCK`).
+  - Enforced line completeness and balance check on receipt: `quantityReceived + shortageQuantity === quantityDispatched` (`QUANTITY_MISMATCH`).
+  - Set `shortageMovementId: null` on receive lines instead of generating an unreferenced UUID, as physical inventory shortage is properly recognized financially via ledger posting (`Dr 5010 Shortage Loss / Cr 1200 Inventory`).
+  - Inserted `change_log` upsert records for adjustment movements created upon transfer cancellation.
+- **NEEDS-REVIEW:** None.
+
+### Task 3.2 — `F-H-06`: Inventory Sync `change_log`, Historical Reconcile Timestamp & Intra-Branch Shortage
+- **Finding IDs:** `F-H-06`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/src/sync/appliers/purchase.ts`
+  - `apps/server/src/routes/purchase-orders.ts`
+  - `apps/server/src/routes/stock.ts`
+  - `apps/server/src/ledger/posting-engine.ts`
+  - `apps/desktop/src/main/sync/core/pullAndApply.ts`
+  - `apps/desktop/src/main/sync/core/pullAndApply.test.ts`
+  - `apps/server/src/sync/inventory-sync-changelog.test.ts` (added)
+  - `tests/audit-final/stage3-ledger-simulation.test.ts`
+- **Tests Added:**
+  - `apps/server/src/sync/inventory-sync-changelog.test.ts`:
+    - asserts PO receive emits `change_log` records for newly received `batch` and `stock_movement`.
+    - asserts batch write-off and batch discount emit `change_log` records.
+    - asserts `applyPurchaseReceived` sets `stock_movements.createdAt` to `payload.purchase.createdAt`.
+    - asserts `postStockTransferReceived` posts shortage loss (`Dr 5010 / Cr 1200`) when `sourceBranchId === destinationBranchId`.
+  - `apps/desktop/src/main/sync/core/pullAndApply.test.ts`: asserts batch MRP and cost updates replace local values on conflict.
+  - `tests/audit-final/stage3-ledger-simulation.test.ts`: updated historical cutoff test to assert `reconOct.isReconciled === true` and `reconOct.inventoryDifferencePaisa === 0`.
+- **Test Results:** `inventory-sync-changelog.test.ts`: `4 passed (4)`; `pullAndApply.test.ts`: `9 passed (9)`; `purchase-orders.test.ts`: `9 passed (9)`; `stock.test.ts`: `7 passed (7)`; `stage3-ledger-simulation.test.ts`: `4 passed (4)` in 51.8s; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Preserved `payload.purchase.createdAt || now` on `stock_movements.createdAt` in `applyPurchaseReceived`, fixing historical date range cutoff reconciliation.
+  - Added `insertChangeLog` calls for `batch` and `stock_movement` in `POST /api/purchase-orders/:id/receive`.
+  - Added `insertChangeLog` calls for `batch` in `POST /api/inventory/batches/:id/discount` and `stock_movement` in `POST /api/inventory/batches/:id/write-off`.
+  - Updated desktop `pullAndApply.ts` batch insertion to `ON CONFLICT(id) DO UPDATE SET cost_paisa = excluded.cost_paisa, mrp_paisa = excluded.mrp_paisa, updated_at = excluded.updated_at`.
+  - Updated `postStockTransferReceived` so intra-branch transfers (`sourceBranchId === destinationBranchId`) recognize transit shortages (`Dr 5010 Shortage Loss / Cr 1200 Inventory`).
+- **NEEDS-REVIEW:** None.
