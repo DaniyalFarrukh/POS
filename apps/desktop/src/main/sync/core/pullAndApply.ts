@@ -167,11 +167,15 @@ export async function pullAndApply(
     UPDATE stock_locations SET is_active = 0, updated_at = ? WHERE id = ?
   `);
 
-  // Batches and stock_movements are insert-only-if-missing (never overwrite locally-created data)
+  // Batches upsert on conflict to allow server-side MRP discount/cost adjustments; stock_movements are insert-only
   const insertBatchIfMissingStmt = db.prepare(`
-    INSERT OR IGNORE INTO batches (
+    INSERT INTO batches (
       id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      cost_paisa = excluded.cost_paisa,
+      mrp_paisa = excluded.mrp_paisa,
+      updated_at = excluded.updated_at
   `);
 
   const insertMovementIfMissingStmt = db.prepare(`

@@ -132,7 +132,11 @@ async function executePostJournalEntry(
     if (err instanceof SyncRejectedError) {
       throw err;
     }
-    const message = err instanceof Error ? err.message : 'Ledger posting failed';
+    const causeMsg = (err as { cause?: Error })?.cause?.message;
+    const message =
+      err instanceof Error
+        ? `${err.message}${causeMsg ? ` (Cause: ${causeMsg})` : ''}`
+        : 'Ledger posting failed';
     throw new SyncRejectedError('LEDGER_POSTING_FAILED', message);
   }
 }
@@ -665,10 +669,7 @@ export async function postStockTransferReceived(
     lines,
   } = input;
 
-  // Intra-branch transfers (within same branch across locations) post no general ledger journal
-  if (sourceBranchId === destinationBranchId) {
-    return null;
-  }
+  const isSameBranch = sourceBranchId === destinationBranchId;
 
   const docLabel = `Stock Transfer #${transferNumber} (${transferId})`;
   const batchIds = lines.map((l) => l.batchId);
@@ -679,7 +680,9 @@ export async function postStockTransferReceived(
 
   for (const line of lines) {
     const cost = costByBatchId.get(line.batchId)!;
-    totalTransferCostPaisa += line.quantityReceived * cost;
+    if (!isSameBranch) {
+      totalTransferCostPaisa += line.quantityReceived * cost;
+    }
     if (line.shortageQuantity && line.shortageQuantity > 0) {
       totalShortageCostPaisa += line.shortageQuantity * cost;
     }

@@ -188,6 +188,7 @@ export async function applyPurchaseReceived(
   // 3. Insert Purchase Stock Movements (Rule 2 & Rule 4: preserve client-generated movementId)
   for (const line of payload.lines) {
     const movementId = line.movementId ?? line.id;
+    const movementCreatedAt = payload.purchase.createdAt || now;
     const movementData = {
       id: movementId,
       pharmacyId: ctx.pharmacyId,
@@ -199,7 +200,7 @@ export async function applyPurchaseReceived(
       referenceType: 'purchase',
       referenceId: payload.purchase.id,
       reason: `GRN: ${payload.purchase.supplierInvoiceNo}`,
-      createdAt: now,
+      createdAt: movementCreatedAt,
       updatedAt: now,
     };
 

@@ -13,6 +13,7 @@ import {
   accounts,
 } from '../db/schema';
 import { postStockAdjustmentCreated } from '../ledger/posting-engine';
+import { insertChangeLog } from '../sync/change-log';
 
 const StockQuerySchema = z.object({
   view: z.enum(['product', 'batch']).default('product'),
@@ -646,13 +647,23 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const nowIso = new Date().toISOString();
-      await db
+      const [updatedBatch] = await db
         .update(batches)
         .set({
           mrpPaisa,
           updatedAt: nowIso,
         })
-        .where(and(eq(batches.id, batchId), eq(batches.pharmacyId, pharmacyId)));
+        .where(and(eq(batches.id, batchId), eq(batches.pharmacyId, pharmacyId)))
+        .returning();
+
+      await insertChangeLog(db, {
+        pharmacyId,
+        entity: 'batch',
+        entityId: batchId,
+        op: 'upsert',
+        data: updatedBatch || { ...batch, mrpPaisa, updatedAt: nowIso },
+        createdAt: nowIso,
+      });
 
       return reply.send({
         success: true,
@@ -762,20 +773,32 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         await db.transaction(async (tx) => {
           // 1. Insert negative stock movement
-          await tx.insert(stockMovements).values({
+          const movementData = {
             id: movementId,
             pharmacyId,
             productId: batch.productId,
             batchId: batch.id,
             branchId,
             locationId: locationId || null,
-            type: 'adjustment',
+            type: 'adjustment' as const,
             quantitySigned: -quantity,
             referenceType: 'write_off',
             referenceId: movementId,
             reason,
             createdAt: now,
             updatedAt: now,
+          };
+
+          await tx.insert(stockMovements).values(movementData);
+
+          await insertChangeLog(tx, {
+            pharmacyId,
+            branchId,
+            entity: 'stock_movement',
+            entityId: movementId,
+            op: 'upsert',
+            data: movementData,
+            createdAt: now,
           });
 
           // 2. Auto-post balanced journal entry:

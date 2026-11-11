@@ -772,24 +772,45 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
             .where(and(eq(batches.id, b.id), eq(batches.pharmacyId, pharmacyId)));
           if (!existingBatch) {
             await tx.insert(batches).values(b);
+            await insertChangeLog(tx, {
+              pharmacyId,
+              branchId: po.branchId,
+              entity: 'batch',
+              entityId: b.id,
+              op: 'upsert',
+              data: b,
+              createdAt: now,
+            });
           }
         }
 
         // 2. Insert stock movements
         for (const line of payloadLines) {
-          await tx.insert(stockMovements).values({
+          const movementData = {
             id: line.movementId,
             pharmacyId,
             productId: line.productId,
             batchId: line.batchId,
             branchId: po.branchId,
-            type: 'purchase',
+            type: 'purchase' as const,
             quantitySigned: line.quantity,
             referenceType: 'purchase',
             referenceId: receiptId,
             reason: `PO GRN: ${data.supplierInvoiceNo} (PO #${po.poNumber})`,
             createdAt: now,
             updatedAt: now,
+          };
+
+          await tx.insert(stockMovements).values(movementData);
+
+          await insertChangeLog(tx, {
+            pharmacyId,
+            branchId: po.branchId,
+            entity: 'stock_movement',
+            entityId: line.movementId,
+            op: 'upsert',
+            data: movementData,
+            createdAt: now,
           });
         }
 

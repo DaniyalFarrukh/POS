@@ -1135,9 +1135,11 @@ describe('Stage 3 Final Audit: Ledger & Accounting Integrity (5,000+ Docs & 100k
     expect(bs.summary.totalAssetsPaisa).toBe(bs.summary.totalLiabilitiesAndEquityPaisa);
 
     // Invariant 3 & 4: Ledger Sales == Invoices - Credit Notes; Ledger Inventory == sum(batch_stock * batch_cost)
-    // Note: Because applyPurchaseReceived (purchase.ts:202) stamps stock_movements.createdAt = now instead of
-    // payload.purchase.createdAt, historical cutoff ('2026-10-31') misses offline purchases synced later:
+    // Note: With applyPurchaseReceived preserving payload.purchase.createdAt (F-H-06), historical cutoff ('2026-10-31')
+    // reconciles Inventory & Sales to 0 paisa difference:
     const reconOct = await reconcileLedger(db, pharmacyId, '2026-10-01', '2026-10-31');
+    expect(reconOct.isReconciled).toBe(true);
+    expect(reconOct.inventoryDifferencePaisa).toBe(0);
     expect(reconOct.salesDifferencePaisa).toBe(0);
     expect(reconOct.netSalesDifferencePaisa).toBe(0);
     expect(reconOct.ledgerSalesTotalPaisa).toBe(expectedGrossSalesPaisa);

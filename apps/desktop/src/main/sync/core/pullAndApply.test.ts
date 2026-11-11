@@ -341,6 +341,64 @@ describe('pullAndApply (Phase 3.2)', () => {
     expect(updated.mrp_paisa).toBe(250);
   });
 
+  it('updates batch mrp_paisa and cost_paisa when updated batch arrives from server (F-H-06)', async () => {
+    const productId = generateUuidV7();
+    const batchId = generateUuidV7();
+    const now = new Date().toISOString();
+
+    db.prepare(
+      `INSERT INTO products (id, brand_name, generic_name, strength, form, manufacturer, tax_category_id, mrp_paisa, created_at, updated_at)
+       VALUES (?, 'Panadol', 'PCM', '500mg', 'tab', 'GSK', 'tax-default', 200, ?, ?)`
+    ).run(productId, now, now);
+
+    db.prepare(
+      `INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
+       VALUES (?, ?, 'B1', '2028-01-01', 100, 200, ?, ?)`
+    ).run(batchId, productId, now, now);
+
+    const page = {
+      changes: [
+        {
+          seq: 1,
+          entity: 'batch',
+          entityId: batchId,
+          op: 'upsert',
+          data: {
+            id: batchId,
+            productId,
+            batchNo: 'B1',
+            expiryDate: '2028-01-01',
+            costPaisa: 110,
+            mrpPaisa: 180,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ],
+      nextCursor: 1,
+      hasMore: false,
+    };
+
+    const fakeFetch = async () =>
+      new Response(JSON.stringify(page), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+    await pullAndApply(
+      { db, fetch: fakeFetch as typeof fetch },
+      { serverUrl: 'http://localhost:3001', token: 'token' }
+    );
+
+    const batch = db
+      .prepare('SELECT mrp_paisa, cost_paisa FROM batches WHERE id = ?')
+      .get(batchId) as {
+      mrp_paisa: number;
+      cost_paisa: number;
+    };
+    expect(batch.mrp_paisa).toBe(180);
+    expect(batch.cost_paisa).toBe(110);
+  });
+
   it('deleted product becomes inactive (is_active = 0)', async () => {
     const productId = generateUuidV7();
     const now = new Date().toISOString();
