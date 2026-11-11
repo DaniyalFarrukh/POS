@@ -254,3 +254,37 @@
 - **Test Results:** `karachi-timezone.test.ts`: `2 passed (2)`; `sales-ledger.test.ts`: `6 passed (6)`; `prescriptions.test.ts`: `7 passed (7)`; `stock.test.ts`: `7 passed (7)`; `purchase-orders.test.ts`: `9 passed (9)`; `reports.test.ts`: `16 passed (16)`; `ar-ap.test.ts`: `6 passed (6)`; `financial-reports.test.ts`: `9 passed (9)`; `eslint .`: `0 errors`; `tsc`: `0 errors` across shared, server, web, desktop; `prettier`: clean.
 - **Decisions Made:** Exported `toKarachiBusinessDate` alias in `@pos/shared/src/time.ts` supporting `Date | string | number`; enforced via ESLint `no-restricted-syntax` forbidding raw `.toISOString().slice(0, 10)` in source files.
 - **NEEDS-REVIEW:** None.
+
+### Task 2.2 — `F-H-02` & `F-M-08`: Transaction Boundaries and Validation Hardening
+- **Finding IDs:** `F-H-02`, `F-M-08`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `packages/shared/src/uuid.ts`
+  - `packages/shared/src/uuid.test.ts`
+  - `apps/desktop/src/renderer/utils/receiptGenerator.ts`
+  - `apps/desktop/src/main/receipt-and-invoices.test.ts`
+  - `apps/server/src/routes/customers.ts`
+  - `apps/server/src/routes/prescriptions.ts`
+  - `apps/server/src/routes/suppliers.ts`
+  - `apps/server/src/routes/stock-locations.ts`
+  - `apps/server/src/routes/hr-leave.ts`
+  - `apps/server/src/routes/cash-bank.ts`
+  - `apps/server/src/routes/transactions-validation.test.ts` (added)
+- **Tests Added:**
+  - `apps/desktop/src/main/receipt-and-invoices.test.ts`: verified XSS prevention escaping `<script>`, `<img>`, and quotes in `batchNo`, `expiryDate`, `invoiceNumber`, and `fiscalInvoiceNumber`.
+  - `packages/shared/src/uuid.test.ts`: verified `isValidUuid` regex validation for RFC 4122 / 9562 UUID strings.
+  - `apps/server/src/routes/transactions-validation.test.ts`: verified that invalid payloads to `/api/finance/cash-bank/*` return HTTP 400 with `VALIDATION_ERROR`, non-UUID `:id` route params return HTTP 400 instead of Postgres 22P02, and prescriptions cannot be dispensed when cancelled, fulfilled, expired, or when repeats are exhausted.
+- **Test Results:** `receipt-and-invoices.test.ts`: `5 passed (5)`; `uuid.test.ts`: `3 passed (3)`; `transactions-validation.test.ts`: `3 passed (3)`; `cash-bank.test.ts`: `6 passed (6)`; `prescriptions.test.ts`: `7 passed (7)`; `suppliers.test.ts`: `11 passed (11)`; `hr-leave.test.ts`: `8 passed (8)`; `customers-sync.test.ts`: `6 passed (6)`; `eslint`: clean; `typecheck`: clean; `prettier`: clean.
+- **Decisions Made:** Wrapped remaining multi-table operations in `await db.transaction(async (tx) => { ... })` across `customers.ts` (update + change_log), `prescriptions.ts` (header + items + access log + change_log; dispense + access log), `suppliers.ts` (update + change_log), `stock-locations.ts` (reset defaults + upsert + change_log), `hr-leave.ts` (allocation reserve + request insert; approval allocation update + attendance marking + request update; rejection allocation restore + request update); replaced `.parse()` with `.safeParse()` returning 400 in `cash-bank.ts`; sanitized receipt HTML interpolation via `escapeHtml()`.
+- **NEEDS-REVIEW:** None.
+
+## BATCH 2 VERIFICATION COMPLETE
+- **Status:** GREEN
+- **Full Suite Verification:**
+  - `eslint .`: 0 errors, 0 warnings
+  - `pnpm typecheck`: 0 errors across 6 projects (`@pos/ui`, `@pos/shared`, `@pos/server`, `@pos/desktop`, `@pos/web`, `tests/integration`)
+  - `pnpm audit`: No known vulnerabilities found (exit code 0)
+  - `prettier --check .`: All matched files use Prettier code style
+  - `vitest run`: 104 test files passed, 721 / 721 tests passed (0 skipped, 0 failed, 0 flaky)
+- **Batch Findings Completed:** `F-H-02`, `F-H-04`, `F-M-08`
+- **Artifacts Added:** `transactions-validation.test.ts` regression suite, `isValidUuid` shared utility
