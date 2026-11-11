@@ -152,3 +152,33 @@
 - **Test Results:** `subledger-reconciliation.test.ts`: `3 passed (3)`; `customers.test.ts`: `10 passed (10)`; `suppliers.test.ts`: `10 passed (10)`; `payments.test.ts`: `7 passed (7)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
 - **Decisions Made:** Implemented Decision D2: added `3300 Opening Balance Equity` to `DEFAULT_CHART_OF_ACCOUNTS` and mapped it via `getPharmacyAccountMap`; posted balanced opening journal entries (`Dr 1100 / Cr 3300` for customers, `Dr 3300 / Cr 2000` for suppliers) inside transactions in `POST /api/customers`, `POST /api/finance/customers`, `applyCustomerCreated`, and `POST /api/suppliers`; attached customer ID to AR credit lines on credit returns; routed unlinked credit expenses to `2300 Other Payables` so trade AP remains exactly reconciled.
 - **NEEDS-REVIEW:** Decision D2: opening balance offset account `3300 Opening Balance Equity`.
+
+
+### Task 1.3 — `F-H-03`: Route Payroll Posting via `postJournalEntry` & Employee Advance Disbursement
+- **Finding IDs:** `F-H-03`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `packages/shared/src/schema/payroll.ts`
+  - `apps/server/src/routes/payroll.ts`
+  - `apps/server/src/ledger/payroll-posting.ts`
+  - `apps/server/src/ledger/payroll-posting.test.ts` (added)
+  - `apps/server/src/ledger/ledger.test.ts`
+- **Tests Added:** `apps/server/src/ledger/payroll-posting.test.ts` (`1` test: `POST /api/hr/payroll/advances` records advance disbursement journal entry `Dr 2300 Other Payables / Cr 1000 Cash in Hand` attributed to employee, payroll posting via `postJournalEntry` without manual sequence locking or mandatory fiscal period rows credits `2300` per employee, achieving net 0 balance).
+- **Test Results:** `payroll-posting.test.ts`: `1 passed (1)`; `payroll.test.ts`: `8 passed (8)`; `ledger.test.ts`: `13 passed (13)`; `period-close.test.ts`: `7 passed (7)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Refactored `postPayrollRunToLedger` and `postPayrollPaymentBatch` to delegate to `postJournalEntry(tx, ...)` with Asia/Karachi dates via `toKarachiBusinessDate`; attributed employee advance recoveries to `partyType: 'employee', partyId: item.employeeId` on `2300 Other Payables`; wrapped `POST /api/hr/payroll/advances` in a transaction and posted disbursement journal entry `Dr 2300 / Cr 1000|1010` with employee party attribution.
+- **NEEDS-REVIEW:** None.
+
+### Task 1.4 — `F-H-08`: Include Finalized POS Invoices & Received Purchases in Financial Statements
+- **Finding IDs:** `F-H-08`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/src/routes/sales-ledger.ts`
+  - `apps/server/src/routes/sales-ledger.test.ts`
+  - `apps/server/src/routes/suppliers.ts`
+  - `apps/server/src/routes/suppliers.test.ts`
+- **Tests Added:**
+  - `apps/server/src/routes/sales-ledger.test.ts`: test asserting that invoices with `status: 'finalized'` (standard desktop/synced POS status) are returned and aggregated by `GET /api/finance/sales-ledger`.
+  - `apps/server/src/routes/suppliers.test.ts`: test asserting that supplier transactions with `sourceType: 'purchase.received'` and `'po_receipt'` increment `purchaseCount` in `GET /api/suppliers` and are returned in `purchases` in `GET /api/suppliers/:id`.
+- **Test Results:** `sales-ledger.test.ts`: `6 passed (6)`; `suppliers.test.ts`: `11 passed (11)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Changed status filter in `sales-ledger.ts:121` to `inArray(invoices.status, ['finalized', 'completed'])`; updated `purchaseCount` check in `suppliers.ts:162` to include `'purchase'`, `'purchase.received'`, and `'po_receipt'`; updated `suppliers.ts:683` statement query to filter `inArray(journalEntries.sourceType, ['purchase', 'purchase.received', 'po_receipt'])`.
+- **NEEDS-REVIEW:** None.
