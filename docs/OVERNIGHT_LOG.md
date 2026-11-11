@@ -9,7 +9,7 @@
 ## Task Checklist & Progress
 - **BATCH 0: Green CI and Quick Wins**
   - [x] `F-C-01`: Guard `seedDatabase()` (`!app.isPackaged` AND explicit dev flag `POS_AUTO_SEED === 'true'`) + safe owner-only demo-data cleanup tool (backup first, dry-run default) + tests
-  - [ ] `F-H-01`: Register `0021_notifications_and_audit_logs` properly in Drizzle journal and test migrations on empty + previous-version DB
+  - [x] `F-H-01`: Register `0021_notifications_and_audit_logs` properly in Drizzle journal and test migrations on empty + previous-version DB
   - [ ] `F-M-01`: Replace hardcoded dates in `prescriptions.test.ts` with dynamic dates relative to test clock
   - [ ] `F-M-02`: Exclude `*.test.ts` from `@pos/server` build output (`tsconfig.json` & `vitest.config.ts`)
   - [ ] `F-M-03`: Fix `minimatch` vulnerability so `pnpm audit` exits `0`
@@ -50,4 +50,15 @@
   - `seedDatabase()` throws immediately if `isPackaged` is true.
   - `runStartupAutoSeed()` only seeds when `!isPackaged` AND (`POS_DEV_AUTO_SEED === 'true'` or `POS_AUTO_SEED === 'true'`).
   - `cleanupDemoData()` is written and tested on test databases only (never executed on user data), requires `userRole === 'owner'`, defaults to `dryRun: true`, takes a pre-cleanup safety backup before deleting when `dryRun: false`, and skips any demo product/supplier referenced by batches, stock movements, invoice lines, or purchases.
+- **NEEDS-REVIEW:** None.
+
+### Task 0.2 — `F-H-01`: Register `0021_notifications_and_audit_logs` in Drizzle Journal
+- **Finding IDs:** `F-H-01`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/drizzle/meta/_journal.json`
+  - `apps/server/src/db/db.test.ts`
+- **Tests Added:** `F-H-01` test in `apps/server/src/db/db.test.ts` verifying `_journal.json` completeness against `drizzle/*.sql` and running `migrate()` on both an empty schema and a schema at migration `idx: 20`.
+- **Test Results:** `db.test.ts`: `6 passed (6)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Regenerated `0021_notifications_and_audit_logs` entry via `drizzle-kit generate --custom --name=notifications_and_audit_logs` rather than hand-editing `_journal.json`.
 - **NEEDS-REVIEW:** None.

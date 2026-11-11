@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import pg from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { isPostgresReachable, createTestContext, type TestDatabaseContext } from './test-helper';
+import { getDatabaseUrl } from './index';
+import * as fullSchema from './schema';
 import {
   pharmacies,
   branches,
@@ -10,6 +19,9 @@ import {
   changeLog,
 } from './schema';
 import crypto from 'node:crypto';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DRIZZLE_DIR = path.resolve(__dirname, '../../drizzle');
 
 describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
   let isAvailable = false;
@@ -308,6 +320,111 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
 
       expect(seq2).toBeGreaterThan(seq1);
       expect(seq3).toBeGreaterThan(seq2);
+    });
+
+    it('F-H-01: registers all drizzle/*.sql files in _journal.json and migrates both an empty DB and a previous-version DB via drizzle migrate()', async () => {
+      const sqlFiles = fs
+        .readdirSync(DRIZZLE_DIR)
+        .filter((f) => f.endsWith('.sql'))
+        .map((f) => f.replace(/\.sql$/, ''))
+        .sort();
+
+      const journalRaw = JSON.parse(
+        fs.readFileSync(path.join(DRIZZLE_DIR, 'meta', '_journal.json'), 'utf8')
+      ) as {
+        entries: {
+          idx: number;
+          tag: string;
+          when: number;
+          version: string;
+          breakpoints: boolean;
+        }[];
+      };
+
+      const journalTags = journalRaw.entries.map((e) => e.tag).sort();
+      expect(journalTags).toEqual(sqlFiles);
+
+      // Prepare helper that copies DRIZZLE_DIR to a temp folder with "public". rewritten to target schema
+      const makeSchemaMigrationsDir = (targetSchema: string, maxIdx?: number): string => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pos-drizzle-mig-'));
+        fs.mkdirSync(path.join(tmpDir, 'meta'), { recursive: true });
+        for (const f of fs.readdirSync(DRIZZLE_DIR).filter((name) => name.endsWith('.sql'))) {
+          const content = fs
+            .readFileSync(path.join(DRIZZLE_DIR, f), 'utf8')
+            .replaceAll('"public".', `"${targetSchema}".`);
+          fs.writeFileSync(path.join(tmpDir, f), content, 'utf8');
+        }
+        const filteredJournal = {
+          ...journalRaw,
+          entries:
+            maxIdx !== undefined
+              ? journalRaw.entries.filter((e) => e.idx <= maxIdx)
+              : journalRaw.entries,
+        };
+        fs.writeFileSync(
+          path.join(tmpDir, 'meta', '_journal.json'),
+          JSON.stringify(filteredJournal, null, 2),
+          'utf8'
+        );
+        return tmpDir;
+      };
+
+      const client = new pg.Client({ connectionString: getDatabaseUrl() });
+      await client.connect();
+
+      const emptySchema = `test_mig_empty_${crypto.randomUUID().replace(/-/g, '_')}`;
+      const prevSchema = `test_mig_prev_${crypto.randomUUID().replace(/-/g, '_')}`;
+      let emptyDir = '';
+      let prevDir20 = '';
+      let prevDirAll = '';
+
+      try {
+        // (a) Empty database schema -> full migrate()
+        await client.query(`CREATE SCHEMA "${emptySchema}";`);
+        await client.query(`SET search_path TO "${emptySchema}";`);
+        emptyDir = makeSchemaMigrationsDir(emptySchema);
+        const emptyDb = drizzle(client, { schema: fullSchema });
+        await migrate(emptyDb, { migrationsFolder: emptyDir, migrationsSchema: emptySchema });
+
+        const emptyTables = await client.query<{ table_name: string }>(
+          `SELECT table_name FROM information_schema.tables WHERE table_schema = $1`,
+          [emptySchema]
+        );
+        const emptyTableNames = emptyTables.rows.map((r) => r.table_name);
+        expect(emptyTableNames).toContain('user_notifications');
+        expect(emptyTableNames).toContain('audit_logs');
+
+        // (b) Previous-version database schema (up to idx 20) -> then upgrade to full journal
+        await client.query(`CREATE SCHEMA "${prevSchema}";`);
+        await client.query(`SET search_path TO "${prevSchema}";`);
+        prevDir20 = makeSchemaMigrationsDir(prevSchema, 20);
+        const prevDb = drizzle(client, { schema: fullSchema });
+        await migrate(prevDb, { migrationsFolder: prevDir20, migrationsSchema: prevSchema });
+
+        const beforeUpgrade = await client.query<{ table_name: string }>(
+          `SELECT table_name FROM information_schema.tables WHERE table_schema = $1`,
+          [prevSchema]
+        );
+        expect(beforeUpgrade.rows.map((r) => r.table_name)).not.toContain('user_notifications');
+
+        prevDirAll = makeSchemaMigrationsDir(prevSchema);
+        await migrate(prevDb, { migrationsFolder: prevDirAll, migrationsSchema: prevSchema });
+
+        const afterUpgrade = await client.query<{ table_name: string }>(
+          `SELECT table_name FROM information_schema.tables WHERE table_schema = $1`,
+          [prevSchema]
+        );
+        const afterTableNames = afterUpgrade.rows.map((r) => r.table_name);
+        expect(afterTableNames).toContain('user_notifications');
+        expect(afterTableNames).toContain('audit_logs');
+      } finally {
+        await client.query(`DROP SCHEMA IF EXISTS "${emptySchema}" CASCADE;`);
+        await client.query(`DROP SCHEMA IF EXISTS "${prevSchema}" CASCADE;`);
+        await client.end();
+        if (emptyDir) fs.rmSync(emptyDir, { recursive: true, force: true });
+        if (prevDir20) fs.rmSync(prevDir20, { recursive: true, force: true });
+        if (prevDirAll) fs.rmSync(prevDirAll, { recursive: true, force: true });
+      }
     });
   });
 });
