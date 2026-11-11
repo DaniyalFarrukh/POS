@@ -899,6 +899,18 @@ export const MIGRATIONS: Migration[] = [
           DROP TABLE payments;
           ALTER TABLE payments_new RENAME TO payments;
           CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
+
+          CREATE TRIGGER IF NOT EXISTS trg_payments_no_update
+          BEFORE UPDATE ON payments
+          BEGIN
+            SELECT RAISE(ABORT, 'finalized records are immutable');
+          END;
+
+          CREATE TRIGGER IF NOT EXISTS trg_payments_no_delete
+          BEFORE DELETE ON payments
+          BEGIN
+            SELECT RAISE(ABORT, 'finalized records are immutable');
+          END;
         `);
       } catch {
         // In case payments table is already migrated
