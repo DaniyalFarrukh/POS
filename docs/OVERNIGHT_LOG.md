@@ -11,7 +11,7 @@
   - [x] `F-C-01`: Guard `seedDatabase()` (`!app.isPackaged` AND explicit dev flag `POS_AUTO_SEED === 'true'`) + safe owner-only demo-data cleanup tool (backup first, dry-run default) + tests
   - [x] `F-H-01`: Register `0021_notifications_and_audit_logs` properly in Drizzle journal and test migrations on empty + previous-version DB
   - [x] `F-M-01`: Replace hardcoded dates in `prescriptions.test.ts` with dynamic dates relative to test clock
-  - [ ] `F-M-02`: Exclude `*.test.ts` from `@pos/server` build output (`tsconfig.json` & `vitest.config.ts`)
+  - [x] `F-M-02`: Exclude `*.test.ts` from `@pos/server` build output (`tsconfig.json` & `vitest.config.ts`)
   - [ ] `F-M-03`: Fix `minimatch` vulnerability so `pnpm audit` exits `0`
   - [ ] `F-M-04`: Update `.github/workflows/ci.yml` (`format:check`, `lint`, `typecheck`, tests with Postgres & `DEVICE_JWT_SECRET`, `pnpm audit`, production builds, all branches/PRs)
   - [ ] `F-L-01` & `F-L-02`: Add `.gitattributes` (`eol=lf`), move `pnpm` build settings to `pnpm-workspace.yaml`, fix Electron extraction race
@@ -71,4 +71,17 @@
 - **Tests Added:** Updated `dispenses prescription against sale invoice` and `refill reminders endpoint` tests in `apps/server/src/routes/prescriptions.test.ts` to compute `nextRefillDate` relative to `getKarachiBusinessDate()`.
 - **Test Results:** `prescriptions.test.ts`: `7 passed (7)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
 - **Decisions Made:** None.
+- **NEEDS-REVIEW:** None.
+
+### Task 0.4 — `F-M-02`: Exclude `*.test.ts` from Build Output & `**/dist/**` from Vitest
+- **Finding IDs:** `F-M-02`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/tsconfig.json`
+  - `packages/shared/tsconfig.json`
+  - `vitest.config.ts`
+  - `apps/server/src/app.test.ts`
+- **Tests Added:** `F-M-02` test in `apps/server/src/app.test.ts` verifying `exclude` in `apps/server/tsconfig.json` and `vitest.config.ts`.
+- **Test Results:** `app.test.ts`: `2 passed (2)`; `dist test files count`: `0`; `eslint`: `0 errors`; `tsc`: `0 errors`.
+- **Decisions Made:** Excluded `src/**/*.test.ts` in both `apps/server/tsconfig.json` and `packages/shared/tsconfig.json`, and excluded `**/dist/**`, `**/dist-electron/**`, `**/dist-release/**` in root `vitest.config.ts`.
 - **NEEDS-REVIEW:** None.
