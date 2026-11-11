@@ -122,3 +122,17 @@
 - **Test Results:** `app.test.ts`: `5 passed (5)`; `prettier --check .`: `0 errors`; `eslint .`: `0 errors`; `tsc --noEmit`: `0 errors`.
 - **Decisions Made:** Added `* text=auto eol=lf` and binary file attributes in `.gitattributes`, removed deprecated `package.json.pnpm` block in favor of `pnpm-workspace.yaml` `allowBuilds`.
 - **NEEDS-REVIEW:** None.
+
+### Task 1.1 — `F-C-02`: Journal Reversals Status Semantics & Year-End Closing Idempotency
+- **Finding IDs:** `F-C-02`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/src/ledger/service.ts`
+  - `apps/server/src/ledger/period-close.ts`
+  - `apps/server/src/routes/ar.ts`
+  - `apps/server/src/routes/ap.ts`
+  - `apps/server/src/ledger/reversal-year-end.test.ts` (added)
+- **Tests Added:** `apps/server/src/ledger/reversal-year-end.test.ts` (`2` tests: reversal entry has `status: 'posted'` and nets to zero in customer subledger and month-end reconciliation differences checklist; `executeYearEndClosing` uses deterministic `source_id` derived from `(pharmacyId, fiscalYear)` and is idempotent on repeat calls).
+- **Test Results:** `reversal-year-end.test.ts`: `2 passed (2)`; `period-close.test.ts`: `7 passed (7)`; `ledger.test.ts`: `13 passed (13)`; `ar-ap.test.ts`: `6 passed (6)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Implemented Decision D1: reversing entries are inserted with `status = 'posted'` and `reverses_entry_id` set to the original entry ID; removed `status != 'reversed'` filters in AR, AP, and period-close queries so both entries are included and cancel out; year-end closing computes deterministic UUID for `source_id` via SHA-256 of `${pharmacyId}:year_end_close:${fiscalYear}` and checks for existing closing entry before running, and includes prior closing entries when querying revenue/expense balances so repeat calls net to zero.
+- **NEEDS-REVIEW:** Decision D1 semantics for reversing entries (`status = 'posted'`) and year-end closing idempotency.
