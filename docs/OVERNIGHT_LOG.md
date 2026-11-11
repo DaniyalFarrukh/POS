@@ -387,3 +387,67 @@
   - `vitest run`: 106 test files passed, 734 / 734 tests passed (0 skipped, 0 failed, 0 flaky)
 - **Batch Findings Completed:** `F-H-05`, `F-H-06`, `F-H-07`, `F-M-07`, `F-M-09`
 - **Artifacts Added:** `customers-credit-sales.test.ts`, `customers.ts`, `inventory-sync-changelog.test.ts`
+
+## BATCH 4: Security Hardening
+
+### Task 4.1 — `F-H-09`: Server Auth Proxy Hardening, Token Revocation Persistence & Separated Secrets
+- **Finding IDs:** `F-H-09`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/src/app.ts`
+  - `apps/server/src/auth/jwt.ts`
+  - `apps/server/src/auth/user-auth.ts`
+  - `apps/server/src/routes/auth.ts`
+  - `apps/server/src/db/schema.ts`
+  - `apps/server/drizzle/0022_auth_hardening_and_compliance.sql` (added)
+  - `apps/server/drizzle/meta/_journal.json`
+  - `apps/web/src/context/AuthContext.tsx`
+  - `apps/server/src/auth/server-security-hardening.test.ts` (added)
+- **Tests Added:**
+  - `apps/server/src/auth/server-security-hardening.test.ts`:
+    - asserts default `trustProxy: false` ignores client-spoofed `X-Forwarded-For` headers.
+    - asserts production requires distinct `DEVICE_JWT_SECRET` (at least 32 characters, not default, not equal to `JWT_SECRET`).
+    - asserts device tokens and user tokens use separated secrets in production.
+    - asserts revoked token JTIs persist to PostgreSQL `revoked_tokens` table and requests with revoked JTIs are rejected with HTTP 401 across server instances.
+- **Test Results:** `server-security-hardening.test.ts`: `4 passed (4)`; `audit-fixes.test.ts`: `10 passed (10)`; `permission-guard.test.ts`: `7 passed (7)`; `tenant-isolation.test.ts`: `22 passed (22)`; `auth.test.ts`: `14 passed (14)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Configured `trustProxy` via `process.env.TRUST_PROXY` (default `false` unless explicitly configured) and updated production HTTPS enforcement to inspect `request.protocol`.
+  - Added additive PostgreSQL migration `0022_auth_hardening_and_compliance.sql` creating table `revoked_tokens` and registered it in Drizzle `_journal.json`.
+  - Created `persistRevokedToken` storing revoked JTIs into PostgreSQL upon `/api/auth/logout` and `/api/auth/refresh`, checked in `user-auth.ts` preHandler hook.
+  - Required distinct `DEVICE_JWT_SECRET` in `getDeviceJwtSecret()` when `NODE_ENV === 'production'`.
+  - Updated `apps/web/src/context/AuthContext.tsx` with defensive multi-tier storage preferring `sessionStorage`.
+- **NEEDS-REVIEW:** None.
+
+### Task 4.2 — `F-M-06`: Desktop IPC Owner PIN Lockout & 5-Role Counter POS Support
+- **Finding IDs:** `F-M-06`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/desktop/src/main/ipc/wrapper.ts`
+  - `apps/desktop/src/main/auth.ts`
+  - `apps/desktop/src/main/index.ts`
+  - `apps/desktop/src/main/ipc-security-hardening.test.ts` (added)
+- **Tests Added:**
+  - `apps/desktop/src/main/ipc-security-hardening.test.ts`:
+    - asserts `verifyOwnerPinForDestructive` tracks `failed_login_attempts` in SQLite.
+    - asserts 5 consecutive failed Owner PIN attempts trigger 15-minute `locked_until` lockout.
+    - asserts 6th attempt with correct Owner PIN is rejected during active lockout.
+    - asserts successful Owner PIN verification resets `failed_login_attempts` to 0.
+    - asserts `registerAllIpcHandlers` permits all 5 roles (`['owner', 'manager', 'accountant', 'pharmacist', 'cashier']`) on operational/counter endpoints while keeping `backup:restore` owner-only.
+    - asserts `registerSecureIpcHandler` validates payloads using input `schema`.
+- **Test Results:** `ipc-security-hardening.test.ts`: `4 passed (4)`; `auth.test.ts`: `19 passed (19)`; `invoices.test.ts`: `5 passed (5)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Updated `verifyOwnerPinForDestructive` to query `failed_login_attempts` and `locked_until` on the owner record, enforce lockout, and update backoff duration upon failure.
+  - Defined role groups `ALL_STAFF_ROLES` and `INVENTORY_ROLES` in `apps/desktop/src/main/index.ts`, opening counter POS operations to synced `manager` and `accountant` staff members.
+  - Attached Zod validation schemas (`SetupInputSchema`, `LoginInputSchema`, `UnlockInputSchema`, `CreateStaffInputSchema`, `FinalizeSaleInputSchema`) to IPC handlers.
+- **NEEDS-REVIEW:** None.
+
+## BATCH 4 VERIFICATION COMPLETE
+- **Status:** GREEN
+- **Full Suite Verification:**
+  - `eslint .`: 0 errors, 0 warnings
+  - `pnpm typecheck`: 0 errors across 6 projects (`@pos/ui`, `@pos/shared`, `@pos/server`, `@pos/desktop`, `@pos/web`, `tests/integration`)
+  - `pnpm audit`: No known vulnerabilities found (exit code 0)
+  - `prettier --check .`: All matched files use Prettier code style
+  - `vitest run`: 108 test files passed, 742 / 742 tests passed (0 skipped, 0 failed, 0 flaky)
+- **Batch Findings Completed:** `F-H-09`, `F-M-06`
+- **Artifacts Added:** `server-security-hardening.test.ts`, `ipc-security-hardening.test.ts`, `0022_auth_hardening_and_compliance.sql`
