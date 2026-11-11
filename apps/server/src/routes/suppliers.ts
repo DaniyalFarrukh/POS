@@ -3,7 +3,7 @@ import { eq, and, desc, asc, ilike, or } from 'drizzle-orm';
 import { z, generateUuidV7 } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
-import { suppliers, accounts, journalEntries, journalLines, fiscalPeriods } from '../db/schema';
+import { suppliers, journalEntries, journalLines, fiscalPeriods } from '../db/schema';
 import { getPharmacyAccountMap } from '../ledger/coa-seed';
 import { postJournalEntry } from '../ledger/service';
 import { insertChangeLog } from '../sync/change-log';
@@ -299,26 +299,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
 
           const accountMap = await getPharmacyAccountMap(tx, pharmacyId);
           const apAccountId = accountMap.ap;
-
-          const [equityAccount] = await tx
-            .select({ id: accounts.id })
-            .from(accounts)
-            .where(
-              and(
-                eq(accounts.pharmacyId, pharmacyId),
-                or(
-                  eq(accounts.code, '3100'),
-                  eq(accounts.code, '3000'),
-                  eq(accounts.type, 'equity')
-                )
-              )
-            )
-            .limit(1);
-
-          if (!equityAccount) {
-            throw new Error(`Equity account not found for pharmacy ${pharmacyId}`);
-          }
-          const equityAccountId = equityAccount.id;
+          const equityAccountId = accountMap.opening_balance_equity;
 
           await postJournalEntry(tx, {
             pharmacyId,

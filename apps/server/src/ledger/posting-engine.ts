@@ -5,7 +5,7 @@ import type {
   PurchaseReceivedPayload,
 } from '@pos/shared';
 import type { DbClient } from '../sync/types';
-import { batches, invoiceLines } from '../db/schema';
+import { batches, invoiceLines, invoices } from '../db/schema';
 import { SyncRejectedError } from '../sync/errors';
 import { getPharmacyAccountMap, type AccountRole } from './coa-seed';
 import { postJournalEntry, type JournalEntryWithLines, type JournalLineInput } from './service';
@@ -449,6 +449,18 @@ export async function postCreditNoteCreated(
   const refundAccountId = accountMap[refundRole];
   const entryDate = toKarachiBusinessDate(creditNote.createdAt);
 
+  let customerId = (creditNote as { customerId?: string | null }).customerId || null;
+  if (!customerId && creditNote.refundMethod === 'credit') {
+    const [origInv] = await tx
+      .select({ customerId: invoices.customerId })
+      .from(invoices)
+      .where(
+        and(eq(invoices.pharmacyId, pharmacyId), eq(invoices.id, creditNote.originalInvoiceId))
+      )
+      .limit(1);
+    customerId = origInv?.customerId ?? null;
+  }
+
   const lines: JournalLineInput[] = [];
 
   if (netReturnPaisa > 0) {
@@ -472,11 +484,14 @@ export async function postCreditNoteCreated(
   }
 
   if (creditNote.totalPaisa > 0) {
+    const isCredit = creditNote.refundMethod === 'credit';
     lines.push({
       accountId: refundAccountId,
       debitPaisa: 0,
       creditPaisa: creditNote.totalPaisa,
       branchId,
+      partyType: isCredit && customerId ? 'customer' : null,
+      partyId: isCredit && customerId ? customerId : null,
       memo: `Return #${creditNote.creditNoteNumber} refund (${creditNote.refundMethod})`,
     });
   }
@@ -974,6 +989,7 @@ export interface PostExpenseInput {
   amountPaisa: number;
   paymentType: 'paid' | 'credit';
   paymentMethod?: 'cash' | 'bank' | 'wallet' | null;
+  supplierId?: string | null;
   vendorName?: string | null;
   notes?: string | null;
   createdBy?: string | null;
@@ -1047,14 +1063,28 @@ export async function postExpenseCompleted(
     });
   } else {
     // Payment type === 'credit'
-    lines.push({
-      accountId: accountMap.ap,
-      debitPaisa: 0,
-      creditPaisa: amountPaisa,
-      branchId,
-      partyType: 'supplier',
-      memo: `Expense #${expenseNumber} payable to ${vendorName || 'Vendor'}`,
-    });
+    if (input.supplierId) {
+      lines.push({
+        accountId: accountMap.ap,
+        debitPaisa: 0,
+        creditPaisa: amountPaisa,
+        branchId,
+        partyType: 'supplier',
+        partyId: input.supplierId,
+        memo: `Expense #${expenseNumber} payable to ${vendorName || 'Vendor'}`,
+      });
+    } else {
+      // Unlinked vendor without supplier record: credit 2300 Other Payables so 2000 Trade AP stays reconciled
+      lines.push({
+        accountId: accountMap.other_payables,
+        debitPaisa: 0,
+        creditPaisa: amountPaisa,
+        branchId,
+        partyType: null,
+        partyId: null,
+        memo: `Expense #${expenseNumber} payable to ${vendorName || 'Vendor'}`,
+      });
+    }
   }
 
   return executePostJournalEntry(tx, {

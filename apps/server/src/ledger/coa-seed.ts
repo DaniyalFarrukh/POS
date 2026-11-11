@@ -21,6 +21,11 @@ export type AccountRole =
   | 'advance_suppliers'
   | 'customer_advances';
 
+export type PharmacyAccountMap = Record<
+  AccountRole | 'other_payables' | 'opening_balance_equity',
+  string
+>;
+
 export const ALL_ACCOUNT_ROLES: readonly AccountRole[] = [
   'sales',
   'sales_returns',
@@ -100,6 +105,7 @@ export const DEFAULT_CHART_OF_ACCOUNTS: readonly DefaultAccountDef[] = [
   { code: '3000', name: 'Owner Capital', type: 'equity' },
   { code: '3100', name: 'Retained Earnings', type: 'equity' },
   { code: '3200', name: 'Owner Drawings', type: 'equity' },
+  { code: '3300', name: 'Opening Balance Equity', type: 'equity' },
 
   // Revenue
   { code: '4000', name: 'Sales', type: 'revenue' },
@@ -204,13 +210,14 @@ export async function seedDefaultAccountMappings(
 export async function getPharmacyAccountMap(
   tx: DbClient,
   pharmacyId: string
-): Promise<Record<AccountRole, string>> {
+): Promise<PharmacyAccountMap> {
   let coaRows = await tx.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyId));
 
   const byCode = new Map(coaRows.map((a) => [a.code, a.id]));
-  const hasAllDefaultCodes = ALL_ACCOUNT_ROLES.every((role) =>
-    byCode.has(DEFAULT_ACCOUNT_ROLE_CODES[role])
-  );
+  const hasAllDefaultCodes =
+    ALL_ACCOUNT_ROLES.every((role) => byCode.has(DEFAULT_ACCOUNT_ROLE_CODES[role])) &&
+    byCode.has('3300') &&
+    byCode.has('2300');
 
   if (!hasAllDefaultCodes) {
     coaRows = await seedDefaultChartOfAccounts(tx, pharmacyId);
@@ -228,7 +235,7 @@ export async function getPharmacyAccountMap(
     configuredRows.map((r) => [r.role, r.accountId])
   );
 
-  const result = {} as Record<AccountRole, string>;
+  const result = {} as PharmacyAccountMap;
   for (const role of ALL_ACCOUNT_ROLES) {
     const configuredId = configuredByRole.get(role);
     if (configuredId) {
@@ -241,6 +248,16 @@ export async function getPharmacyAccountMap(
       }
       result[role] = fallbackId;
     }
+  }
+
+  // Resolve auxiliary ledger roles: other_payables (2300) and opening_balance_equity (3300)
+  const otherPayablesId = byCode.get('2300');
+  if (otherPayablesId) {
+    result.other_payables = otherPayablesId;
+  }
+  const openingBalanceEquityId = byCode.get('3300');
+  if (openingBalanceEquityId) {
+    result.opening_balance_equity = openingBalanceEquityId;
   }
 
   return result;

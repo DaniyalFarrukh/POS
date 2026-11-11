@@ -9,7 +9,6 @@ import {
   journalEntries,
   journalLines,
   pharmacies,
-  accounts,
 } from '../db/schema';
 import { getPharmacyAccountMap } from '../ledger/coa-seed';
 import { postJournalEntry } from '../ledger/service';
@@ -179,40 +178,33 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
       const customerId = generateUuidV7();
       const nowIso = new Date().toISOString();
 
-      const [newCustomer] = await db
-        .insert(customers)
-        .values({
-          id: customerId,
-          pharmacyId,
-          name: body.name.trim(),
-          phone: normalized,
-          email: body.email?.trim() || null,
-          address: body.address?.trim() || null,
-          creditLimitPaisa: body.creditLimitPaisa,
-          openingBalancePaisa: body.openingBalancePaisa,
-          priceTier: body.priceTier || null,
-          isActive: body.isActive,
-          createdAt: nowIso,
-          updatedAt: nowIso,
-        })
-        .returning();
+      const newCustomer = await db.transaction(async (tx) => {
+        const [inserted] = await tx
+          .insert(customers)
+          .values({
+            id: customerId,
+            pharmacyId,
+            name: body.name.trim(),
+            phone: normalized,
+            email: body.email?.trim() || null,
+            address: body.address?.trim() || null,
+            creditLimitPaisa: body.creditLimitPaisa,
+            openingBalancePaisa: body.openingBalancePaisa,
+            priceTier: body.priceTier || null,
+            isActive: body.isActive,
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          })
+          .returning();
 
-      // Post opening balance journal entry if openingBalancePaisa > 0
-      if (body.openingBalancePaisa > 0) {
-        const accountMap = await getPharmacyAccountMap(db, pharmacyId);
-        // Find equity account 3000
-        const [equityAcc] = await db
-          .select({ id: accounts.id })
-          .from(accounts)
-          .where(and(eq(accounts.pharmacyId, pharmacyId), eq(accounts.code, '3000')))
-          .limit(1);
-
-        if (equityAcc) {
+        // Post opening balance journal entry if openingBalancePaisa > 0 (D2)
+        if (body.openingBalancePaisa > 0) {
+          const accountMap = await getPharmacyAccountMap(tx, pharmacyId);
           const entryDate = toKarachiBusinessDate(nowIso);
-          await postJournalEntry(db, {
+          await postJournalEntry(tx, {
             pharmacyId,
             entryDate,
-            sourceType: 'manual',
+            sourceType: 'customer_opening_balance',
             sourceId: customerId,
             memo: `Customer opening balance: ${body.name}`,
             createdBy: request.userContext!.userId,
@@ -226,7 +218,7 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
                 memo: `Opening balance for ${body.name}`,
               },
               {
-                accountId: equityAcc.id,
+                accountId: accountMap.opening_balance_equity,
                 debitPaisa: 0,
                 creditPaisa: body.openingBalancePaisa,
                 memo: `Customer opening balance offset: ${body.name}`,
@@ -234,27 +226,29 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
             ],
           });
         }
-      }
 
-      // Sync as master data pull
-      await insertChangeLog(db, {
-        pharmacyId,
-        entity: 'customer',
-        entityId: customerId,
-        op: 'upsert',
-        data: {
-          id: customerId,
-          name: newCustomer!.name,
-          phone: newCustomer!.phone,
-          email: newCustomer!.email,
-          address: newCustomer!.address,
-          creditLimitPaisa: newCustomer!.creditLimitPaisa,
-          openingBalancePaisa: newCustomer!.openingBalancePaisa,
-          priceTier: newCustomer!.priceTier,
-          isActive: newCustomer!.isActive,
+        // Sync as master data pull
+        await insertChangeLog(tx, {
+          pharmacyId,
+          entity: 'customer',
+          entityId: customerId,
+          op: 'upsert',
+          data: {
+            id: customerId,
+            name: inserted!.name,
+            phone: inserted!.phone,
+            email: inserted!.email,
+            address: inserted!.address,
+            creditLimitPaisa: inserted!.creditLimitPaisa,
+            openingBalancePaisa: inserted!.openingBalancePaisa,
+            priceTier: inserted!.priceTier,
+            isActive: inserted!.isActive,
+            createdAt: nowIso,
+          },
           createdAt: nowIso,
-        },
-        createdAt: nowIso,
+        });
+
+        return inserted;
       });
 
       return reply.status(201).send({

@@ -14,8 +14,10 @@ import {
   purchaseOrders,
   branches,
 } from '../db/schema';
-import { postFinancialPaymentCompleted } from '../ledger/posting-engine';
-import { reverseJournalEntry } from '../ledger/service';
+import { postFinancialPaymentCompleted, toKarachiBusinessDate } from '../ledger/posting-engine';
+import { postJournalEntry, reverseJournalEntry } from '../ledger/service';
+import { getPharmacyAccountMap } from '../ledger/coa-seed';
+import { insertChangeLog } from '../sync/change-log';
 
 const PaymentAllocationInputSchema = z.object({
   documentType: z.enum(['invoice', 'purchase']),
@@ -1014,22 +1016,74 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
       const nowIso = new Date().toISOString();
       const customerId = generateUuidV7();
 
-      const [created] = await db
-        .insert(customers)
-        .values({
-          id: customerId,
+      const created = await db.transaction(async (tx) => {
+        const [inserted] = await tx
+          .insert(customers)
+          .values({
+            id: customerId,
+            pharmacyId: userContext.pharmacyId,
+            name: body.name,
+            phone: body.phone,
+            email: body.email,
+            address: body.address,
+            creditLimitPaisa: body.creditLimitPaisa,
+            openingBalancePaisa: body.openingBalancePaisa,
+            isActive: true,
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          })
+          .returning();
+
+        if (body.openingBalancePaisa > 0) {
+          const accountMap = await getPharmacyAccountMap(tx, userContext.pharmacyId);
+          const entryDate = toKarachiBusinessDate(nowIso);
+          await postJournalEntry(tx, {
+            pharmacyId: userContext.pharmacyId,
+            entryDate,
+            sourceType: 'customer_opening_balance',
+            sourceId: customerId,
+            memo: `Customer opening balance: ${body.name}`,
+            createdBy: userContext.userId,
+            lines: [
+              {
+                accountId: accountMap.ar,
+                debitPaisa: body.openingBalancePaisa,
+                creditPaisa: 0,
+                partyType: 'customer',
+                partyId: customerId,
+                memo: `Opening balance for ${body.name}`,
+              },
+              {
+                accountId: accountMap.opening_balance_equity,
+                debitPaisa: 0,
+                creditPaisa: body.openingBalancePaisa,
+                memo: `Customer opening balance offset: ${body.name}`,
+              },
+            ],
+          });
+        }
+
+        await insertChangeLog(tx, {
           pharmacyId: userContext.pharmacyId,
-          name: body.name,
-          phone: body.phone,
-          email: body.email,
-          address: body.address,
-          creditLimitPaisa: body.creditLimitPaisa,
-          openingBalancePaisa: body.openingBalancePaisa,
-          isActive: true,
+          entity: 'customer',
+          entityId: customerId,
+          op: 'upsert',
+          data: {
+            id: customerId,
+            name: inserted!.name,
+            phone: inserted!.phone,
+            email: inserted!.email,
+            address: inserted!.address,
+            creditLimitPaisa: inserted!.creditLimitPaisa,
+            openingBalancePaisa: inserted!.openingBalancePaisa,
+            isActive: inserted!.isActive,
+            createdAt: nowIso,
+          },
           createdAt: nowIso,
-          updatedAt: nowIso,
-        })
-        .returning();
+        });
+
+        return inserted;
+      });
 
       return reply.status(201).send({
         success: true,

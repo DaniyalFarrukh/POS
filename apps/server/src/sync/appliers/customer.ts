@@ -4,6 +4,9 @@ import { customers } from '../../db/schema';
 import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
 import { insertChangeLog } from '../change-log';
+import { getPharmacyAccountMap } from '../../ledger/coa-seed';
+import { postJournalEntry } from '../../ledger/service';
+import { toKarachiBusinessDate } from '../../ledger/posting-engine';
 
 export async function applyCustomerCreated(
   tx: DbClient,
@@ -84,6 +87,34 @@ export async function applyCustomerCreated(
       updatedAt: payload.createdAt,
     })
     .onConflictDoNothing();
+
+  if (payload.openingBalancePaisa && payload.openingBalancePaisa > 0) {
+    const accountMap = await getPharmacyAccountMap(tx, ctx.pharmacyId);
+    const entryDate = toKarachiBusinessDate(payload.createdAt);
+    await postJournalEntry(tx, {
+      pharmacyId: ctx.pharmacyId,
+      entryDate,
+      sourceType: 'customer_opening_balance',
+      sourceId: payload.id,
+      memo: `Customer opening balance: ${payload.name}`,
+      lines: [
+        {
+          accountId: accountMap.ar,
+          debitPaisa: payload.openingBalancePaisa,
+          creditPaisa: 0,
+          partyType: 'customer',
+          partyId: payload.id,
+          memo: `Opening balance for ${payload.name}`,
+        },
+        {
+          accountId: accountMap.opening_balance_equity,
+          debitPaisa: 0,
+          creditPaisa: payload.openingBalancePaisa,
+          memo: `Customer opening balance equity offset: ${payload.name}`,
+        },
+      ],
+    });
+  }
 
   await insertChangeLog(tx, {
     pharmacyId: ctx.pharmacyId,
