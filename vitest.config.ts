@@ -16,7 +16,12 @@ export default defineConfig({
         test: {
           name: 'apps',
           include: ['apps/**/*.test.ts', 'apps/**/*.test.tsx'],
-          exclude: ['**/node_modules/**', '**/dist/**', '**/dist-electron/**', '**/dist-release/**'],
+          exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/dist-electron/**',
+            '**/dist-release/**',
+          ],
           hookTimeout: 60000,
           testTimeout: 60000,
         },
