@@ -414,4 +414,39 @@ describe('ERP Sales Ledger Module (Phase 8)', () => {
     expect(body.data.entries.length).toBe(0);
     expect(body.data.summary.totalGrossSalesPaisa).toBe(0);
   });
+
+  it('6. F-H-08: includes finalized POS invoices (standard desktop status) in sales ledger', async () => {
+    const finalizedInvId = generateUuidV7();
+    await ctx.db.insert(invoices).values({
+      id: finalizedInvId,
+      pharmacyId: pharmacyAId,
+      counterId: counterA1Id,
+      cashierUserId: cashierUser1Id,
+      customerId: customer1Id,
+      invoiceNumber: 'INV-202611-FINALIZED',
+      clientRequestId: 'req-inv-fin-001',
+      subtotalPaisa: 50000,
+      discountPaisa: 0,
+      taxPaisa: 0,
+      totalPaisa: 50000,
+      status: 'finalized',
+      createdAt: '2026-11-05T10:00:00.000Z',
+    });
+
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/finance/sales-ledger?type=sale',
+      headers: { authorization: `Bearer ${accountantTokenA}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.success).toBe(true);
+    const found = body.data.entries.find(
+      (e: { documentNumber: string; grossPaisa: number }) =>
+        e.documentNumber === 'INV-202611-FINALIZED'
+    );
+    expect(found).toBeDefined();
+    expect(found?.grossPaisa).toBe(50000);
+  });
 });

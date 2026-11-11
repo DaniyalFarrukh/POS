@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, desc, asc, ilike, or } from 'drizzle-orm';
+import { eq, and, desc, asc, ilike, or, inArray } from 'drizzle-orm';
 import { z, generateUuidV7 } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
@@ -159,7 +159,11 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
 
         entry.balance += line.creditPaisa - line.debitPaisa;
 
-        if (line.sourceType === 'purchase') {
+        if (
+          line.sourceType === 'purchase' ||
+          line.sourceType === 'purchase.received' ||
+          line.sourceType === 'po_receipt'
+        ) {
           entry.purchaseCount += 1;
           if (!entry.lastPurchaseDate || line.entryDate > entry.lastPurchaseDate) {
             entry.lastPurchaseDate = line.entryDate;
@@ -680,7 +684,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
         .where(
           and(
             eq(journalEntries.pharmacyId, pharmacyId),
-            eq(journalEntries.sourceType, 'purchase'),
+            inArray(journalEntries.sourceType, ['purchase', 'purchase.received', 'po_receipt']),
             eq(journalLines.partyType, 'supplier'),
             eq(journalLines.partyId, id),
             eq(journalEntries.status, 'posted')

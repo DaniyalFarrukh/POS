@@ -6,6 +6,7 @@ import {
   pharmacies,
   users,
   suppliers,
+  accounts,
   journalEntries,
   journalLines,
   fiscalPeriods,
@@ -543,6 +544,74 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
       });
       const foundInB = listBRes.json().items.find((s: { id: string }) => s.id === supplierAId);
       expect(foundInB).toBeUndefined();
+    });
+  });
+
+  describe('7. F-H-08: Supplier Statements and Purchase Counting', () => {
+    it('includes purchase.received and po_receipt in supplier totalPurchasesCount and purchase list', async () => {
+      // 1. Create a supplier
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/api/suppliers',
+        headers: { authorization: `Bearer ${ownerTokenA}` },
+        payload: { name: 'GRN Tested Supplier', phone: '+92-300-1122334' },
+      });
+      expect(createRes.statusCode).toBe(201);
+      const supplierId = createRes.json().data.id;
+
+      // 2. Post a journal entry with sourceType: 'purchase.received' (GRN)
+      const apAcc = (await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyAId)))
+        .find((a) => a.code === '2000');
+      const invAcc = (await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyAId)))
+        .find((a) => a.code === '1200');
+      expect(apAcc).toBeDefined();
+      expect(invAcc).toBeDefined();
+
+      const { postJournalEntry } = await import('../ledger/service');
+      await ctx.db.transaction(async (tx) => {
+        await postJournalEntry(tx, {
+          pharmacyId: pharmacyAId,
+          entryDate: '2026-11-05',
+          sourceType: 'purchase.received',
+          sourceId: generateUuidV7(),
+          memo: 'GRN received stock',
+          lines: [
+            {
+              accountId: invAcc!.id,
+              debitPaisa: 75000,
+              creditPaisa: 0,
+            },
+            {
+              accountId: apAcc!.id,
+              debitPaisa: 0,
+              creditPaisa: 75000,
+              partyType: 'supplier',
+              partyId: supplierId,
+            },
+          ],
+        });
+      });
+
+      // 3. Query supplier list - totalPurchasesCount should be 1
+      const listRes = await app.inject({
+        method: 'GET',
+        url: '/api/suppliers',
+        headers: { authorization: `Bearer ${ownerTokenA}` },
+      });
+      expect(listRes.statusCode).toBe(200);
+      const supFromList = listRes.json().items.find((s: { id: string }) => s.id === supplierId);
+      expect(supFromList).toBeDefined();
+      expect(supFromList.purchaseCount).toBe(1);
+
+      // 4. Query supplier details - purchases array should include the purchase.received entry
+      const detailRes = await app.inject({
+        method: 'GET',
+        url: `/api/suppliers/${supplierId}`,
+        headers: { authorization: `Bearer ${ownerTokenA}` },
+      });
+      expect(detailRes.statusCode).toBe(200);
+      const purchases = detailRes.json().purchases;
+      expect(purchases.length).toBe(1);
     });
   });
 });

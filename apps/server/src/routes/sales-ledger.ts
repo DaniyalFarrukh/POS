@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -118,7 +118,7 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
           .where(
             and(
               eq(invoices.pharmacyId, userContext.pharmacyId),
-              eq(invoices.status, 'completed'),
+              inArray(invoices.status, ['finalized', 'completed']),
               query.branchId ? eq(counters.branchId, query.branchId) : undefined,
               query.cashierUserId ? eq(invoices.cashierUserId, query.cashierUserId) : undefined,
               query.customerId ? eq(invoices.customerId, query.customerId) : undefined,
