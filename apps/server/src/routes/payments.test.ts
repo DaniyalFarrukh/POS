@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { eq } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { buildApp } from '../app';
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
@@ -683,5 +683,37 @@ describe('ERP Payments Module (Customer Receipts & Supplier Payments)', () => {
       payload: { reversalReason: 'Cross tenant attempt' },
     });
     expect(revRes.statusCode).toBe(404);
+  });
+
+  it('rejects non-positive payment amount (0 or negative) with HTTP 400 (Kills M-09)', async () => {
+    const zeroRes = await app.inject({
+      method: 'POST',
+      url: '/api/finance/payments',
+      headers: { authorization: `Bearer ${accountantTokenA}` },
+      payload: {
+        direction: 'receipt',
+        partyType: 'customer',
+        partyId: customer1Id,
+        method: 'cash',
+        amountPaisa: 0,
+        paymentDate: getKarachiBusinessDate(),
+      },
+    });
+    expect(zeroRes.statusCode).toBe(400);
+
+    const negRes = await app.inject({
+      method: 'POST',
+      url: '/api/finance/payments',
+      headers: { authorization: `Bearer ${accountantTokenA}` },
+      payload: {
+        direction: 'receipt',
+        partyType: 'customer',
+        partyId: customer1Id,
+        method: 'cash',
+        amountPaisa: -500,
+        paymentDate: getKarachiBusinessDate(),
+      },
+    });
+    expect(negRes.statusCode).toBe(400);
   });
 });

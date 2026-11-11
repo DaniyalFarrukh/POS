@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DateStringSchema, MonthStringSchema } from './hr';
+import { roundHalfUp } from '../money';
 
 // 1. Statutory Component Schemas
 export const CreateStatutoryComponentSchema = z.object({
@@ -116,8 +117,8 @@ export function calculateProgressiveTax(
 
     if (isAboveMin && isBelowMax) {
       const excess = monthlyIncomePaisa - slab.minMonthlyIncomePaisa;
-      const rate = parseFloat(slab.excessRatePercentage) || 0;
-      const taxFromExcess = Math.round((excess * rate) / 100);
+      const rateBp = Math.round((parseFloat(slab.excessRatePercentage) || 0) * 100);
+      const taxFromExcess = roundHalfUp(excess * rateBp, 10000);
       return slab.baseTaxPaisa + taxFromExcess;
     }
   }
@@ -144,11 +145,11 @@ export function calculateStatutoryComponentDeduction(
   if (comp.calculationType === 'fixed') {
     return Math.max(0, comp.fixedAmountPaisa);
   }
-  const rate = parseFloat(comp.percentageRate) || 0;
-  if (rate <= 0 || grossSalaryPaisa <= 0) {
+  const rateBp = Math.round((parseFloat(comp.percentageRate) || 0) * 100);
+  if (rateBp <= 0 || grossSalaryPaisa <= 0) {
     return 0;
   }
-  return Math.round((grossSalaryPaisa * rate) / 100);
+  return roundHalfUp(grossSalaryPaisa * rateBp, 10000);
 }
 
 /**

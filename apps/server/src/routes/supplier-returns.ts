@@ -41,10 +41,18 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
       const user = request.userContext!;
       const pharmacyId = user.pharmacyId;
 
-      const { branchId, supplierId, status } = request.query as {
+      const {
+        branchId,
+        supplierId,
+        status,
+        limit: limitStr,
+        offset: offsetStr,
+      } = request.query as {
         branchId?: string;
         supplierId?: string;
         status?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const conditions = [eq(supplierReturns.pharmacyId, pharmacyId)];
@@ -53,6 +61,9 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
       if (status && status !== 'all') {
         conditions.push(eq(supplierReturns.status, status as 'draft' | 'completed' | 'cancelled'));
       }
+
+      const limit = Math.min(Math.max(Number(limitStr) || 100, 1), 500);
+      const offset = Math.max(Number(offsetStr) || 0, 0);
 
       const rows = await db
         .select({
@@ -66,7 +77,9 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
         .innerJoin(suppliers, eq(supplierReturns.supplierId, suppliers.id))
         .leftJoin(users, eq(supplierReturns.createdBy, users.id))
         .where(and(...conditions))
-        .orderBy(desc(supplierReturns.createdAt));
+        .orderBy(desc(supplierReturns.createdAt))
+        .limit(limit)
+        .offset(offset);
 
       return reply.status(200).send({
         items: rows.map((r) => ({

@@ -56,6 +56,8 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
         cashierUserId?: string;
         customerId?: string;
         type?: 'all' | 'sale' | 'return' | 'receipt';
+        limit?: string;
+        offset?: string;
       };
 
       const docTypeFilter = query.type || 'all';
@@ -125,7 +127,9 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
               startDateIso ? sql`${invoices.createdAt} >= ${startDateIso}` : undefined,
               endDateIso ? sql`${invoices.createdAt} <= ${endDateIso}` : undefined
             )
-          );
+          )
+          .limit(Math.min(Math.max(Number(query.limit) || 200, 1), 1000))
+          .offset(Math.max(Number(query.offset) || 0, 0));
 
         invoiceRows = await invQuery;
       }

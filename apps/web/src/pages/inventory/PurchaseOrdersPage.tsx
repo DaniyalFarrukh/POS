@@ -8,7 +8,7 @@ import type {
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
-import { getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -679,7 +679,7 @@ export const PurchaseOrdersPage: React.FC = () => {
                           className="border border-slate-200 rounded px-2 py-1 text-xs w-24 text-right font-mono"
                           value={(line.expectedCostPaisa / 100).toFixed(2)}
                           onChange={(e) => {
-                            const val = Math.round(parseFloat(e.target.value || '0') * 100);
+                            const val = parsePkrToPaisa(e.target.value || '0');
                             setFormLines((prev) =>
                               prev.map((item, i) =>
                                 i === idx ? { ...item, expectedCostPaisa: val } : item

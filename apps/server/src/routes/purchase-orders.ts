@@ -64,11 +64,20 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
       const user = request.userContext!;
       const pharmacyId = user.pharmacyId;
 
-      const { status, supplierId, branchId, search } = request.query as {
+      const {
+        status,
+        supplierId,
+        branchId,
+        search,
+        limit: limitStr,
+        offset: offsetStr,
+      } = request.query as {
         status?: string;
         supplierId?: string;
         branchId?: string;
         search?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const conditions = [eq(purchaseOrders.pharmacyId, pharmacyId)];
@@ -100,6 +109,9 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
         );
       }
 
+      const limit = Math.min(Math.max(Number(limitStr) || 100, 1), 500);
+      const offset = Math.max(Number(offsetStr) || 0, 0);
+
       const rows = await db
         .select({
           po: purchaseOrders,
@@ -112,7 +124,9 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
         .innerJoin(branches, eq(purchaseOrders.branchId, branches.id))
         .leftJoin(users, eq(purchaseOrders.createdBy, users.id))
         .where(and(...conditions))
-        .orderBy(desc(purchaseOrders.createdAt));
+        .orderBy(desc(purchaseOrders.createdAt))
+        .limit(limit)
+        .offset(offset);
 
       // Calculate KPI aggregates for all POs of this pharmacy
       const allPharmacyPOs = await db

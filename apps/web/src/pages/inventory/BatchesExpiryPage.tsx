@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { parsePkrToPaisa } from '@pos/shared';
 import { apiFetch } from '../../lib/api';
 import { formatPaisa } from '../../lib/formatters';
 import {
@@ -148,7 +149,7 @@ export const BatchesExpiryPage: React.FC = () => {
   // Execute Discount
   const handleApplyDiscount = async () => {
     if (!discountModalBatch) return;
-    const mrpPaisa = Math.round(parseFloat(newMrpRupees || '0') * 100);
+    const mrpPaisa = parsePkrToPaisa(newMrpRupees || '0');
     const valid = validateDiscountInput(mrpPaisa);
     if (!valid.isValid) {
       setDiscountError(valid.error || 'Invalid price');

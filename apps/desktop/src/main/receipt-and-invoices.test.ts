@@ -337,4 +337,76 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     const result = await printReceiptHtml('<html><body>Test Thermal Print</body></html>');
     expect(result.success).toBe(true);
   });
+
+  it('F-M-11: Enforces prescription/doctor requirement for controlled drugs (is_controlled = 1)', async () => {
+    // 1. Create a controlled product
+    const controlledProdId = generateUuidV7();
+    const controlledBatchId = generateUuidV7();
+    const now = '2026-10-26T10:00:00.000Z';
+
+    db.prepare(
+      `
+      INSERT INTO products (id, brand_name, generic_name, strength, form, manufacturer, barcode, tax_category_id, mrp_paisa, is_controlled, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)
+    `
+    ).run(
+      controlledProdId,
+      'Rivotril 2mg',
+      'Clonazepam',
+      '2mg',
+      'Tablet',
+      'Roche',
+      '1234567890123',
+      stdTaxCatId,
+      15000,
+      now,
+      now
+    );
+
+    db.prepare(
+      `
+      INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `
+    ).run(controlledBatchId, controlledProdId, 'RIV-001', '2027-12-31', 10000, 15000, now, now);
+
+    db.prepare(
+      `
+      INSERT INTO stock_movements (
+        id, product_id, batch_id, branch_id, type,
+        quantity_signed, reference_type, reference_id,
+        reason, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'purchase', 50, 'grn', 'seed', 'Initial batch stock', ?, ?)
+    `
+    ).run(generateUuidV7(), controlledProdId, controlledBatchId, branchId, now, now);
+
+    // 2. Attempt to sell without prescription or doctor info -> Error
+    await expect(
+      roleGuardedFinalizeSale(
+        {
+          clientRequestId: generateUuidV7(),
+          counterId,
+          cashierUserId,
+          lines: [{ productId: controlledProdId, quantity: 1, discountPaisa: 0 }],
+          payments: [{ method: 'cash', amountPaisa: 17700 }],
+        },
+        db
+      )
+    ).rejects.toThrow(/controlled drug.*requires a prescription reference/i);
+
+    // 3. Sell with prescription number -> succeeds
+    const successResult = await roleGuardedFinalizeSale(
+      {
+        clientRequestId: generateUuidV7(),
+        counterId,
+        cashierUserId,
+        prescriptionNumber: 'RX-2026-9999',
+        lines: [{ productId: controlledProdId, quantity: 1, discountPaisa: 0 }],
+        payments: [{ method: 'cash', amountPaisa: 17700 }],
+      },
+      db
+    );
+    expect(successResult).toBeDefined();
+    expect(successResult.status).toBe('finalized');
+  });
 });

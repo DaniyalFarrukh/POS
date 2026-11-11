@@ -1103,4 +1103,65 @@ describe('Stage 2 Server Security Regression Suite — Commit 1 (Auth, Tokens, P
     );
     expect(syncServiceSource).not.toMatch(/console\.error\(/);
   });
+
+  // =========================================================================
+  // M-12: Owner self-demotion & last-owner protection
+  // =========================================================================
+  it('M-12: Enforces owner self-demotion and last-owner protection on PATCH /api/admin/users/:id', async () => {
+    const tenant = await createPharmacyAndOwner('M12');
+    const now = new Date().toISOString();
+
+    // 1. Owner attempts to demote self -> 400
+    const selfDemoteRes = await app.inject({
+      method: 'PATCH',
+      url: `/api/admin/users/${tenant.ownerId}`,
+      headers: { authorization: `Bearer ${tenant.ownerToken}` },
+      payload: { role: 'cashier' },
+    });
+    expect(selfDemoteRes.statusCode).toBe(400);
+    expect(selfDemoteRes.json().message).toMatch(/Cannot demote or deactivate/i);
+
+    // 2. Owner attempts to deactivate self -> 400
+    const selfDeactRes = await app.inject({
+      method: 'PATCH',
+      url: `/api/admin/users/${tenant.ownerId}`,
+      headers: { authorization: `Bearer ${tenant.ownerToken}` },
+      payload: { isActive: false },
+    });
+    expect(selfDeactRes.statusCode).toBe(400);
+    expect(selfDeactRes.json().message).toMatch(/Cannot demote or deactivate/i);
+
+    // 3. Create a second owner
+    const secondOwnerId = generateUuidV7();
+    const pinHash2 = await hashPin('87654321');
+    await ctx.db.insert(users).values({
+      id: secondOwnerId,
+      pharmacyId: tenant.pharmacyId,
+      name: 'Second Owner',
+      role: 'owner',
+      pinHash: pinHash2,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Owner 1 deactivates Owner 2 -> 200 (allowed since Owner 1 remains active)
+    const deactOwner2Res = await app.inject({
+      method: 'PATCH',
+      url: `/api/admin/users/${secondOwnerId}`,
+      headers: { authorization: `Bearer ${tenant.ownerToken}` },
+      payload: { isActive: false },
+    });
+    expect(deactOwner2Res.statusCode).toBe(200);
+
+    // Now only Owner 1 is active. Attempting to demote Owner 1 -> 400
+    const lastOwnerDemote = await app.inject({
+      method: 'PATCH',
+      url: `/api/admin/users/${tenant.ownerId}`,
+      headers: { authorization: `Bearer ${tenant.ownerToken}` },
+      payload: { role: 'manager' },
+    });
+    expect(lastOwnerDemote.statusCode).toBe(400);
+    expect(lastOwnerDemote.json().message).toMatch(/Cannot demote or deactivate.*owner/i);
+  });
 });

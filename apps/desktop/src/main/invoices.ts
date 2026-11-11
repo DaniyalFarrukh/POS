@@ -94,23 +94,15 @@ export function createInvoice(
   const clientRequestId = generateUuidV7();
 
   // Prepare batch lookup if line batchId was not explicitly passed
-  const findBatchStmt = db.prepare<[string, string]>(`
+  const findBatchStmt = db.prepare<[string, string, string]>(`
     SELECT b.id, b.batch_no as batchNo, b.expiry_date as expiryDate,
            COALESCE(SUM(sm.quantity_signed), 0) as balance
     FROM batches b
     LEFT JOIN stock_movements sm ON b.id = sm.batch_id AND sm.branch_id = ?
-    WHERE b.product_id = ?
+    WHERE b.product_id = ? AND b.expiry_date >= ?
     GROUP BY b.id
     HAVING balance > 0
     ORDER BY b.expiry_date ASC
-    LIMIT 1
-  `);
-
-  const fallbackBatchStmt = db.prepare<[string]>(`
-    SELECT id, batch_no as batchNo, expiry_date as expiryDate
-    FROM batches
-    WHERE product_id = ?
-    ORDER BY expiry_date ASC
     LIMIT 1
   `);
 
@@ -176,7 +168,8 @@ export function createInvoice(
       let expiryDate = lineInput.expiryDate ?? null;
 
       if (!batchId) {
-        const found = findBatchStmt.get(branchId, lineInput.productId) as
+        const today = getKarachiBusinessDate();
+        const found = findBatchStmt.get(branchId, lineInput.productId, today) as
           | {
               id: string;
               batchNo: string;
@@ -189,18 +182,9 @@ export function createInvoice(
           batchNo = found.batchNo;
           expiryDate = found.expiryDate;
         } else {
-          const fallback = fallbackBatchStmt.get(lineInput.productId) as
-            | {
-                id: string;
-                batchNo: string;
-                expiryDate: string;
-              }
-            | undefined;
-          if (fallback) {
-            batchId = fallback.id;
-            batchNo = fallback.batchNo;
-            expiryDate = fallback.expiryDate;
-          }
+          throw new Error(
+            `Line ${i + 1}: no valid batch with positive balance and future expiry found for product ${lineInput.productId}`
+          );
         }
       }
 
@@ -673,6 +657,10 @@ export async function roleGuardedFinalizeSale(
     })),
     payments: validated.payments,
     notes: validated.notes ?? null,
+    customerId: validated.customerId ?? null,
+    prescriptionNumber: validated.prescriptionNumber ?? null,
+    doctorName: validated.doctorName ?? null,
+    patientName: validated.patientName ?? null,
   };
 
   return finalizeSale(fullInput, { db: rawDb });

@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, sql, desc, asc, ilike, or } from 'drizzle-orm';
+import { eq, and, sql, desc, asc, ilike, or, inArray } from 'drizzle-orm';
 import { z, generateUuidV7 } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
@@ -103,12 +103,14 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
           )
           .orderBy(asc(invoices.createdAt));
 
-        const resultDocs = [];
-        for (const inv of customerInvoices) {
-          // Calculate allocated paisa from non-reversed payments
+        const invoiceIds = customerInvoices.map((inv) => inv.id);
+        const allocMap = new Map<string, number>();
+        if (invoiceIds.length > 0) {
           const allocRecords = await db
             .select({
-              allocatedPaisa: paymentAllocations.allocatedPaisa,
+              documentId: paymentAllocations.documentId,
+              totalAllocated:
+                sql<number>`COALESCE(SUM(${paymentAllocations.allocatedPaisa}), 0)`.mapWith(Number),
             })
             .from(paymentAllocations)
             .innerJoin(erpPayments, eq(paymentAllocations.paymentId, erpPayments.id))
@@ -116,12 +118,20 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
               and(
                 eq(paymentAllocations.pharmacyId, userContext.pharmacyId),
                 eq(paymentAllocations.documentType, 'invoice'),
-                eq(paymentAllocations.documentId, inv.id),
+                inArray(paymentAllocations.documentId, invoiceIds),
                 sql`${erpPayments.status} != 'reversed'`
               )
-            );
+            )
+            .groupBy(paymentAllocations.documentId);
 
-          const allocatedPaisa = allocRecords.reduce((sum, a) => sum + a.allocatedPaisa, 0);
+          for (const a of allocRecords) {
+            allocMap.set(a.documentId, a.totalAllocated);
+          }
+        }
+
+        const resultDocs = [];
+        for (const inv of customerInvoices) {
+          const allocatedPaisa = allocMap.get(inv.id) || 0;
           const balanceDuePaisa = inv.totalPaisa - allocatedPaisa;
 
           if (balanceDuePaisa > 0) {
@@ -162,11 +172,14 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
             )
           );
 
-        for (const po of pos) {
-          seenDocIds.add(po.id);
+        const poIds = pos.map((p) => p.id);
+        const poAllocMap = new Map<string, number>();
+        if (poIds.length > 0) {
           const allocRecords = await db
             .select({
-              allocatedPaisa: paymentAllocations.allocatedPaisa,
+              documentId: paymentAllocations.documentId,
+              totalAllocated:
+                sql<number>`COALESCE(SUM(${paymentAllocations.allocatedPaisa}), 0)`.mapWith(Number),
             })
             .from(paymentAllocations)
             .innerJoin(erpPayments, eq(paymentAllocations.paymentId, erpPayments.id))
@@ -174,12 +187,20 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
               and(
                 eq(paymentAllocations.pharmacyId, userContext.pharmacyId),
                 eq(paymentAllocations.documentType, 'purchase'),
-                eq(paymentAllocations.documentId, po.id),
+                inArray(paymentAllocations.documentId, poIds),
                 sql`${erpPayments.status} != 'reversed'`
               )
-            );
+            )
+            .groupBy(paymentAllocations.documentId);
 
-          const allocatedPaisa = allocRecords.reduce((sum, a) => sum + a.allocatedPaisa, 0);
+          for (const a of allocRecords) {
+            poAllocMap.set(a.documentId, a.totalAllocated);
+          }
+        }
+
+        for (const po of pos) {
+          seenDocIds.add(po.id);
+          const allocatedPaisa = poAllocMap.get(po.id) || 0;
           const balanceDuePaisa = po.totalExpectedCostPaisa - allocatedPaisa;
 
           if (balanceDuePaisa > 0) {
@@ -216,14 +237,17 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
             )
           );
 
-        for (const line of apLines) {
-          const docId = line.sourceId || line.entryId;
-          if (seenDocIds.has(docId)) continue;
-          seenDocIds.add(docId);
+        const unseenApDocIds = apLines
+          .map((l) => l.sourceId || l.entryId)
+          .filter((docId) => !seenDocIds.has(docId));
 
+        const apAllocMap = new Map<string, number>();
+        if (unseenApDocIds.length > 0) {
           const allocRecords = await db
             .select({
-              allocatedPaisa: paymentAllocations.allocatedPaisa,
+              documentId: paymentAllocations.documentId,
+              totalAllocated:
+                sql<number>`COALESCE(SUM(${paymentAllocations.allocatedPaisa}), 0)`.mapWith(Number),
             })
             .from(paymentAllocations)
             .innerJoin(erpPayments, eq(paymentAllocations.paymentId, erpPayments.id))
@@ -231,12 +255,23 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
               and(
                 eq(paymentAllocations.pharmacyId, userContext.pharmacyId),
                 eq(paymentAllocations.documentType, 'purchase'),
-                eq(paymentAllocations.documentId, docId),
+                inArray(paymentAllocations.documentId, unseenApDocIds),
                 sql`${erpPayments.status} != 'reversed'`
               )
-            );
+            )
+            .groupBy(paymentAllocations.documentId);
 
-          const allocatedPaisa = allocRecords.reduce((sum, a) => sum + a.allocatedPaisa, 0);
+          for (const a of allocRecords) {
+            apAllocMap.set(a.documentId, a.totalAllocated);
+          }
+        }
+
+        for (const line of apLines) {
+          const docId = line.sourceId || line.entryId;
+          if (seenDocIds.has(docId)) continue;
+          seenDocIds.add(docId);
+
+          const allocatedPaisa = apAllocMap.get(docId) || 0;
           const balanceDuePaisa = line.creditPaisa - allocatedPaisa;
 
           if (balanceDuePaisa > 0) {

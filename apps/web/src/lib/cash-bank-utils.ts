@@ -1,4 +1,4 @@
-import { parseCsv } from '@pos/shared';
+import { parseCsv, parsePkrToPaisa } from '@pos/shared';
 
 export interface BankStatementLine {
   id: string;
@@ -29,11 +29,7 @@ export interface ReconciliationMathResult {
  */
 export function parsePaisaFromString(val?: string | null): number {
   if (!val) return 0;
-  const clean = val.replace(/[^0-9.-]/g, '').trim();
-  if (!clean) return 0;
-  const num = parseFloat(clean);
-  if (isNaN(num)) return 0;
-  return Math.round(num * 100);
+  return parsePkrToPaisa(val);
 }
 
 /**

@@ -226,45 +226,54 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
             .from(employees)
             .where(and(eq(employees.pharmacyId, pharmacyId), eq(employees.isActive, true)));
 
+      // Batch fetch existing allocations for this pharmacy and year to eliminate N+1 loops
+      const existingAllocations = await db
+        .select()
+        .from(leaveAllocations)
+        .where(and(eq(leaveAllocations.pharmacyId, pharmacyId), eq(leaveAllocations.year, year)));
+
+      const allocMap = new Map<string, typeof leaveAllocations.$inferSelect>();
+      for (const a of existingAllocations) {
+        allocMap.set(`${a.employeeId}:${a.leaveTypeId}`, a);
+      }
+
+      const missingAllocations: Array<typeof leaveAllocations.$inferInsert> = [];
+      const nowIso = new Date().toISOString();
+
+      for (const emp of emps) {
+        for (const lt of allTypes) {
+          const key = `${emp.id}:${lt.id}`;
+          if (!allocMap.has(key)) {
+            missingAllocations.push({
+              id: generateUuidV7(),
+              pharmacyId,
+              employeeId: emp.id,
+              leaveTypeId: lt.id,
+              year,
+              entitledDays: lt.yearlyEntitlementDays,
+              carriedOverDays: 0,
+              manualAdjustmentDays: 0,
+              usedDays: 0,
+              pendingDays: 0,
+              createdAt: nowIso,
+              updatedAt: nowIso,
+            });
+          }
+        }
+      }
+
+      if (missingAllocations.length > 0) {
+        const inserted = await db.insert(leaveAllocations).values(missingAllocations).returning();
+        for (const a of inserted) {
+          allocMap.set(`${a.employeeId}:${a.leaveTypeId}`, a);
+        }
+      }
+
       const results = [];
 
       for (const emp of emps) {
         for (const lt of allTypes) {
-          // Find or create allocation
-          let [alloc] = await db
-            .select()
-            .from(leaveAllocations)
-            .where(
-              and(
-                eq(leaveAllocations.pharmacyId, pharmacyId),
-                eq(leaveAllocations.employeeId, emp.id),
-                eq(leaveAllocations.leaveTypeId, lt.id),
-                eq(leaveAllocations.year, year)
-              )
-            );
-
-          if (!alloc) {
-            const nowIso = new Date().toISOString();
-            const allocId = generateUuidV7();
-            [alloc] = await db
-              .insert(leaveAllocations)
-              .values({
-                id: allocId,
-                pharmacyId,
-                employeeId: emp.id,
-                leaveTypeId: lt.id,
-                year,
-                entitledDays: lt.yearlyEntitlementDays,
-                carriedOverDays: 0,
-                manualAdjustmentDays: 0,
-                usedDays: 0,
-                pendingDays: 0,
-                createdAt: nowIso,
-                updatedAt: nowIso,
-              })
-              .returning();
-          }
-
+          const alloc = allocMap.get(`${emp.id}:${lt.id}`);
           if (!alloc) {
             continue;
           }

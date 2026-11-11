@@ -1,6 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc, asc, ilike, or } from 'drizzle-orm';
-import { z, generateUuidV7, toKarachiBusinessDate, getKarachiBusinessDate } from '@pos/shared';
+import {
+  z,
+  generateUuidV7,
+  toKarachiBusinessDate,
+  getKarachiBusinessDate,
+  roundHalfUp,
+} from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -332,7 +338,7 @@ export const expenseRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const averageExpensePaisa =
-        expenseCount > 0 ? Math.round(totalExpensesPaisa / expenseCount) : 0;
+        expenseCount > 0 ? roundHalfUp(totalExpensesPaisa, expenseCount) : 0;
 
       return reply.send({
         success: true,

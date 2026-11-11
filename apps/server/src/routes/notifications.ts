@@ -20,7 +20,12 @@ export const notificationRoutes: FastifyPluginAsync = async (fastify) => {
     const db = request.server.db || getDb();
 
     // Dynamically refresh system notifications (expiring stock, sync exceptions, period close)
-    await refreshSystemNotifications(db, userContext.pharmacyId, userContext.userId);
+    await refreshSystemNotifications(
+      db,
+      userContext.pharmacyId,
+      userContext.userId,
+      userContext.role
+    );
 
     const result = await getUserNotifications(db, userContext.pharmacyId, userContext.userId);
     return reply.status(200).send(result);

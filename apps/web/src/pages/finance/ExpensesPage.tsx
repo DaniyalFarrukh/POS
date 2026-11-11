@@ -15,7 +15,7 @@ import {
   getPaymentTypeMeta,
   isApprovalRequired,
 } from '../../lib/expense-utils';
-import { getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -300,12 +300,11 @@ export const ExpensesPage: React.FC = () => {
     e.preventDefault();
     setAddFormError(null);
 
-    const amountNum = parseFloat(addAmountRupees);
-    if (isNaN(amountNum) || amountNum <= 0) {
+    const amountPaisa = parsePkrToPaisa(addAmountRupees, 0);
+    if (amountPaisa <= 0) {
       setAddFormError('Please enter a valid positive expense amount.');
       return;
     }
-    const amountPaisa = Math.round(amountNum * 100);
 
     if (!addCategoryId) {
       setAddFormError('Please select an expense category.');
@@ -412,12 +411,11 @@ export const ExpensesPage: React.FC = () => {
     e.preventDefault();
     setRecFormError(null);
 
-    const amountNum = parseFloat(recAmountRupees);
-    if (isNaN(amountNum) || amountNum <= 0) {
+    const amountPaisa = parsePkrToPaisa(recAmountRupees, 0);
+    if (amountPaisa <= 0) {
       setRecFormError('Please enter a valid positive recurring amount.');
       return;
     }
-    const amountPaisa = Math.round(amountNum * 100);
 
     if (!recTitle.trim()) {
       setRecFormError('Please specify a title (e.g. Monthly Rent).');
@@ -568,9 +566,9 @@ export const ExpensesPage: React.FC = () => {
   }, [expenses, activeTab]);
 
   const liveThresholdCheck = useMemo(() => {
-    const val = parseFloat(addAmountRupees);
-    if (isNaN(val) || val <= 0) return false;
-    return isApprovalRequired(Math.round(val * 100), approvalThresholdPaisa);
+    const amountPaisa = parsePkrToPaisa(addAmountRupees, 0);
+    if (amountPaisa <= 0) return false;
+    return isApprovalRequired(amountPaisa, approvalThresholdPaisa);
   }, [addAmountRupees, approvalThresholdPaisa]);
 
   // ---------------------------------------------------------------------------

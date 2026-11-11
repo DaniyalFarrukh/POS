@@ -146,8 +146,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }, []);
 
   const handleNavigate = (link: string) => {
-    // Extract base tab from link like "/customers?customerId=123" -> "customers"
-    const clean = link.replace(/^\//, '').split('?')[0] || 'overview';
+    // Extract base tab and query params from link like "/customers?customerId=123"
+    const [path, queryString] = link.replace(/^\//, '').split('?');
+    if (queryString && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.search = `?${queryString}`;
+      window.history.pushState({}, '', url.toString());
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+    const clean = path || 'overview';
     onTabChange(clean as NavItem);
   };
 

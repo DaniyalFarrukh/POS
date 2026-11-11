@@ -30,6 +30,9 @@ export interface FinalizeSaleInput {
   lines: FinalizeSaleLineInput[];
   payments: FinalizeSalePaymentInput[];
   notes?: string | null;
+  prescriptionNumber?: string | null;
+  doctorName?: string | null;
+  patientName?: string | null;
 }
 
 export interface FinalizedInvoiceLine {
@@ -470,6 +473,19 @@ export function finalizeSale(
         isActive: prod.is_active === 1,
         createdAt: prod.created_at,
       });
+
+      // DRAP Regulatory Check: Controlled drugs require prescription / doctor / Rx notes
+      if (prod.is_controlled === 1) {
+        const hasPrescriptionInfo =
+          Boolean(input.prescriptionNumber?.trim()) ||
+          Boolean(input.doctorName?.trim()) ||
+          Boolean(input.notes?.trim() && /prescription|doctor|dr\.|rx/i.test(input.notes));
+        if (!hasPrescriptionInfo) {
+          throw new Error(
+            `Line ${lineIdx + 1}: controlled drug ${prod.brand_name} requires a prescription reference, doctor name, or Rx details in notes`
+          );
+        }
+      }
 
       const unitPricePaisa = prod.mrp_paisa;
       const grossLinePaisa = multiplyByQuantity(unitPricePaisa, qty);

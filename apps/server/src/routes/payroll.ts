@@ -6,6 +6,7 @@ import {
   calculateProgressiveTax,
   calculateStatutoryComponentDeduction,
   computePayrollItemTotals,
+  roundHalfUp,
   CreateStatutoryComponentSchema,
   UpdateStatutoryComponentSchema,
   CreateTaxSlabSchema,
@@ -379,6 +380,8 @@ export const payrollRoutes: FastifyPluginAsync = async (fastify) => {
         branchId?: string;
         month?: string;
         status?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const conditions = [eq(payrollRuns.pharmacyId, pharmacyId)];
@@ -431,7 +434,9 @@ export const payrollRoutes: FastifyPluginAsync = async (fastify) => {
         .from(payrollRuns)
         .innerJoin(branches, eq(payrollRuns.branchId, branches.id))
         .where(and(...conditions))
-        .orderBy(desc(payrollRuns.createdAt));
+        .orderBy(desc(payrollRuns.createdAt))
+        .limit(Math.min(Math.max(Number(query.limit) || 100, 1), 500))
+        .offset(Math.max(Number(query.offset) || 0, 0));
 
       return reply.send({ success: true, data: runs });
     }
@@ -616,7 +621,7 @@ export const payrollRoutes: FastifyPluginAsync = async (fastify) => {
 
       for (const emp of branchEmployees) {
         const baseSalaryPaisa = emp.salaryPaisa;
-        const dailyRatePaisa = Math.round(baseSalaryPaisa / workingDays);
+        const dailyRatePaisa = roundHalfUp(baseSalaryPaisa, workingDays);
 
         // Count unpaid leave days in this month
         let unpaidDays = 0;

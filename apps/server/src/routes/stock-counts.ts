@@ -53,10 +53,18 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
       const user = request.userContext!;
       const pharmacyId = user.pharmacyId;
 
-      const { branchId, locationId, status } = request.query as {
+      const {
+        branchId,
+        locationId,
+        status,
+        limit: limitStr,
+        offset: offsetStr,
+      } = request.query as {
         branchId?: string;
         locationId?: string;
         status?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const conditions = [eq(stockCounts.pharmacyId, pharmacyId)];
@@ -67,6 +75,9 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
           eq(stockCounts.status, status as 'draft' | 'submitted' | 'approved' | 'cancelled')
         );
       }
+
+      const limit = Math.min(Math.max(Number(limitStr) || 100, 1), 500);
+      const offset = Math.max(Number(offsetStr) || 0, 0);
 
       const rows = await db
         .select({
@@ -80,7 +91,9 @@ export const stockCountRoutes: FastifyPluginAsync = async (app) => {
         .leftJoin(stockLocations, eq(stockCounts.locationId, stockLocations.id))
         .leftJoin(users, eq(stockCounts.createdBy, users.id))
         .where(and(...conditions))
-        .orderBy(desc(stockCounts.createdAt));
+        .orderBy(desc(stockCounts.createdAt))
+        .limit(limit)
+        .offset(offset);
 
       return reply.status(200).send({
         items: rows.map((r) => ({

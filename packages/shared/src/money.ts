@@ -171,6 +171,17 @@ export function formatPaisaToRupees(paisa: Paisa, includePrefix = true): string 
 }
 
 /**
+ * Formats an amount in integer paisa to PKR currency notation.
+ * Alias for formatPKR adhering to Rule 1 display conventions.
+ */
+export function formatPaisa(
+  paisa: Paisa,
+  options: { showPrefix?: boolean; showDecimals?: boolean; useGrouping?: boolean } = {}
+): string {
+  return formatPKR(paisa, options);
+}
+
+/**
  * Converts a string or numeric representation of Rupees into integer paisa.
  * E.g., '35.50' -> 3550, 'Rs. 450.25' -> 45025, 100 -> 10000.
  * Preserves signs for negative numbers and returns.
@@ -234,6 +245,23 @@ export function convertRupeesToPaisa(rupees: string | number): Paisa {
 
   const totalPaisa = wholePart * 100 + decimalPart;
   return isNegative ? -totalPaisa : totalPaisa;
+}
+
+/**
+ * Safely parses string, number, or null/undefined into integer paisa.
+ * Returns defaultValue if input is missing, empty, or unparseable.
+ */
+export function parsePkrToPaisa(
+  rupees: string | number | null | undefined,
+  defaultValue: Paisa = 0
+): Paisa {
+  if (rupees === null || rupees === undefined) return defaultValue;
+  if (typeof rupees === 'string' && rupees.trim() === '') return defaultValue;
+  try {
+    return convertRupeesToPaisa(rupees);
+  } catch {
+    return defaultValue;
+  }
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { UserRole } from '@pos/shared';
+import { parsePkrToPaisa } from '@pos/shared';
 
 export interface SupplierItem {
   id: string;
@@ -60,21 +61,21 @@ export function validateSupplierForm(data: SupplierFormData): SupplierFormValida
 
   let creditLimitPaisa = 0;
   if (data.creditLimitPKR !== undefined && data.creditLimitPKR !== '') {
-    const parsed = parseFloat(data.creditLimitPKR);
-    if (isNaN(parsed) || parsed < 0) {
+    const val = parsePkrToPaisa(data.creditLimitPKR, -1);
+    if (val < 0) {
       errors.creditLimitPKR = 'Credit limit must be a valid positive amount.';
     } else {
-      creditLimitPaisa = Math.round(parsed * 100);
+      creditLimitPaisa = val;
     }
   }
 
   let openingBalancePaisa = 0;
   if (data.openingBalancePKR !== undefined && data.openingBalancePKR !== '') {
-    const parsed = parseFloat(data.openingBalancePKR);
-    if (isNaN(parsed) || parsed < 0) {
+    const val = parsePkrToPaisa(data.openingBalancePKR, -1);
+    if (val < 0) {
       errors.openingBalancePKR = 'Opening balance must be a valid numeric amount.';
     } else {
-      openingBalancePaisa = Math.round(parsed * 100);
+      openingBalancePaisa = val;
     }
   }
 

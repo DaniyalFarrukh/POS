@@ -182,6 +182,8 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
         isControlled?: string;
         customerId?: string;
         search?: string;
+        limit?: string;
+        offset?: string;
       };
 
       let whereClause = eq(prescriptions.pharmacyId, pharmacyId);
@@ -243,7 +245,9 @@ export const prescriptionRoutes: FastifyPluginAsync = async (app) => {
         .from(prescriptions)
         .leftJoin(customers, eq(prescriptions.customerId, customers.id))
         .where(whereClause)
-        .orderBy(desc(prescriptions.prescriptionDate), desc(prescriptions.createdAt));
+        .orderBy(desc(prescriptions.prescriptionDate), desc(prescriptions.createdAt))
+        .limit(Math.min(Math.max(Number(query.limit) || 100, 1), 500))
+        .offset(Math.max(Number(query.offset) || 0, 0));
 
       await logPrescriptionAccess(
         db,

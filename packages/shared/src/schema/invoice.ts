@@ -112,7 +112,7 @@ export const FinalizeSaleLineInputSchema = z.object({
 export type FinalizeSaleLineInput = z.input<typeof FinalizeSaleLineInputSchema>;
 
 export const FinalizeSalePaymentInputSchema = z.object({
-  method: z.enum(['cash', 'card', 'wallet']),
+  method: z.enum(['cash', 'card', 'wallet', 'credit']),
   amountPaisa: z.number().int().min(1, 'Payment amount must be greater than 0'),
 });
 export type FinalizeSalePaymentInput = z.infer<typeof FinalizeSalePaymentInputSchema>;
@@ -121,9 +121,13 @@ export const FinalizeSaleInputSchema = z.object({
   clientRequestId: z.string().min(1, 'clientRequestId is required'),
   counterId: z.string().uuid().optional(),
   cashierUserId: z.string().uuid().optional(),
+  customerId: z.string().uuid().nullable().optional(),
   lines: z.array(FinalizeSaleLineInputSchema).min(1, 'At least one line item is required'),
   payments: z.array(FinalizeSalePaymentInputSchema).min(1, 'At least one payment is required'),
   notes: z.string().nullable().optional(),
+  prescriptionNumber: z.string().nullable().optional(),
+  doctorName: z.string().nullable().optional(),
+  patientName: z.string().nullable().optional(),
 });
 export type FinalizeSaleInput = z.input<typeof FinalizeSaleInputSchema>;
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { parsePkrToPaisa } from '@pos/shared';
 import type {
   PayrollRunRecord,
   PayrollItemRecord,
@@ -451,8 +452,8 @@ export const PayrollPage: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             overtimeHours: parseFloat(editOvertimeHours) || 0,
-            advanceRecoveryPaisa: Math.round((parseFloat(editAdvanceRecoveryRs) || 0) * 100),
-            taxPaisa: Math.round((parseFloat(editTaxRs) || 0) * 100),
+            advanceRecoveryPaisa: parsePkrToPaisa(editAdvanceRecoveryRs),
+            taxPaisa: parsePkrToPaisa(editTaxRs),
             notes: editNotes.trim() || undefined,
           }),
         }
@@ -499,8 +500,8 @@ export const PayrollPage: React.FC = () => {
       setErrorMsg('Employee is required');
       return;
     }
-    const principalPaisa = Math.round((parseFloat(advPrincipalRs) || 0) * 100);
-    const installmentPaisa = Math.round((parseFloat(advInstallmentRs) || 0) * 100);
+    const principalPaisa = parsePkrToPaisa(advPrincipalRs);
+    const installmentPaisa = parsePkrToPaisa(advInstallmentRs);
     if (principalPaisa <= 0 || installmentPaisa <= 0) {
       setErrorMsg('Principal and installment must be greater than zero');
       return;
@@ -556,8 +557,7 @@ export const PayrollPage: React.FC = () => {
             name: compName.trim(),
             componentType: compType,
             calculationType: compCalcType,
-            fixedAmountPaisa:
-              compCalcType === 'fixed' ? Math.round((parseFloat(compAmountRs) || 0) * 100) : 0,
+            fixedAmountPaisa: compCalcType === 'fixed' ? parsePkrToPaisa(compAmountRs) : 0,
             percentageRate: compCalcType === 'percentage' ? compPercentageRate : '0.00',
             accountCode: compAccountCode.trim() || '2210',
             notes: compNotes.trim() || undefined,
@@ -601,9 +601,9 @@ export const PayrollPage: React.FC = () => {
   // Handler: Add Tax Slab
   const handleCreateTaxSlab = async (e: React.FormEvent) => {
     e.preventDefault();
-    const minPaisa = Math.round((parseFloat(slabMinRs) || 0) * 100);
-    const maxPaisa = slabMaxRs ? Math.round((parseFloat(slabMaxRs) || 0) * 100) : null;
-    const basePaisa = Math.round((parseFloat(slabBaseTaxRs) || 0) * 100);
+    const minPaisa = parsePkrToPaisa(slabMinRs);
+    const maxPaisa = slabMaxRs ? parsePkrToPaisa(slabMaxRs) : null;
+    const basePaisa = parsePkrToPaisa(slabBaseTaxRs);
     setIsLoading(true);
     setErrorMsg(null);
     try {

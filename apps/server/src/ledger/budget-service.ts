@@ -1,6 +1,6 @@
 import { eq, and, sql, inArray, asc } from 'drizzle-orm';
 import type { DbClient } from '../sync/types';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, roundHalfUp } from '@pos/shared';
 import { budgets, accounts, branches, journalEntries, journalLines } from '../db/schema';
 
 export interface BudgetFilter {
@@ -511,7 +511,7 @@ export async function copyPreviousYearBudget(db: DbClient, input: CopyPreviousYe
     // Calculate adjusted amount in paisa
     // adjustment in bp: 1000 bp = +10%
     const multiplier = 10000 + (percentageAdjustmentBp || 0);
-    const adjustedAmountPaisa = Math.max(0, Math.round((b.amountPaisa * multiplier) / 10000));
+    const adjustedAmountPaisa = Math.max(0, roundHalfUp(b.amountPaisa * multiplier, 10000));
 
     const newBudgetId = generateUuidV7();
     await db

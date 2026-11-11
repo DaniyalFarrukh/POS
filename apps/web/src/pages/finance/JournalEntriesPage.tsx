@@ -3,7 +3,7 @@ import type { JournalEntryRecord, AccountRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly, formatKarachiDateTime } from '../../lib/formatters';
-import { getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -194,8 +194,8 @@ export const JournalEntriesPage: React.FC = () => {
     try {
       const payloadLines = lines.map((l) => ({
         accountId: l.accountId,
-        debitPaisa: Math.round(parseFloat(l.debit || '0') * 100),
-        creditPaisa: Math.round(parseFloat(l.credit || '0') * 100),
+        debitPaisa: parsePkrToPaisa(l.debit || '0'),
+        creditPaisa: parsePkrToPaisa(l.credit || '0'),
         memo: l.memo.trim() || undefined,
       }));
 

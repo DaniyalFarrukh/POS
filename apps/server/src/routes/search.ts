@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, or, ilike } from 'drizzle-orm';
-import { hasPermission } from '@pos/shared';
+import { hasPermission, formatPKR, toKarachiBusinessDate } from '@pos/shared';
 import type { GlobalSearchResultItem, GlobalSearchResponse } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
@@ -62,9 +62,9 @@ export const searchRoutes: FastifyPluginAsync = async (fastify) => {
           id: inv.id,
           type: 'invoice',
           title: inv.invoiceNumber,
-          subtitle: `Total: Rs. ${(inv.totalPaisa / 100).toFixed(2)} • ${inv.createdAt.slice(0, 10)}`,
+          subtitle: `Total: ${formatPKR(inv.totalPaisa)} • ${toKarachiBusinessDate(inv.createdAt)}`,
           meta: { totalPaisa: inv.totalPaisa, invoiceNumber: inv.invoiceNumber },
-          link: `/sales-ledger?invoiceId=${inv.id}`,
+          link: `/finance-sales-ledger?invoiceId=${inv.id}`,
         }));
       }
 
@@ -125,7 +125,7 @@ export const searchRoutes: FastifyPluginAsync = async (fastify) => {
         id: p.id,
         type: 'product',
         title: p.brandName,
-        subtitle: `${p.genericName || 'Medicine'} • MRP Rs. ${(p.mrpPaisa / 100).toFixed(2)}`,
+        subtitle: `${p.genericName || 'Medicine'} • MRP ${formatPKR(p.mrpPaisa)}`,
         meta: { genericName: p.genericName, barcode: p.barcode, mrpPaisa: p.mrpPaisa },
         link: `/stock-management?productId=${p.id}`,
       }));

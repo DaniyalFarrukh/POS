@@ -314,6 +314,7 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
       'GET /api/reports/stock-and-expiry',
       'GET /api/reports/profit-per-batch',
       'GET /api/reports/supplier-ledger',
+      'GET /api/reports/batch-recall',
       'GET /api/admin/users',
       'POST /api/admin/users',
       'PATCH /api/admin/users/:id',
@@ -597,6 +598,31 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
   // 3. Report Routes: Cross-Tenant Filter Parameter Rejection (HTTP 404)
   // =========================================================================
   describe('Report Routes Foreign Filter Parameter Rejection', () => {
+    it('GET /api/reports/sales without params strictly aggregates ONLY Tenant A invoices (Kills M-01)', async () => {
+      const resA = await app.inject({
+        method: 'GET',
+        url: '/api/reports/sales',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resA.statusCode).toBe(200);
+      const jsonA = resA.json();
+      expect(jsonA.totals.invoiceCount).toBe(1);
+      expect(jsonA.totals.totalPaisa).toBe(5000);
+    });
+
+    it('GET /api/reports/batch-recall strictly scopes by tenant', async () => {
+      const resA = await app.inject({
+        method: 'GET',
+        url: '/api/reports/batch-recall?batchNo=BATCH-AUG-01',
+        headers: { authorization: `Bearer ${tenantA.ownerToken}` },
+      });
+      expect(resA.statusCode).toBe(200);
+      const jsonA = resA.json();
+      expect(
+        jsonA.matchingBatches.every((b: { batchId: string }) => b.batchId !== tenantB.batchId)
+      ).toBe(true);
+    });
+
     it('GET /api/reports/sales rejects foreign branchId with 404', async () => {
       const res = await app.inject({
         method: 'GET',

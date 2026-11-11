@@ -61,11 +61,20 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       const user = request.userContext!;
       const pharmacyId = user.pharmacyId;
 
-      const { status, sourceBranchId, destinationBranchId, search } = request.query as {
+      const {
+        status,
+        sourceBranchId,
+        destinationBranchId,
+        search,
+        limit: limitStr,
+        offset: offsetStr,
+      } = request.query as {
         status?: string;
         sourceBranchId?: string;
         destinationBranchId?: string;
         search?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const conditions = [eq(stockTransfers.pharmacyId, pharmacyId)];
@@ -88,6 +97,9 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         );
       }
 
+      const limit = Math.min(Math.max(Number(limitStr) || 100, 1), 500);
+      const offset = Math.max(Number(offsetStr) || 0, 0);
+
       const rows = await db
         .select({
           transfer: stockTransfers,
@@ -98,7 +110,9 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         .innerJoin(branches, eq(stockTransfers.sourceBranchId, branches.id))
         .leftJoin(users, eq(stockTransfers.createdBy, users.id))
         .where(and(...conditions))
-        .orderBy(desc(stockTransfers.createdAt));
+        .orderBy(desc(stockTransfers.createdAt))
+        .limit(limit)
+        .offset(offset);
 
       // Fetch all transfers for KPI calculations
       const allTransfers = await db

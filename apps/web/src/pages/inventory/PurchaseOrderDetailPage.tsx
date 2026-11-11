@@ -3,7 +3,7 @@ import type { PurchaseOrderRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
-import { getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -601,7 +601,7 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
                           className="border border-slate-200 rounded px-1.5 py-1 w-24 text-xs font-mono text-right"
                           value={(line.costPaisa / 100).toFixed(2)}
                           onChange={(e) => {
-                            const val = Math.round(parseFloat(e.target.value || '0') * 100);
+                            const val = parsePkrToPaisa(e.target.value || '0');
                             setReceiveLines((prev) =>
                               prev.map((item, i) =>
                                 i === idx ? { ...item, costPaisa: val } : item

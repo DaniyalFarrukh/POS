@@ -224,6 +224,13 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
         id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at
       ) VALUES (?, ?, 'BATCH-PAN-01', '2028-12-31', 3500, 5000, ?, ?)`
     ).run(tenant.batchId, tenant.productId, now, now);
+    db.prepare(
+      `INSERT INTO stock_movements (
+        id, product_id, batch_id, branch_id, type,
+        quantity_signed, reference_type, reference_id,
+        reason, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'adjustment', 100, 'initial', 'initial', 'Initial stock', ?, ?)`
+    ).run(generateUuidV7(), tenant.productId, tenant.batchId, tenant.branchId, now, now);
 
     setSessionForTesting({
       user: { id: tenant.ownerId, name: 'Owner', role: 'owner', isActive: true },
@@ -316,6 +323,9 @@ describe('Audit A1 Regression Suite — Critical Findings (C-01 to C-11)', () =>
     // Repair state test: If an owner exists but counters/branches are missing,
     // needsSetup MUST remain false and completeSetup MUST refuse to run (not public wizard).
     db.prepare('DELETE FROM outbox').run();
+    db.prepare('DELETE FROM stock_movements').run();
+    db.prepare('DELETE FROM batches').run();
+    db.prepare('DELETE FROM products').run();
     db.prepare('DELETE FROM counters').run();
     db.prepare('DELETE FROM branches').run();
 

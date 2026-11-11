@@ -19,7 +19,7 @@ import {
   getPaymentStatusMeta,
   getPaymentMethodMeta,
 } from '../../lib/payment-utils';
-import { getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -264,7 +264,7 @@ export const PaymentsPage: React.FC = () => {
 
   // Handle Auto-Allocate
   const handleAutoAllocate = () => {
-    const totalPaisa = Math.round(parseFloat(amountRupees || '0') * 100);
+    const totalPaisa = parsePkrToPaisa(amountRupees || '0');
     if (totalPaisa <= 0) return;
 
     const result = calculateAutoAllocations(totalPaisa, unpaidDocs);
@@ -284,9 +284,9 @@ export const PaymentsPage: React.FC = () => {
   };
 
   // Allocation Calculations
-  const totalAmountPaisa = Math.round(parseFloat(amountRupees || '0') * 100);
+  const totalAmountPaisa = parsePkrToPaisa(amountRupees || '0');
   const totalAllocatedPaisa = allocations.reduce((sum, a) => {
-    const p = Math.round(parseFloat(a.allocatedRupees || '0') * 100);
+    const p = parsePkrToPaisa(a.allocatedRupees || '0');
     return sum + (p > 0 ? p : 0);
   }, 0);
   const advancePaisa = Math.max(0, totalAmountPaisa - totalAllocatedPaisa);
@@ -320,12 +320,12 @@ export const PaymentsPage: React.FC = () => {
     setRecordSubmitting(true);
     try {
       const activeAllocations = allocations
-        .filter((a) => Math.round(parseFloat(a.allocatedRupees || '0') * 100) > 0)
+        .filter((a) => parsePkrToPaisa(a.allocatedRupees || '0') > 0)
         .map((a) => ({
           documentType: a.documentType,
           documentId: a.documentId,
           documentNumber: a.documentNumber,
-          allocatedPaisa: Math.round(parseFloat(a.allocatedRupees) * 100),
+          allocatedPaisa: parsePkrToPaisa(a.allocatedRupees),
         }));
 
       await apiFetch('/api/finance/payments', {
@@ -378,7 +378,7 @@ export const PaymentsPage: React.FC = () => {
           body: JSON.stringify({
             name: newCustName.trim(),
             phone: newCustPhone.trim() || undefined,
-            creditLimitPaisa: Math.round(parseFloat(newCustLimit || '0') * 100),
+            creditLimitPaisa: parsePkrToPaisa(newCustLimit || '0'),
           }),
         }
       );

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { roundHalfUp } from '../money';
 
 // Date format validation: YYYY-MM-DD
 export const DateStringSchema = z
@@ -150,7 +151,7 @@ export function calculateUnpaidLeaveDeduction(
     };
   }
 
-  const dailyRatePaisa = Math.round(baseSalaryPaisa / workingDaysInMonth);
+  const dailyRatePaisa = roundHalfUp(baseSalaryPaisa, workingDaysInMonth);
   const deductionPaisa = Math.min(baseSalaryPaisa, unpaidLeaveDays * dailyRatePaisa);
   const grossSalaryPaisa = baseSalaryPaisa;
   const netSalaryPaisa = Math.max(0, grossSalaryPaisa - deductionPaisa);

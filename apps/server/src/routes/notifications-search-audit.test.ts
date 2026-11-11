@@ -524,6 +524,10 @@ describe('Notifications, Audit Log & Global Search Integration Tests', () => {
       const dataInv = searchResInv.json();
       expect(dataInv.results.invoices.length).toBe(1);
       expect(dataInv.results.invoices[0].id).toBe(invoiceAId);
+      expect(dataInv.results.invoices[0].link).toBe(
+        `/finance-sales-ledger?invoiceId=${invoiceAId}`
+      );
+      expect(dataInv.results.invoices[0].subtitle).toContain('Rs. 50.00');
 
       // 5. RBAC Permission Guard:
       // Cashier A searches for "Glaxo" (Supplier). Cashier has NO supplier permissions.

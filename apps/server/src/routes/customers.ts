@@ -48,6 +48,8 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
         search?: string;
         isActive?: string;
         hasBalance?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const accountMap = await getPharmacyAccountMap(db, pharmacyId);
@@ -66,11 +68,16 @@ export const customerRoutes: FastifyPluginAsync = async (app) => {
         )!;
       }
 
+      const limit = Math.min(Math.max(Number(query.limit) || 100, 1), 500);
+      const offset = Math.max(Number(query.offset) || 0, 0);
+
       const allCustomers = await db
         .select()
         .from(customers)
         .where(whereClause)
-        .orderBy(asc(customers.name));
+        .orderBy(asc(customers.name))
+        .limit(limit)
+        .offset(offset);
 
       // Calculate ledger AR balance per customer for this pharmacy
       const balances = await db

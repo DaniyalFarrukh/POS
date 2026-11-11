@@ -885,5 +885,26 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
       expect(data.total).toBeGreaterThan(0);
       expect(data.page).toBe(1);
     });
+
+    it('F-M-11: queries DRAP batch recall tracking affected sales and customers', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/reports/batch-recall?batchNo=B-PAN-01',
+        headers: { authorization: `Bearer ${ownerToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const data = res.json<{
+        batchNo: string;
+        matchingBatches: Array<{ id: string; batchNo: string }>;
+        totalUnitsSold: number;
+        affectedInvoices: Array<{ invoiceId: string; invoiceNumber: string; quantity: number }>;
+      }>();
+
+      expect(data.batchNo).toBe('B-PAN-01');
+      expect(data.matchingBatches.length).toBeGreaterThan(0);
+      expect(data.totalUnitsSold).toBeGreaterThan(0);
+      expect(data.affectedInvoices.length).toBeGreaterThan(0);
+    });
   });
 });

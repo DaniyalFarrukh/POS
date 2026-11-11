@@ -8,7 +8,7 @@ import {
   computeReconciliationMath,
   type BankStatementLine,
 } from '../../lib/cash-bank-utils';
-import { getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -286,7 +286,7 @@ export const CashBankPage: React.FC = () => {
           accountNumber: newAccountNumber.trim() || null,
           branchName: newAccountBranch.trim() || null,
           iban: newAccountIban.trim() || null,
-          openingBalancePaisa: Math.round(newAccountOpeningPaisa * 100),
+          openingBalancePaisa: parsePkrToPaisa(newAccountOpeningPaisa),
         }),
       });
 
@@ -327,7 +327,7 @@ export const CashBankPage: React.FC = () => {
         body: JSON.stringify({
           fromAccountId: transferFromId,
           toAccountId: transferToId,
-          amountPaisa: Math.round(transferAmountPaisa * 100),
+          amountPaisa: parsePkrToPaisa(transferAmountPaisa),
           transferDate,
           referenceNo: transferRef.trim() || null,
           notes: transferNotes.trim() || null,
@@ -366,7 +366,7 @@ export const CashBankPage: React.FC = () => {
           branchId: depositBranchId,
           sourceCashAccountId: depositSourceCashId,
           targetAccountId: depositTargetId,
-          amountPaisa: Math.round(depositAmountPaisa * 100),
+          amountPaisa: parsePkrToPaisa(depositAmountPaisa),
           depositDate,
           notes: depositNotes.trim() || null,
         }),
@@ -495,7 +495,7 @@ export const CashBankPage: React.FC = () => {
     }
 
     return computeReconciliationMath({
-      statementBalancePaisa: Math.round(reconStatementBalancePaisa * 100),
+      statementBalancePaisa: parsePkrToPaisa(reconStatementBalancePaisa),
       ledgerBalancePaisa,
       outstandingDepositsPaisa,
       outstandingPaymentsPaisa,
@@ -514,7 +514,7 @@ export const CashBankPage: React.FC = () => {
           body: JSON.stringify({
             bankAccountId: reconBankAccountId,
             statementDate: reconStatementDate,
-            statementBalancePaisa: Math.round(reconStatementBalancePaisa * 100),
+            statementBalancePaisa: parsePkrToPaisa(reconStatementBalancePaisa),
             clearedBalancePaisa: reconMath.adjustedStatementBalancePaisa,
             differencePaisa: reconMath.differencePaisa,
             matchedCount,
@@ -1081,7 +1081,7 @@ export const CashBankPage: React.FC = () => {
                 Statement Balance
               </span>
               <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5">
-                {formatPaisa(Math.round(reconStatementBalancePaisa * 100))}
+                {formatPaisa(parsePkrToPaisa(reconStatementBalancePaisa))}
               </p>
             </div>
             <div>

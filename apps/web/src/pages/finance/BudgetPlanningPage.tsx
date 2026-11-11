@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { parsePkrToPaisa } from '@pos/shared';
 import type { ActualVsBudgetReportData, BranchRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { formatPaisa } from '../../lib/formatters';
@@ -203,7 +204,7 @@ export const BudgetPlanningPage: React.FC = () => {
       const items = monthlyInputs.map((val, idx) => ({
         accountId: drawerAccountId,
         month: idx + 1,
-        amountPaisa: Math.round((parseFloat(val) || 0) * 100),
+        amountPaisa: parsePkrToPaisa(val),
         notes: drawerNotes || undefined,
       }));
 
