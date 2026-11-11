@@ -1,8 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { eq, and } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { buildApp } from '../app';
+
+function addDaysToIsoDate(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y!, m! - 1, d!));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
   pharmacies,
@@ -413,13 +420,16 @@ describe('Prescriptions Module (Sensitive Health Data & Refill Reminders)', () =
     expect(body.data.repeatsUsed).toBe(1);
     expect(body.data.invoiceId).toBe(saleInvoiceId);
     expect(body.data.status).toBe('active');
-    // nextRefillDate: today (2026-11-05) + 25 days -> 2026-11-30
-    expect(body.data.nextRefillDate).toBe('2026-11-30');
+    const todayKarachi = getKarachiBusinessDate();
+    expect(body.data.nextRefillDate).toBe(addDaysToIsoDate(todayKarachi, 25));
   });
 
   it('refill reminders endpoint returns call/SMS-ready contact summary for prescriptions due in N days', async () => {
-    // 1. Create a prescription due for refill in 3 days (relative to 2026-11-05 -> 2026-11-08)
+    // 1. Create a prescription due for refill in 3 days relative to current Karachi business date
     const nowIso = new Date().toISOString();
+    const todayKarachi = getKarachiBusinessDate();
+    const dueIn3Days = addDaysToIsoDate(todayKarachi, 3);
+    const rxDate = addDaysToIsoDate(todayKarachi, -27);
     const rxRefillId = generateUuidV7();
     await ctx.db.insert(prescriptions).values({
       id: rxRefillId,
@@ -430,14 +440,14 @@ describe('Prescriptions Module (Sensitive Health Data & Refill Reminders)', () =
       patientPhone: '03219988776',
       doctorName: 'Dr. Tariq Niazi',
       doctorRegistrationNumber: 'PMDC-12345',
-      prescriptionDate: '2026-10-09',
+      prescriptionDate: rxDate,
       repeatCount: 2,
       repeatsUsed: 1,
       refillIntervalDays: 30,
-      nextRefillDate: '2026-11-08', // Due in 3 days
+      nextRefillDate: dueIn3Days,
       isControlledDrug: false,
       status: 'active',
-      statutoryRetentionUntil: '2028-10-09',
+      statutoryRetentionUntil: '2030-10-09',
       createdBy: (
         await ctx.db.select().from(users).where(eq(users.pharmacyId, pharmacyAId)).limit(1)
       )[0]!.id,
@@ -464,7 +474,7 @@ describe('Prescriptions Module (Sensitive Health Data & Refill Reminders)', () =
     expect(found.patientName).toBe('Rashid Mahmood');
     expect(found.patientPhone).toBe('03219988776');
     expect(found.remainingRepeats).toBe(1);
-    expect(found.nextRefillDate).toBe('2026-11-08');
+    expect(found.nextRefillDate).toBe(dueIn3Days);
     expect(found.contactSummary).toContain('Rashid Mahmood');
     expect(found.contactSummary).toContain('03219988776');
   });
