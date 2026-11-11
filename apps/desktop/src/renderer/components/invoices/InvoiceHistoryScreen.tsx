@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { AuthSession, InvoiceRecord, CreditNoteRecord } from '@pos/shared';
-import { formatPKR } from '@pos/shared';
+import { formatPKR, getKarachiBusinessDate } from '@pos/shared';
 import { generateThermalReceiptHtml } from '../../utils/receiptGenerator';
 import { ReturnModal } from './ReturnModal';
 
@@ -33,19 +33,19 @@ export const InvoiceHistoryScreen: React.FC<InvoiceHistoryScreenProps> = ({ sess
   // Compute dates based on filter preset
   const getDateRange = useCallback(() => {
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = getKarachiBusinessDate(now);
 
     if (dateFilter === 'today') {
       return { dateFrom: todayStr, dateTo: todayStr };
     }
     if (dateFilter === 'yesterday') {
       const y = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const yStr = y.toISOString().slice(0, 10);
+      const yStr = getKarachiBusinessDate(y);
       return { dateFrom: yStr, dateTo: yStr };
     }
     if (dateFilter === 'week') {
       const w = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return { dateFrom: w.toISOString().slice(0, 10), dateTo: todayStr };
+      return { dateFrom: getKarachiBusinessDate(w), dateTo: todayStr };
     }
     if (dateFilter === 'custom') {
       return {

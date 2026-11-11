@@ -4,20 +4,21 @@ import type {
   BalanceSheetReportData,
   CashFlowReportData,
 } from '../types';
+import { getKarachiBusinessDate, toKarachiBusinessDate } from '@pos/shared';
 
 export type PresetPeriod = 'this_month' | 'last_month' | 'this_quarter' | 'this_year';
 
 export function getPresetDateRange(preset: PresetPeriod): { startDate: string; endDate: string } {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
+  const karachiToday = getKarachiBusinessDate();
+  const year = parseInt(karachiToday.slice(0, 4), 10);
+  const month = parseInt(karachiToday.slice(5, 7), 10) - 1; // 0-indexed
 
   if (preset === 'this_month') {
     const start = new Date(Date.UTC(year, month, 1));
     const end = new Date(Date.UTC(year, month + 1, 0));
     return {
-      startDate: start.toISOString().slice(0, 10),
-      endDate: end.toISOString().slice(0, 10),
+      startDate: toKarachiBusinessDate(start),
+      endDate: toKarachiBusinessDate(end),
     };
   }
 
@@ -25,8 +26,8 @@ export function getPresetDateRange(preset: PresetPeriod): { startDate: string; e
     const start = new Date(Date.UTC(year, month - 1, 1));
     const end = new Date(Date.UTC(year, month, 0));
     return {
-      startDate: start.toISOString().slice(0, 10),
-      endDate: end.toISOString().slice(0, 10),
+      startDate: toKarachiBusinessDate(start),
+      endDate: toKarachiBusinessDate(end),
     };
   }
 
@@ -35,8 +36,8 @@ export function getPresetDateRange(preset: PresetPeriod): { startDate: string; e
     const start = new Date(Date.UTC(year, quarterStartMonth, 1));
     const end = new Date(Date.UTC(year, quarterStartMonth + 3, 0));
     return {
-      startDate: start.toISOString().slice(0, 10),
-      endDate: end.toISOString().slice(0, 10),
+      startDate: toKarachiBusinessDate(start),
+      endDate: toKarachiBusinessDate(end),
     };
   }
 
@@ -59,8 +60,8 @@ export function computePreviousPeriod(
   const prevStart = new Date(prevEnd.getTime() - durationMs + 24 * 60 * 60 * 1000);
 
   return {
-    prevStartDate: prevStart.toISOString().slice(0, 10),
-    prevEndDate: prevEnd.toISOString().slice(0, 10),
+    prevStartDate: toKarachiBusinessDate(prevStart),
+    prevEndDate: toKarachiBusinessDate(prevEnd),
   };
 }
 

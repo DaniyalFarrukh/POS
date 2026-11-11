@@ -8,6 +8,7 @@ import {
   computeReconciliationMath,
   type BankStatementLine,
 } from '../../lib/cash-bank-utils';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -87,9 +88,7 @@ export const CashBankPage: React.FC = () => {
   const [transferFromId, setTransferFromId] = useState<string>('');
   const [transferToId, setTransferToId] = useState<string>('');
   const [transferAmountPaisa, setTransferAmountPaisa] = useState<number>(0);
-  const [transferDate, setTransferDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [transferDate, setTransferDate] = useState<string>(() => getKarachiBusinessDate());
   const [transferRef, setTransferRef] = useState<string>('');
   const [transferNotes, setTransferNotes] = useState<string>('');
   const [transferSubmitting, setTransferSubmitting] = useState<boolean>(false);
@@ -100,9 +99,7 @@ export const CashBankPage: React.FC = () => {
   const [depositSourceCashId, setDepositSourceCashId] = useState<string>('');
   const [depositTargetId, setDepositTargetId] = useState<string>('');
   const [depositAmountPaisa, setDepositAmountPaisa] = useState<number>(0);
-  const [depositDate, setDepositDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [depositDate, setDepositDate] = useState<string>(() => getKarachiBusinessDate());
   const [depositNotes, setDepositNotes] = useState<string>('');
   const [depositSubmitting, setDepositSubmitting] = useState<boolean>(false);
   const [branchesList, setBranchesList] = useState<Array<{ id: string; name: string }>>([]);
@@ -119,7 +116,7 @@ export const CashBankPage: React.FC = () => {
   // Bank Reconciliation State
   const [reconBankAccountId, setReconBankAccountId] = useState<string>('');
   const [reconStatementDate, setReconStatementDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
+    getKarachiBusinessDate()
   );
   const [reconStatementBalancePaisa, setReconStatementBalancePaisa] = useState<number>(0);
   const [statementLines, setStatementLines] = useState<BankStatementLine[]>([]);
@@ -247,7 +244,7 @@ export const CashBankPage: React.FC = () => {
     }
 
     let transfersThisMonthPaisa = 0;
-    const currentMonth = new Date().toISOString().slice(0, 7);
+    const currentMonth = getKarachiBusinessDate().slice(0, 7);
     for (const t of transfers) {
       if (t.status === 'completed' && t.transferDate.startsWith(currentMonth)) {
         transfersThisMonthPaisa += t.amountPaisa;

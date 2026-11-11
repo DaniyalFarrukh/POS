@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -170,7 +170,7 @@ export const supplierReturnRoutes: FastifyPluginAsync = async (app) => {
       }
 
       const now = new Date().toISOString();
-      const returnDate = now.slice(0, 10);
+      const returnDate = getKarachiBusinessDate(now);
       const returnId = generateUuidV7();
 
       // Sequential human readable identifiers: SR-YYYYMM-XXXX and DN-YYYYMM-XXXX

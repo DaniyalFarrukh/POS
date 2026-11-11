@@ -2,7 +2,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, and, sql, desc, lte } from 'drizzle-orm';
 import type * as schema from '../db/schema';
 import { userNotifications, batches, products, rejectedEvents, fiscalPeriods } from '../db/schema';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import type { UserNotification, NotificationType, NotificationSeverity } from '@pos/shared';
 
 export async function getUserNotifications(
@@ -104,10 +104,8 @@ export async function refreshSystemNotifications(
   userId: string
 ): Promise<number> {
   const nowIso = new Date().toISOString();
-  const today = nowIso.slice(0, 10);
-  const thirtyDaysAhead = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+  const today = getKarachiBusinessDate(nowIso);
+  const thirtyDaysAhead = getKarachiBusinessDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
 
   let newAlertsCount = 0;
 

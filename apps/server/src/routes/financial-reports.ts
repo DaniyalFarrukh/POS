@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { z } from '@pos/shared';
+import { z, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -40,7 +40,7 @@ function resolveDateRange(query: z.infer<typeof ReportQuerySchema>): {
   branchId?: string | null;
   compareWithPrevious: boolean;
 } {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getKarachiBusinessDate();
   const startOfMonth = `${today.slice(0, 7)}-01`;
 
   const startDate = query.startDate || query.from || startOfMonth;

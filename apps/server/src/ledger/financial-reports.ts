@@ -1,4 +1,5 @@
 import { eq, and, sql } from 'drizzle-orm';
+import { toKarachiBusinessDate } from '@pos/shared';
 import type { DbClient } from '../sync/types';
 import { accounts, branches } from '../db/schema';
 
@@ -227,8 +228,8 @@ function computePreviousPeriod(
   const prevStart = new Date(prevEnd.getTime() - durationMs + 24 * 60 * 60 * 1000);
 
   return {
-    prevStartDate: prevStart.toISOString().slice(0, 10),
-    prevEndDate: prevEnd.toISOString().slice(0, 10),
+    prevStartDate: toKarachiBusinessDate(prevStart),
+    prevEndDate: toKarachiBusinessDate(prevEnd),
   };
 }
 

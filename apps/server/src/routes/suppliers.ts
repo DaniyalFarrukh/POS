@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, ilike, or, inArray } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import { suppliers, journalEntries, journalLines, fiscalPeriods } from '../db/schema';
@@ -178,7 +178,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
         }
       }
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getKarachiBusinessDate();
       const todayTime = new Date(todayStr).getTime();
 
       let totalPayablePaisa = 0;
@@ -307,7 +307,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
 
           await postJournalEntry(tx, {
             pharmacyId,
-            entryDate: now.slice(0, 10),
+            entryDate: getKarachiBusinessDate(now),
             sourceType: 'supplier_opening',
             sourceId: supplierId,
             memo: `Opening balance for supplier ${data.name}`,
@@ -513,7 +513,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
             // Source has payable balance: Dr Source AP, Cr Target AP
             await postJournalEntry(tx, {
               pharmacyId,
-              entryDate: now.slice(0, 10),
+              entryDate: getKarachiBusinessDate(now),
               sourceType: 'supplier_merge',
               sourceId: sourceSupplierId,
               memo: `Reclassify payable: Merge ${sourceSupplier.name} into ${targetSupplier.name}`,
@@ -542,7 +542,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
             const absBalance = Math.abs(sourceBalance);
             await postJournalEntry(tx, {
               pharmacyId,
-              entryDate: now.slice(0, 10),
+              entryDate: getKarachiBusinessDate(now),
               sourceType: 'supplier_merge',
               sourceId: sourceSupplierId,
               memo: `Reclassify advance: Merge ${sourceSupplier.name} into ${targetSupplier.name}`,

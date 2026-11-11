@@ -6,6 +6,7 @@ import {
   calculateLineTotalPaisa,
   roundHalfUp,
   formatPKR,
+  getKarachiBusinessDate,
 } from '@pos/shared';
 
 interface GrnLineItem {
@@ -31,7 +32,7 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>('');
   const [invoiceNo, setInvoiceNo] = useState<string>('');
-  const [invoiceDate, setInvoiceDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [invoiceDate, setInvoiceDate] = useState<string>(() => getKarachiBusinessDate());
 
   const [lines, setLines] = useState<GrnLineItem[]>([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState<boolean>(true);
@@ -87,9 +88,7 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
 
   // Add initial empty line if none
   const addLine = useCallback(() => {
-    const defaultExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
+    const defaultExpiry = getKarachiBusinessDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000));
 
     const newLine: GrnLineItem = {
       id: Math.random().toString(36).substring(2, 9),

@@ -32,5 +32,20 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  {
+    files: ['apps/**/src/**/*.ts', 'apps/**/src/**/*.tsx'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name='slice'][callee.object.callee.property.name='toISOString']",
+          message:
+            'Do not use .toISOString().slice() for business dates. Use getKarachiBusinessDate() or toKarachiBusinessDate() from @pos/shared.',
+        },
+      ],
+    },
   }
 );

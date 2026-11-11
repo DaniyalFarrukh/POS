@@ -10,6 +10,7 @@ import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
 import { getAgingBucketMeta, computeAgingPercentages } from '../../lib/ar-ap-utils';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -54,7 +55,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
   const [activeTab, setActiveTab] = useState<'customers' | 'products' | 'reminders'>('customers');
 
   // As Of Date
-  const [asOfDate, setAsOfDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [asOfDate, setAsOfDate] = useState<string>(() => getKarachiBusinessDate());
 
   // Data States
   const [summary, setSummary] = useState<ARSummaryData | null>(null);
@@ -79,9 +80,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
   const [statementStartDate, setStatementStartDate] = useState<string>(
     () => `${new Date().getFullYear()}-01-01`
   );
-  const [statementEndDate, setStatementEndDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [statementEndDate, setStatementEndDate] = useState<string>(() => getKarachiBusinessDate());
 
   // Reminder Modal State
   const [reminderTarget, setReminderTarget] = useState<CustomerARRecord | null>(null);

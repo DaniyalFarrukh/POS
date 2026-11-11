@@ -22,9 +22,15 @@ const karachiDateFormatter = new Intl.DateTimeFormat('en-CA', {
 /**
  * Converts a UTC ISO timestamp or YYYY-MM-DD string into a Karachi business date (YYYY-MM-DD).
  */
-export function toKarachiBusinessDate(dateOrIso?: string | null): string {
+export function toKarachiBusinessDate(dateOrIso?: string | Date | null): string {
   if (!dateOrIso) {
     return karachiDateFormatter.format(new Date());
+  }
+  if (dateOrIso instanceof Date) {
+    if (Number.isNaN(dateOrIso.getTime())) {
+      throw new SyncRejectedError('INVALID_DATE', `Invalid document date for ledger posting`);
+    }
+    return karachiDateFormatter.format(dateOrIso);
   }
   const trimmed = dateOrIso.trim();
   if (ISO_DATE_ONLY_REGEX.test(trimmed)) {

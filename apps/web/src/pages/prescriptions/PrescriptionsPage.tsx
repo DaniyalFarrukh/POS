@@ -12,6 +12,7 @@ import {
   formatRefillContactText,
   filterPrescriptions,
 } from '../../lib/prescription-utils';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -76,7 +77,7 @@ export const PrescriptionsPage: React.FC = () => {
   const [formDoctorName, setFormDoctorName] = useState<string>('');
   const [formDoctorPmdc, setFormDoctorPmdc] = useState<string>('');
   const [formDoctorClinic, setFormDoctorClinic] = useState<string>('');
-  const [formRxDate, setFormRxDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [formRxDate, setFormRxDate] = useState<string>(() => getKarachiBusinessDate());
   const [formDiagnosis, setFormDiagnosis] = useState<string>('');
   const [formRepeatCount, setFormRepeatCount] = useState<number>(0);
   const [formRefillInterval, setFormRefillInterval] = useState<number>(30);
@@ -199,7 +200,7 @@ export const PrescriptionsPage: React.FC = () => {
       .length;
   }, [prescriptions]);
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = getKarachiBusinessDate();
 
   const handleCreatePrescription = async (e: React.FormEvent) => {
     e.preventDefault();

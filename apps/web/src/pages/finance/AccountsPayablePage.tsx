@@ -10,6 +10,7 @@ import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
 import { getAgingBucketMeta, computeAgingPercentages } from '../../lib/ar-ap-utils';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -50,7 +51,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
   const [activeTab, setActiveTab] = useState<'suppliers' | 'bills' | 'reminders'>('suppliers');
 
   // As Of Date
-  const [asOfDate, setAsOfDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [asOfDate, setAsOfDate] = useState<string>(() => getKarachiBusinessDate());
 
   // Data States
   const [summary, setSummary] = useState<APSummaryData | null>(null);
@@ -76,9 +77,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
   const [statementStartDate, setStatementStartDate] = useState<string>(
     () => `${new Date().getFullYear()}-01-01`
   );
-  const [statementEndDate, setStatementEndDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [statementEndDate, setStatementEndDate] = useState<string>(() => getKarachiBusinessDate());
 
   // Reminder Modal State
   const [reminderTarget, setReminderTarget] = useState<SupplierAPRecord | null>(null);
@@ -1091,9 +1090,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                   <p className="text-slate-500">
                     Period: {statementStartDate} to {statementEndDate}
                   </p>
-                  <p className="text-slate-400">
-                    Generated: {new Date().toISOString().slice(0, 10)}
-                  </p>
+                  <p className="text-slate-400">Generated: {getKarachiBusinessDate()}</p>
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc, asc, lte, gte, lt } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate, toKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -89,7 +89,7 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
       const db = request.server.db || getDb();
       const query = request.query as { asOfDate?: string };
 
-      const asOfDate = query.asOfDate || new Date().toISOString().slice(0, 10);
+      const asOfDate = query.asOfDate || getKarachiBusinessDate();
       const currentMonthPrefix = asOfDate.slice(0, 7);
 
       const arAccountId = await getArAccountId(db, userContext.pharmacyId);
@@ -237,7 +237,7 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
       const query = request.query as { asOfDate?: string; search?: string };
-      const asOfDate = query.asOfDate || new Date().toISOString().slice(0, 10);
+      const asOfDate = query.asOfDate || getKarachiBusinessDate();
 
       const arAccountId = await getArAccountId(db, userContext.pharmacyId);
 
@@ -356,7 +356,7 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
         if (!inv.customerId) continue;
         const paidPaisa = allocMap.get(inv.id) || 0;
         const balanceDuePaisa = inv.totalPaisa - paidPaisa;
-        const invDate = inv.createdAt.slice(0, 10);
+        const invDate = toKarachiBusinessDate(inv.createdAt);
         const days = calculateDaysDifference(asOfDate, invDate);
 
         if (!invoiceDocsByCustomer.has(inv.customerId)) {
@@ -525,7 +525,7 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
       const query = request.query as { startDate?: string; endDate?: string };
 
       const startDate = query.startDate || `${new Date().getFullYear()}-01-01`;
-      const endDate = query.endDate || new Date().toISOString().slice(0, 10);
+      const endDate = query.endDate || getKarachiBusinessDate();
 
       // Verify customer exists in pharmacy
       const [customer] = await db

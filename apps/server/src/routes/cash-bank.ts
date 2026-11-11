@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -395,7 +395,7 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const now = new Date().toISOString();
-      const todayDate = now.slice(0, 10);
+      const todayDate = getKarachiBusinessDate(now);
 
       const updated = await db.transaction(async (tx) => {
         // Post reversal entry via standard reverseJournalEntry
@@ -670,7 +670,7 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const now = new Date().toISOString();
-      const todayDate = now.slice(0, 10);
+      const todayDate = getKarachiBusinessDate(now);
 
       const updated = await db.transaction(async (tx) => {
         const revEntry = await reverseJournalEntry(tx, deposit.journalEntryId, body.reason, {
@@ -715,7 +715,7 @@ export const cashBankRoutes: FastifyPluginAsync = async (fastify) => {
       const db = request.server.db || getDb();
       const { bankAccountId } = request.params as { bankAccountId: string };
       const query = request.query as { asOfDate?: string };
-      const asOfDate = query.asOfDate || new Date().toISOString().slice(0, 10);
+      const asOfDate = query.asOfDate || getKarachiBusinessDate();
 
       const [bankAcct] = await db
         .select()

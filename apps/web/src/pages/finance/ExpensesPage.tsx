@@ -15,6 +15,7 @@ import {
   getPaymentTypeMeta,
   isApprovalRequired,
 } from '../../lib/expense-utils';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -129,9 +130,7 @@ export const ExpensesPage: React.FC = () => {
   const [addBranchId, setAddBranchId] = useState<string>('');
   const [addCategoryId, setAddCategoryId] = useState<string>('');
   const [addAmountRupees, setAddAmountRupees] = useState<string>('');
-  const [addExpenseDate, setAddExpenseDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [addExpenseDate, setAddExpenseDate] = useState<string>(() => getKarachiBusinessDate());
   const [addPaymentType, setAddPaymentType] = useState<ExpensePaymentType>('paid');
   const [addPaymentMethod, setAddPaymentMethod] = useState<'cash' | 'bank' | 'wallet'>('cash');
   const [addVendorName, setAddVendorName] = useState<string>('');
@@ -153,7 +152,7 @@ export const ExpensesPage: React.FC = () => {
   const [recFormError, setRecFormError] = useState<string | null>(null);
 
   // Recurring Generation State
-  const [genPeriod, setGenPeriod] = useState<string>(() => new Date().toISOString().slice(0, 7));
+  const [genPeriod, setGenPeriod] = useState<string>(() => getKarachiBusinessDate().slice(0, 7));
   const [genPreview, setGenPreview] = useState<RecurringPreviewData | null>(null);
   const [genLoading, setGenLoading] = useState<boolean>(false);
   const [genSubmitting, setGenSubmitting] = useState<boolean>(false);

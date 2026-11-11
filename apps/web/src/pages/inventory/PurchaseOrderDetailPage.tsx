@@ -3,6 +3,7 @@ import type { PurchaseOrderRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -66,7 +67,7 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [receiveLines, setReceiveLines] = useState<ReceiveLineInput[]>([]);
   const [supplierInvoiceNo, setSupplierInvoiceNo] = useState('');
-  const [receiptDate, setReceiptDate] = useState(new Date().toISOString().slice(0, 10));
+  const [receiptDate, setReceiptDate] = useState(() => getKarachiBusinessDate());
   const [receiveError, setReceiveError] = useState<string | null>(null);
 
   const fetchDetail = useCallback(async () => {
@@ -141,7 +142,7 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
         productId: l.productId,
         brandName: l.product?.brandName || 'Product',
         batchNo: `BATCH-${Date.now().toString().slice(-4)}`,
-        expiryDate: defaultExpiry.toISOString().slice(0, 10),
+        expiryDate: getKarachiBusinessDate(defaultExpiry),
         quantity: remaining,
         costPaisa: l.expectedCostPaisa,
         mrpPaisa: l.product?.mrpPaisa || Math.round(l.expectedCostPaisa * 1.25),
@@ -150,7 +151,7 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
     });
     setReceiveLines(initial);
     setSupplierInvoiceNo('');
-    setReceiptDate(new Date().toISOString().slice(0, 10));
+    setReceiptDate(getKarachiBusinessDate());
     setReceiveError(null);
     setIsReceiveModalOpen(true);
   };

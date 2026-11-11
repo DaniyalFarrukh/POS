@@ -8,6 +8,7 @@ import type {
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -92,7 +93,7 @@ export const PurchaseOrdersPage: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [supplierId, setSupplierId] = useState('');
   const [branchId, setBranchId] = useState('');
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
+  const [issueDate, setIssueDate] = useState(() => getKarachiBusinessDate());
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
   const [overReceiptPolicy, setOverReceiptPolicy] = useState<OverReceiptPolicy>('flag');
   const [notes, setNotes] = useState('');
@@ -161,7 +162,7 @@ export const PurchaseOrdersPage: React.FC = () => {
     await loadAuxData();
     setSupplierId(suppliersList[0]?.id || '');
     setBranchId(branchesList[0]?.id || '');
-    setIssueDate(new Date().toISOString().slice(0, 10));
+    setIssueDate(getKarachiBusinessDate());
     setExpectedDeliveryDate('');
     setOverReceiptPolicy('flag');
     setNotes('');
@@ -261,7 +262,7 @@ export const PurchaseOrdersPage: React.FC = () => {
 
     setSupplierId(suppliersList[0]?.id || '');
     setBranchId(branchesList[0]?.id || '');
-    setIssueDate(new Date().toISOString().slice(0, 10));
+    setIssueDate(getKarachiBusinessDate());
     setExpectedDeliveryDate('');
     setOverReceiptPolicy('flag');
     setNotes('Generated from low stock suggestions');
@@ -444,7 +445,7 @@ export const PurchaseOrdersPage: React.FC = () => {
                   const isLate =
                     po.expectedDeliveryDate &&
                     ['approved', 'sent', 'partially_received'].includes(po.status) &&
-                    po.expectedDeliveryDate < new Date().toISOString().slice(0, 10);
+                    po.expectedDeliveryDate < getKarachiBusinessDate();
 
                   return (
                     <TableRow

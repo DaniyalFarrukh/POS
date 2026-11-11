@@ -19,6 +19,7 @@ import {
   getPaymentStatusMeta,
   getPaymentMethodMeta,
 } from '../../lib/payment-utils';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -114,9 +115,7 @@ export const PaymentsPage: React.FC = () => {
   const [partyId, setPartyId] = useState<string>('');
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [amountRupees, setAmountRupees] = useState<string>('');
-  const [paymentDate, setPaymentDate] = useState<string>(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [paymentDate, setPaymentDate] = useState<string>(() => getKarachiBusinessDate());
   const [chequeNumber, setChequeNumber] = useState<string>('');
   const [chequeDate, setChequeDate] = useState<string>('');
   const [bankName, setBankName] = useState<string>('');

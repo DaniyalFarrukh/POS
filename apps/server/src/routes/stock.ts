@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -71,8 +71,8 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
         parsed.data;
 
       const now = new Date();
-      const nowIsoDate = now.toISOString().slice(0, 10);
-      const in90DaysDate = new Date(now.getTime() + 90 * 86400 * 1000).toISOString().slice(0, 10);
+      const nowIsoDate = getKarachiBusinessDate(now);
+      const in90DaysDate = getKarachiBusinessDate(new Date(now.getTime() + 90 * 86400 * 1000));
 
       // --- 1. Compute Pharmacy-Wide Inventory & Reconciliation KPIs ---
       // 1a. Batch on-hand stock and total valuation
@@ -445,10 +445,10 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       const { window: timeWindow, branchId, locationId, search, page, pageSize } = parsed.data;
 
       const now = new Date();
-      const nowIsoDate = now.toISOString().slice(0, 10);
-      const in30Date = new Date(now.getTime() + 30 * 86400 * 1000).toISOString().slice(0, 10);
-      const in60Date = new Date(now.getTime() + 60 * 86400 * 1000).toISOString().slice(0, 10);
-      const in90Date = new Date(now.getTime() + 90 * 86400 * 1000).toISOString().slice(0, 10);
+      const nowIsoDate = getKarachiBusinessDate(now);
+      const in30Date = getKarachiBusinessDate(new Date(now.getTime() + 30 * 86400 * 1000));
+      const in60Date = getKarachiBusinessDate(new Date(now.getTime() + 60 * 86400 * 1000));
+      const in90Date = getKarachiBusinessDate(new Date(now.getTime() + 90 * 86400 * 1000));
 
       // Fetch on-hand batches with product, branch, and location details
       const batchRows = await db
@@ -894,7 +894,7 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
 
       let totalStock = 0;
       let totalStockValuePaisa = 0;
-      const nowIsoDate = new Date().toISOString().slice(0, 10);
+      const nowIsoDate = getKarachiBusinessDate();
 
       const enrichedBatches = batchRows.map((b) => {
         totalStock += b.onHand;

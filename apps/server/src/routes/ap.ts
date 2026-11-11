@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc, asc, lte, gte, lt } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate, toKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -87,7 +87,7 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       const db = request.server.db || getDb();
       const query = request.query as { asOfDate?: string };
 
-      const asOfDate = query.asOfDate || new Date().toISOString().slice(0, 10);
+      const asOfDate = query.asOfDate || getKarachiBusinessDate();
       const currentMonthPrefix = asOfDate.slice(0, 7);
 
       const apAccountId = await getApAccountId(db, userContext.pharmacyId);
@@ -234,7 +234,7 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
       const query = request.query as { asOfDate?: string; search?: string };
-      const asOfDate = query.asOfDate || new Date().toISOString().slice(0, 10);
+      const asOfDate = query.asOfDate || getKarachiBusinessDate();
 
       const apAccountId = await getApAccountId(db, userContext.pharmacyId);
 
@@ -351,7 +351,7 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       for (const po of receivedPOs) {
         const paidPaisa = allocMap.get(po.id) || 0;
         const balanceDuePaisa = po.totalExpectedCostPaisa - paidPaisa;
-        const poDate = po.createdAt.slice(0, 10);
+        const poDate = toKarachiBusinessDate(po.createdAt);
         const days = calculateDaysDifference(asOfDate, poDate);
 
         if (!billsBySupplier.has(po.supplierId)) {
@@ -432,7 +432,7 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       const userContext = request.userContext!;
       const db = request.server.db || getDb();
       const query = request.query as { asOfDate?: string };
-      const asOfDate = query.asOfDate || new Date().toISOString().slice(0, 10);
+      const asOfDate = query.asOfDate || getKarachiBusinessDate();
 
       // 1. Fetch received POs
       const receivedPOs = await db
@@ -479,7 +479,7 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       const billsList = receivedPOs.map((po) => {
         const paidPaisa = allocMap.get(po.id) || 0;
         const balanceDuePaisa = po.totalPaisa - paidPaisa;
-        const billDate = po.createdAt.slice(0, 10);
+        const billDate = toKarachiBusinessDate(po.createdAt);
         const days = calculateDaysDifference(asOfDate, billDate);
 
         return {
@@ -524,7 +524,7 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       const query = request.query as { startDate?: string; endDate?: string };
 
       const startDate = query.startDate || `${new Date().getFullYear()}-01-01`;
-      const endDate = query.endDate || new Date().toISOString().slice(0, 10);
+      const endDate = query.endDate || getKarachiBusinessDate();
 
       // Verify supplier exists in pharmacy
       const [supplier] = await db

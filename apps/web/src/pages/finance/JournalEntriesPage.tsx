@@ -3,6 +3,7 @@ import type { JournalEntryRecord, AccountRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly, formatKarachiDateTime } from '../../lib/formatters';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -72,7 +73,7 @@ export const JournalEntriesPage: React.FC = () => {
 
   // Create Manual Journal Modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [entryDate, setEntryDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [entryDate, setEntryDate] = useState<string>(() => getKarachiBusinessDate());
   const [entryMemo, setEntryMemo] = useState<string>('');
   const [lines, setLines] = useState<LineFormState[]>([
     { accountId: '', debit: '', credit: '', memo: '' },

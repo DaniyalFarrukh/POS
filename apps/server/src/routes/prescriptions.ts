@@ -24,7 +24,7 @@ function addDaysToDate(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(Date.UTC(y!, m! - 1, d!));
   date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+  return toKarachiBusinessDate(date);
 }
 
 function addYearsToDate(dateStr: string, years: number): string {

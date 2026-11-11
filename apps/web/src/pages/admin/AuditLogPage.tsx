@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../../lib/api';
 import { formatKarachiDateTime } from '../../lib/formatters';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -131,7 +132,7 @@ export const AuditLogPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Audit_Log_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `Audit_Log_${getKarachiBusinessDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

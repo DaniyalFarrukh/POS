@@ -132,7 +132,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
               totalPaisa: inv.totalPaisa,
               allocatedPaisa,
               balanceDuePaisa,
-              date: inv.createdAt.slice(0, 10),
+              date: toKarachiBusinessDate(inv.createdAt),
             });
           }
         }
@@ -190,7 +190,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
               totalPaisa: po.totalExpectedCostPaisa,
               allocatedPaisa,
               balanceDuePaisa,
-              date: po.createdAt.slice(0, 10),
+              date: toKarachiBusinessDate(po.createdAt),
             });
           }
         }
@@ -587,7 +587,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
       const paymentNumber = `${prefix}-${randNum}`;
 
       const nowIso = new Date().toISOString();
-      const dateOnly = body.paymentDate.slice(0, 10);
+      const dateOnly = toKarachiBusinessDate(body.paymentDate);
 
       // Execute in Transaction
       const result = await db.transaction(async (tx) => {

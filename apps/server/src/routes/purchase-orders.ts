@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, ilike, or, inArray, sql } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -120,7 +120,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
         .from(purchaseOrders)
         .where(eq(purchaseOrders.pharmacyId, pharmacyId));
 
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getKarachiBusinessDate();
 
       let openCount = 0;
       let pendingApprovalCount = 0;

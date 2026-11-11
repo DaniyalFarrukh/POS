@@ -1,5 +1,6 @@
 import { eq, and, sql, gte, lte, ne } from 'drizzle-orm';
 import crypto from 'node:crypto';
+import { getKarachiDayStartUtc, getKarachiDayEndUtc } from '@pos/shared';
 import type { DbClient } from '../sync/types';
 import {
   accounts,
@@ -40,8 +41,8 @@ export async function getMonthEndChecklist(
   const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const endDate = `${year}-${paddedMonth}-${String(lastDay).padStart(2, '0')}`;
 
-  const startIso = `${startDate}T00:00:00.000Z`;
-  const endIso = `${endDate}T23:59:59.999Z`;
+  const startIso = getKarachiDayStartUtc(startDate);
+  const endIso = getKarachiDayEndUtc(endDate);
 
   // 1. Unposted documents check
   // (unapproved/pending erpExpenses, unapproved stockCounts)

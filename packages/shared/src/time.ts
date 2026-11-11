@@ -24,6 +24,8 @@ export function getKarachiBusinessDate(date: Date | string | number = new Date()
   return karachiDateFormatter.format(d);
 }
 
+export const toKarachiBusinessDate = getKarachiBusinessDate;
+
 /**
  * Returns the exact UTC ISO timestamps for the start (00:00:00.000)
  * and end (23:59:59.999) of a given business date in Asia/Karachi.

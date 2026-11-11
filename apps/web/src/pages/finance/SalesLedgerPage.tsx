@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { SalesLedgerRecord, SalesLedgerSummary, BranchRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { formatPaisa, formatKarachiDateTime } from '../../lib/formatters';
+import { getKarachiBusinessDate } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -194,7 +195,7 @@ export const SalesLedgerPage: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `sales_ledger_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `sales_ledger_${getKarachiBusinessDate()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

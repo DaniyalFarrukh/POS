@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc, asc, ilike, or } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { z, generateUuidV7, toKarachiBusinessDate, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -521,7 +521,7 @@ export const expenseRoutes: FastifyPluginAsync = async (fastify) => {
       const randNum = Math.floor(100000 + Math.random() * 900000);
       const expenseNumber = `EXP-${randNum}`;
       const nowIso = new Date().toISOString();
-      const dateOnly = body.expenseDate.slice(0, 10);
+      const dateOnly = toKarachiBusinessDate(body.expenseDate);
 
       // Execute Posting or Queue Pending Approval
       const result = await db.transaction(async (tx) => {
@@ -924,7 +924,7 @@ export const expenseRoutes: FastifyPluginAsync = async (fastify) => {
       const db = request.server.db || getDb();
       const query = request.query as { period?: string };
 
-      const period = query.period || new Date().toISOString().slice(0, 7);
+      const period = query.period || getKarachiBusinessDate().slice(0, 7);
 
       const templates = await db
         .select({

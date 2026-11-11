@@ -1,6 +1,6 @@
 import { eq, and, sql, gte, lte, desc, asc } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { getKarachiDayStartUtc, getKarachiDayEndUtc } from '@pos/shared';
+import { getKarachiDayStartUtc, getKarachiDayEndUtc, getKarachiBusinessDate } from '@pos/shared';
 import * as schema from '../db/schema';
 import {
   invoices,
@@ -174,7 +174,7 @@ export async function getDashboardOverview(
     .limit(5);
 
   // (c) Expiring soon (<90 days from today) with currentStock > 0
-  const d90 = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+  const d90 = getKarachiBusinessDate(new Date(Date.now() + 90 * 86400000));
   const expiringRaw = await db
     .select({
       batchId: batches.id,
@@ -404,8 +404,8 @@ export async function getStockAndExpiryReport(
     conditions.push(eq(stockMovements.branchId, branchId));
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const d60 = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
+  const today = getKarachiBusinessDate();
+  const d60 = getKarachiBusinessDate(new Date(Date.now() + 60 * 86400000));
 
   const rows = await db
     .select({

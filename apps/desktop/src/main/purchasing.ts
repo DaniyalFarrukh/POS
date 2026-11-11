@@ -1,5 +1,5 @@
 import { getDatabase } from './db';
-import { generateUuidV7, multiplyByQuantity } from '@pos/shared';
+import { generateUuidV7, multiplyByQuantity, getKarachiBusinessDate } from '@pos/shared';
 import type {
   Supplier,
   CreateSupplierInput,
@@ -474,10 +474,10 @@ export function getStockOverviewByProduct(
   // Filter application on computed balance or expiry
   let filterHaving = '';
   const filterArgs: unknown[] = [];
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getKarachiBusinessDate();
   const now = Date.now();
-  const d60 = new Date(now + 60 * 86400000).toISOString().slice(0, 10);
-  const d90 = new Date(now + 90 * 86400000).toISOString().slice(0, 10);
+  const d60 = getKarachiBusinessDate(new Date(now + 60 * 86400000));
+  const d90 = getKarachiBusinessDate(new Date(now + 90 * 86400000));
 
   if (params.filter === 'low_stock') {
     filterHaving = 'AND COALESCE(sm.total_balance, 0) <= 10';
@@ -561,10 +561,10 @@ export function getStockOverviewByBatch(
     queryArgs.push(term, term, term);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getKarachiBusinessDate();
   const now = Date.now();
-  const d60 = new Date(now + 60 * 86400000).toISOString().slice(0, 10);
-  const d90 = new Date(now + 90 * 86400000).toISOString().slice(0, 10);
+  const d60 = getKarachiBusinessDate(new Date(now + 60 * 86400000));
+  const d90 = getKarachiBusinessDate(new Date(now + 90 * 86400000));
 
   if (params.filter === 'low_stock') {
     conditions.push('COALESCE(sm.balance, 0) <= 10');
