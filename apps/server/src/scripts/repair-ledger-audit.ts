@@ -13,11 +13,7 @@
 
 import { eq, and, isNull, inArray, sql } from 'drizzle-orm';
 import { getDb, closePool } from '../db';
-import {
-  journalEntries,
-  journalLines,
-  accounts,
-} from '../db/schema';
+import { journalEntries, journalLines, accounts } from '../db/schema';
 import type { DbClient } from '../db';
 
 export interface RepairAuditReport {

@@ -1,12 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
-import {
-  pharmacies,
-  accounts,
-  journalEntries,
-  journalLines,
-} from '../db/schema';
+import { pharmacies, accounts, journalEntries, journalLines } from '../db/schema';
 import { seedDefaultChartOfAccounts } from '../ledger/coa-seed';
 import { runLedgerRepairScan } from './repair-ledger-audit';
 import { eq } from 'drizzle-orm';

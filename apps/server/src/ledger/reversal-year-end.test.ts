@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
-import { isPostgresReachable, createTestContext, type TestDatabaseContext } from '../db/test-helper';
+import {
+  isPostgresReachable,
+  createTestContext,
+  type TestDatabaseContext,
+} from '../db/test-helper';
 import { pharmacies, branches, accounts, journalEntries } from '../db/schema';
 import { seedDefaultChartOfAccounts } from './coa-seed';
 import { postJournalEntry, reverseJournalEntry } from './service';
@@ -46,10 +50,7 @@ describe('F-C-02: Reversal Accounting (D1) and Year-End Closing Idempotency', ()
     });
 
     await seedDefaultChartOfAccounts(ctx.db, pharmacyId);
-    const coa = await ctx.db
-      .select()
-      .from(accounts)
-      .where(eq(accounts.pharmacyId, pharmacyId));
+    const coa = await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyId));
     const cashAcc = coa.find((a) => a.code === '1000')!;
     const arAcc = coa.find((a) => a.code === '1100')!;
 
@@ -88,15 +89,10 @@ describe('F-C-02: Reversal Accounting (D1) and Year-End Closing Idempotency', ()
 
     // 2. Reverse the entry (bounced check or correction)
     const reversal = await ctx.db.transaction((tx) =>
-      reverseJournalEntry(
-        tx,
-        originalEntry.id,
-        'Bounced payment receipt reversal',
-        {
-          pharmacyId,
-          reversalDate: '2026-10-16',
-        }
-      )
+      reverseJournalEntry(tx, originalEntry.id, 'Bounced payment receipt reversal', {
+        pharmacyId,
+        reversalDate: '2026-10-16',
+      })
     );
 
     // Per D1: reversing entry must have status 'posted' (NOT 'reversed')
@@ -139,10 +135,7 @@ describe('F-C-02: Reversal Accounting (D1) and Year-End Closing Idempotency', ()
     });
 
     await seedDefaultChartOfAccounts(ctx.db, pharmacyId);
-    const coa = await ctx.db
-      .select()
-      .from(accounts)
-      .where(eq(accounts.pharmacyId, pharmacyId));
+    const coa = await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyId));
     const cashAcc = coa.find((a) => a.code === '1000')!;
     const salesAcc = coa.find((a) => a.code === '4000')!;
     const cogsAcc = coa.find((a) => a.code === '5000')!;

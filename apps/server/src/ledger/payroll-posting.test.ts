@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
-import { isPostgresReachable, createTestContext, type TestDatabaseContext } from '../db/test-helper';
+import {
+  isPostgresReachable,
+  createTestContext,
+  type TestDatabaseContext,
+} from '../db/test-helper';
 import {
   pharmacies,
   branches,

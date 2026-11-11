@@ -3,13 +3,7 @@ import { eq, and, sql, desc, asc, ilike, or } from 'drizzle-orm';
 import { z, generateUuidV7, normalizePhone } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
-import {
-  customers,
-  invoices,
-  journalEntries,
-  journalLines,
-  pharmacies,
-} from '../db/schema';
+import { customers, invoices, journalEntries, journalLines, pharmacies } from '../db/schema';
 import { getPharmacyAccountMap } from '../ledger/coa-seed';
 import { postJournalEntry } from '../ledger/service';
 import { insertChangeLog } from '../sync/change-log';

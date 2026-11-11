@@ -1,10 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import {
-  payrollRuns,
-  payrollItems,
-  employeeAdvances,
-  accounts,
-} from '../db/schema';
+import { payrollRuns, payrollItems, employeeAdvances, accounts } from '../db/schema';
 import type { DbClient } from '../db';
 import { postJournalEntry } from './service';
 import { toKarachiBusinessDate } from './posting-engine';

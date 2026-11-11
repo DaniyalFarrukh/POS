@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateUuidV7 } from '@pos/shared';
-import { isPostgresReachable, createTestContext, type TestDatabaseContext } from '../db/test-helper';
+import {
+  isPostgresReachable,
+  createTestContext,
+  type TestDatabaseContext,
+} from '../db/test-helper';
 import {
   pharmacies,
   branches,
@@ -14,11 +18,7 @@ import {
   products,
 } from '../db/schema';
 import { seedDefaultChartOfAccounts } from './coa-seed';
-import {
-  postCreditNoteCreated,
-  postExpenseCompleted,
-  postInvoiceCreated,
-} from './posting-engine';
+import { postCreditNoteCreated, postExpenseCompleted, postInvoiceCreated } from './posting-engine';
 import { getMonthEndChecklist } from './period-close';
 import { eq, and } from 'drizzle-orm';
 import { applyCustomerCreated } from '../sync/appliers/customer';

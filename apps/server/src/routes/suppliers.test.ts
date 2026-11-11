@@ -560,10 +560,12 @@ describe('Suppliers Module Server API & Ledger Integration (Phase 8)', () => {
       const supplierId = createRes.json().data.id;
 
       // 2. Post a journal entry with sourceType: 'purchase.received' (GRN)
-      const apAcc = (await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyAId)))
-        .find((a) => a.code === '2000');
-      const invAcc = (await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyAId)))
-        .find((a) => a.code === '1200');
+      const apAcc = (
+        await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyAId))
+      ).find((a) => a.code === '2000');
+      const invAcc = (
+        await ctx.db.select().from(accounts).where(eq(accounts.pharmacyId, pharmacyAId))
+      ).find((a) => a.code === '1200');
       expect(apAcc).toBeDefined();
       expect(invAcc).toBeDefined();
 
