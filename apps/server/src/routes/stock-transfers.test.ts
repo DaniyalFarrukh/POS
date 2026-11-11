@@ -722,6 +722,122 @@ describe('Stock Transfers & Warehouses Module', () => {
     expect(moveIn!.type).toBe('transfer_in');
   });
 
+  it('rejects dispatching more quantity than requested or when source branch stock is insufficient (F-H-05)', async () => {
+    // 1. Create a transfer for 5 units
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/stock-transfers',
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        sourceBranchId: branchA1Id,
+        destinationBranchId: branchA2Id,
+        lines: [{ productId: product1Id, batchId: batch1Id, quantityRequested: 5 }],
+      },
+    });
+    expect(createRes.statusCode).toBe(201);
+    const transferId = createRes.json().data.id;
+    const lineId = createRes.json().data.lines[0].id;
+
+    // 2. Attempt to dispatch 10 units (more than requested 5)
+    const overDispatchRes = await app.inject({
+      method: 'POST',
+      url: `/api/stock-transfers/${transferId}/dispatch`,
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        lines: [{ lineId, quantityDispatched: 10 }],
+      },
+    });
+    expect(overDispatchRes.statusCode).toBe(400);
+    expect(overDispatchRes.json().code).toBe('OVER_DISPATCH');
+  });
+
+  it('rejects receiving when quantityReceived + shortageQuantity !== quantityDispatched (F-H-05)', async () => {
+    // 1. Create and dispatch 5 units
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/stock-transfers',
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        sourceBranchId: branchA1Id,
+        destinationBranchId: branchA2Id,
+        lines: [{ productId: product1Id, batchId: batch1Id, quantityRequested: 5 }],
+      },
+    });
+    const transferId = createRes.json().data.id;
+    const lineId = createRes.json().data.lines[0].id;
+
+    await app.inject({
+      method: 'POST',
+      url: `/api/stock-transfers/${transferId}/dispatch`,
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        lines: [{ lineId, quantityDispatched: 5 }],
+      },
+    });
+
+    // 2. Receive with missing units (quantityReceived: 3, shortageQuantity: 0 -> sum 3 != 5)
+    const mismatchRes = await app.inject({
+      method: 'POST',
+      url: `/api/stock-transfers/${transferId}/receive`,
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        lines: [{ lineId, quantityReceived: 3, shortageQuantity: 0 }],
+      },
+    });
+    expect(mismatchRes.statusCode).toBe(400);
+    expect(mismatchRes.json().code).toBe('QUANTITY_MISMATCH');
+  });
+
+  it('cancelling an in-transit transfer inserts reversal change_log records for desktop sync (F-H-05)', async () => {
+    // 1. Create and dispatch 2 units
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/stock-transfers',
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        sourceBranchId: branchA1Id,
+        destinationBranchId: branchA2Id,
+        lines: [{ productId: product1Id, batchId: batch1Id, quantityRequested: 2 }],
+      },
+    });
+    const transferId = createRes.json().data.id;
+    const lineId = createRes.json().data.lines[0].id;
+
+    await app.inject({
+      method: 'POST',
+      url: `/api/stock-transfers/${transferId}/dispatch`,
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+      payload: {
+        lines: [{ lineId, quantityDispatched: 2 }],
+      },
+    });
+
+    // 2. Cancel in-transit transfer
+    const cancelRes = await app.inject({
+      method: 'POST',
+      url: `/api/stock-transfers/${transferId}/cancel`,
+      headers: { authorization: `Bearer ${pharmacistTokenA}` },
+    });
+    expect(cancelRes.statusCode).toBe(200);
+
+    // Verify change_log has reversal stock_movement
+    const changeLogs = await ctx.db.query.changeLog.findMany({
+      where: (cl, { eq, and }) =>
+        and(
+          eq(cl.pharmacyId, pharmacyAId),
+          eq(cl.entity, 'stock_movement'),
+          eq(cl.branchId, branchA1Id)
+        ),
+      orderBy: (cl, { desc }) => [desc(cl.createdAt)],
+    });
+
+    const reversalLog = changeLogs.find(
+      (l) => (l.data as Record<string, unknown>).referenceType === 'stock_transfer_cancellation'
+    );
+    expect(reversalLog).toBeDefined();
+    expect((reversalLog!.data as Record<string, unknown>).quantitySigned).toBe(2);
+  });
+
   it('enforces tenant isolation: pharmacy B cannot access pharmacy A locations or transfers', async () => {
     // Pharmacy B cannot list Pharmacy A locations
     const locRes = await app.inject({

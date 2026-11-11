@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, desc, asc, ilike, or } from 'drizzle-orm';
-import { z, generateUuidV7 } from '@pos/shared';
+import { eq, and, desc, asc, ilike, or, sql } from 'drizzle-orm';
+import { z, generateUuidV7, isValidUuid } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -245,18 +245,24 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
 
       // Generate transfer number
       const year = new Date().getFullYear();
-      const [maxRow] = await db
+      const allRows = await db
         .select({ transferNumber: stockTransfers.transferNumber })
         .from(stockTransfers)
-        .where(eq(stockTransfers.pharmacyId, pharmacyId))
-        .orderBy(desc(stockTransfers.transferNumber))
-        .limit(1);
+        .where(
+          and(
+            eq(stockTransfers.pharmacyId, pharmacyId),
+            ilike(stockTransfers.transferNumber, `TR-${year}-%`)
+          )
+        );
 
       let seq = 1;
-      if (maxRow && maxRow.transferNumber) {
-        const match = maxRow.transferNumber.match(/-(\d+)$/);
+      for (const r of allRows) {
+        const match = r.transferNumber.match(new RegExp(`^TR-${year}-(\\d+)$`));
         if (match && match[1]) {
-          seq = parseInt(match[1], 10) + 1;
+          const num = parseInt(match[1], 10);
+          if (num >= seq) {
+            seq = num + 1;
+          }
         }
       }
       const transferNumber = `TR-${year}-${String(seq).padStart(4, '0')}`;
@@ -327,6 +333,14 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
 
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid transfer ID format',
+        });
+      }
+
       const [transfer] = await db
         .select()
         .from(stockTransfers)
@@ -377,6 +391,14 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
 
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid transfer ID format',
+        });
+      }
+
       const parsed = DispatchTransferSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.status(400).send({
@@ -414,6 +436,48 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         );
 
       const lineMap = new Map(existingLines.map((l) => [l.id, l]));
+
+      if (
+        parsed.data.lines.length !== existingLines.length ||
+        !existingLines.every((el) => parsed.data.lines.some((pl) => pl.lineId === el.id))
+      ) {
+        return reply.status(400).send({
+          code: 'MISSING_TRANSFER_LINES',
+          message: 'All transfer lines must be included in dispatch payload',
+        });
+      }
+
+      for (const item of parsed.data.lines) {
+        const line = lineMap.get(item.lineId)!;
+        if (item.quantityDispatched > line.quantityRequested) {
+          return reply.status(400).send({
+            code: 'OVER_DISPATCH',
+            message: `Dispatched quantity (${item.quantityDispatched}) cannot exceed requested quantity (${line.quantityRequested})`,
+          });
+        }
+
+        const [stockRow] = await db
+          .select({
+            total: sql<number>`coalesce(sum(${stockMovements.quantitySigned}), 0)`,
+          })
+          .from(stockMovements)
+          .where(
+            and(
+              eq(stockMovements.pharmacyId, pharmacyId),
+              eq(stockMovements.branchId, transfer.sourceBranchId),
+              eq(stockMovements.productId, line.productId),
+              eq(stockMovements.batchId, line.batchId)
+            )
+          );
+        const currentStock = Number(stockRow?.total || 0);
+        if (currentStock < item.quantityDispatched) {
+          return reply.status(400).send({
+            code: 'INSUFFICIENT_STOCK',
+            message: `Insufficient stock in source branch for batch ${line.batchId}: available ${currentStock}, dispatching ${item.quantityDispatched}`,
+          });
+        }
+      }
+
       const now = new Date().toISOString();
 
       await db.transaction(async (tx) => {
@@ -505,6 +569,14 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
 
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid transfer ID format',
+        });
+      }
+
       const parsed = ReceiveTransferSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.status(400).send({
@@ -542,6 +614,27 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
         );
 
       const lineMap = new Map(existingLines.map((l) => [l.id, l]));
+
+      if (
+        parsed.data.lines.length !== existingLines.length ||
+        !existingLines.every((el) => parsed.data.lines.some((pl) => pl.lineId === el.id))
+      ) {
+        return reply.status(400).send({
+          code: 'MISSING_TRANSFER_LINES',
+          message: 'All transfer lines must be accounted for upon receipt',
+        });
+      }
+
+      for (const item of parsed.data.lines) {
+        const line = lineMap.get(item.lineId)!;
+        if (item.quantityReceived + item.shortageQuantity !== line.quantityDispatched) {
+          return reply.status(400).send({
+            code: 'QUANTITY_MISMATCH',
+            message: `Received quantity (${item.quantityReceived}) plus shortage quantity (${item.shortageQuantity}) must equal dispatched quantity (${line.quantityDispatched})`,
+          });
+        }
+      }
+
       const now = new Date().toISOString();
       let hasShortage = false;
 
@@ -557,7 +650,6 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
           if (!line) continue;
 
           const receiveMovementId = generateUuidV7();
-          const shortageMovementId = item.shortageQuantity > 0 ? generateUuidV7() : null;
 
           if (item.shortageQuantity > 0) {
             hasShortage = true;
@@ -576,7 +668,7 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
               shortageQuantity: item.shortageQuantity,
               shortageReason: item.shortageReason || null,
               receiveMovementId,
-              shortageMovementId,
+              shortageMovementId: null,
               updatedAt: now,
             })
             .where(eq(stockTransferLines.id, line.id));
@@ -676,6 +768,14 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       const pharmacyId = user.pharmacyId;
       const { id } = request.params as { id: string };
 
+      if (!isValidUuid(id)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Invalid transfer ID format',
+        });
+      }
+
       const [transfer] = await db
         .select()
         .from(stockTransfers)
@@ -714,20 +814,32 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
           for (const l of lines) {
             if (l.quantityDispatched > 0) {
               const reversalMoveId = generateUuidV7();
-              await tx.insert(stockMovements).values({
+              const moveData = {
                 id: reversalMoveId,
                 pharmacyId,
                 productId: l.productId,
                 batchId: l.batchId,
                 branchId: transfer.sourceBranchId,
                 locationId: transfer.sourceLocationId || null,
-                type: 'adjustment',
+                type: 'adjustment' as const,
                 quantitySigned: l.quantityDispatched,
                 referenceType: 'stock_transfer_cancellation',
                 referenceId: transfer.id,
                 reason: `Reversal for cancelled transfer: ${transfer.transferNumber}`,
                 createdAt: now,
                 updatedAt: now,
+              };
+
+              await tx.insert(stockMovements).values(moveData);
+
+              await insertChangeLog(tx, {
+                pharmacyId,
+                branchId: transfer.sourceBranchId,
+                entity: 'stock_movement',
+                entityId: reversalMoveId,
+                op: 'upsert',
+                data: moveData,
+                createdAt: now,
               });
             }
           }
