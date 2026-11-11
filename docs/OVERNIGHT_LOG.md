@@ -207,3 +207,50 @@
   - `vitest run`: 102 test files passed, 714 / 714 tests passed (0 skipped, 0 failed)
 - **Batch Findings Completed:** `F-C-02`, `F-C-03`, `F-H-03`, `F-H-08`
 - **Artifacts Added:** `repair-ledger-audit.ts` diagnostic script, Stage 3 reproduction inverted to regression assertion
+
+
+## BATCH 2: Dates and Transactions
+
+### Task 2.1 — `F-H-04`: Asia/Karachi Business Date Normalization Across Server, Desktop & Web
+- **Finding IDs:** `F-H-04`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `packages/shared/src/time.ts`
+  - `apps/server/src/ledger/posting-engine.ts`
+  - `apps/server/src/ledger/financial-reports.ts`
+  - `apps/server/src/ledger/period-close.ts`
+  - `apps/server/src/reports/queries.ts`
+  - `apps/server/src/routes/ap.ts`
+  - `apps/server/src/routes/ar.ts`
+  - `apps/server/src/routes/cash-bank.ts`
+  - `apps/server/src/routes/expenses.ts`
+  - `apps/server/src/routes/financial-reports.ts`
+  - `apps/server/src/routes/payments.ts`
+  - `apps/server/src/routes/prescriptions.ts`
+  - `apps/server/src/routes/purchase-orders.ts`
+  - `apps/server/src/routes/stock.ts`
+  - `apps/server/src/routes/supplier-returns.ts`
+  - `apps/server/src/routes/suppliers.ts`
+  - `apps/server/src/services/notification-service.ts`
+  - `apps/desktop/src/main/purchasing.ts`
+  - `apps/desktop/src/renderer/components/invoices/InvoiceHistoryScreen.tsx`
+  - `apps/desktop/src/renderer/components/purchasing/GrnReceivingForm.tsx`
+  - `apps/web/src/lib/financial-reports-utils.ts`
+  - `apps/web/src/pages/admin/AuditLogPage.tsx`
+  - `apps/web/src/pages/finance/AccountsPayablePage.tsx`
+  - `apps/web/src/pages/finance/AccountsReceivablePage.tsx`
+  - `apps/web/src/pages/finance/CashBankPage.tsx`
+  - `apps/web/src/pages/finance/ExpensesPage.tsx`
+  - `apps/web/src/pages/finance/JournalEntriesPage.tsx`
+  - `apps/web/src/pages/finance/PaymentsPage.tsx`
+  - `apps/web/src/pages/finance/SalesLedgerPage.tsx`
+  - `apps/web/src/pages/inventory/PurchaseOrderDetailPage.tsx`
+  - `apps/web/src/pages/inventory/PurchaseOrdersPage.tsx`
+  - `apps/web/src/pages/prescriptions/PrescriptionsPage.tsx`
+  - `eslint.config.mjs`
+  - `apps/server/src/ledger/karachi-timezone.test.ts` (added)
+- **Tests Added:**
+  - `apps/server/src/ledger/karachi-timezone.test.ts`: asserts that late night UTC (e.g. 21:30 UTC Feb 28th) properly formats to next-day Asia/Karachi business date (March 1st) in accordance with Rule 8, and verifies day boundary start/end timestamps.
+- **Test Results:** `karachi-timezone.test.ts`: `2 passed (2)`; `sales-ledger.test.ts`: `6 passed (6)`; `prescriptions.test.ts`: `7 passed (7)`; `stock.test.ts`: `7 passed (7)`; `purchase-orders.test.ts`: `9 passed (9)`; `reports.test.ts`: `16 passed (16)`; `ar-ap.test.ts`: `6 passed (6)`; `financial-reports.test.ts`: `9 passed (9)`; `eslint .`: `0 errors`; `tsc`: `0 errors` across shared, server, web, desktop; `prettier`: clean.
+- **Decisions Made:** Exported `toKarachiBusinessDate` alias in `@pos/shared/src/time.ts` supporting `Date | string | number`; enforced via ESLint `no-restricted-syntax` forbidding raw `.toISOString().slice(0, 10)` in source files.
+- **NEEDS-REVIEW:** None.
