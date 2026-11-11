@@ -75,7 +75,7 @@ import {
   roleGuardedGetShiftHistory,
 } from './shifts';
 import { printReceiptHtml, type PrintReceiptOptions } from './printService';
-import { seedDatabase } from './db/seed';
+import { seedDatabase, runStartupAutoSeed } from './db/seed';
 import {
   createDatabaseBackup,
   listDatabaseBackups,
@@ -593,8 +593,8 @@ if (app && typeof app.whenReady === 'function') {
   app.whenReady().then(() => {
     try {
       initDatabase();
-      // Seed initial tax categories and 200 pharmacy products for development
-      seedDatabase();
+      // Only auto-seed when unpackaged AND explicit POS_DEV_AUTO_SEED=true flag is set
+      runStartupAutoSeed({ isPackaged: app.isPackaged, env: process.env });
 
       const db = getDatabase();
       const tokenStore = createTokenStore(db);

@@ -23,7 +23,12 @@ export interface RestoreResult {
  * Located at %APPDATA%/HexaPharm/backups
  */
 export function getBackupDirectory(customDir?: string): string {
-  if (customDir) return customDir;
+  if (customDir) {
+    if (!fs.existsSync(customDir)) {
+      fs.mkdirSync(customDir, { recursive: true });
+    }
+    return customDir;
+  }
 
   let baseDir: string;
   if (app && typeof app.getPath === 'function') {

@@ -1,6 +1,8 @@
+import { app } from 'electron';
 import type { Database as DatabaseInstance } from 'better-sqlite3';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, type UserRole } from '@pos/shared';
 import { getDatabase } from '../db';
+import { createDatabaseBackup, type BackupInfo } from '../backup';
 
 interface SeedTemplate {
   brandName: string;
@@ -11,6 +13,44 @@ interface SeedTemplate {
   mrpPaisa: number;
   isControlled: boolean;
 }
+
+export const STANDARD_DEMO_SUPPLIERS = [
+  {
+    name: 'Muller & Phipps Pakistan (Pvt) Ltd',
+    contactPerson: 'Tariq Mehmood',
+    phone: '021-35681122',
+    email: 'orders@mulphico.pk',
+    address: 'Plot 24, Korangi Industrial Area, Karachi',
+  },
+  {
+    name: 'Searle Distributors Pakistan',
+    contactPerson: 'Farhan Ahmed',
+    phone: '042-35882200',
+    email: 'dist@searlecompany.com',
+    address: '14-B, Gulberg II, Lahore',
+  },
+  {
+    name: 'GSK Consumer Healthcare Distribution',
+    contactPerson: 'Asim Khan',
+    phone: '021-111475725',
+    email: 'gsk.supply@gsk.com',
+    address: 'Dockyard Road, West Wharf, Karachi',
+  },
+  {
+    name: 'Ali Gohar & Company (Pvt) Ltd',
+    contactPerson: 'Bilal Sheikh',
+    phone: '051-5471188',
+    email: 'info@aligohar.com',
+    address: 'I-9/2 Industrial Area, Islamabad/Rawalpindi',
+  },
+  {
+    name: 'Premier Agencies Pharma Distribution',
+    contactPerson: 'Imran Raza',
+    phone: '041-8549922',
+    email: 'orders@premieragencies.pk',
+    address: 'Satyana Road, Peoples Colony, Faisalabad',
+  },
+] as const;
 
 const BASE_MEDICINES: SeedTemplate[] = [
   // Analgesics & Antipyretics
@@ -734,10 +774,49 @@ export function generateSeedProducts(count: number = 200): SeedTemplate[] {
   return result;
 }
 
-export function seedDatabase(rawDb?: DatabaseInstance): {
+export interface SeedOptions {
+  isPackaged?: boolean;
+}
+
+export function shouldAutoSeedOnStartup(options?: {
+  isPackaged?: boolean;
+  env?: NodeJS.ProcessEnv;
+}): boolean {
+  const isPackaged = options?.isPackaged ?? Boolean(app && app.isPackaged);
+  if (isPackaged) {
+    return false;
+  }
+  const env = options?.env ?? process.env;
+  return env.POS_DEV_AUTO_SEED === 'true' || env.POS_AUTO_SEED === 'true';
+}
+
+export function runStartupAutoSeed(options?: {
+  db?: DatabaseInstance;
+  isPackaged?: boolean;
+  env?: NodeJS.ProcessEnv;
+}): {
+  seeded: boolean;
+  seededCount: number;
+} {
+  if (!shouldAutoSeedOnStartup(options)) {
+    return { seeded: false, seededCount: 0 };
+  }
+  const res = seedDatabase(options?.db, { isPackaged: options?.isPackaged ?? false });
+  return { seeded: true, seededCount: res.seededCount };
+}
+
+export function seedDatabase(
+  rawDb?: DatabaseInstance,
+  options?: SeedOptions
+): {
   seededCount: number;
   defaultTaxCategoryId: string;
 } {
+  const isPackaged = options?.isPackaged ?? Boolean(app && app.isPackaged);
+  if (isPackaged) {
+    throw new Error('Forbidden: seedDatabase() cannot run in a packaged production build');
+  }
+
   const db = rawDb ?? getDatabase();
   const now = new Date().toISOString();
 
@@ -775,46 +854,8 @@ export function seedDatabase(rawDb?: DatabaseInstance): {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const standardSuppliers = [
-      {
-        name: 'Muller & Phipps Pakistan (Pvt) Ltd',
-        contactPerson: 'Tariq Mehmood',
-        phone: '021-35681122',
-        email: 'orders@mulphico.pk',
-        address: 'Plot 24, Korangi Industrial Area, Karachi',
-      },
-      {
-        name: 'Searle Distributors Pakistan',
-        contactPerson: 'Farhan Ahmed',
-        phone: '042-35882200',
-        email: 'dist@searlecompany.com',
-        address: '14-B, Gulberg II, Lahore',
-      },
-      {
-        name: 'GSK Consumer Healthcare Distribution',
-        contactPerson: 'Asim Khan',
-        phone: '021-111475725',
-        email: 'gsk.supply@gsk.com',
-        address: 'Dockyard Road, West Wharf, Karachi',
-      },
-      {
-        name: 'Ali Gohar & Company (Pvt) Ltd',
-        contactPerson: 'Bilal Sheikh',
-        phone: '051-5471188',
-        email: 'info@aligohar.com',
-        address: 'I-9/2 Industrial Area, Islamabad/Rawalpindi',
-      },
-      {
-        name: 'Premier Agencies Pharma Distribution',
-        contactPerson: 'Imran Raza',
-        phone: '041-8549922',
-        email: 'orders@premieragencies.pk',
-        address: 'Satyana Road, Peoples Colony, Faisalabad',
-      },
-    ];
-
     const seedSuppliersTx = db.transaction(() => {
-      for (const s of standardSuppliers) {
+      for (const s of STANDARD_DEMO_SUPPLIERS) {
         insertSupplier.run(
           generateUuidV7(),
           s.name,
@@ -871,4 +912,167 @@ export function seedDatabase(rawDb?: DatabaseInstance): {
 
   seedTx();
   return { seededCount: items.length, defaultTaxCategoryId };
+}
+
+export interface CleanupDemoDataOptions {
+  userRole: UserRole;
+  dryRun?: boolean;
+  db?: DatabaseInstance;
+  backupDir?: string;
+}
+
+export interface CleanupDemoDataResult {
+  dryRun: boolean;
+  candidateProductsCount: number;
+  skippedReferencedProductsCount: number;
+  candidateSuppliersCount: number;
+  skippedReferencedSuppliersCount: number;
+  deletedProductsCount: number;
+  deletedSuppliersCount: number;
+  backupInfo: BackupInfo | null;
+}
+
+/**
+ * Safe, owner-only cleanup tool for databases that previously received demo data from seedDatabase().
+ * - Identifies demo products by their seeded barcode range (896400010001..896400010200) AND exact template signature.
+ * - Identifies demo suppliers by their exact seeded (name, email, phone) signature.
+ * - Never deletes any product or supplier referenced by batches, stock_movements, invoice_lines, or purchases.
+ * - Dry-run by default (dryRun = true). When dryRun = false, takes a database backup before deleting in one transaction.
+ */
+export async function cleanupDemoData(
+  options: CleanupDemoDataOptions
+): Promise<CleanupDemoDataResult> {
+  if (options.userRole !== 'owner') {
+    throw new Error('Unauthorized: Demo data cleanup is strictly restricted to the Owner role.');
+  }
+
+  const dryRun = options.dryRun ?? true;
+  const db = options.db ?? getDatabase();
+
+  const templates = generateSeedProducts(200);
+  const templateKeys = new Set(
+    templates.map(
+      (t) => `${t.brandName}|${t.genericName}|${t.strength}|${t.form}|${t.manufacturer}`
+    )
+  );
+
+  const allProducts = db
+    .prepare(
+      `SELECT id, brand_name, generic_name, strength, form, manufacturer, barcode
+       FROM products
+       WHERE barcode IS NOT NULL`
+    )
+    .all() as {
+    id: string;
+    brand_name: string;
+    generic_name: string;
+    strength: string;
+    form: string;
+    manufacturer: string;
+    barcode: string;
+  }[];
+
+  const hasProductReferencesStmt = db.prepare<[string, string, string, string]>(
+    `SELECT
+       EXISTS(SELECT 1 FROM batches WHERE product_id = ?) OR
+       EXISTS(SELECT 1 FROM stock_movements WHERE product_id = ?) OR
+       EXISTS(SELECT 1 FROM invoice_lines WHERE product_id = ?) OR
+       EXISTS(SELECT 1 FROM purchase_lines WHERE product_id = ?) AS is_ref`
+  );
+
+  const candidateProductIds: string[] = [];
+  let skippedReferencedProductsCount = 0;
+
+  for (const prod of allProducts) {
+    const barcodeNum = Number(prod.barcode);
+    const isDemoBarcode =
+      Number.isInteger(barcodeNum) && barcodeNum >= 896400010001 && barcodeNum <= 896400010200;
+    const key = `${prod.brand_name}|${prod.generic_name}|${prod.strength}|${prod.form}|${prod.manufacturer}`;
+
+    if (isDemoBarcode && templateKeys.has(key)) {
+      const refRow = hasProductReferencesStmt.get(prod.id, prod.id, prod.id, prod.id) as {
+        is_ref: number;
+      };
+      if (refRow.is_ref === 1) {
+        skippedReferencedProductsCount++;
+      } else {
+        candidateProductIds.push(prod.id);
+      }
+    }
+  }
+
+  const demoSupplierSignatures = new Set(
+    STANDARD_DEMO_SUPPLIERS.map((s) => `${s.name}|${s.email}|${s.phone}`)
+  );
+
+  const allSuppliers = db.prepare('SELECT id, name, email, phone FROM suppliers').all() as {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+  }[];
+
+  const hasSupplierReferencesStmt = db.prepare<[string]>(
+    'SELECT EXISTS(SELECT 1 FROM purchases WHERE supplier_id = ?) AS is_ref'
+  );
+
+  const candidateSupplierIds: string[] = [];
+  let skippedReferencedSuppliersCount = 0;
+
+  for (const sup of allSuppliers) {
+    const sig = `${sup.name}|${sup.email ?? ''}|${sup.phone ?? ''}`;
+    if (demoSupplierSignatures.has(sig)) {
+      const refRow = hasSupplierReferencesStmt.get(sup.id) as { is_ref: number };
+      if (refRow.is_ref === 1) {
+        skippedReferencedSuppliersCount++;
+      } else {
+        candidateSupplierIds.push(sup.id);
+      }
+    }
+  }
+
+  if (dryRun) {
+    return {
+      dryRun: true,
+      candidateProductsCount: candidateProductIds.length,
+      skippedReferencedProductsCount,
+      candidateSuppliersCount: candidateSupplierIds.length,
+      skippedReferencedSuppliersCount,
+      deletedProductsCount: 0,
+      deletedSuppliersCount: 0,
+      backupInfo: null,
+    };
+  }
+
+  // Take a pre-cleanup safety backup before deleting any rows
+  const backupInfo = await createDatabaseBackup({
+    db,
+    backupDir: options.backupDir,
+    isPreRestore: true,
+  });
+
+  const deleteProductStmt = db.prepare('DELETE FROM products WHERE id = ?');
+  const deleteSupplierStmt = db.prepare('DELETE FROM suppliers WHERE id = ?');
+
+  const cleanupTx = db.transaction(() => {
+    for (const prodId of candidateProductIds) {
+      deleteProductStmt.run(prodId);
+    }
+    for (const supId of candidateSupplierIds) {
+      deleteSupplierStmt.run(supId);
+    }
+  });
+
+  cleanupTx();
+
+  return {
+    dryRun: false,
+    candidateProductsCount: candidateProductIds.length,
+    skippedReferencedProductsCount,
+    candidateSuppliersCount: candidateSupplierIds.length,
+    skippedReferencedSuppliersCount,
+    deletedProductsCount: candidateProductIds.length,
+    deletedSuppliersCount: candidateSupplierIds.length,
+    backupInfo,
+  };
 }
