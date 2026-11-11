@@ -26,10 +26,13 @@ import {
   employeeAdvances,
   payrollRuns,
   payrollItems,
+  accounts,
 } from '../db/schema';
 import { getDb } from '../db';
 import { requirePermission } from '../auth/user-auth';
 import { postPayrollRunToLedger, postPayrollPaymentBatch } from '../ledger/payroll-posting';
+import { postJournalEntry } from '../ledger/service';
+import { toKarachiBusinessDate } from '../ledger/posting-engine';
 
 export const payrollRoutes: FastifyPluginAsync = async (fastify) => {
   // 1. GET /api/hr/payroll/statutory-rates
@@ -253,7 +256,7 @@ export const payrollRoutes: FastifyPluginAsync = async (fastify) => {
     '/payroll/advances',
     { preHandler: [requirePermission('hr.payroll.manage')] },
     async (request, reply) => {
-      const { pharmacyId } = request.userContext!;
+      const { pharmacyId, userId } = request.userContext!;
       const db = request.server.db || getDb();
 
       const parsed = CreateEmployeeAdvanceSchema.safeParse(request.body);
@@ -267,42 +270,101 @@ export const payrollRoutes: FastifyPluginAsync = async (fastify) => {
 
       const input = parsed.data;
 
-      // Verify employee
-      const [emp] = await db
-        .select()
-        .from(employees)
-        .where(and(eq(employees.id, input.employeeId), eq(employees.pharmacyId, pharmacyId)));
+      return await db.transaction(async (tx) => {
+        // Verify employee
+        const [emp] = await tx
+          .select()
+          .from(employees)
+          .where(and(eq(employees.id, input.employeeId), eq(employees.pharmacyId, pharmacyId)));
 
-      if (!emp) {
-        return reply.status(404).send({
-          statusCode: 404,
-          error: 'Not Found',
-          message: 'Employee not found',
-        });
-      }
+        if (!emp) {
+          return reply.status(404).send({
+            statusCode: 404,
+            error: 'Not Found',
+            message: 'Employee not found',
+          });
+        }
 
-      const nowIso = new Date().toISOString();
-      const id = generateUuidV7();
+        // Resolve accounts: Dr 2300 Other Payables, Cr Cash (1000) or Bank (1010)
+        const pharmacyAccounts = await tx
+          .select()
+          .from(accounts)
+          .where(eq(accounts.pharmacyId, pharmacyId));
 
-      const [created] = await db
-        .insert(employeeAdvances)
-        .values({
-          id,
+        const advAcc = pharmacyAccounts.find((a) => a.code === '2300');
+        if (!advAcc) {
+          return reply.status(400).send({
+            statusCode: 400,
+            error: 'Bad Request',
+            message: 'Account 2300 (Other Payables / Advances) not found in chart of accounts',
+          });
+        }
+
+        const paymentAcc = input.paymentAccountId
+          ? pharmacyAccounts.find((a) => a.id === input.paymentAccountId)
+          : pharmacyAccounts.find((a) => a.code === '1000') ||
+            pharmacyAccounts.find((a) => a.code === '1010');
+
+        if (!paymentAcc) {
+          return reply.status(400).send({
+            statusCode: 400,
+            error: 'Bad Request',
+            message: 'Payment account (1000 Cash or 1010 Bank) not found',
+          });
+        }
+
+        const nowIso = new Date().toISOString();
+        const id = generateUuidV7();
+
+        const [created] = await tx
+          .insert(employeeAdvances)
+          .values({
+            id,
+            pharmacyId,
+            employeeId: input.employeeId,
+            disbursementDate: input.disbursementDate,
+            principalPaisa: input.principalPaisa,
+            recoveredPaisa: 0,
+            remainingPaisa: input.principalPaisa,
+            monthlyInstallmentPaisa: input.monthlyInstallmentPaisa,
+            reason: input.reason || null,
+            status: 'active',
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          })
+          .returning();
+
+        // Post disbursement journal entry: Dr 2300 / Cr PaymentAccount
+        const businessDate = toKarachiBusinessDate(input.disbursementDate);
+        await postJournalEntry(tx, {
           pharmacyId,
-          employeeId: input.employeeId,
-          disbursementDate: input.disbursementDate,
-          principalPaisa: input.principalPaisa,
-          recoveredPaisa: 0,
-          remainingPaisa: input.principalPaisa,
-          monthlyInstallmentPaisa: input.monthlyInstallmentPaisa,
-          reason: input.reason || null,
-          status: 'active',
-          createdAt: nowIso,
-          updatedAt: nowIso,
-        })
-        .returning();
+          entryDate: businessDate,
+          sourceType: 'employee_advance',
+          sourceId: id,
+          memo: `Salary advance disbursement for ${emp.firstName} ${emp.lastName}`,
+          createdBy: userId,
+          lines: [
+            {
+              accountId: advAcc.id,
+              debitPaisa: input.principalPaisa,
+              creditPaisa: 0,
+              partyType: 'employee',
+              partyId: input.employeeId,
+              branchId: emp.branchId || undefined,
+              memo: `Salary advance to ${emp.firstName} ${emp.lastName}`,
+            },
+            {
+              accountId: paymentAcc.id,
+              debitPaisa: 0,
+              creditPaisa: input.principalPaisa,
+              branchId: emp.branchId || undefined,
+              memo: `Advance disbursement via ${paymentAcc.name}`,
+            },
+          ],
+        });
 
-      return reply.status(201).send({ success: true, data: created });
+        return reply.status(201).send({ success: true, data: created });
+      });
     }
   );
 

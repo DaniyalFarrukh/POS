@@ -43,6 +43,7 @@ export const CreateEmployeeAdvanceSchema = z.object({
     .int()
     .positive('Monthly installment must be positive integer paisa'),
   reason: z.string().optional(),
+  paymentAccountId: z.string().uuid().optional(),
 });
 
 export type CreateEmployeeAdvanceInput = z.infer<typeof CreateEmployeeAdvanceSchema>;

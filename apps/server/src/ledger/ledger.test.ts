@@ -131,11 +131,11 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
   // 1. Default Chart of Accounts Seed & Idempotency
   // =========================================================================
   describe('Default Chart of Accounts Seeding', () => {
-    it('seeds all 33 default accounts from docs/ERP_SPEC.md and is idempotent on repeat runs', async () => {
+    it('seeds all default accounts from docs/ERP_SPEC.md and is idempotent on repeat runs', async () => {
       const tenant = await createTenantFixture('COA');
 
-      expect(DEFAULT_CHART_OF_ACCOUNTS.length).toBe(33);
-      expect(tenant.coa.length).toBe(33);
+      expect(DEFAULT_CHART_OF_ACCOUNTS.length).toBe(34);
+      expect(tenant.coa.length).toBe(34);
 
       // Verify specific required accounts and types from ERP_SPEC.md
       expect(tenant.byCode.get('1000')?.name).toBe('Cash in Hand');
@@ -161,7 +161,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
         .from(accounts)
         .where(eq(accounts.pharmacyId, tenant.pharmacyId));
 
-      expect(afterSecondSeed.length).toBe(33);
+      expect(afterSecondSeed.length).toBe(34);
       for (const acc of tenant.coa) {
         const matching = afterSecondSeed.find((a) => a.code === acc.code);
         expect(matching?.id).toBe(acc.id);
@@ -180,7 +180,7 @@ describe('Ledger Core Suite (ERP Spec Phase 7)', () => {
 
       const scriptResults = await seedChartOfAccountsForAllPharmacies(ctx.db);
       const bareResult = scriptResults.find((r) => r.pharmacyId === barePharmacyId);
-      expect(bareResult?.accountCount).toBe(33);
+      expect(bareResult?.accountCount).toBe(34);
     });
   });
 
