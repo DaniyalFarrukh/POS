@@ -1258,15 +1258,15 @@ describe('Stage 3 Final Audit: Ledger & Accounting Integrity (5,000+ Docs & 100k
     );
   }, 180_000);
 
-  it('3.3 reproduces accounting bugs uncovered in Stage 3 (credit note AR partyId, credit expense AP partyId, and reversed entry filtering)', async () => {
-    // 1. Reproduce F-H-06: Credit Expense (`paymentType: 'credit'`) posts to 2000 AP with `partyId: null`,
-    //    breaking AP control account reconciliation (`getPeriodCloseChecklist`)
+  it('3.3 verifies ledger fixes for credit note AR partyId, credit expense AP routing, and reversal subledger reconciliation', async () => {
+    // 1. Verify F-H-06 / F-C-03: Credit Expense (`paymentType: 'credit'`) routes unlinked credit expenses to 2300 Other Payables,
+    //    preserving 2000 AP control account reconciliation (`getMonthEndChecklist`)
     const creditExpId = generateUuidV7();
     let creditExpEntryId = '';
     await db.transaction(async (tx) => {
       const entry = await postExpenseCompleted(tx, {
         expenseId: creditExpId,
-        expenseNumber: 'EXP-CREDIT-BUG',
+        expenseNumber: 'EXP-CREDIT-TEST',
         pharmacyId,
         branchId: branch1Id,
         expenseDate: '2026-10-25',
@@ -1283,9 +1283,9 @@ describe('Stage 3 Final Audit: Ledger & Accounting Integrity (5,000+ Docs & 100k
     const reconAfterCreditExp = checklistAfterCreditExp.items.find(
       (i) => i.id === 'reconciliation_differences'
     )!;
-    // Because postExpenseCompleted omitted partyId on 2000 AP, AP control account != sum of supplier party balances!
-    expect(reconAfterCreditExp.status).toBe('warning');
-    expect(reconAfterCreditExp.count).toBeGreaterThanOrEqual(1);
+    // Because postExpenseCompleted routes unlinked credit expenses to 2300 Other Payables, AP trade subledger remains exactly reconciled!
+    expect(reconAfterCreditExp.status).toBe('passed');
+    expect(reconAfterCreditExp.count).toBe(0);
 
     // Reverse that credit expense
     await db.transaction((tx) =>
@@ -1296,17 +1296,15 @@ describe('Stage 3 Final Audit: Ledger & Accounting Integrity (5,000+ Docs & 100k
       })
     );
 
-    // 2. Reproduce F-C-02: Reversing a customer receipt (`reverseJournalEntry`) sets `status = 'reversed'`
-    //    on the REVERSING entry while leaving the original entry `status = 'posted'`.
-    //    `getMonthEndChecklist` (and `/api/finance/ar/summary`) filters `status != 'reversed'` on party lines
-    //    while summing ALL lines on the control account, permanently breaking AR reconciliation after any reversal!
+    // 2. Verify F-C-02: Reversing a customer receipt (`reverseJournalEntry`) inserts reversing entry with `status = 'posted'`,
+    //    and subledger queries include both original and reversal entries netting cleanly to 0.
     const receiptToReverseId = generateUuidV7();
     let receiptEntryId = '';
     await db.transaction(async (tx) => {
       const entry = await postFinancialPaymentCompleted(tx, {
         pharmacyId,
         paymentId: receiptToReverseId,
-        paymentNumber: 'RCV-REV-BUG',
+        paymentNumber: 'RCV-REV-TEST',
         paymentDate: '2026-10-25',
         branchId: branch1Id,
         direction: 'receipt',
@@ -1331,9 +1329,9 @@ describe('Stage 3 Final Audit: Ledger & Accounting Integrity (5,000+ Docs & 100k
     const reconAfterReversal = checklistAfterReversal.items.find(
       (i) => i.id === 'reconciliation_differences'
     )!;
-    // Control account net change is 0 (+10,000 - 10,000), but customer party subledger excluded the reversal (-10,000)!
-    expect(reconAfterReversal.status).toBe('warning');
-    expect(reconAfterReversal.count).toBeGreaterThanOrEqual(1);
+    // Both control account and customer subledger net out to 0, producing 0 reconciliation differences!
+    expect(reconAfterReversal.status).toBe('passed');
+    expect(reconAfterReversal.count).toBe(0);
   }, 60_000);
 
   it('3.4 verifies closed-period rejection (including late sync events), year-end closing, payroll fixtures, and benchmarks reports at 100,000+ journal lines', async () => {
