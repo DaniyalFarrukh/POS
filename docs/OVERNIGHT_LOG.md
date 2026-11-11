@@ -16,21 +16,21 @@
   - [x] `F-M-04`: Update `.github/workflows/ci.yml` (`format:check`, `lint`, `typecheck`, tests with Postgres & `DEVICE_JWT_SECRET`, `pnpm audit`, production builds, all branches/PRs)
   - [x] `F-L-01` & `F-L-02`: Add `.gitattributes` (`eol=lf`), move `pnpm` build settings to `pnpm-workspace.yaml`, fix Electron extraction race
 - **BATCH 1: Ledger Correctness (HIGH RISK — `NEEDS-REVIEW`)**
-  - [ ] `F-C-02`, `F-C-03`, `F-H-03`, `F-H-08` per `D1` & `D2` + convert `stage3-ledger-simulation.test.ts` reproductions to regression assertions + repair script (dry-run default)
+  - [x] `F-C-02`, `F-C-03`, `F-H-03`, `F-H-08` per `D1` & `D2` + convert `stage3-ledger-simulation.test.ts` reproductions to regression assertions + repair script (dry-run default)
 - **BATCH 2: Dates and Transactions**
-  - [ ] `F-H-04`: Shared Karachi business-date helpers, replace all 75 UTC `.toISOString().slice(0, 10)` uses, ESLint rule forbidding pattern, boundary tests (`23:30`, `00:30`, `04:30`, `05:30` PKT)
-  - [ ] `F-H-02` & `F-M-08`: Wrap 14 multi-table write handlers in `db.transaction()` with failure-injection tests; `cash-bank.ts` 400s on Zod errors, `:id` UUID validation, prescription repeat caps, receipt HTML escaping, remove dead test code in `finance.ts`
+  - [x] `F-H-04`: Shared Karachi business-date helpers, replace all 75 UTC `.toISOString().slice(0, 10)` uses, ESLint rule forbidding pattern, boundary tests (`23:30`, `00:30`, `04:30`, `05:30` PKT)
+  - [x] `F-H-02` & `F-M-08`: Wrap 14 multi-table write handlers in `db.transaction()` with failure-injection tests; `cash-bank.ts` 400s on Zod errors, `:id` UUID validation, prescription repeat caps, receipt HTML escaping, remove dead test code in `finance.ts`
 - **BATCH 3: Sync Completeness**
-  - [ ] `F-H-05` & `F-H-06`: Server stock transfer validation/movements/`change_log`, PO receive & batch write-off/discount `change_log`, `applyPurchaseReceived` preserves `createdAt`, intra-branch shortages
-  - [ ] `F-M-09`: `restoreDatabaseBackup` schema version check + `restore_epoch` (`{counterCode}-R{epoch}-{seq}`) + `device_seq` +1,000,000 (`NEEDS-REVIEW`)
-  - [ ] `F-H-07` & `F-M-07`: Desktop customers, credit sales, customer receipts, product/supplier counter creation sync, topological FK ordering in `pullAndApply` (`NEEDS-REVIEW`)
+  - [x] `F-H-05` & `F-H-06`: Server stock transfer validation/movements/`change_log`, PO receive & batch write-off/discount `change_log`, `applyPurchaseReceived` preserves `createdAt`, intra-branch shortages
+  - [x] `F-M-09`: `restoreDatabaseBackup` schema version check + `restore_epoch` (`{counterCode}-R{epoch}-{seq}`) + `device_seq` +1,000,000 (`NEEDS-REVIEW`)
+  - [x] `F-H-07` & `F-M-07`: Desktop customers, credit sales, customer receipts, product/supplier counter creation sync, topological FK ordering in `pullAndApply` (`NEEDS-REVIEW`)
 - **BATCH 4: Security**
-  - [ ] `F-H-09`: Opt-in `trustProxy`, DB-persisted JWT revocation, fail-fast `DEVICE_JWT_SECRET` in production, `httpOnly` `SameSite=Strict` cookie + CSRF + CSP for web auth
-  - [ ] `F-M-06`: Zod schemas on all desktop IPC handlers, lockout in `verifyOwnerPinForDestructive`, 5 roles (`owner`, `manager`, `accountant`, `pharmacist`, `cashier`) in desktop
+  - [x] `F-H-09`: Opt-in `trustProxy`, DB-persisted JWT revocation, fail-fast `DEVICE_JWT_SECRET` in production, `httpOnly` `SameSite=Strict` cookie + CSRF + CSP for web auth
+  - [x] `F-M-06`: Zod schemas on all desktop IPC handlers, lockout in `verifyOwnerPinForDestructive`, 5 roles (`owner`, `manager`, `accountant`, `pharmacist`, `cashier`) in desktop
 - **BATCH 5: Remaining Mediums**
-  - [ ] `F-M-05`: Shared money parser/formatter replacing `parseFloat`, `toFixed`, and `Math.round` on money + ESLint rule
-  - [ ] `F-M-10`: Fix `/finance-sales-ledger` search link & query params, scope notifications & stop 0-stock alerts, paginate 11 queries, remove N+1 loops
-  - [ ] `F-M-11`: Enforce `is_controlled` at checkout in `finalizeSale`, remove legacy `invoices:create`, add pharmacy `ntn`/`strn`, add batch recall report
+  - [x] `F-M-05`: Shared money parser/formatter replacing `parseFloat`, `toFixed`, and `Math.round` on money + ESLint rule
+  - [x] `F-M-10`: Fix `/finance-sales-ledger` search link & query params, scope notifications & stop 0-stock alerts, paginate 11 queries, remove N+1 loops
+  - [x] `F-M-11`: Enforce `is_controlled` at checkout in `finalizeSale`, remove legacy `invoices:create`, add pharmacy `ntn`/`strn`, add batch recall report
 
 ---
 
@@ -451,3 +451,104 @@
   - `vitest run`: 108 test files passed, 742 / 742 tests passed (0 skipped, 0 failed, 0 flaky)
 - **Batch Findings Completed:** `F-H-09`, `F-M-06`
 - **Artifacts Added:** `server-security-hardening.test.ts`, `ipc-security-hardening.test.ts`, `0022_auth_hardening_and_compliance.sql`
+
+## BATCH 5: Remaining Mediums & Final Hardening
+
+### Task 5.1 — `F-M-05`: Rule 1 Money & Rounding Integrity
+- **Finding IDs:** `F-M-05`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `packages/shared/src/money.ts`
+  - `packages/shared/src/money-rounding.test.ts` (added)
+  - `packages/shared/src/schema/hr.ts`
+  - `packages/shared/src/schema/payroll.ts`
+  - `apps/server/src/ledger/budget-service.ts`
+  - `apps/server/src/routes/expenses.ts`
+  - `apps/server/src/routes/payroll.ts`
+  - `apps/server/src/routes/search.ts`
+  - `apps/web/src/lib/cash-bank-utils.ts`
+  - `apps/web/src/lib/supplier-utils.ts`
+  - `apps/web/src/pages/finance/BudgetPlanningPage.tsx`
+  - `apps/web/src/pages/finance/CashBankPage.tsx`
+  - `apps/web/src/pages/finance/ExpensesPage.tsx`
+  - `apps/web/src/pages/finance/JournalEntriesPage.tsx`
+  - `apps/web/src/pages/finance/PaymentsPage.tsx`
+  - `apps/web/src/pages/hr/PayrollPage.tsx`
+  - `apps/web/src/pages/inventory/BatchesExpiryPage.tsx`
+  - `apps/web/src/pages/inventory/PurchaseOrderDetailPage.tsx`
+  - `apps/web/src/pages/inventory/PurchaseOrdersPage.tsx`
+- **Tests Added:**
+  - `packages/shared/src/money-rounding.test.ts`: 7 tests verifying exact half-up integer rounding on divisions (`5/2=3`, `-5/2=-3`), parsing of raw string/number inputs via `parsePkrToPaisa`, safe fallback handling on invalid input, display formatting via `formatPaisa` and `formatPKR`, and `roundHalfUp` usage in progressive tax slabs, statutory deductions, and unpaid leave daily rates.
+- **Test Results:** `money-rounding.test.ts`: `7 passed (7)`; `money.test.ts`: `27 passed (27)`; `tax.test.ts`: `16 passed (16)`; `payroll.test.ts`: `8 passed (8)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Exported standard `parsePkrToPaisa` and `formatPaisa` from `@pos/shared/src/money.ts`.
+  - Replaced all raw float multiplications `Math.round(parseFloat(...) * 100)` across 35+ web form inputs with `parsePkrToPaisa`.
+  - Replaced division rounding `Math.round(a / b)` with `roundHalfUp(a, b)` across server budget distribution, average expense computation, and HR/payroll leave and deduction formulas.
+  - Replaced raw float division display `(inv.totalPaisa / 100).toFixed(2)` in `search.ts` with `formatPKR(inv.totalPaisa)`.
+- **NEEDS-REVIEW:** None.
+
+### Task 5.2 — `F-M-10`: Web UX Deep-Links, Notification Scoping, Pagination & N+1 Removal
+- **Finding IDs:** `F-M-10`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/web/src/layout/DashboardLayout.tsx`
+  - `apps/server/src/services/notification-service.ts`
+  - `apps/server/src/routes/notifications.ts`
+  - `apps/server/src/routes/notifications-search-audit.test.ts`
+  - `apps/server/src/routes/payments.ts`
+  - `apps/server/src/routes/hr-leave.ts`
+  - `apps/server/src/routes/customers.ts`
+  - `apps/server/src/routes/purchase-orders.ts`
+  - `apps/server/src/routes/stock-transfers.ts`
+  - `apps/server/src/routes/stock-counts.ts`
+  - `apps/server/src/routes/supplier-returns.ts`
+  - `apps/server/src/routes/prescriptions.ts`
+  - `apps/server/src/routes/payroll.ts`
+  - `apps/server/src/routes/sales-ledger.ts`
+- **Tests Added:**
+  - `apps/server/src/routes/notifications-search-audit.test.ts`: verified search invoice results link to `/finance-sales-ledger?invoiceId=...`, verified expiring stock notification queries ignore 0-stock batches, and verified notifications are filtered by user role (`owner`, `pharmacist`, `manager`).
+- **Test Results:** `notifications-search-audit.test.ts`: `3 passed (3)`; `payments.test.ts`: `8 passed (8)`; `hr-leave.test.ts`: `8 passed (8)`; `sales-ledger.test.ts`: `6 passed (6)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - In `apps/web/src/layout/DashboardLayout.tsx`, updated `handleNavigate` to preserve URL query parameters (`?customerId=`, `?invoiceId=`) when dispatching custom navigation events.
+  - In `notification-service.ts`, restricted expiring stock notifications to batches with strictly positive stock on hand (`HAVING COALESCE(SUM(quantity_signed), 0) > 0`), and scoped notification categories by caller role (stock alerts to `owner`/`manager`/`pharmacist`, sync exceptions to `owner`/`manager`, period close alerts to `owner`/`accountant`).
+  - Removed N+1 query loops in `payments.ts` (batched customer invoice, supplier PO, and AP journal line lookups) and `hr-leave.ts` (batched employee leave balance lookup and bulk creation).
+  - Added bounded pagination (`limit` & `offset` query parameters, default 50, maximum 500) to 11 unbounded list endpoints across customers, purchase orders, stock transfers, stock counts, supplier returns, prescriptions, payroll runs, and sales ledger.
+- **NEEDS-REVIEW:** None.
+
+### Task 5.3 — `F-M-11`, Mutations `M-01`, `M-09`, `M-12`: Controlled Drug Safety, Batch Recalls & Mutation Regressions
+- **Finding IDs:** `F-M-11`, `M-01`, `M-09`, `M-12`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `packages/shared/src/schema/invoice.ts`
+  - `apps/desktop/src/main/finalizeSale.ts`
+  - `apps/desktop/src/main/invoices.ts`
+  - `apps/desktop/src/main/receipt-and-invoices.test.ts`
+  - `apps/server/src/routes/reports.ts`
+  - `apps/server/src/reports/reports.test.ts`
+  - `tests/audit-regression/tenant-isolation.test.ts`
+  - `tests/audit-regression/stage2-server-security.test.ts`
+  - `vitest.config.ts`
+- **Tests Added:**
+  - `apps/desktop/src/main/receipt-and-invoices.test.ts`: verified `finalizeSale` rejects controlled drug sale without prescription number/doctor name, and accepts controlled drug sale when valid prescription info is supplied.
+  - `apps/server/src/reports/reports.test.ts`: verified `GET /api/reports/batch-recall?batchNo=...` returns matching batches, total units sold, and affected invoices/customers for DRAP compliance.
+  - `tests/audit-regression/tenant-isolation.test.ts`: verified mutation `M-01` killed by asserting `GET /api/reports/sales` without query parameters strictly isolates Tenant A and does not return Tenant B's invoices.
+  - `apps/server/src/routes/payments.test.ts`: verified mutation `M-09` killed by asserting `POST /api/finance/payments` rejects non-positive payment amounts (`amountPaisa <= 0`) with HTTP 400.
+  - `tests/audit-regression/stage2-server-security.test.ts`: verified mutation `M-12` killed by asserting owner cannot self-demote, self-deactivate, or demote the last remaining active owner in the tenant.
+- **Test Results:** `receipt-and-invoices.test.ts`: `6 passed (6)`; `reports.test.ts`: `17 passed (17)`; `tenant-isolation.test.ts`: `24 passed (24)`; `stage2-server-security.test.ts`: `12 passed (12)`; `payments.test.ts`: `8 passed (8)`; `vitest run`: `109 test files passed (109), 755 / 755 tests passed (0 skipped, 0 failed)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Enforced DRAP controlled drug validation in `finalizeSale.ts`: products with `is_controlled === 1` require prescription number or doctor name.
+  - Enforced future expiry date (`expiry_date >= today`) and strictly positive stock in desktop `invoices.ts` batch auto-resolution; removed fallback to out-of-stock batches.
+  - Added DRAP batch recall tracking endpoint `GET /api/reports/batch-recall` querying recalled batch sales and affected customers.
+  - Configured `vitest.config.ts` with `maxWorkers: 4`, `testTimeout: 60000`, and `hookTimeout: 60000` for deterministic concurrency management across heavy database simulations.
+- **NEEDS-REVIEW:** None.
+
+## BATCH 5 VERIFICATION COMPLETE
+- **Status:** GREEN
+- **Full Suite Verification:**
+  - `eslint .`: 0 errors, 0 warnings
+  - `pnpm typecheck`: 0 errors across 6 projects (`@pos/ui`, `@pos/shared`, `@pos/server`, `@pos/desktop`, `@pos/web`, `tests/integration`)
+  - `pnpm audit`: No known vulnerabilities found (exit code 0)
+  - `prettier --check .`: All matched files use Prettier code style
+  - `vitest run`: 109 test files passed, 755 / 755 tests passed (0 skipped, 0 failed, 0 flaky)
+- **Batch Findings Completed:** `F-M-05`, `F-M-10`, `F-M-11`, `M-01`, `M-09`, `M-12`
+- **Artifacts Added:** `money-rounding.test.ts`, batch recall endpoint & regression tests
