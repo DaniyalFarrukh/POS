@@ -1,4 +1,5 @@
 import { eq, and, sql, gte, lte, ne } from 'drizzle-orm';
+import crypto from 'node:crypto';
 import type { DbClient } from '../sync/types';
 import {
   accounts,
@@ -10,7 +11,6 @@ import {
   bankReconciliations,
 } from '../db/schema';
 import { postJournalEntry, type JournalLineInput } from './service';
-import { generateUuidV7 } from '@pos/shared';
 
 export interface ChecklistItem {
   id: 'unposted_documents' | 'bank_reconciliation' | 'stock_count' | 'reconciliation_differences';
@@ -198,8 +198,7 @@ export async function getMonthEndChecklist(
         and(
           eq(journalLines.pharmacyId, pharmacyId),
           eq(journalLines.accountId, arAcct.id),
-          eq(journalLines.partyType, 'customer'),
-          sql`${journalEntries.status} != 'reversed'`
+          eq(journalLines.partyType, 'customer')
         )
       );
 
@@ -244,8 +243,7 @@ export async function getMonthEndChecklist(
         and(
           eq(journalLines.pharmacyId, pharmacyId),
           eq(journalLines.accountId, apAcct.id),
-          eq(journalLines.partyType, 'supplier'),
-          sql`${journalEntries.status} != 'reversed'`
+          eq(journalLines.partyType, 'supplier')
         )
       );
 
@@ -319,135 +317,177 @@ export interface ExecuteYearEndClosingResult {
   linesCount: number;
 }
 
+export function getYearEndClosingSourceId(pharmacyId: string, fiscalYear: number): string {
+  const hash = crypto
+    .createHash('sha256')
+    .update(`${pharmacyId}:year_end_close:${fiscalYear}`)
+    .digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
+
 export async function executeYearEndClosing(
   db: DbClient,
   input: ExecuteYearEndClosingInput
 ): Promise<ExecuteYearEndClosingResult> {
-  const startDate = `${input.fiscalYear}-01-01`;
-  const endDate = input.closingDate;
+  const executeInTx = async (tx: DbClient): Promise<ExecuteYearEndClosingResult> => {
+    const deterministicSourceId = getYearEndClosingSourceId(input.pharmacyId, input.fiscalYear);
 
-  // 1. Find Retained Earnings Account (3100)
-  const [reAcct] = await db
-    .select({ id: accounts.id, code: accounts.code, name: accounts.name })
-    .from(accounts)
-    .where(and(eq(accounts.pharmacyId, input.pharmacyId), eq(accounts.code, '3100')));
-
-  if (!reAcct) {
-    throw new Error('Retained Earnings account (3100) not found in Chart of Accounts');
-  }
-
-  // 2. Query all revenue and expense account balances for the fiscal year up to closingDate
-  const plBalances = await db
-    .select({
-      accountId: journalLines.accountId,
-      accountCode: accounts.code,
-      accountName: accounts.name,
-      accountType: accounts.type,
-      totalDebit: sql<string>`COALESCE(SUM(${journalLines.debitPaisa}), 0)`,
-      totalCredit: sql<string>`COALESCE(SUM(${journalLines.creditPaisa}), 0)`,
-    })
-    .from(journalLines)
-    .innerJoin(accounts, eq(journalLines.accountId, accounts.id))
-    .innerJoin(journalEntries, eq(journalLines.entryId, journalEntries.id))
-    .where(
-      and(
-        eq(journalLines.pharmacyId, input.pharmacyId),
-        gte(journalEntries.entryDate, startDate),
-        lte(journalEntries.entryDate, endDate),
-        eq(journalEntries.status, 'posted'),
-        sql`(${journalEntries.sourceType} IS NULL OR ${journalEntries.sourceType} != 'year_end_closing')`
+    // Check if this fiscal year was already closed (idempotency per D1)
+    const [existing] = await tx
+      .select({ id: journalEntries.id })
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.pharmacyId, input.pharmacyId),
+          eq(journalEntries.sourceType, 'year_end_closing'),
+          eq(journalEntries.sourceId, deterministicSourceId)
+        )
       )
-    )
-    .groupBy(journalLines.accountId, accounts.code, accounts.name, accounts.type);
+      .limit(1);
 
-  // Filter for revenue (type = 'revenue' or code starting with '4')
-  // and expense (type = 'expense' or code starting with '5' or '6')
-  const plRows = plBalances.filter((b) => {
-    return (
-      b.accountType === 'revenue' ||
-      b.accountType === 'expense' ||
-      b.accountCode.startsWith('4') ||
-      b.accountCode.startsWith('5') ||
-      b.accountCode.startsWith('6')
-    );
-  });
-
-  const lines: JournalLineInput[] = [];
-  let sumDebits = 0;
-  let sumCredits = 0;
-
-  for (const row of plRows) {
-    const totalDebit = Number(row.totalDebit || 0);
-    const totalCredit = Number(row.totalCredit || 0);
-    const netDebit = totalDebit - totalCredit;
-
-    if (netDebit > 0) {
-      // Net debit balance (typical expense): Credit account to zero it out
-      lines.push({
-        accountId: row.accountId,
-        debitPaisa: 0,
-        creditPaisa: netDebit,
-        memo: `Year-end zeroing of ${row.accountCode} - ${row.accountName}`,
-      });
-      sumCredits += netDebit;
-    } else if (netDebit < 0) {
-      // Net credit balance (typical revenue): Debit account to zero it out
-      const creditBal = -netDebit;
-      lines.push({
-        accountId: row.accountId,
-        debitPaisa: creditBal,
-        creditPaisa: 0,
-        memo: `Year-end zeroing of ${row.accountCode} - ${row.accountName}`,
-      });
-      sumDebits += creditBal;
+    if (existing) {
+      return {
+        journalEntryId: existing.id,
+        netProfitPaisa: 0,
+        linesCount: 0,
+      };
     }
-  }
 
-  // 3. Balance Retained Earnings (3100)
-  // Delta: Revenues zeroed (sumDebits) - Expenses zeroed (sumCredits) = Net Profit
-  const netProfitPaisa = sumDebits - sumCredits;
+    const startDate = `${input.fiscalYear}-01-01`;
+    const endDate = input.closingDate;
 
-  if (netProfitPaisa > 0) {
-    // Net profit: Credit Retained Earnings
-    lines.push({
-      accountId: reAcct.id,
-      debitPaisa: 0,
-      creditPaisa: netProfitPaisa,
-      memo: `Net profit transfer to Retained Earnings for FY${input.fiscalYear}`,
+    // 1. Find Retained Earnings Account (3100)
+    const [reAcct] = await tx
+      .select({ id: accounts.id, code: accounts.code, name: accounts.name })
+      .from(accounts)
+      .where(and(eq(accounts.pharmacyId, input.pharmacyId), eq(accounts.code, '3100')));
+
+    if (!reAcct) {
+      throw new Error('Retained Earnings account (3100) not found in Chart of Accounts');
+    }
+
+    // 2. Query all revenue and expense account balances for the fiscal year up to closingDate
+    // Include prior closing entries so already-zeroed balances sum to 0
+    const plBalances = await tx
+      .select({
+        accountId: journalLines.accountId,
+        accountCode: accounts.code,
+        accountName: accounts.name,
+        accountType: accounts.type,
+        totalDebit: sql<string>`COALESCE(SUM(${journalLines.debitPaisa}), 0)`,
+        totalCredit: sql<string>`COALESCE(SUM(${journalLines.creditPaisa}), 0)`,
+      })
+      .from(journalLines)
+      .innerJoin(accounts, eq(journalLines.accountId, accounts.id))
+      .innerJoin(journalEntries, eq(journalLines.entryId, journalEntries.id))
+      .where(
+        and(
+          eq(journalLines.pharmacyId, input.pharmacyId),
+          gte(journalEntries.entryDate, startDate),
+          lte(journalEntries.entryDate, endDate),
+          eq(journalEntries.status, 'posted')
+        )
+      )
+      .groupBy(journalLines.accountId, accounts.code, accounts.name, accounts.type);
+
+    // Filter for revenue (type = 'revenue' or code starting with '4')
+    // and expense (type = 'expense' or code starting with '5' or '6')
+    const plRows = plBalances.filter((b) => {
+      return (
+        b.accountType === 'revenue' ||
+        b.accountType === 'expense' ||
+        b.accountCode.startsWith('4') ||
+        b.accountCode.startsWith('5') ||
+        b.accountCode.startsWith('6')
+      );
     });
-  } else if (netProfitPaisa < 0) {
-    // Net loss: Debit Retained Earnings
-    lines.push({
-      accountId: reAcct.id,
-      debitPaisa: -netProfitPaisa,
-      creditPaisa: 0,
-      memo: `Net loss transfer to Retained Earnings for FY${input.fiscalYear}`,
-    });
-  }
 
-  if (lines.length === 0) {
+    const lines: JournalLineInput[] = [];
+    let sumDebits = 0;
+    let sumCredits = 0;
+
+    for (const row of plRows) {
+      const totalDebit = Number(row.totalDebit || 0);
+      const totalCredit = Number(row.totalCredit || 0);
+      const netDebit = totalDebit - totalCredit;
+
+      if (netDebit > 0) {
+        // Net debit balance (typical expense): Credit account to zero it out
+        lines.push({
+          accountId: row.accountId,
+          debitPaisa: 0,
+          creditPaisa: netDebit,
+          memo: `Year-end zeroing of ${row.accountCode} - ${row.accountName}`,
+        });
+        sumCredits += netDebit;
+      } else if (netDebit < 0) {
+        // Net credit balance (typical revenue): Debit account to zero it out
+        const creditBal = -netDebit;
+        lines.push({
+          accountId: row.accountId,
+          debitPaisa: creditBal,
+          creditPaisa: 0,
+          memo: `Year-end zeroing of ${row.accountCode} - ${row.accountName}`,
+        });
+        sumDebits += creditBal;
+      }
+    }
+
+    // 3. Balance Retained Earnings (3100)
+    // Delta: Revenues zeroed (sumDebits) - Expenses zeroed (sumCredits) = Net Profit
+    const netProfitPaisa = sumDebits - sumCredits;
+
+    if (netProfitPaisa > 0) {
+      // Net profit: Credit Retained Earnings
+      lines.push({
+        accountId: reAcct.id,
+        debitPaisa: 0,
+        creditPaisa: netProfitPaisa,
+        memo: `Net profit transfer to Retained Earnings for FY${input.fiscalYear}`,
+      });
+    } else if (netProfitPaisa < 0) {
+      // Net loss: Debit Retained Earnings
+      lines.push({
+        accountId: reAcct.id,
+        debitPaisa: -netProfitPaisa,
+        creditPaisa: 0,
+        memo: `Net loss transfer to Retained Earnings for FY${input.fiscalYear}`,
+      });
+    }
+
+    if (lines.length === 0) {
+      return {
+        journalEntryId: null,
+        netProfitPaisa: 0,
+        linesCount: 0,
+      };
+    }
+
+    // 4. Post balanced closing journal entry with deterministic sourceId
+    const entry = await postJournalEntry(tx, {
+      pharmacyId: input.pharmacyId,
+      entryDate: input.closingDate,
+      sourceType: 'year_end_closing',
+      sourceId: deterministicSourceId,
+      memo: input.memo || `FY${input.fiscalYear} Year-End Closing Entry to Retained Earnings`,
+      createdBy: input.actorUserId,
+      lines,
+    });
+
     return {
-      journalEntryId: null,
-      netProfitPaisa: 0,
-      linesCount: 0,
+      journalEntryId: entry.id,
+      netProfitPaisa,
+      linesCount: lines.length,
     };
-  }
-
-  // 4. Post balanced closing journal entry
-  const entryId = generateUuidV7();
-  const entry = await postJournalEntry(db, {
-    pharmacyId: input.pharmacyId,
-    entryDate: input.closingDate,
-    sourceType: 'year_end_closing',
-    sourceId: entryId,
-    memo: input.memo || `FY${input.fiscalYear} Year-End Closing Entry to Retained Earnings`,
-    createdBy: input.actorUserId,
-    lines,
-  });
-
-  return {
-    journalEntryId: entry.id,
-    netProfitPaisa,
-    linesCount: lines.length,
   };
+
+  const transactionalDb = db as unknown as {
+    transaction?: (
+      cb: (tx: DbClient) => Promise<ExecuteYearEndClosingResult>
+    ) => Promise<ExecuteYearEndClosingResult>;
+  };
+  if (typeof transactionalDb.transaction === 'function') {
+    return await transactionalDb.transaction(executeInTx);
+  }
+  return await executeInTx(db);
 }

@@ -433,7 +433,7 @@ export async function reverseJournalEntry(
       sourceType: original.sourceType ? `${original.sourceType}.reversal` : 'manual.reversal',
       sourceId: original.id,
       memo: `Reversal of entry #${original.entryNo}: ${trimmedReason}`,
-      status: 'reversed',
+      status: 'posted',
       reversesEntryId: original.id,
       createdBy: options.createdBy ?? original.createdBy ?? null,
       createdAt: now,

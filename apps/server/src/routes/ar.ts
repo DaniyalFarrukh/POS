@@ -125,8 +125,7 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
           and(
             eq(journalLines.pharmacyId, userContext.pharmacyId),
             eq(journalLines.accountId, arAccountId),
-            eq(journalLines.partyType, 'customer'),
-            sql`${journalEntries.status} != 'reversed'`
+            eq(journalLines.partyType, 'customer')
           )
         );
 
@@ -200,7 +199,6 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
             eq(journalLines.pharmacyId, userContext.pharmacyId),
             eq(journalLines.accountId, arAccountId),
             eq(journalLines.partyType, 'customer'),
-            sql`${journalEntries.status} != 'reversed'`,
             sql`${journalEntries.entryDate} LIKE ${currentMonthPrefix + '%'}`
           )
         );
@@ -264,8 +262,7 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
           and(
             eq(journalLines.pharmacyId, userContext.pharmacyId),
             eq(journalLines.accountId, arAccountId),
-            eq(journalLines.partyType, 'customer'),
-            sql`${journalEntries.status} != 'reversed'`
+            eq(journalLines.partyType, 'customer')
           )
         );
 
@@ -560,7 +557,6 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
             eq(journalLines.accountId, arAccountId),
             eq(journalLines.partyType, 'customer'),
             eq(journalLines.partyId, customerId),
-            sql`${journalEntries.status} != 'reversed'`,
             lt(journalEntries.entryDate, startDate)
           )
         );
@@ -588,7 +584,6 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
             eq(journalLines.accountId, arAccountId),
             eq(journalLines.partyType, 'customer'),
             eq(journalLines.partyId, customerId),
-            sql`${journalEntries.status} != 'reversed'`,
             gte(journalEntries.entryDate, startDate),
             lte(journalEntries.entryDate, endDate)
           )
