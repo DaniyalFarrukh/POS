@@ -20,7 +20,6 @@ import {
   suppliers,
   customers,
   stockMovements,
-  accounts,
   journalEntries,
   journalLines,
   erpPayments,
@@ -53,10 +52,7 @@ import {
   getGeneralLedgerSummary,
   getAccountLedgerDetail,
 } from '../../apps/server/src/ledger/financial-reports';
-import {
-  getMonthEndChecklist,
-  executeYearEndClosing,
-} from '../../apps/server/src/ledger/period-close';
+import { getMonthEndChecklist } from '../../apps/server/src/ledger/period-close';
 import { processSyncPushEvents } from '../../apps/server/src/sync/service';
 
 // Deterministic Mulberry32 PRNG
@@ -1185,9 +1181,11 @@ describe('Stage 3 Final Audit: Ledger & Accounting Integrity (5,000+ Docs & 100k
     const cashRow = tb.rows.find((r) => r.code === '1000')!;
     const bankRow = tb.rows.find((r) => r.code === '1010')!;
     const walletRow = tb.rows.find((r) => r.code === '1020')!;
+    const outputTaxRow = tb.rows.find((r) => r.code === '2100')!;
     expect(cashRow.closingBalancePaisa).toBe(expectedCashBalancePaisa);
     expect(bankRow.closingBalancePaisa).toBe(expectedBankBalancePaisa);
     expect(walletRow.closingBalancePaisa).toBe(expectedWalletBalancePaisa);
+    expect(-outputTaxRow.closingBalancePaisa).toBe(expectedOutputTaxPaisa);
 
     // Invariant 7: P&L Net Profit equals Revenue - COGS - Operating Expenses
     const pnl = await getProfitAndLoss(db, pharmacyId, {

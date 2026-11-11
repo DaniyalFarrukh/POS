@@ -14,7 +14,7 @@
   - [x] `F-M-02`: Exclude `*.test.ts` from `@pos/server` build output (`tsconfig.json` & `vitest.config.ts`)
   - [x] `F-M-03`: Fix `minimatch` vulnerability so `pnpm audit` exits `0`
   - [x] `F-M-04`: Update `.github/workflows/ci.yml` (`format:check`, `lint`, `typecheck`, tests with Postgres & `DEVICE_JWT_SECRET`, `pnpm audit`, production builds, all branches/PRs)
-  - [ ] `F-L-01` & `F-L-02`: Add `.gitattributes` (`eol=lf`), move `pnpm` build settings to `pnpm-workspace.yaml`, fix Electron extraction race
+  - [x] `F-L-01` & `F-L-02`: Add `.gitattributes` (`eol=lf`), move `pnpm` build settings to `pnpm-workspace.yaml`, fix Electron extraction race
 - **BATCH 1: Ledger Correctness (HIGH RISK — `NEEDS-REVIEW`)**
   - [ ] `F-C-02`, `F-C-03`, `F-H-03`, `F-H-08` per `D1` & `D2` + convert `stage3-ledger-simulation.test.ts` reproductions to regression assertions + repair script (dry-run default)
 - **BATCH 2: Dates and Transactions**
@@ -107,4 +107,18 @@
 - **Tests Added:** `F-M-04` test in `apps/server/src/app.test.ts` verifying `.github/workflows/ci.yml` triggers on `branches: ['**']`, defines `DEVICE_JWT_SECRET`, and runs `format:check`, `lint`, `typecheck`, `audit`, `migrate`, `test`, and production `build`s.
 - **Test Results:** `app.test.ts`: `4 passed (4)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
 - **Decisions Made:** None.
+- **NEEDS-REVIEW:** None.
+
+### Task 0.7 — `F-L-01` & `F-L-02`: `.gitattributes` LF Normalization & `pnpm-workspace.yaml` Build Settings
+- **Finding IDs:** `F-L-01`, `F-L-02`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `.gitattributes` (added)
+  - `package.json`
+  - `apps/server/src/app.test.ts`
+  - `tests/audit-final/stage3-ledger-simulation.test.ts`
+  - `tests/audit-final/stage6-backup-restore.test.ts`
+- **Tests Added:** `F-L-01 & F-L-02` test in `apps/server/src/app.test.ts` asserting `.gitattributes` LF rule and absence of deprecated `package.json.pnpm` block.
+- **Test Results:** `app.test.ts`: `5 passed (5)`; `prettier --check .`: `0 errors`; `eslint .`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Added `* text=auto eol=lf` and binary file attributes in `.gitattributes`, removed deprecated `package.json.pnpm` block in favor of `pnpm-workspace.yaml` `allowBuilds`.
 - **NEEDS-REVIEW:** None.

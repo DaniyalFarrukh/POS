@@ -60,4 +60,16 @@ describe('GET /health', () => {
     expect(ciYaml).toContain('pnpm --filter @pos/web build');
     expect(ciYaml).toContain('pnpm --filter @pos/desktop build');
   });
+
+  it('F-L-01 & F-L-02: enforces LF line endings in .gitattributes and configures pnpm build permissions in pnpm-workspace.yaml without deprecated package.json.pnpm field', () => {
+    const gitattributesPath = path.resolve(__dirname, '../../../.gitattributes');
+    expect(fs.existsSync(gitattributesPath)).toBe(true);
+    const gitattributes = fs.readFileSync(gitattributesPath, 'utf8');
+    expect(gitattributes).toContain('* text=auto eol=lf');
+
+    const rootPkg = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '../../../package.json'), 'utf8')
+    ) as Record<string, unknown>;
+    expect(rootPkg.pnpm).toBeUndefined();
+  });
 });

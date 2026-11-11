@@ -153,6 +153,7 @@ describe('Stage 6 — Backup/Restore End-to-End & Operational Verification', () 
       lines: [{ productId, quantity: 3, discountPaisa: 0 }],
       payments: [{ method: 'cash', amountPaisa: 150_000 }],
     });
+    expect(sale2.invoiceNumber).toBe('C1-000002');
     expect(sale3.invoiceNumber).toBe('C1-000003');
 
     // 4. Process a return against sale1
