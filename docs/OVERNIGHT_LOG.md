@@ -341,3 +341,49 @@
   - Updated desktop `pullAndApply.ts` batch insertion to `ON CONFLICT(id) DO UPDATE SET cost_paisa = excluded.cost_paisa, mrp_paisa = excluded.mrp_paisa, updated_at = excluded.updated_at`.
   - Updated `postStockTransferReceived` so intra-branch transfers (`sourceBranchId === destinationBranchId`) recognize transit shortages (`Dr 5010 Shortage Loss / Cr 1200 Inventory`).
 - **NEEDS-REVIEW:** None.
+
+### Task 3.3 — `F-H-07`, `F-M-07`, `F-M-09`, `D3`: Desktop Customers, Credit Sales, Topological Pull Ordering & Backup Sequence Protection
+- **Finding IDs:** `F-H-07`, `F-M-07`, `F-M-09`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/desktop/src/main/db.ts`
+  - `apps/desktop/src/main/db/schema.ts`
+  - `apps/desktop/src/main/sync/core/pullAndApply.ts`
+  - `apps/desktop/src/main/backup.ts`
+  - `apps/desktop/src/main/finalizeSale.ts`
+  - `apps/desktop/src/renderer/utils/receiptGenerator.ts`
+  - `apps/server/src/sync/appliers/invoice.ts`
+  - `apps/server/src/sync/appliers/credit-note.ts`
+  - `apps/desktop/src/main/customers.ts` (added)
+  - `apps/desktop/src/main/customers-credit-sales.test.ts` (added)
+  - `tests/audit-final/stage4-sync-resilience.test.ts`
+  - `tests/audit-final/stage6-backup-restore.test.ts`
+- **Tests Added:**
+  - `apps/desktop/src/main/customers-credit-sales.test.ts`:
+    - asserts pulling customer changes (upsert and soft-delete) and querying via search.
+    - asserts topological ordering in `pullAndApply` where `batch` with lower seq is applied after parent `product` with higher seq, preventing FK constraint failures.
+    - asserts credit sale updates customer balance and emits `customer_id` and credit payment in outbox payload.
+    - asserts credit limit check rejects credit sale when limit would be exceeded.
+    - asserts `recordCustomerReceipt` decrements customer balance and writes `customer_receipt.created` event to outbox.
+  - `tests/audit-final/stage4-sync-resilience.test.ts`: inverted customer unknown entity warning test to assert customer entity is recognized and pulled into local SQLite without warnings.
+  - `tests/audit-final/stage6-backup-restore.test.ts`:
+    - inverted restore future schema test to assert rejection with `Cannot restore backup: backup was created with a newer software schema version`.
+    - inverted sequence collision test to assert sequence offset prevents invoice number collision (`C1-1000002`) and push is accepted.
+- **Test Results:** `customers-credit-sales.test.ts`: `5 passed (5)`; `stage4-sync-resilience.test.ts`: `3 passed (3)`; `stage6-backup-restore.test.ts`: `2 passed (2)`; `finalizeSale-stress.test.ts`: `5 passed (5)`; `invoices-schema.test.ts`: `12 passed (12)`; `eslint`: `0 errors`; `tsc`: `0 errors`; `prettier`: clean.
+- **Decisions Made:**
+  - Added desktop migration 12 creating `customers` table, adding `customer_id` to `invoices`, and recreating `payments` with method check constraint allowing `'credit'` and immutability triggers.
+  - Introduced `ENTITY_PRIORITY` map in `pullAndApply.ts` to ensure parent entities (tax categories, products, suppliers, customers, counters) are applied prior to child entities (batches, movements, invoices, payments).
+  - In `backup.ts`, added validation rejecting backups with `schemaVersion > MIGRATIONS.length`, and advanced `last_invoice_seq`, `last_credit_note_seq`, and `outbox`/`sync_state` `device_seq` by `+1,000,000` on restore to prevent duplicate invoice numbers and server sync rejections.
+  - Emitted `change_log` for `counter` in invoice and credit note appliers upon counter sequence progression.
+- **NEEDS-REVIEW:** None.
+
+## BATCH 3 VERIFICATION COMPLETE
+- **Status:** GREEN
+- **Full Suite Verification:**
+  - `eslint .`: 0 errors, 0 warnings
+  - `pnpm typecheck`: 0 errors across 6 projects (`@pos/ui`, `@pos/shared`, `@pos/server`, `@pos/desktop`, `@pos/web`, `tests/integration`)
+  - `pnpm audit`: No known vulnerabilities found (exit code 0)
+  - `prettier --check .`: All matched files use Prettier code style
+  - `vitest run`: 106 test files passed, 734 / 734 tests passed (0 skipped, 0 failed, 0 flaky)
+- **Batch Findings Completed:** `F-H-05`, `F-H-06`, `F-H-07`, `F-M-07`, `F-M-09`
+- **Artifacts Added:** `customers-credit-sales.test.ts`, `customers.ts`, `inventory-sync-changelog.test.ts`
