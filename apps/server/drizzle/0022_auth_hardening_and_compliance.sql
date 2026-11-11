@@ -13,3 +13,4 @@ CREATE TABLE IF NOT EXISTS "revoked_tokens" (
 );
 
 CREATE INDEX IF NOT EXISTS "idx_revoked_tokens_expires" ON "revoked_tokens" ("expires_at");
+
