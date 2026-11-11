@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
-    branches: [main]
+    branches: ['**']
 
 jobs:
   test:
-    name: Lint, Typecheck & Test
+    name: Format, Lint, Typecheck, Audit, Test & Build
     runs-on: ubuntu-latest
 
     services:
@@ -28,7 +28,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://pos:pos_dev_secret@localhost:5432/pos_server
-      JWT_SECRET: dev_pos_jwt_secret_change_in_production
+      JWT_SECRET: ci_user_jwt_secret_minimum_32_characters_long_01
+      DEVICE_JWT_SECRET: ci_device_jwt_secret_minimum_32_characters_long_02
 
     steps:
       - name: Checkout repository
@@ -46,6 +47,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check formatting
+        run: pnpm format:check
+
       - name: Run linter
         run: pnpm lint
 
@@ -57,10 +61,13 @@ jobs:
 
       - name: Run database migrations
         run: pnpm --filter @pos/server migrate
-        env:
-          DATABASE_URL: postgresql://pos:pos_dev_secret@localhost:5432/pos_server
 
       - name: Run test suite
         run: pnpm test
-        env:
-          DATABASE_URL: postgresql://pos:pos_dev_secret@localhost:5432/pos_server
+
+      - name: Build production bundles
+        run: |
+          pnpm --filter @pos/shared build
+          pnpm --filter @pos/server build
+          pnpm --filter @pos/web build
+          pnpm --filter @pos/desktop build

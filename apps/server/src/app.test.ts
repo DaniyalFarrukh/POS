@@ -43,4 +43,21 @@ describe('GET /health', () => {
     );
     expect(workspaceYaml).toContain("minimatch: '>=11.0.1'");
   });
+
+  it('F-M-04: CI workflow runs format:check, lint, typecheck, tests with DEVICE_JWT_SECRET, audit, and production builds across all branches', () => {
+    const ciYaml = fs.readFileSync(
+      path.resolve(__dirname, '../../../.github/workflows/ci.yml'),
+      'utf8'
+    );
+    expect(ciYaml).toContain("branches: ['**']");
+    expect(ciYaml).toContain('DEVICE_JWT_SECRET:');
+    expect(ciYaml).toContain('pnpm format:check');
+    expect(ciYaml).toContain('pnpm lint');
+    expect(ciYaml).toContain('pnpm typecheck');
+    expect(ciYaml).toContain('pnpm audit');
+    expect(ciYaml).toContain('pnpm test');
+    expect(ciYaml).toContain('pnpm --filter @pos/server build');
+    expect(ciYaml).toContain('pnpm --filter @pos/web build');
+    expect(ciYaml).toContain('pnpm --filter @pos/desktop build');
+  });
 });

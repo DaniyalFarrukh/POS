@@ -13,7 +13,7 @@
   - [x] `F-M-01`: Replace hardcoded dates in `prescriptions.test.ts` with dynamic dates relative to test clock
   - [x] `F-M-02`: Exclude `*.test.ts` from `@pos/server` build output (`tsconfig.json` & `vitest.config.ts`)
   - [x] `F-M-03`: Fix `minimatch` vulnerability so `pnpm audit` exits `0`
-  - [ ] `F-M-04`: Update `.github/workflows/ci.yml` (`format:check`, `lint`, `typecheck`, tests with Postgres & `DEVICE_JWT_SECRET`, `pnpm audit`, production builds, all branches/PRs)
+  - [x] `F-M-04`: Update `.github/workflows/ci.yml` (`format:check`, `lint`, `typecheck`, tests with Postgres & `DEVICE_JWT_SECRET`, `pnpm audit`, production builds, all branches/PRs)
   - [ ] `F-L-01` & `F-L-02`: Add `.gitattributes` (`eol=lf`), move `pnpm` build settings to `pnpm-workspace.yaml`, fix Electron extraction race
 - **BATCH 1: Ledger Correctness (HIGH RISK — `NEEDS-REVIEW`)**
   - [ ] `F-C-02`, `F-C-03`, `F-H-03`, `F-H-08` per `D1` & `D2` + convert `stage3-ledger-simulation.test.ts` reproductions to regression assertions + repair script (dry-run default)
@@ -96,4 +96,15 @@
 - **Tests Added:** `F-M-03` test in `apps/server/src/app.test.ts` asserting `minimatch: '>=11.0.1'` override in `pnpm-workspace.yaml`.
 - **Test Results:** `pnpm audit`: `No known vulnerabilities found (exit code 0)`; `app.test.ts`: `3 passed (3)`; `typecheck`: `0 errors`.
 - **Decisions Made:** Added `minimatch: '>=11.0.1'` to `pnpm-workspace.yaml` `overrides` and updated `pnpm-lock.yaml`.
+- **NEEDS-REVIEW:** None.
+
+### Task 0.6 — `F-M-04`: Comprehensive CI Workflow Across All Branches
+- **Finding IDs:** `F-M-04`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `.github/workflows/ci.yml`
+  - `apps/server/src/app.test.ts`
+- **Tests Added:** `F-M-04` test in `apps/server/src/app.test.ts` verifying `.github/workflows/ci.yml` triggers on `branches: ['**']`, defines `DEVICE_JWT_SECRET`, and runs `format:check`, `lint`, `typecheck`, `audit`, `migrate`, `test`, and production `build`s.
+- **Test Results:** `app.test.ts`: `4 passed (4)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** None.
 - **NEEDS-REVIEW:** None.
