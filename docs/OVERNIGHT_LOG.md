@@ -136,3 +136,19 @@
 - **Test Results:** `reversal-year-end.test.ts`: `2 passed (2)`; `period-close.test.ts`: `7 passed (7)`; `ledger.test.ts`: `13 passed (13)`; `ar-ap.test.ts`: `6 passed (6)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
 - **Decisions Made:** Implemented Decision D1: reversing entries are inserted with `status = 'posted'` and `reverses_entry_id` set to the original entry ID; removed `status != 'reversed'` filters in AR, AP, and period-close queries so both entries are included and cancel out; year-end closing computes deterministic UUID for `source_id` via SHA-256 of `${pharmacyId}:year_end_close:${fiscalYear}` and checks for existing closing entry before running, and includes prior closing entries when querying revenue/expense balances so repeat calls net to zero.
 - **NEEDS-REVIEW:** Decision D1 semantics for reversing entries (`status = 'posted'`) and year-end closing idempotency.
+
+### Task 1.2 — `F-C-03`: AR/AP Subledger Control Reconciliation & Opening Balance Equity
+- **Finding IDs:** `F-C-03`
+- **Status:** `FIXED`
+- **Files Changed:**
+  - `apps/server/src/ledger/coa-seed.ts`
+  - `apps/server/src/ledger/posting-engine.ts`
+  - `apps/server/src/routes/customers.ts`
+  - `apps/server/src/routes/payments.ts`
+  - `apps/server/src/routes/suppliers.ts`
+  - `apps/server/src/sync/appliers/customer.ts`
+  - `apps/server/src/ledger/subledger-reconciliation.test.ts` (added)
+- **Tests Added:** `apps/server/src/ledger/subledger-reconciliation.test.ts` (`3` tests: `postCreditNoteCreated` attaches customer partyId when refundMethod is credit; `postExpenseCompleted` with credit credits `2300 Other Payables` when unlinked to prevent 2000 AP trade corruption; `applyCustomerCreated` posts `Dr 1100 AR / Cr 3300 Opening Balance Equity` on positive opening balance).
+- **Test Results:** `subledger-reconciliation.test.ts`: `3 passed (3)`; `customers.test.ts`: `10 passed (10)`; `suppliers.test.ts`: `10 passed (10)`; `payments.test.ts`: `7 passed (7)`; `eslint`: `0 errors`; `tsc --noEmit`: `0 errors`.
+- **Decisions Made:** Implemented Decision D2: added `3300 Opening Balance Equity` to `DEFAULT_CHART_OF_ACCOUNTS` and mapped it via `getPharmacyAccountMap`; posted balanced opening journal entries (`Dr 1100 / Cr 3300` for customers, `Dr 3300 / Cr 2000` for suppliers) inside transactions in `POST /api/customers`, `POST /api/finance/customers`, `applyCustomerCreated`, and `POST /api/suppliers`; attached customer ID to AR credit lines on credit returns; routed unlinked credit expenses to `2300 Other Payables` so trade AP remains exactly reconciled.
+- **NEEDS-REVIEW:** Decision D2: opening balance offset account `3300 Opening Balance Equity`.
