@@ -15,7 +15,7 @@
 | B1-B4 | Eradicate UTC slicing & machine timezone | DONE | `43ab317` | Day loops, test slicing, ESLint rules, machine Date APIs fixed |
 | C1 | Verify auth audience rejection tests | DONE | `e008f15` (verified) | Verified forged audience tests with correct secrets exist |
 | C2 | Verify stock response shapes & Karachi dates | DONE | `b18d758` | Product names, barcodes, and Karachi date helpers verified & tested |
-| C3 | Document batch expiry rules & normalization | DONE | PENDING | Documented in `docs/EXPIRY_RULES.md`; pinned with tests; raw YYYY-MM marked NEEDS-REVIEW |
+| C3 | Document batch expiry rules & normalization | DONE | `2de51a3` | Documented in `docs/EXPIRY_RULES.md`; pinned with tests; raw YYYY-MM marked NEEDS-REVIEW |
 
 ---
 
