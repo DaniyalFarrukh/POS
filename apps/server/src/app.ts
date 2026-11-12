@@ -223,6 +223,22 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     }
   });
 
+  // Root welcome route for browser and tunnel testing
+  app.get('/', async () => {
+    return {
+      status: 'online',
+      app: 'HexaPharm POS Server',
+      version: sharedInfo.version,
+      database: 'Supabase Connected',
+      endpoints: {
+        health: '/health',
+        login: '/api/auth/login',
+        dashboard: '/api/dashboard/overview',
+        sync: '/sync',
+      },
+    };
+  });
+
   // Health check route
   app.get('/health', async () => {
     return {
