@@ -10,6 +10,8 @@
  * - Input structures are strictly immutable.
  */
 
+import { addDaysToBusinessDate } from './time';
+
 export interface FefoBatchInput {
   batchId: string;
   expiryDate: string; // YYYY-MM-DD
@@ -47,7 +49,8 @@ export class InsufficientStockError extends Error {
 export function allocateFefo(
   requestedQty: number,
   batches: readonly FefoBatchInput[],
-  today: string
+  today: string,
+  stopDaysBeforeExpiry = 0
 ): BatchAllocation[] {
   // 1. Validate requestedQty
   if (
@@ -61,12 +64,14 @@ export function allocateFefo(
   }
 
   // 2. Filter eligible batches without mutating input
-  // Ignore batches with expiryDate before today (expired) and batches with available <= 0
+  // Cutoff accounts for optional "stop selling items N days before expiry" setting (default 0 = OFF)
+  const cutoffDate =
+    stopDaysBeforeExpiry > 0 ? addDaysToBusinessDate(today, stopDaysBeforeExpiry) : today;
   const eligibleBatches: FefoBatchInput[] = [];
   let totalAvailable = 0;
 
   for (const batch of batches) {
-    if (batch.available > 0 && batch.expiryDate >= today) {
+    if (batch.available > 0 && batch.expiryDate >= cutoffDate) {
       eligibleBatches.push({
         batchId: batch.batchId,
         expiryDate: batch.expiryDate,

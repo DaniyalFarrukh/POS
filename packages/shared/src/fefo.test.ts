@@ -269,4 +269,26 @@ describe('FEFO Stock Allocation (allocateFefo)', () => {
       expect(frozenInput[2]?.available).toBe(8);
     });
   });
+
+  describe('Optional Setting: stop selling items N days before expiry', () => {
+    it('defaults to 0 (off), allowing items expiring today to be sold', () => {
+      const batches: FefoBatchInput[] = [
+        { batchId: 'b-today', expiryDate: TODAY, available: 10 },
+      ];
+      const result = allocateFefo(5, batches, TODAY);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'b-today', qty: 5 }]);
+    });
+
+    it('blocks batches expiring within N days when stopDaysBeforeExpiry is active', () => {
+      const batches: FefoBatchInput[] = [
+        { batchId: 'b-near', expiryDate: '2026-10-28', available: 10 }, // expires in 2 days (from 2026-10-26)
+        { batchId: 'b-safe', expiryDate: '2026-11-15', available: 10 }, // expires in 20 days
+      ];
+
+      // With stopDaysBeforeExpiry = 5: cutoff is 2026-10-31
+      // b-near (2026-10-28) is excluded, b-safe (2026-11-15) is allocated
+      const result = allocateFefo(5, batches, TODAY, 5);
+      expect(result).toEqual<BatchAllocation[]>([{ batchId: 'b-safe', qty: 5 }]);
+    });
+  });
 });
