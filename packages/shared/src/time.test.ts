@@ -4,6 +4,8 @@ import {
   getKarachiDayBoundsUtc,
   getKarachiDayStartUtc,
   getKarachiDayEndUtc,
+  getKarachiNextDayStartUtc,
+  addDaysToBusinessDate,
   isBatchExpired,
 } from './time';
 
@@ -22,7 +24,7 @@ describe('Asia/Karachi Business Date and Time Utilities', () => {
     expect(getKarachiBusinessDate(earlyMorningKarachi)).toBe('2026-10-29');
   });
 
-  it('computes exact UTC boundaries for Asia/Karachi day', () => {
+  it('computes exact UTC boundaries for Asia/Karachi day and next day start', () => {
     const { startUtc, endUtc } = getKarachiDayBoundsUtc('2026-10-28');
     // 2026-10-28 00:00:00 PKT -> 2026-10-27 19:00:00 UTC
     expect(startUtc).toBe('2026-10-27T19:00:00.000Z');
@@ -31,6 +33,47 @@ describe('Asia/Karachi Business Date and Time Utilities', () => {
 
     expect(getKarachiDayStartUtc('2026-10-28')).toBe('2026-10-27T19:00:00.000Z');
     expect(getKarachiDayEndUtc('2026-10-28')).toBe('2026-10-28T18:59:59.999Z');
+
+    // Next day start (exclusive upper bound for half-open intervals)
+    expect(getKarachiNextDayStartUtc('2026-10-28')).toBe('2026-10-28T19:00:00.000Z');
+    expect(getKarachiNextDayStartUtc('2026-10-31')).toBe('2026-10-31T19:00:00.000Z');
+    expect(getKarachiNextDayStartUtc('2024-02-28')).toBe('2024-02-28T19:00:00.000Z');
+    expect(getKarachiNextDayStartUtc('2024-02-29')).toBe('2024-02-29T19:00:00.000Z');
+    expect(getKarachiNextDayStartUtc('2026-12-31')).toBe('2026-12-31T19:00:00.000Z');
+  });
+
+  it('throws TypeError when getKarachiBusinessDate is passed a date string with no Z and no UTC offset', () => {
+    // Machine-timezone dependent strings must be rejected
+    expect(() => getKarachiBusinessDate('2026-11-12')).toThrow(TypeError);
+    expect(() => getKarachiBusinessDate('2026-11-12T15:30:00')).toThrow(TypeError);
+    expect(() => getKarachiBusinessDate('2026-11-12 15:30:00')).toThrow(TypeError);
+
+    // Strings with Z or explicit offset are valid
+    expect(getKarachiBusinessDate('2026-11-12T00:00:00.000Z')).toBe('2026-11-12');
+    expect(getKarachiBusinessDate('2026-11-12T05:00:00+05:00')).toBe('2026-11-12');
+    expect(getKarachiBusinessDate('2026-11-12T00:00:00+0500')).toBe('2026-11-12');
+    expect(getKarachiBusinessDate('2026-11-12T00:00:00-05:00')).toBe('2026-11-12');
+  });
+
+  it('adds days to business dates accurately across month ends, leap years, and year ends', () => {
+    expect(addDaysToBusinessDate('2026-10-28', 1)).toBe('2026-10-29');
+    expect(addDaysToBusinessDate('2026-10-31', 1)).toBe('2026-11-01');
+    expect(addDaysToBusinessDate('2026-12-31', 1)).toBe('2027-01-01');
+
+    // Leap years
+    expect(addDaysToBusinessDate('2024-02-28', 1)).toBe('2024-02-29');
+    expect(addDaysToBusinessDate('2024-02-29', 1)).toBe('2024-03-01');
+    // Non-leap year
+    expect(addDaysToBusinessDate('2023-02-28', 1)).toBe('2023-03-01');
+
+    // Multi-day jumps
+    expect(addDaysToBusinessDate('2026-01-01', 45)).toBe('2026-02-15');
+    expect(addDaysToBusinessDate('2026-03-01', -1)).toBe('2026-02-28');
+    expect(addDaysToBusinessDate('2024-03-01', -1)).toBe('2024-02-29');
+
+    // Invalid formats
+    expect(() => addDaysToBusinessDate('2026/10/28', 1)).toThrow(TypeError);
+    expect(() => addDaysToBusinessDate('invalid', 1)).toThrow(TypeError);
   });
 
   it('validates batch expiry: an item expiring today is still sellable today', () => {

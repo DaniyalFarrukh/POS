@@ -333,6 +333,34 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     expect(fullInvoice?.payment?.paymentMethod).toBe('cash');
   });
 
+  it('A4: desktop invoice search with dateTo includes the whole last day up to 23:59:59.9995 PKT and excludes next day 00:00:00 PKT', () => {
+    // 2026-10-28 23:59:59.9995 PKT is 2026-10-28T18:59:59.999500Z in UTC
+    const endOfDayMicrosecondUtc = '2026-10-28T18:59:59.999500Z';
+    // 2026-10-29 00:00:00.000 PKT is 2026-10-28T19:00:00.000Z in UTC
+    const nextDayStartUtc = '2026-10-28T19:00:00.000Z';
+
+    const invEndId = generateUuidV7();
+    const invNextId = generateUuidV7();
+
+    db.prepare(`
+      INSERT INTO invoices (id, counter_id, cashier_user_id, invoice_number, client_request_id, status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at)
+      VALUES (?, ?, ?, ?, ?, 'finalized', 1000, 0, 0, 1000, ?)
+    `).run(invEndId, counterId, cashierUserId, 'INV-END-DAY', generateUuidV7(), endOfDayMicrosecondUtc);
+
+    db.prepare(`
+      INSERT INTO invoices (id, counter_id, cashier_user_id, invoice_number, client_request_id, status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at)
+      VALUES (?, ?, ?, ?, ?, 'finalized', 1000, 0, 0, 1000, ?)
+    `).run(invNextId, counterId, cashierUserId, 'INV-NEXT-DAY', generateUuidV7(), nextDayStartUtc);
+
+    // Search with dateTo = '2026-10-28': must include invEndId and exclude invNextId
+    const results = searchInvoices(branchId, { dateTo: '2026-10-28' }, db);
+    const foundEnd = results.some((r) => r.id === invEndId);
+    const foundNext = results.some((r) => r.id === invNextId);
+
+    expect(foundEnd).toBe(true);
+    expect(foundNext).toBe(false);
+  });
+
   it('printReceiptHtml executes gracefully and returns success in test environment', async () => {
     const result = await printReceiptHtml('<html><body>Test Thermal Print</body></html>');
     expect(result.success).toBe(true);

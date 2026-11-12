@@ -1439,6 +1439,82 @@ describe('Audit A1 Regression Suite — High Findings (H-01 to H-16)', () => {
     expect(salesReport.byDay[0]?.date).toBe('2026-10-28');
   });
 
+  it('A4: Postgres record stamped 23:59:59.9995 Karachi time on day D appears in exactly one report (D not D+1) and 00:00:00.000 appears only in D+1', async () => {
+    const tenant = await seedServerTenant('A4 Half-Open Pharmacy');
+
+    // Day D = 2026-10-28
+    // 2026-10-28 23:59:59.9995 PKT (UTC+5) is 2026-10-28T18:59:59.999500Z in UTC
+    const dLateNightUtc = '2026-10-28T18:59:59.999500Z';
+    // Day D+1 = 2026-10-29
+    // 2026-10-29 00:00:00.0000 PKT (UTC+5) is 2026-10-28T19:00:00.000000Z in UTC
+    const dPlusOneMidnightUtc = '2026-10-28T19:00:00.000000Z';
+
+    const invLateId = generateUuidV7();
+    const invMidnightId = generateUuidV7();
+
+    await ctx.db.insert(invoices).values([
+      {
+        id: invLateId,
+        pharmacyId: tenant.pharmacyId,
+        counterId: tenant.counterId,
+        cashierUserId: tenant.ownerId,
+        invoiceNumber: 'INV-A4-LATE',
+        clientRequestId: generateUuidV7(),
+        status: 'finalized',
+        subtotalPaisa: 20000,
+        discountPaisa: 0,
+        taxPaisa: 0,
+        totalPaisa: 20000,
+        createdAt: dLateNightUtc,
+      },
+      {
+        id: invMidnightId,
+        pharmacyId: tenant.pharmacyId,
+        counterId: tenant.counterId,
+        cashierUserId: tenant.ownerId,
+        invoiceNumber: 'INV-A4-MIDNIGHT',
+        clientRequestId: generateUuidV7(),
+        status: 'finalized',
+        subtotalPaisa: 30000,
+        discountPaisa: 0,
+        taxPaisa: 0,
+        totalPaisa: 30000,
+        createdAt: dPlusOneMidnightUtc,
+      },
+    ]);
+
+    // 1. Dashboard Overview for Day D ('2026-10-28'): must include invLateId and exclude invMidnightId
+    const overviewD = await getDashboardOverview(ctx.db, tenant.pharmacyId, '2026-10-28');
+    expect(overviewD.todayInvoiceCount).toBe(1);
+    expect(overviewD.todaySalesPaisa).toBe(20000);
+
+    // 2. Dashboard Overview for Day D+1 ('2026-10-29'): must include invMidnightId and exclude invLateId
+    const overviewD1 = await getDashboardOverview(ctx.db, tenant.pharmacyId, '2026-10-29');
+    expect(overviewD1.todayInvoiceCount).toBe(1);
+    expect(overviewD1.todaySalesPaisa).toBe(30000);
+
+    // 3. Sales Report for Day D ('2026-10-28' to '2026-10-28')
+    const reportD = await getSalesReport(ctx.db, {
+      pharmacyId: tenant.pharmacyId,
+      startDate: '2026-10-28',
+      endDate: '2026-10-28',
+    });
+    expect(reportD.totals.invoiceCount).toBe(1);
+    expect(reportD.totals.totalPaisa).toBe(20000);
+
+    // 4. Sales Report for Day D+1 ('2026-10-29' to '2026-10-29')
+    const reportD1 = await getSalesReport(ctx.db, {
+      pharmacyId: tenant.pharmacyId,
+      startDate: '2026-10-29',
+      endDate: '2026-10-29',
+    });
+    expect(reportD1.totals.invoiceCount).toBe(1);
+    expect(reportD1.totals.totalPaisa).toBe(30000);
+
+    // 5. Total count across both individual reports = 2 (no missing record, no double counting)
+    expect(reportD.totals.invoiceCount + reportD1.totals.invoiceCount).toBe(2);
+  });
+
   it('H-16: workspace dependencies resolve patched versions for zod (>=4.6.6) and esbuild (>=0.25.0)', () => {
     const sharedPkg = JSON.parse(
       fs.readFileSync(path.join(REPO_ROOT, 'packages/shared/package.json'), 'utf8')

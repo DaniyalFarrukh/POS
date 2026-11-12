@@ -1,6 +1,6 @@
-import { eq, and, sql, gte, lte, ne } from 'drizzle-orm';
+import { eq, and, sql, gte, lte, lt, ne } from 'drizzle-orm';
 import crypto from 'node:crypto';
-import { getKarachiDayStartUtc, getKarachiDayEndUtc } from '@pos/shared';
+import { getKarachiDayStartUtc, getKarachiNextDayStartUtc } from '@pos/shared';
 import type { DbClient } from '../sync/types';
 import {
   accounts,
@@ -42,7 +42,7 @@ export async function getMonthEndChecklist(
   const endDate = `${year}-${paddedMonth}-${String(lastDay).padStart(2, '0')}`;
 
   const startIso = getKarachiDayStartUtc(startDate);
-  const endIso = getKarachiDayEndUtc(endDate);
+  const nextPeriodStartIso = getKarachiNextDayStartUtc(endDate);
 
   // 1. Unposted documents check
   // (unapproved/pending erpExpenses, unapproved stockCounts)
@@ -65,7 +65,7 @@ export async function getMonthEndChecklist(
       and(
         eq(stockCounts.pharmacyId, pharmacyId),
         gte(stockCounts.createdAt, startIso),
-        lte(stockCounts.createdAt, endIso),
+        lt(stockCounts.createdAt, nextPeriodStartIso),
         ne(stockCounts.status, 'approved')
       )
     );
@@ -148,7 +148,7 @@ export async function getMonthEndChecklist(
       and(
         eq(stockCounts.pharmacyId, pharmacyId),
         gte(stockCounts.createdAt, startIso),
-        lte(stockCounts.createdAt, endIso),
+        lt(stockCounts.createdAt, nextPeriodStartIso),
         eq(stockCounts.status, 'approved')
       )
     );

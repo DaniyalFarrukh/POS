@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, inArray } from 'drizzle-orm';
+import { getKarachiDayStartUtc, getKarachiNextDayStartUtc } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -64,12 +65,12 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
       const startDateIso = query.startDate
         ? query.startDate.includes('T')
           ? query.startDate
-          : `${query.startDate}T00:00:00.000Z`
+          : getKarachiDayStartUtc(query.startDate)
         : undefined;
-      const endDateIso = query.endDate
+      const nextDayStartIso = query.endDate
         ? query.endDate.includes('T')
           ? query.endDate
-          : `${query.endDate}T23:59:59.999Z`
+          : getKarachiNextDayStartUtc(query.endDate)
         : undefined;
 
       // 1. Fetch Invoices (Sales)
@@ -125,7 +126,7 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
               query.cashierUserId ? eq(invoices.cashierUserId, query.cashierUserId) : undefined,
               query.customerId ? eq(invoices.customerId, query.customerId) : undefined,
               startDateIso ? sql`${invoices.createdAt} >= ${startDateIso}` : undefined,
-              endDateIso ? sql`${invoices.createdAt} <= ${endDateIso}` : undefined
+              nextDayStartIso ? sql`${invoices.createdAt} < ${nextDayStartIso}` : undefined
             )
           )
           .limit(Math.min(Math.max(Number(query.limit) || 200, 1), 1000))
@@ -183,7 +184,7 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
               query.cashierUserId ? eq(creditNotes.cashierUserId, query.cashierUserId) : undefined,
               query.customerId ? eq(invoices.customerId, query.customerId) : undefined,
               startDateIso ? sql`${creditNotes.createdAt} >= ${startDateIso}` : undefined,
-              endDateIso ? sql`${creditNotes.createdAt} <= ${endDateIso}` : undefined
+              nextDayStartIso ? sql`${creditNotes.createdAt} < ${nextDayStartIso}` : undefined
             )
           );
 
@@ -238,7 +239,7 @@ export const salesLedgerRoutes: FastifyPluginAsync = async (fastify) => {
               query.cashierUserId ? eq(erpPayments.createdBy, query.cashierUserId) : undefined,
               query.customerId ? eq(erpPayments.partyId, query.customerId) : undefined,
               startDateIso ? sql`${erpPayments.createdAt} >= ${startDateIso}` : undefined,
-              endDateIso ? sql`${erpPayments.createdAt} <= ${endDateIso}` : undefined
+              nextDayStartIso ? sql`${erpPayments.createdAt} < ${nextDayStartIso}` : undefined
             )
           );
 

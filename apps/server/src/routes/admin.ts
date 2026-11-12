@@ -1,7 +1,14 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { eq, and, desc, asc, sql, gte, lte, or, ilike } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, gte, lte, lt, or, ilike } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { generateUuidV7, z, isTrivialPin, type UserRole } from '@pos/shared';
+import {
+  generateUuidV7,
+  z,
+  isTrivialPin,
+  type UserRole,
+  getKarachiDayStartUtc,
+  getKarachiNextDayStartUtc,
+} from '@pos/shared';
 import {
   users,
   branches,
@@ -707,8 +714,21 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         auditConditions.push(eq(auditLogs.userId, userId));
       }
       if (action) auditConditions.push(eq(auditLogs.action, action));
-      if (startDate) auditConditions.push(gte(auditLogs.createdAt, startDate));
-      if (endDate) auditConditions.push(lte(auditLogs.createdAt, endDate));
+      if (startDate) {
+        auditConditions.push(
+          gte(
+            auditLogs.createdAt,
+            startDate.includes('T') ? startDate : getKarachiDayStartUtc(startDate)
+          )
+        );
+      }
+      if (endDate) {
+        if (endDate.includes('T')) {
+          auditConditions.push(lte(auditLogs.createdAt, endDate));
+        } else {
+          auditConditions.push(lt(auditLogs.createdAt, getKarachiNextDayStartUtc(endDate)));
+        }
+      }
       if (search) {
         auditConditions.push(
           or(

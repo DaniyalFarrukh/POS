@@ -1,6 +1,6 @@
-import { eq, and, sql, gte, lte, desc, asc } from 'drizzle-orm';
+import { eq, and, sql, gte, lte, lt, desc, asc } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { getKarachiDayStartUtc, getKarachiDayEndUtc, getKarachiBusinessDate } from '@pos/shared';
+import { getKarachiDayStartUtc, getKarachiNextDayStartUtc, getKarachiBusinessDate } from '@pos/shared';
 import * as schema from '../db/schema';
 import {
   invoices,
@@ -127,7 +127,7 @@ export async function getDashboardOverview(
   todayIsoDate: string // YYYY-MM-DD
 ): Promise<DashboardOverviewResult> {
   const startOfDay = getKarachiDayStartUtc(todayIsoDate);
-  const endOfDay = getKarachiDayEndUtc(todayIsoDate);
+  const nextDayStart = getKarachiNextDayStartUtc(todayIsoDate);
 
   // (a) Today's sales and invoice count
   const [salesSummary] = await db
@@ -140,7 +140,7 @@ export async function getDashboardOverview(
       and(
         eq(invoices.pharmacyId, pharmacyId),
         gte(invoices.createdAt, startOfDay),
-        lte(invoices.createdAt, endOfDay)
+        lt(invoices.createdAt, nextDayStart)
       )
     );
 
@@ -166,7 +166,7 @@ export async function getDashboardOverview(
         eq(invoiceLines.pharmacyId, pharmacyId),
         eq(invoices.pharmacyId, pharmacyId),
         gte(invoices.createdAt, startOfDay),
-        lte(invoices.createdAt, endOfDay)
+        lt(invoices.createdAt, nextDayStart)
       )
     )
     .groupBy(invoiceLines.productId, products.brandName)
@@ -274,7 +274,7 @@ export async function getSalesReport(
     conditions.push(gte(invoices.createdAt, getKarachiDayStartUtc(params.startDate)));
   }
   if (params.endDate) {
-    conditions.push(lte(invoices.createdAt, getKarachiDayEndUtc(params.endDate)));
+    conditions.push(lt(invoices.createdAt, getKarachiNextDayStartUtc(params.endDate)));
   }
   if (params.branchId) {
     conditions.push(eq(counters.branchId, params.branchId));

@@ -5,7 +5,7 @@ import {
   computeInvoiceTotals,
   getKarachiBusinessDate,
   getKarachiDayStartUtc,
-  getKarachiDayEndUtc,
+  getKarachiNextDayStartUtc,
   type AuthSession,
   type CreateInvoiceInput,
   CreateInvoiceInputSchema,
@@ -569,8 +569,8 @@ export function searchInvoices(
   }
 
   if (params?.dateTo) {
-    whereClauses.push('i.created_at <= ?');
-    queryParams.push(getKarachiDayEndUtc(params.dateTo));
+    whereClauses.push('i.created_at < ?');
+    queryParams.push(getKarachiNextDayStartUtc(params.dateTo));
   }
 
   const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
