@@ -7,6 +7,7 @@ import {
   roundHalfUp,
   formatPKR,
   getKarachiBusinessDate,
+  normalizeBatchExpiry,
 } from '@pos/shared';
 
 interface GrnLineItem {
@@ -223,6 +224,14 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
         setErrorMessage(`Line #${i + 1} (${l.productName}): Expiry date is required.`);
         return;
       }
+      try {
+        normalizeBatchExpiry(l.expiryDate);
+      } catch {
+        setErrorMessage(
+          `Line #${i + 1} (${l.productName}): Invalid expiry date "${l.expiryDate}". Use MM/YYYY or YYYY-MM-DD.`
+        );
+        return;
+      }
       if (l.quantity <= 0) {
         setErrorMessage(`Line #${i + 1} (${l.productName}): Quantity must be at least 1.`);
         return;
@@ -242,7 +251,7 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
         lines: validLines.map((l) => ({
           productId: l.productId,
           batchNo: l.batchNo.trim(),
-          expiryDate: l.expiryDate,
+          expiryDate: normalizeBatchExpiry(l.expiryDate),
           quantity: Number(l.quantity),
           costPaisa: l.costPaisa,
           mrpPaisa: l.mrpPaisa,
@@ -539,7 +548,7 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
               <th style={{ padding: '10px 14px', width: '30px' }}>#</th>
               <th style={{ padding: '10px 14px', width: '280px' }}>Medicine / Product</th>
               <th style={{ padding: '10px 14px', width: '130px' }}>Batch No</th>
-              <th style={{ padding: '10px 14px', width: '130px' }}>Expiry (YYYY-MM-DD)</th>
+              <th style={{ padding: '10px 14px', width: '140px' }}>Expiry (MM/YYYY or Date)</th>
               <th style={{ padding: '10px 14px', width: '80px', textAlign: 'right' }}>Qty</th>
               <th style={{ padding: '10px 14px', width: '110px', textAlign: 'right' }}>
                 Cost Price (Rs)
@@ -708,7 +717,8 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
                 {/* Expiry Date */}
                 <td style={{ padding: '8px 14px' }}>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="MM/YYYY or Date"
                     value={line.expiryDate}
                     onChange={(e) => updateLine(line.id, { expiryDate: e.target.value })}
                     style={{
@@ -720,6 +730,31 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
                       boxSizing: 'border-box',
                     }}
                   />
+                  {(() => {
+                    const trimmed = line.expiryDate.trim();
+                    if (!trimmed) return null;
+                    try {
+                      const norm = normalizeBatchExpiry(trimmed);
+                      return (
+                        <div
+                          style={{
+                            fontSize: '10px',
+                            color: '#15803d',
+                            marginTop: '2px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          End: {norm}
+                        </div>
+                      );
+                    } catch {
+                      return (
+                        <div style={{ fontSize: '10px', color: '#dc2626', marginTop: '2px' }}>
+                          Invalid date
+                        </div>
+                      );
+                    }
+                  })()}
                 </td>
 
                 {/* Quantity */}

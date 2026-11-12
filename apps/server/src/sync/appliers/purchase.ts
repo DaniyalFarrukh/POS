@@ -1,5 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import { PurchaseReceivedPayloadSchema } from '@pos/shared';
+import { PurchaseReceivedPayloadSchema, normalizeBatchExpiry } from '@pos/shared';
 import { batches, stockMovements, products, branches, suppliers, users } from '../../db/schema';
 import { SyncRejectedError } from '../errors';
 import type { ApplierContext, DbClient } from '../types';
@@ -159,12 +159,22 @@ export async function applyPurchaseReceived(
         );
       }
 
+      let normalizedExpiry: string;
+      try {
+        normalizedExpiry = normalizeBatchExpiry(b.expiryDate);
+      } catch (err: unknown) {
+        throw new SyncRejectedError(
+          'INVALID_EXPIRY_DATE',
+          `Batch ${b.id} has invalid or impossible expiry date "${b.expiryDate}": ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+
       await tx.insert(batches).values({
         id: b.id,
         pharmacyId: ctx.pharmacyId,
         productId: b.productId,
         batchNo: b.batchNo,
-        expiryDate: b.expiryDate,
+        expiryDate: normalizedExpiry,
         costPaisa: b.costPaisa,
         mrpPaisa: b.mrpPaisa,
         createdAt: b.createdAt || now,
@@ -176,7 +186,7 @@ export async function applyPurchaseReceived(
         entity: 'batch',
         entityId: b.id,
         op: 'upsert',
-        data: b,
+        data: { ...b, expiryDate: normalizedExpiry },
         createdAt: now,
       });
     }

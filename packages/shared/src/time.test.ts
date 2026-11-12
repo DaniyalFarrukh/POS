@@ -8,6 +8,7 @@ import {
   addDaysToBusinessDate,
   isBatchExpired,
   normalizeBatchExpiry,
+  formatExpiry,
 } from './time';
 
 describe('Asia/Karachi Business Date and Time Utilities', () => {
@@ -109,17 +110,20 @@ describe('Asia/Karachi Business Date and Time Utilities', () => {
     it('normalizes month/year inputs to the LAST day of the month according to pharmaceutical standards', () => {
       // Standard YYYY-MM-DD passes through
       expect(normalizeBatchExpiry('2026-11-12')).toBe('2026-11-12');
+      expect(normalizeBatchExpiry('2028-02-29')).toBe('2028-02-29'); // Leap year 29 Feb valid
 
       // YYYY-MM converts to last day of month
       expect(normalizeBatchExpiry('2026-11')).toBe('2026-11-30');
       expect(normalizeBatchExpiry('2026-12')).toBe('2026-12-31');
       expect(normalizeBatchExpiry('2024-02')).toBe('2024-02-29'); // Leap year
       expect(normalizeBatchExpiry('2025-02')).toBe('2025-02-28'); // Non-leap year
+      expect(normalizeBatchExpiry('2028-02')).toBe('2028-02-29'); // Leap year
 
-      // MM/YYYY converts to last day of month
+      // MM/YYYY & M/YYYY converts to last day of month
       expect(normalizeBatchExpiry('11/2026')).toBe('2026-11-30');
       expect(normalizeBatchExpiry('1/2026')).toBe('2026-01-31');
       expect(normalizeBatchExpiry('02/2024')).toBe('2024-02-29');
+      expect(normalizeBatchExpiry('2/2028')).toBe('2028-02-29');
 
       // Normalized 11/2026 is sellable throughout November 2026
       const normalized = normalizeBatchExpiry('11/2026');
@@ -132,6 +136,25 @@ describe('Asia/Karachi Business Date and Time Utilities', () => {
       // Rejects invalid formats
       expect(() => normalizeBatchExpiry('invalid')).toThrow(TypeError);
       expect(() => normalizeBatchExpiry('13/2026')).toThrow(TypeError);
+      expect(() => normalizeBatchExpiry('00/2026')).toThrow(TypeError);
+
+      // Rejects impossible calendar dates in YYYY-MM-DD
+      expect(() => normalizeBatchExpiry('2026-02-29')).toThrow(TypeError); // 2026 is not leap year
+      expect(() => normalizeBatchExpiry('2026-02-31')).toThrow(TypeError);
+      expect(() => normalizeBatchExpiry('2026-04-31')).toThrow(TypeError); // April has 30 days
+      expect(() => normalizeBatchExpiry('2026-11-31')).toThrow(TypeError); // November has 30 days
+      expect(() => normalizeBatchExpiry('2026-13-01')).toThrow(TypeError);
+      expect(() => normalizeBatchExpiry('2026-00-10')).toThrow(TypeError);
+    });
+
+    it('formatExpiry formats dates consistently across receipts, labels, and stock tables', () => {
+      expect(formatExpiry('2026-11-30')).toBe('11/2026');
+      expect(formatExpiry('2026-11-30', 'MM/YYYY')).toBe('11/2026');
+      expect(formatExpiry('2026-11-30', 'DD/MM/YYYY')).toBe('30/11/2026');
+      expect(formatExpiry('2028-02-29', 'DD/MM/YYYY')).toBe('29/02/2028');
+      expect(formatExpiry(null)).toBe('—');
+      expect(formatExpiry(undefined)).toBe('—');
+      expect(formatExpiry('')).toBe('—');
     });
   });
 });

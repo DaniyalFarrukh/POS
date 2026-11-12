@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, ilike, or, inArray, sql } from 'drizzle-orm';
-import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate, normalizeBatchExpiry } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -41,7 +41,17 @@ const ReceivePOLineSchema = z.object({
   poLineId: z.string().uuid(),
   productId: z.string().uuid(),
   batchNo: z.string().trim().min(1, 'Batch number is required'),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expiry date must be YYYY-MM-DD'),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expiry date must be YYYY-MM-DD')
+    .refine((val) => {
+      try {
+        normalizeBatchExpiry(val);
+        return true;
+      } catch {
+        return false;
+      }
+    }, 'Expiry date is invalid or impossible calendar date'),
   quantity: z.number().int().min(1, 'Quantity must be at least 1'),
   costPaisa: z.number().int().min(0, 'Cost must be non-negative'),
   mrpPaisa: z.number().int().min(0, 'MRP must be non-negative'),

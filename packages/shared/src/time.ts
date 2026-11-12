@@ -125,7 +125,20 @@ export function isBatchExpired(
  */
 export function normalizeBatchExpiry(expiryInput: string): string {
   const trimmed = expiryInput.trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (ymdMatch) {
+    const year = Number(ymdMatch[1]);
+    const month = Number(ymdMatch[2]);
+    const day = Number(ymdMatch[3]);
+    if (month < 1 || month > 12) {
+      throw new TypeError(`Invalid month in batch expiry: "${expiryInput}"`);
+    }
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    if (day < 1 || day > lastDay) {
+      throw new TypeError(
+        `Invalid day in batch expiry: "${expiryInput}" (max day for month is ${lastDay})`
+      );
+    }
     return trimmed;
   }
   const ymMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
@@ -152,4 +165,20 @@ export function normalizeBatchExpiry(expiryInput: string): string {
   throw new TypeError(
     `Invalid batch expiry format: "${expiryInput}" (expected YYYY-MM-DD, YYYY-MM, or MM/YYYY)`
   );
+}
+
+/**
+ * Formats a batch expiry date consistently across receipts, labels, and stock tables.
+ * Default is 'MM/YYYY' (e.g. '11/2026'), or 'DD/MM/YYYY' (e.g. '30/11/2026').
+ */
+export function formatExpiry(
+  expiryDate: string | null | undefined,
+  format: 'MM/YYYY' | 'DD/MM/YYYY' = 'MM/YYYY'
+): string {
+  if (!expiryDate || typeof expiryDate !== 'string') return '—';
+  const trimmed = expiryDate.trim();
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return trimmed || '—';
+  const [, y, m, d] = match;
+  return format === 'DD/MM/YYYY' ? `${d}/${m}/${y}` : `${m}/${y}`;
 }

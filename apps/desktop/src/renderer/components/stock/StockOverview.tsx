@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { StockFilterType, StockOverviewProduct, StockOverviewBatch } from '@pos/shared';
-import { formatPaisaToRupees } from '@pos/shared';
+import { formatPaisaToRupees, formatExpiry } from '@pos/shared';
 import { StockAdjustmentModal } from './StockAdjustmentModal';
 
 export const StockOverview: React.FC = () => {
@@ -470,7 +470,9 @@ export const StockOverview: React.FC = () => {
                         {b.batchNo}
                       </td>
 
-                      <td style={{ padding: '12px 16px', color: '#475569' }}>{b.expiryDate}</td>
+                      <td style={{ padding: '12px 16px', color: '#475569' }}>
+                        {formatExpiry(b.expiryDate, 'DD/MM/YYYY')}
+                      </td>
 
                       <td style={{ padding: '12px 16px' }}>
                         <span

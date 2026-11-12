@@ -1,4 +1,4 @@
-import { formatPKR } from '@pos/shared';
+import { formatPKR, formatExpiry } from '@pos/shared';
 import { getReceiptStrings, type ReceiptStrings } from './receiptTranslations';
 
 export interface ReceiptLineItem {
@@ -108,9 +108,13 @@ export function generateThermalReceiptHtml(
   const linesHtml = invoice.lines
     .map((line) => {
       const name = line.brandName || line.genericName || 'Medicine Item';
+      const expFormatted = formatExpiry(line.expiryDate, 'MM/YYYY');
+      const expDisplay = line.expiryDate
+        ? `${line.expiryDate} (${expFormatted})`
+        : 'N/A';
       const batchInfo =
         showBatchExpiry && (line.batchNo || line.expiryDate)
-          ? `<div class="sub-item">${t.batch}: ${escapeHtml(line.batchNo || 'N/A')} | ${t.exp}: ${escapeHtml(line.expiryDate || 'N/A')}</div>`
+          ? `<div class="sub-item">${t.batch}: ${escapeHtml(line.batchNo || 'N/A')} | ${t.exp}: ${escapeHtml(expDisplay)}</div>`
           : '';
 
       return `

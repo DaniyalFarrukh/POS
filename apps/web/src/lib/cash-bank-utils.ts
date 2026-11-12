@@ -27,10 +27,8 @@ export interface ReconciliationMathResult {
 /**
  * Parses a decimal string (e.g. "1250.50" or "-500") into integer paisa
  */
-export function parsePaisaFromString(val?: string | null): number {
-  if (!val) return 0;
-  return parsePkrToPaisa(val);
-}
+export const parsePaisaFromString = (val?: string | null): number =>
+  val ? parsePkrToPaisa(val) : 0;
 
 /**
  * Parses raw CSV bank statement data into strongly typed statement lines

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeBatchExpiry } from '../time';
 
 export const SupplierInputSchema = z.object({
   name: z.string().trim().min(1, 'Supplier name is required'),
@@ -29,7 +30,17 @@ export const PurchaseLineInputSchema = z.object({
   batchNo: z.string().trim().min(1, 'Batch number is required'),
   expiryDate: z
     .string()
-    .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Expiry date must be in YYYY-MM or YYYY-MM-DD format'),
+    .transform((val, ctx) => {
+      try {
+        return normalizeBatchExpiry(val);
+      } catch (err: unknown) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: err instanceof Error ? err.message : 'Invalid batch expiry format or date',
+        });
+        return z.NEVER;
+      }
+    }),
   quantity: z.number().int('Quantity must be an integer').min(1, 'Quantity must be at least 1'),
   costPaisa: z.number().int('Cost must be in integer paisa').min(0, 'Cost cannot be negative'),
   mrpPaisa: z.number().int('MRP must be in integer paisa').min(0, 'MRP cannot be negative'),

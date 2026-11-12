@@ -2,6 +2,7 @@ import type { Database as DatabaseInstance } from 'better-sqlite3';
 import {
   SyncPullResponseSchema,
   SyncProductChangeDataSchema,
+  normalizeBatchExpiry,
   type SyncChangeItem,
 } from '@pos/shared';
 import type { PullSummary } from './types';
@@ -441,11 +442,18 @@ export async function pullAndApply(
       case 'batch':
       case 'batches': {
         if (op !== 'delete') {
+          const rawExp = (data.expiryDate || data.expiry_date || '') as string;
+          let safeExp: string;
+          try {
+            safeExp = normalizeBatchExpiry(rawExp);
+          } catch {
+            safeExp = rawExp;
+          }
           insertBatchIfMissingStmt.run(
             change.entityId,
             (data.productId || data.product_id || '') as string,
             (data.batchNo || data.batch_no || '') as string,
-            (data.expiryDate || data.expiry_date || '') as string,
+            safeExp,
             Number(data.costPaisa || data.cost_paisa || 0),
             Number(data.mrpPaisa || data.mrp_paisa || 0),
             (data.createdAt || data.created_at || now) as string,

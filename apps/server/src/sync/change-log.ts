@@ -97,9 +97,4 @@ export async function insertChangeLog(
 /**
  * Backwards-compatible alias for master data writes.
  */
-export async function recordMasterDataChange(
-  db: DbClient,
-  params: InsertChangeLogParams
-): Promise<number> {
-  return insertChangeLog(db, params);
-}
+export const recordMasterDataChange = insertChangeLog;

@@ -13,7 +13,8 @@
     "seed:dev": "tsx src/scripts/seed-dev.ts",
     "seed:products": "tsx src/scripts/seed-products.ts",
     "seed:coa": "tsx src/scripts/seed-coa.ts",
-    "backfill:ledger": "tsx src/scripts/backfill-ledger.ts"
+    "backfill:ledger": "tsx src/scripts/backfill-ledger.ts",
+    "dry-run:expiry": "tsx src/scripts/dry-run-expiry-check.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.1",

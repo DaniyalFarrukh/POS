@@ -11,8 +11,10 @@ import {
   index,
   unique,
   primaryKey,
+  check,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // 1. Root Tenant Table: Pharmacies
 export const pharmacies = pgTable('pharmacies', {
@@ -261,6 +263,7 @@ export const batches = pgTable(
   (table) => [
     index('idx_batches_pharmacy_product').on(table.pharmacyId, table.productId),
     index('idx_batches_pharmacy_expiry').on(table.pharmacyId, table.expiryDate),
+    check('batches_expiry_date_format_chk', sql`${table.expiryDate} ~ '^\\d{4}-\\d{2}-\\d{2}$'`),
   ]
 );
 

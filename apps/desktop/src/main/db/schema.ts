@@ -1,4 +1,5 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, uniqueIndex, check } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
 
 export const appMeta = sqliteTable('app_meta', {
   key: text('key').primaryKey(),
@@ -112,6 +113,10 @@ export const batches = sqliteTable(
   (table) => [
     index('idx_batches_expiry_date').on(table.expiryDate),
     index('idx_batches_product_batch').on(table.productId, table.batchNo),
+    check(
+      'batches_expiry_date_format_chk',
+      sql`${table.expiryDate} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`
+    ),
   ]
 );
 

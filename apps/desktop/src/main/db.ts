@@ -152,7 +152,7 @@ export const MIGRATIONS: Migration[] = [
           id TEXT PRIMARY KEY,
           product_id TEXT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
           batch_no TEXT NOT NULL,
-          expiry_date TEXT NOT NULL,
+          expiry_date TEXT NOT NULL CHECK(expiry_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
           cost_paisa INTEGER NOT NULL,
           mrp_paisa INTEGER NOT NULL,
           created_at TEXT NOT NULL,

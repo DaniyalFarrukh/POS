@@ -719,4 +719,104 @@ describe('Purchase Orders Module & Ledger Integration', () => {
     expect(listRes.statusCode).toBe(200);
     expect(listRes.json().items).toHaveLength(0);
   });
+
+  describe('Server Route Expiry Validation Hardening', () => {
+    it('rejects raw YYYY-MM (e.g. 2026-11) through PO receiving route with 400', async () => {
+      // 1. Create and approve a PO
+      const poRes = await app.inject({
+        method: 'POST',
+        url: '/api/purchase-orders',
+        headers: { authorization: `Bearer ${managerTokenA}` },
+        payload: {
+          supplierId: supplierAId,
+          branchId: branchAId,
+          issueDate: '2026-11-03',
+          lines: [{ productId: product1Id, quantityOrdered: 10, expectedCostPaisa: 2800 }],
+        },
+      });
+      const poId = poRes.json().data.id;
+      const poLineId = poRes.json().data.lines[0].id;
+
+      await app.inject({
+        method: 'POST',
+        url: `/api/purchase-orders/${poId}/approve`,
+        headers: { authorization: `Bearer ${ownerTokenA}` },
+      });
+
+      // 2. Attempt receiving with raw YYYY-MM -> must be rejected with 400
+      const rawYmRes = await app.inject({
+        method: 'POST',
+        url: `/api/purchase-orders/${poId}/receive`,
+        headers: { authorization: `Bearer ${pharmacistTokenA}` },
+        payload: {
+          supplierInvoiceNo: 'INV-RAW-YM',
+          receiptDate: '2026-11-04',
+          lines: [
+            {
+              poLineId,
+              productId: product1Id,
+              batchNo: 'BATCH-RAW-YM',
+              expiryDate: '2026-11', // Raw month format
+              quantity: 10,
+              costPaisa: 2800,
+              mrpPaisa: 3500,
+            },
+          ],
+        },
+      });
+
+      expect(rawYmRes.statusCode).toBe(400);
+      expect(rawYmRes.json().code).toBe('VALIDATION_ERROR');
+      expect(JSON.stringify(rawYmRes.json())).toMatch(/expiry/i);
+    });
+
+    it('rejects impossible dates (e.g. 2026-02-31, 2026-04-31) with 400', async () => {
+      // 1. Create and approve a PO
+      const poRes = await app.inject({
+        method: 'POST',
+        url: '/api/purchase-orders',
+        headers: { authorization: `Bearer ${managerTokenA}` },
+        payload: {
+          supplierId: supplierAId,
+          branchId: branchAId,
+          issueDate: '2026-11-03',
+          lines: [{ productId: product1Id, quantityOrdered: 10, expectedCostPaisa: 2800 }],
+        },
+      });
+      const poId = poRes.json().data.id;
+      const poLineId = poRes.json().data.lines[0].id;
+
+      await app.inject({
+        method: 'POST',
+        url: `/api/purchase-orders/${poId}/approve`,
+        headers: { authorization: `Bearer ${ownerTokenA}` },
+      });
+
+      // 2. Attempt receiving with impossible date 2026-02-31
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/purchase-orders/${poId}/receive`,
+        headers: { authorization: `Bearer ${pharmacistTokenA}` },
+        payload: {
+          supplierInvoiceNo: 'INV-IMPOSSIBLE-EXP',
+          receiptDate: '2026-11-04',
+          lines: [
+            {
+              poLineId,
+              productId: product1Id,
+              batchNo: 'BATCH-IMPOSSIBLE',
+              expiryDate: '2026-02-31',
+              quantity: 10,
+              costPaisa: 2800,
+              mrpPaisa: 3500,
+            },
+          ],
+        },
+      });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().code).toBe('VALIDATION_ERROR');
+      expect(JSON.stringify(res.json())).toMatch(/expiry/i);
+    });
+  });
 });

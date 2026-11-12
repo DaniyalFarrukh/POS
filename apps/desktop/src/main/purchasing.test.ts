@@ -571,4 +571,157 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
       ).rejects.toThrow(ForbiddenError);
     });
   });
+
+  describe('4. Batch Expiry Normalization & Boundary Hardening (docs/EXPIRY_RULES.md)', () => {
+    it('normalizes month/year inputs (11/2026, 2026-11) to month-end (2026-11-30) upon GRN receive', () => {
+      // 1. Receive GRN with '11/2026'
+      const grn1 = receiveGrn({
+        supplierId: testSupplierId,
+        supplierInvoiceNo: 'INV-EXP-001',
+        invoiceDate: '2026-10-26',
+        lines: [
+          {
+            productId: testProduct1Id,
+            batchNo: 'BN-MONTH-SLASH',
+            expiryDate: '11/2026',
+            quantity: 5,
+            costPaisa: 1000,
+            mrpPaisa: 1500,
+          },
+        ],
+      });
+
+      const batch1 = rawDb
+        .prepare('SELECT expiry_date FROM batches WHERE id = ?')
+        .get(grn1.lines![0]!.batchId) as { expiry_date: string };
+      expect(batch1.expiry_date).toBe('2026-11-30');
+
+      // 2. Receive GRN with '2026-11'
+      const grn2 = receiveGrn({
+        supplierId: testSupplierId,
+        supplierInvoiceNo: 'INV-EXP-002',
+        invoiceDate: '2026-10-26',
+        lines: [
+          {
+            productId: testProduct2Id,
+            batchNo: 'BN-YEAR-DASH',
+            expiryDate: '2026-11',
+            quantity: 5,
+            costPaisa: 1000,
+            mrpPaisa: 1500,
+          },
+        ],
+      });
+
+      const batch2 = rawDb
+        .prepare('SELECT expiry_date FROM batches WHERE id = ?')
+        .get(grn2.lines![0]!.batchId) as { expiry_date: string };
+      expect(batch2.expiry_date).toBe('2026-11-30');
+    });
+
+    it('correctly normalizes February in a leap year (2028-02-29) and normal year (2026-02-28)', () => {
+      // Leap year: 2028-02
+      const grnLeap = receiveGrn({
+        supplierId: testSupplierId,
+        supplierInvoiceNo: 'INV-LEAP-001',
+        invoiceDate: '2026-10-26',
+        lines: [
+          {
+            productId: testProduct1Id,
+            batchNo: 'BN-LEAP-2028',
+            expiryDate: '02/2028',
+            quantity: 5,
+            costPaisa: 1000,
+            mrpPaisa: 1500,
+          },
+        ],
+      });
+
+      const batchLeap = rawDb
+        .prepare('SELECT expiry_date FROM batches WHERE id = ?')
+        .get(grnLeap.lines![0]!.batchId) as { expiry_date: string };
+      expect(batchLeap.expiry_date).toBe('2028-02-29');
+
+      // Non-leap year: 2026-02
+      const grnNormal = receiveGrn({
+        supplierId: testSupplierId,
+        supplierInvoiceNo: 'INV-NONLEAP-001',
+        invoiceDate: '2026-10-26',
+        lines: [
+          {
+            productId: testProduct2Id,
+            batchNo: 'BN-NORM-2026',
+            expiryDate: '02/2026',
+            quantity: 5,
+            costPaisa: 1000,
+            mrpPaisa: 1500,
+          },
+        ],
+      });
+
+      const batchNormal = rawDb
+        .prepare('SELECT expiry_date FROM batches WHERE id = ?')
+        .get(grnNormal.lines![0]!.batchId) as { expiry_date: string };
+      expect(batchNormal.expiry_date).toBe('2026-02-28');
+    });
+
+    it('rejects invalid and impossible dates with clear validation error', () => {
+      // 1. Non-leap year 29 Feb
+      expect(() =>
+        receiveGrn({
+          supplierId: testSupplierId,
+          supplierInvoiceNo: 'INV-ERR-1',
+          invoiceDate: '2026-10-26',
+          lines: [
+            {
+              productId: testProduct1Id,
+              batchNo: 'BN-ERR-1',
+              expiryDate: '2026-02-29',
+              quantity: 5,
+              costPaisa: 1000,
+              mrpPaisa: 1500,
+            },
+          ],
+        })
+      ).toThrow();
+
+      // 2. Impossible month 13
+      expect(() =>
+        receiveGrn({
+          supplierId: testSupplierId,
+          supplierInvoiceNo: 'INV-ERR-2',
+          invoiceDate: '2026-10-26',
+          lines: [
+            {
+              productId: testProduct1Id,
+              batchNo: 'BN-ERR-2',
+              expiryDate: '13/2026',
+              quantity: 5,
+              costPaisa: 1000,
+              mrpPaisa: 1500,
+            },
+          ],
+        })
+      ).toThrow();
+
+      // 3. April 31st (impossible day)
+      expect(() =>
+        receiveGrn({
+          supplierId: testSupplierId,
+          supplierInvoiceNo: 'INV-ERR-3',
+          invoiceDate: '2026-10-26',
+          lines: [
+            {
+              productId: testProduct1Id,
+              batchNo: 'BN-ERR-3',
+              expiryDate: '2026-04-31',
+              quantity: 5,
+              costPaisa: 1000,
+              mrpPaisa: 1500,
+            },
+          ],
+        })
+      ).toThrow();
+    });
+  });
 });

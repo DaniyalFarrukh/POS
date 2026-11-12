@@ -583,4 +583,113 @@ describe('finalizeSale Transaction Service (Phase 2)', () => {
     const saved = db.prepare('SELECT id FROM invoices WHERE id = ?').get(invoice.id);
     expect(saved).toBeDefined();
   });
+
+  describe('FEFO Expiry Boundary Rules (docs/EXPIRY_RULES.md)', () => {
+    it('a batch with expiry 2026-11-30 is sellable on 2026-11-30 and blocked on 2026-12-01 in finalizeSale', () => {
+      const nowIso = '2026-10-26T10:00:00.000Z';
+      const dedicatedProdId = generateUuidV7();
+      db.prepare(
+        `INSERT INTO products (
+          id, brand_name, generic_name, strength, form, manufacturer,
+          barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
+          created_at, updated_at
+        ) VALUES (?, 'Boundary Product', 'Boundary Generic', '500mg', 'Tablet', 'PharmaCo', '896000000099', ?, 5000, 0, 1, ?, ?)`
+      ).run(dedicatedProdId, exemptTaxCatId, nowIso, nowIso);
+
+      const novBatchId = generateUuidV7();
+      db.prepare(
+        `INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(novBatchId, dedicatedProdId, 'BN-NOV-END', '2026-11-30', 3000, 5000, nowIso, nowIso);
+
+      // Add 5 units of stock to BN-NOV-END
+      db.prepare(
+        `INSERT INTO stock_movements (id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'purchase', 5, 'purchase', ?, ?)`
+      ).run(generateUuidV7(), dedicatedProdId, novBatchId, branchId, nowIso, nowIso);
+
+      // 1. On 2026-11-30: batch is sellable throughout the business day
+      const saleNov30 = finalizeSale(
+        {
+          clientRequestId: generateUuidV7(),
+          counterId,
+          cashierUserId,
+          lines: [{ productId: dedicatedProdId, quantity: 2 }],
+          payments: [{ method: 'cash', amountPaisa: 10000 }],
+        },
+        { db, today: '2026-11-30' }
+      );
+      expect(saleNov30).toBeDefined();
+      expect(saleNov30.lines[0]?.batchId).toBe(novBatchId);
+
+      // 2. On 2026-12-01: batch is strictly expired and blocked from sale
+      expect(() =>
+        finalizeSale(
+          {
+            clientRequestId: generateUuidV7(),
+            counterId,
+            cashierUserId,
+            lines: [{ productId: dedicatedProdId, quantity: 2 }],
+            payments: [{ method: 'cash', amountPaisa: 10000 }],
+          },
+          { db, today: '2026-12-01' }
+        )
+      ).toThrow(InsufficientStockError);
+    });
+
+    it('allocates batches in strict FEFO order when normalized to month-end dates', () => {
+      const nowIso = '2026-10-26T10:00:00.000Z';
+      const pId = generateUuidV7();
+      db.prepare(
+        `INSERT INTO products (
+          id, brand_name, generic_name, strength, form, manufacturer,
+          barcode, tax_category_id, mrp_paisa, is_controlled, is_active,
+          created_at, updated_at
+        ) VALUES (?, 'FEFO Test Product', 'Generic Test', '10mg', 'Tablet', 'PharmaCo', '896000000098', ?, 10000, 0, 1, ?, ?)`
+      ).run(pId, exemptTaxCatId, nowIso, nowIso);
+
+      const bNov = generateUuidV7();
+      const bDec = generateUuidV7();
+
+      // Batch 1: normalized from 11/2026 -> 2026-11-30
+      db.prepare(
+        `INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
+         VALUES (?, ?, 'B-NOV-2026', '2026-11-30', 5000, 10000, ?, ?)`
+      ).run(bNov, pId, nowIso, nowIso);
+
+      // Batch 2: normalized from 12/2026 -> 2026-12-31
+      db.prepare(
+        `INSERT INTO batches (id, product_id, batch_no, expiry_date, cost_paisa, mrp_paisa, created_at, updated_at)
+         VALUES (?, ?, 'B-DEC-2026', '2026-12-31', 5000, 10000, ?, ?)`
+      ).run(bDec, pId, nowIso, nowIso);
+
+      // 3 units in Nov batch, 10 units in Dec batch
+      db.prepare(
+        `INSERT INTO stock_movements (id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'purchase', 3, 'purchase', ?, ?)`
+      ).run(generateUuidV7(), pId, bNov, branchId, nowIso, nowIso);
+      db.prepare(
+        `INSERT INTO stock_movements (id, product_id, batch_id, branch_id, type, quantity_signed, reference_type, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'purchase', 10, 'purchase', ?, ?)`
+      ).run(generateUuidV7(), pId, bDec, branchId, nowIso, nowIso);
+
+      // Request 5 units on 2026-11-01 -> FEFO allocates 3 from bNov, then 2 from bDec
+      const invoice = finalizeSale(
+        {
+          clientRequestId: generateUuidV7(),
+          counterId,
+          cashierUserId,
+          lines: [{ productId: pId, quantity: 5 }],
+          payments: [{ method: 'cash', amountPaisa: 50000 }],
+        },
+        { db, today: '2026-11-01' }
+      );
+
+      expect(invoice.lines).toHaveLength(2);
+      expect(invoice.lines[0]?.batchId).toBe(bNov);
+      expect(invoice.lines[0]?.quantity).toBe(3);
+      expect(invoice.lines[1]?.batchId).toBe(bDec);
+      expect(invoice.lines[1]?.quantity).toBe(2);
+    });
+  });
 });

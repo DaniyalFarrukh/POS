@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeBatchExpiry } from '../time';
 
 export const SyncEventTypeSchema = z.enum([
   'purchase.received',
@@ -37,7 +38,19 @@ export const PurchaseBatchInputSchema = z.object({
   id: z.string().uuid(),
   productId: z.string().uuid(),
   batchNo: z.string().min(1),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/),
+  expiryDate: z
+    .string()
+    .transform((val, ctx) => {
+      try {
+        return normalizeBatchExpiry(val);
+      } catch (err: unknown) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: err instanceof Error ? err.message : 'Invalid batch expiry format or date',
+        });
+        return z.NEVER;
+      }
+    }),
   costPaisa: z.number().int().min(0),
   mrpPaisa: z.number().int().min(0),
   createdAt: z.string().optional(),

@@ -395,4 +395,123 @@ describe('F-H-06: Inventory Sync change_log, Historical Reconcile Timestamp & In
     expect(debitLine).toBeDefined();
     expect(creditLine).toBeDefined();
   });
+
+  describe('Sync Applier Expiry Normalization Hardening', () => {
+    it('normalizes raw YYYY-MM expiry dates to month-end YYYY-MM-DD on sync apply', async () => {
+      const purchaseId = generateUuidV7();
+      const rawYmBatchId = generateUuidV7();
+      const movementId = generateUuidV7();
+      const nowIso = new Date().toISOString();
+
+      await ctx.db.transaction(async (tx) => {
+        await applyPurchaseReceived(
+          tx,
+          {
+            pharmacyId,
+            branchId,
+            counterId,
+            deviceId: generateUuidV7(),
+            userId: ownerUserId,
+            eventId: generateUuidV7(),
+          },
+          {
+            purchase: {
+              id: purchaseId,
+              branchId,
+              supplierId,
+              supplierInvoiceNo: 'SUP-NORM-01',
+              invoiceDate: '2026-11-04',
+              totalCostPaisa: 10000,
+              createdByUserId: ownerUserId,
+              createdAt: nowIso,
+            },
+            batches: [
+              {
+                id: rawYmBatchId,
+                productId,
+                batchNo: 'SYNC-BN-RAW-YM',
+                expiryDate: '2026-11', // Raw month input from legacy/desktop
+                costPaisa: 1000,
+                mrpPaisa: 2000,
+              },
+            ],
+            lines: [
+              {
+                id: generateUuidV7(),
+                movementId,
+                productId,
+                batchId: rawYmBatchId,
+                quantity: 10,
+                costPaisa: 1000,
+                mrpPaisa: 2000,
+              },
+            ],
+          }
+        );
+      });
+
+      // Verify batch was stored with normalized month-end date in PostgreSQL
+      const [storedBatch] = await ctx.db
+        .select({ expiryDate: batches.expiryDate })
+        .from(batches)
+        .where(eq(batches.id, rawYmBatchId));
+
+      expect(storedBatch).toBeDefined();
+      expect(storedBatch!.expiryDate).toBe('2026-11-30');
+    });
+
+    it('rejects sync events containing impossible dates with SyncRejectedError', async () => {
+      const purchaseId = generateUuidV7();
+      const badBatchId = generateUuidV7();
+      const nowIso = new Date().toISOString();
+
+      await expect(
+        ctx.db.transaction(async (tx) => {
+          await applyPurchaseReceived(
+            tx,
+            {
+              pharmacyId,
+              branchId,
+              counterId,
+              deviceId: generateUuidV7(),
+              userId: ownerUserId,
+              eventId: generateUuidV7(),
+            },
+            {
+              purchase: {
+                id: purchaseId,
+                branchId,
+                supplierId,
+                supplierInvoiceNo: 'SUP-BAD-01',
+                invoiceDate: '2026-11-04',
+                totalCostPaisa: 10000,
+                createdByUserId: ownerUserId,
+                createdAt: nowIso,
+              },
+              batches: [
+                {
+                  id: badBatchId,
+                  productId,
+                  batchNo: 'SYNC-BN-BAD',
+                  expiryDate: '2026-02-31', // Impossible date
+                  costPaisa: 1000,
+                  mrpPaisa: 2000,
+                },
+              ],
+              lines: [
+                {
+                  id: generateUuidV7(),
+                  productId,
+                  batchId: badBatchId,
+                  quantity: 10,
+                  costPaisa: 1000,
+                  mrpPaisa: 2000,
+                },
+              ],
+            }
+          );
+        })
+      ).rejects.toThrow();
+    });
+  });
 });
