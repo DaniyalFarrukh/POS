@@ -67,7 +67,6 @@ jobs:
 
       - name: Build production bundles
         run: |
-          pnpm --filter @pos/shared build
           pnpm --filter @pos/server build
           pnpm --filter @pos/web build
           pnpm --filter @pos/desktop build
