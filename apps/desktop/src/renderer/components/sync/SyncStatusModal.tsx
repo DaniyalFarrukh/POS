@@ -20,8 +20,35 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [syncing, setSyncing] = useState<boolean>(false);
   const [actionMsg, setActionMsg] = useState<{ text: string; isError?: boolean } | null>(null);
+  const [showPairForm, setShowPairForm] = useState<boolean>(false);
+  const [regCode, setRegCode] = useState<string>('');
+  const [regServerUrl, setRegServerUrl] = useState<string>('http://localhost:3000');
+  const [regLoading, setRegLoading] = useState<boolean>(false);
 
   const canManageExceptions = session.user.role === 'owner' || session.user.role === 'pharmacist';
+
+  const handleRegisterDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regCode.trim()) return;
+    setRegLoading(true);
+    setActionMsg(null);
+    try {
+      if (!window.api?.sync?.registerDevice) throw new Error('Registration API unavailable');
+      await window.api.sync.registerDevice(regServerUrl.trim(), regCode.trim().toUpperCase(), 'Counter 01');
+      setActionMsg({ text: 'Device successfully paired with cloud! Syncing outbox...' });
+      setRegCode('');
+      setShowPairForm(false);
+      await fetchStatus();
+      await handleSyncNow();
+    } catch (err: unknown) {
+      setActionMsg({
+        text: err instanceof Error ? err.message : 'Registration failed',
+        isError: true,
+      });
+    } finally {
+      setRegLoading(false);
+    }
+  };
 
   const fetchStatus = useCallback(async () => {
     if (!window.api?.sync?.getStatus) return;
@@ -396,6 +423,132 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                   }}
                 >
                   <strong>Last Sync Warning:</strong> {status.lastError}
+                </div>
+              )}
+
+              {/* Pair / Link Terminal Card */}
+              {(!status?.lastPushOkAt || showPairForm) && (
+                <div
+                  style={{
+                    backgroundColor: '#eff6ff',
+                    borderRadius: '10px',
+                    border: '1px solid #bfdbfe',
+                    padding: '16px 20px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '18px' }}>🔗</span>
+                      <strong style={{ fontSize: '14px', color: '#1e3a8a' }}>
+                        Pair Terminal with Cloud Database
+                      </strong>
+                    </div>
+                    {status?.lastPushOkAt && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPairForm(false)}
+                        style={{
+                          border: 'none',
+                          background: 'none',
+                          color: '#64748b',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                        }}
+                      >
+                        Hide
+                      </button>
+                    )}
+                  </div>
+                  <form
+                    onSubmit={handleRegisterDevice}
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-end',
+                    }}
+                  >
+                    <div style={{ flex: '1 1 200px' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: '#475569',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        Server URL
+                      </label>
+                      <input
+                        type="text"
+                        value={regServerUrl}
+                        onChange={(e) => setRegServerUrl(e.target.value)}
+                        placeholder="http://localhost:3000"
+                        style={{
+                          width: '100%',
+                          padding: '7px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '13px',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: '2 1 240px' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: '#475569',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        Registration Code
+                      </label>
+                      <input
+                        type="text"
+                        value={regCode}
+                        onChange={(e) => setRegCode(e.target.value)}
+                        placeholder="REG-XXXX-XXXX-XXXX-XXXX"
+                        style={{
+                          width: '100%',
+                          padding: '7px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          letterSpacing: '0.04em',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={regLoading || !regCode.trim()}
+                      style={{
+                        padding: '8px 18px',
+                        backgroundColor: '#1d4ed8',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontWeight: 700,
+                        fontSize: '13px',
+                        cursor: regLoading || !regCode.trim() ? 'not-allowed' : 'pointer',
+                        opacity: regLoading || !regCode.trim() ? 0.6 : 1,
+                      }}
+                    >
+                      {regLoading ? 'Pairing...' : 'Pair & Sync'}
+                    </button>
+                  </form>
                 </div>
               )}
 
