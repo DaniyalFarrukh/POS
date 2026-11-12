@@ -9,12 +9,13 @@
 
 ## 1. Final CI Run Summary
 
-- **Run ID:** `43128716666`
-- **Run URL:** [https://github.com/DaniyalFarrukh/POS/actions/runs/43128716666](https://github.com/DaniyalFarrukh/POS/actions/runs/43128716666)
-- **Commit SHA:** `0cbc41b8c2d8c3683f3609aaad23011aeb2f768e` (`0cbc41b`)
-- **Commit Message:** `fix(ci): specify postgres healthcheck user and db and pin pnpm version`
-- **Workflow Run Conclusion:** `success`
-- **Total Workflow Duration:** 4m 53s
+- **Final Verification Run ID:** `43129470888`
+- **Final Verification Run URL:** [https://github.com/DaniyalFarrukh/POS/actions/runs/43129470888](https://github.com/DaniyalFarrukh/POS/actions/runs/43129470888)
+- **Final Verification Commit SHA:** `6471a98` (`docs: author final CI fix report`)
+- **Fix Baseline Run ID:** `43128716666` ([https://github.com/DaniyalFarrukh/POS/actions/runs/43128716666](https://github.com/DaniyalFarrukh/POS/actions/runs/43128716666))
+- **Fix Baseline Commit SHA:** `0cbc41b` (`fix(ci): specify postgres healthcheck user and db and pin pnpm version`)
+- **Workflow Run Conclusion:** `success` (100% Passing)
+- **Total Workflow Duration:** 4m 54s
 
 ---
 
@@ -146,3 +147,4 @@
 3. **Pull Request & Main Merge:**
    - Branch `overnight-fixes` is fully green, verified locally and in GitHub Actions CI.
    - A pull request from `overnight-fixes` to `main` can be safely opened and merged.
+
