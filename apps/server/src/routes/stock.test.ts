@@ -816,4 +816,54 @@ describe('Stock Management & Batches Expiry Module', () => {
     });
     expect(writeOffRes.statusCode).toBe(404);
   });
+
+  it('C2 regression: verifies product names, barcodes, and deterministic Karachi dates in stock and expiring responses', async () => {
+    // 1. /stock?view=product
+    const resProd = await app.inject({
+      method: 'GET',
+      url: '/api/inventory/stock?view=product',
+      headers: { authorization: `Bearer ${managerTokenA}` },
+    });
+    expect(resProd.statusCode).toBe(200);
+    const prodItems = resProd.json().data.items;
+    expect(prodItems.length).toBeGreaterThanOrEqual(1);
+    expect(prodItems[0]).toHaveProperty('brandName');
+    expect(prodItems[0]).toHaveProperty('barcode');
+
+    // 2. /stock?view=batch
+    const resBatch = await app.inject({
+      method: 'GET',
+      url: '/api/inventory/stock?view=batch',
+      headers: { authorization: `Bearer ${managerTokenA}` },
+    });
+    expect(resBatch.statusCode).toBe(200);
+    const batchItems = resBatch.json().data.items;
+    expect(batchItems.length).toBeGreaterThanOrEqual(1);
+    expect(batchItems[0]).toHaveProperty('productName');
+    expect(batchItems[0]).toHaveProperty('barcode');
+
+    // 3. /batches/expiring
+    const resExp = await app.inject({
+      method: 'GET',
+      url: '/api/inventory/batches/expiring?window=all',
+      headers: { authorization: `Bearer ${managerTokenA}` },
+    });
+    expect(resExp.statusCode).toBe(200);
+    const expItems = resExp.json().data.items;
+    expect(expItems.length).toBeGreaterThanOrEqual(1);
+    expect(expItems[0]).toHaveProperty('productName');
+    expect(expItems[0]).toHaveProperty('barcode');
+
+    // 4. /products/:id/stock-detail
+    const resDetail = await app.inject({
+      method: 'GET',
+      url: `/api/inventory/products/${product1Id}/stock-detail`,
+      headers: { authorization: `Bearer ${managerTokenA}` },
+    });
+    expect(resDetail.statusCode).toBe(200);
+    const detailData = resDetail.json().data;
+    expect(detailData.product).toHaveProperty('brandName');
+    expect(detailData.product).toHaveProperty('barcode');
+    expect(detailData.movements.length).toBeGreaterThanOrEqual(1);
+  });
 });

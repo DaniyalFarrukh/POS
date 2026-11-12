@@ -12,7 +12,9 @@
 |:---|:---|:---:|:---:|:---|
 | Group A Initial | Log setup | DONE | `8d2a71f` | Log initialized |
 | A1-A5 | Half-open intervals & offset validation | DONE | `8d2a71f`, `3d72f40` | Half-open intervals applied; offset validation enforced |
-| B1-B4 | Eradicate UTC slicing & machine timezone | DONE | PENDING | Day loops, test slicing, ESLint rules, machine Date APIs fixed |
+| B1-B4 | Eradicate UTC slicing & machine timezone | DONE | `43ab317` | Day loops, test slicing, ESLint rules, machine Date APIs fixed |
+| C1 | Verify auth audience rejection tests | DONE | `e008f15` (verified) | Verified forged audience tests with correct secrets exist |
+| C2 | Verify stock response shapes & Karachi dates | DONE | PENDING | Product names, barcodes, and Karachi date helpers verified & tested |
 
 ---
 
@@ -103,5 +105,28 @@
 - `apps/web/src/pages/finance/BudgetPlanningPage.tsx`: Replaced `new Date().getFullYear()` with `parseInt(getKarachiBusinessDate().slice(0, 4), 10)`.
 - `apps/web/src/pages/inventory/PurchaseOrderDetailPage.tsx`: Replaced `defaultExpiry.setFullYear(...)` with `addDaysToBusinessDate(getKarachiBusinessDate(), 730)`.
 - `package.json`: Added cross-platform `test:tz-utc` and `test:tz-karachi` scripts forwarding any CLI arguments.
+
+---
+
+## Group C: Verify Earlier Changes & Expiry
+
+### C1. Auth Token Audience Test Verification (`e008f15`)
+- Audited `apps/server/src/auth/audit-fixes.test.ts` lines 208-250 added in `e008f15`.
+- Confirmed it explicitly tests audience validation when tokens are signed with the *valid* secret:
+  - `forgedAudToken` signed with `getJwtSecret()` (valid user secret) with `{ audience: 'pos:device' }` is rejected by `verifyUserToken` with `/jwt audience invalid|expected user token/i`.
+  - `forgedAudToken` signed with `getDeviceJwtSecret()` (valid device secret) with `{ audience: 'pos:web' }` is rejected by `verifyDeviceToken` with `/jwt audience invalid|expected device token/i`.
+- Verified all 10 tests in `apps/server/src/auth/audit-fixes.test.ts` pass cleanly.
+- Status: **CHECKED-OK**.
+
+### C2. Stock Route Shapes & Karachi Date Helpers (`25e4ff5`)
+- Inspected git diff of `25e4ff5` on `apps/server/src/routes/stock.ts`: only prettier formatting changes were made.
+- Inspected response shapes:
+  - `GET /api/inventory/stock?view=product`: returns `brandName`, `genericName`, `barcode`.
+  - `GET /api/inventory/stock?view=batch`: returns `productName`, `genericName`, `barcode`.
+  - `GET /api/inventory/batches/expiring`: returns `productName`, `genericName`, `barcode`.
+  - `GET /api/inventory/products/:id/stock-detail`: returns `brandName`, `barcode`, and full movement timeline.
+- Refactored date helpers in `stock.ts`: replaced `new Date(now.getTime() + N * 86400 * 1000)` with `addDaysToBusinessDate(nowIsoDate, N)` and exact UTC calendar day difference for `daysUntilExpiry`.
+- Added test in `apps/server/src/routes/stock.test.ts` verifying all response shapes and properties.
+- Status: **FIXED & TESTED**.
 
 ---

@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { z, generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
+import { z, generateUuidV7, getKarachiBusinessDate, addDaysToBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -71,9 +71,8 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       const { view, branchId, locationId, search, status, page, pageSize, sortBy, sortOrder } =
         parsed.data;
 
-      const now = new Date();
-      const nowIsoDate = getKarachiBusinessDate(now);
-      const in90DaysDate = getKarachiBusinessDate(new Date(now.getTime() + 90 * 86400 * 1000));
+      const nowIsoDate = getKarachiBusinessDate();
+      const in90DaysDate = addDaysToBusinessDate(nowIsoDate, 90);
 
       // --- 1. Compute Pharmacy-Wide Inventory & Reconciliation KPIs ---
       // 1a. Batch on-hand stock and total valuation
@@ -336,9 +335,11 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
 
         let batchItems = batchStockBalances.map((b) => {
           const prod = prodInfoMap.get(b.productId);
-          const daysUntilExpiry = Math.ceil(
-            (new Date(b.expiryDate).getTime() - now.getTime()) / (86400 * 1000)
-          );
+          const [ey, em, ed] = b.expiryDate.split('-').map(Number);
+          const [ny, nm, nd] = nowIsoDate.split('-').map(Number);
+          const expiryUtc = Date.UTC(ey ?? 0, (em ?? 1) - 1, ed ?? 1);
+          const nowUtc = Date.UTC(ny ?? 0, (nm ?? 1) - 1, nd ?? 1);
+          const daysUntilExpiry = Math.round((expiryUtc - nowUtc) / (86400 * 1000));
           const isExpired = b.expiryDate < nowIsoDate;
           const isNearExpiry = !isExpired && b.expiryDate <= in90DaysDate;
 
@@ -445,11 +446,10 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       const db = request.server.db || getDb();
       const { window: timeWindow, branchId, locationId, search, page, pageSize } = parsed.data;
 
-      const now = new Date();
-      const nowIsoDate = getKarachiBusinessDate(now);
-      const in30Date = getKarachiBusinessDate(new Date(now.getTime() + 30 * 86400 * 1000));
-      const in60Date = getKarachiBusinessDate(new Date(now.getTime() + 60 * 86400 * 1000));
-      const in90Date = getKarachiBusinessDate(new Date(now.getTime() + 90 * 86400 * 1000));
+      const nowIsoDate = getKarachiBusinessDate();
+      const in30Date = addDaysToBusinessDate(nowIsoDate, 30);
+      const in60Date = addDaysToBusinessDate(nowIsoDate, 60);
+      const in90Date = addDaysToBusinessDate(nowIsoDate, 90);
 
       // Fetch on-hand batches with product, branch, and location details
       const batchRows = await db
@@ -520,9 +520,11 @@ export const stockRoutes: FastifyPluginAsync = async (fastify) => {
       for (const b of batchRows) {
         if (b.onHandQuantity <= 0) continue;
 
-        const daysUntilExpiry = Math.ceil(
-          (new Date(b.expiryDate).getTime() - now.getTime()) / (86400 * 1000)
-        );
+        const [ey, em, ed] = b.expiryDate.split('-').map(Number);
+        const [ny, nm, nd] = nowIsoDate.split('-').map(Number);
+        const expiryUtc = Date.UTC(ey ?? 0, (em ?? 1) - 1, ed ?? 1);
+        const nowUtc = Date.UTC(ny ?? 0, (nm ?? 1) - 1, nd ?? 1);
+        const daysUntilExpiry = Math.round((expiryUtc - nowUtc) / (86400 * 1000));
         const stockValuePaisa = b.onHandQuantity * b.costPaisa;
 
         let bucket: 'expired' | '30' | '60' | '90' | 'distant' = 'distant';
