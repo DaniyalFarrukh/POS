@@ -7,6 +7,7 @@ import {
   signDeviceToken,
   verifyDeviceToken,
   signUserToken,
+  getDeviceJwtSecret,
 } from './jwt';
 import { buildApp } from '../app';
 import {
@@ -77,7 +78,7 @@ describe('Device Registration & Authentication (Phase 3)', () => {
     });
 
     it('rejects tokens missing required tenancy claims', () => {
-      const secret = process.env.JWT_SECRET || 'dev_pos_jwt_secret_change_in_production';
+      const secret = getDeviceJwtSecret();
       const incompleteToken = jwt.sign({ pharmacyId: generateUuidV7(), typ: 'device' }, secret, {
         audience: 'pos:device',
       });

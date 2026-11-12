@@ -178,18 +178,34 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
 
   describe('M-03: Separate aud and typ claims for device vs user tokens', () => {
     it('rejects device token when verified as user token', async () => {
-      const { signDeviceToken, verifyUserToken } = await import('./jwt');
+      const { signDeviceToken, verifyUserToken, getJwtSecret } = await import('./jwt');
       const devToken = signDeviceToken({
         pharmacyId,
         branchId: generateUuidV7(),
         deviceId: generateUuidV7(),
       });
 
-      expect(() => verifyUserToken(devToken)).toThrow(/jwt audience invalid|expected user token/i);
+      // When DEVICE_JWT_SECRET and JWT_SECRET are distinct (production/CI),
+      // verifyUserToken rejects with signature error. When identical (dev fallback),
+      // it rejects with audience mismatch. Both safely reject cross-token verification.
+      expect(() => verifyUserToken(devToken)).toThrow(
+        /jwt audience invalid|expected user token|invalid signature/i
+      );
+
+      // Explicitly test audience validation when signed with valid user secret
+      const { default: jwt } = await import('jsonwebtoken');
+      const forgedAudToken = jwt.sign(
+        { pharmacyId, userId: activeUserId, role: 'owner', name: 'User', typ: 'device' },
+        getJwtSecret(),
+        { audience: 'pos:device' }
+      );
+      expect(() => verifyUserToken(forgedAudToken)).toThrow(
+        /jwt audience invalid|expected user token/i
+      );
     });
 
     it('rejects user token when verified as device token', async () => {
-      const { signUserToken, verifyDeviceToken } = await import('./jwt');
+      const { signUserToken, verifyDeviceToken, getDeviceJwtSecret } = await import('./jwt');
       const userToken = signUserToken({
         userId: activeUserId,
         pharmacyId,
@@ -197,7 +213,19 @@ describe('Audit Fixes Regression: C-01, C-02, H-01, H-02', () => {
         name: 'Active User',
       });
 
+      // When distinct, fails signature. When identical, fails audience.
       expect(() => verifyDeviceToken(userToken)).toThrow(
+        /jwt audience invalid|expected device token|invalid signature/i
+      );
+
+      // Explicitly test audience validation when signed with valid device secret
+      const { default: jwt } = await import('jsonwebtoken');
+      const forgedAudToken = jwt.sign(
+        { pharmacyId, branchId: generateUuidV7(), deviceId: generateUuidV7(), typ: 'user' },
+        getDeviceJwtSecret(),
+        { audience: 'pos:web' }
+      );
+      expect(() => verifyDeviceToken(forgedAudToken)).toThrow(
         /jwt audience invalid|expected device token/i
       );
     });
