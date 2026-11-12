@@ -527,7 +527,9 @@ export const expenseRoutes: FastifyPluginAsync = async (fastify) => {
       const randNum = Math.floor(100000 + Math.random() * 900000);
       const expenseNumber = `EXP-${randNum}`;
       const nowIso = new Date().toISOString();
-      const dateOnly = toKarachiBusinessDate(body.expenseDate);
+      const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(body.expenseDate.trim())
+        ? body.expenseDate.trim()
+        : toKarachiBusinessDate(body.expenseDate);
 
       // Execute Posting or Queue Pending Approval
       const result = await db.transaction(async (tx) => {
