@@ -581,14 +581,14 @@ export const ExpensesPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Expenses & Operating Costs
             </h1>
             <Badge variant="outline" className="border-indigo-500/30 text-indigo-500 text-xs">
               General Ledger
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Track business operating expenses, recurring utilities and rent, approval limits, and
             automated journal entries
           </p>
@@ -606,7 +606,7 @@ export const ExpensesPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleOpenGenerateModal}
-                className="border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                className="border-indigo-500/30 text-indigo-600 hover:bg-indigo-50:bg-indigo-950/40"
               >
                 <Repeat className="w-4 h-4 mr-2" />
                 Generate Recurring
@@ -627,89 +627,79 @@ export const ExpensesPage: React.FC = () => {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Total Posted Expenses
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Total Posted Expenses</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {formatPaisa(kpis.totalExpensesPaisa)}
                 </h3>
               </div>
-              <div className="p-3 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg">
+              <div className="p-3 bg-indigo-500/10 text-indigo-600 rounded-lg">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-3 flex items-center text-xs text-slate-500">
               <span>Posted to Chart of Accounts</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Expense Count
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-                  {kpis.expenseCount}
-                </h3>
+                <p className="text-xs font-medium text-slate-500">Expense Count</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">{kpis.expenseCount}</h3>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-lg">
                 <Receipt className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-3 flex items-center text-xs text-slate-500">
               <span>Active approved transactions</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Average Expense
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Average Expense</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {formatPaisa(kpis.averageExpensePaisa)}
                 </h3>
               </div>
-              <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
+              <div className="p-3 bg-blue-500/10 text-blue-600 rounded-lg">
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-3 flex items-center text-xs text-slate-500">
               <span>Per posted transaction</span>
             </div>
           </CardContent>
         </Card>
 
         <Card
-          className={`bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm ${
+          className={`bg-white border-slate-200 shadow-sm ${
             kpis.pendingApprovalCount > 0 ? 'ring-2 ring-amber-500/30' : ''
           }`}
         >
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Pending Approvals
-                </p>
-                <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+                <p className="text-xs font-medium text-slate-500">Pending Approvals</p>
+                <h3 className="text-2xl font-bold text-amber-600 mt-1">
                   {kpis.pendingApprovalCount}
                 </h3>
               </div>
-              <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg">
+              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-lg">
                 <AlertCircle className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-3 flex items-center text-xs text-slate-500">
               <span>Threshold: {formatPaisa(approvalThresholdPaisa)}</span>
             </div>
           </CardContent>
@@ -717,13 +707,13 @@ export const ExpensesPage: React.FC = () => {
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="border-b border-slate-200 dark:border-slate-800 flex items-center gap-6">
+      <div className="border-b border-slate-200 flex items-center gap-6">
         <button
           onClick={() => setActiveTab('all')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'all'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
           }`}
         >
           All Expenses
@@ -733,8 +723,8 @@ export const ExpensesPage: React.FC = () => {
           onClick={() => setActiveTab('pending')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'pending'
-              ? 'border-amber-600 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              ? 'border-amber-600 text-amber-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
           }`}
         >
           <span>Pending Approval</span>
@@ -749,8 +739,8 @@ export const ExpensesPage: React.FC = () => {
           onClick={() => setActiveTab('recurring')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'recurring'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
           }`}
         >
           <span>Recurring Templates</span>
@@ -763,8 +753,8 @@ export const ExpensesPage: React.FC = () => {
           onClick={() => setActiveTab('categories')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'categories'
-              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
           }`}
         >
           <span>Expense Categories</span>
@@ -775,7 +765,7 @@ export const ExpensesPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-lg text-xs text-rose-700 dark:text-rose-300">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700">
           <p className="font-semibold">Error Loading Expenses</p>
           <p className="mt-0.5">{error}</p>
         </div>
@@ -792,7 +782,7 @@ export const ExpensesPage: React.FC = () => {
                 placeholder="Search expense #, vendor, or notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 bg-white dark:bg-slate-900"
+                className="pl-9 h-10 bg-white"
               />
             </div>
 
@@ -801,7 +791,7 @@ export const ExpensesPage: React.FC = () => {
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 aria-label="Filter by category"
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="all">All Categories</option>
                 {categories.map((c) => (
@@ -817,7 +807,7 @@ export const ExpensesPage: React.FC = () => {
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
                 aria-label="Filter by branch"
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="all">All Branches</option>
                 {branches.map((b) => (
@@ -833,7 +823,7 @@ export const ExpensesPage: React.FC = () => {
                 value={paymentTypeFilter}
                 onChange={(e) => setPaymentTypeFilter(e.target.value)}
                 aria-label="Filter by payment type"
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="all">All Payment Types</option>
                 <option value="paid">Paid (Immediate)</option>
@@ -847,7 +837,7 @@ export const ExpensesPage: React.FC = () => {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   aria-label="Filter by status"
-                  className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="all">All Statuses</option>
                   <option value="posted">Posted</option>
@@ -859,7 +849,7 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           {/* Date Range Bar */}
-          <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200">
             <span className="font-medium text-slate-500">Date Range:</span>
             <div className="flex items-center gap-2">
               <span className="text-slate-400">From</span>
@@ -867,7 +857,7 @@ export const ExpensesPage: React.FC = () => {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="h-8 w-36 text-xs bg-white dark:bg-slate-900"
+                className="h-8 w-36 text-xs bg-white"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -876,7 +866,7 @@ export const ExpensesPage: React.FC = () => {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="h-8 w-36 text-xs bg-white dark:bg-slate-900"
+                className="h-8 w-36 text-xs bg-white"
               />
             </div>
             {(dateFrom || dateTo) && (
@@ -895,11 +885,11 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           {/* Table */}
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <Card className="bg-white border-slate-200">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-slate-200 dark:border-slate-800">
+                  <TableRow className="border-b border-slate-200">
                     <TableHead className="w-[120px]">Date</TableHead>
                     <TableHead>Expense #</TableHead>
                     <TableHead>Category</TableHead>
@@ -923,9 +913,7 @@ export const ExpensesPage: React.FC = () => {
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-12 text-slate-500">
                         <Receipt className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                        <p className="font-medium text-slate-700 dark:text-slate-300">
-                          No expenses found
-                        </p>
+                        <p className="font-medium text-slate-700">No expenses found</p>
                         <p className="text-xs text-slate-400 mt-1">
                           {activeTab === 'pending'
                             ? 'No expenses currently pending approval.'
@@ -940,12 +928,12 @@ export const ExpensesPage: React.FC = () => {
                       return (
                         <TableRow
                           key={exp.id}
-                          className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                          className="border-b border-slate-100 hover:bg-slate-50/50"
                         >
-                          <TableCell className="font-mono text-xs text-slate-600 dark:text-slate-400">
+                          <TableCell className="font-mono text-xs text-slate-600">
                             {formatKarachiDateOnly(exp.expenseDate)}
                           </TableCell>
-                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                          <TableCell className="font-medium text-slate-900">
                             <div className="flex items-center gap-2">
                               <span>{exp.expenseNumber}</span>
                               {exp.recurringPeriod && (
@@ -963,13 +951,13 @@ export const ExpensesPage: React.FC = () => {
                               {exp.categoryName || 'Expense'}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                          <TableCell className="text-xs text-slate-600">
                             {exp.branchName || 'Main'}
                           </TableCell>
-                          <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                          <TableCell className="text-xs text-slate-600">
                             {exp.vendorName || '—'}
                           </TableCell>
-                          <TableCell className="text-right font-semibold text-slate-900 dark:text-slate-100">
+                          <TableCell className="text-right font-semibold text-slate-900">
                             {formatPaisa(exp.amountPaisa)}
                           </TableCell>
                           <TableCell>
@@ -1010,7 +998,7 @@ export const ExpensesPage: React.FC = () => {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleApproveExpense(exp.id)}
-                                    className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                    className="text-emerald-600 hover:bg-emerald-50:bg-emerald-950/40"
                                     title="Approve and Post to Ledger"
                                   >
                                     <CheckCircle2 className="w-4 h-4" />
@@ -1025,7 +1013,7 @@ export const ExpensesPage: React.FC = () => {
                                     setExpenseToReverse(exp);
                                     setIsReverseModalOpen(true);
                                   }}
-                                  className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                  className="text-rose-600 hover:bg-rose-50:bg-rose-950/40"
                                   title="Reverse Expense"
                                 >
                                   <RotateCcw className="w-4 h-4" />
@@ -1049,10 +1037,8 @@ export const ExpensesPage: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Recurring Expense Templates
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <h2 className="text-lg font-semibold text-slate-900">Recurring Expense Templates</h2>
+              <p className="text-xs text-slate-500">
                 Monthly rent, utilities, internet and maintenance bills generated automatically or
                 on demand with preview
               </p>
@@ -1069,11 +1055,11 @@ export const ExpensesPage: React.FC = () => {
             )}
           </div>
 
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <Card className="bg-white border-slate-200">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-slate-200 dark:border-slate-800">
+                  <TableRow className="border-b border-slate-200">
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Branch</TableHead>
@@ -1090,9 +1076,7 @@ export const ExpensesPage: React.FC = () => {
                     <TableRow>
                       <TableCell colSpan={9} className="text-center py-12 text-slate-500">
                         <Repeat className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                        <p className="font-medium text-slate-700 dark:text-slate-300">
-                          No recurring templates
-                        </p>
+                        <p className="font-medium text-slate-700">No recurring templates</p>
                         <p className="text-xs text-slate-400 mt-1">
                           Create recurring templates to generate rent or utilities monthly in 1
                           click.
@@ -1103,26 +1087,24 @@ export const ExpensesPage: React.FC = () => {
                     recurringTemplates.map((tmpl) => (
                       <TableRow
                         key={tmpl.id}
-                        className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/40"
+                        className="border-b border-slate-100 hover:bg-slate-50/50"
                       >
-                        <TableCell className="font-medium text-slate-900 dark:text-slate-100">
-                          {tmpl.title}
-                        </TableCell>
+                        <TableCell className="font-medium text-slate-900">{tmpl.title}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {tmpl.categoryName || 'Expense'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                        <TableCell className="text-xs text-slate-600">
                           {tmpl.branchName || 'All Branches'}
                         </TableCell>
-                        <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                        <TableCell className="text-xs text-slate-600">
                           {tmpl.vendorName || '—'}
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-slate-900 dark:text-slate-100">
+                        <TableCell className="text-right font-semibold text-slate-900">
                           {formatPaisa(tmpl.amountPaisa)}
                         </TableCell>
-                        <TableCell className="text-xs text-slate-600 dark:text-slate-400 capitalize">
+                        <TableCell className="text-xs text-slate-600 capitalize">
                           {tmpl.frequency} (Day {tmpl.dayOfMonth})
                         </TableCell>
                         <TableCell>
@@ -1161,10 +1143,10 @@ export const ExpensesPage: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <h2 className="text-lg font-semibold text-slate-900">
                 Expense Categories & Chart of Accounts Mapping
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500">
                 Each expense category maps directly to an expense ledger account in the Chart of
                 Accounts (COA Class 5000)
               </p>
@@ -1181,11 +1163,11 @@ export const ExpensesPage: React.FC = () => {
             )}
           </div>
 
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <Card className="bg-white border-slate-200">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-slate-200 dark:border-slate-800">
+                  <TableRow className="border-b border-slate-200">
                     <TableHead>Category Name</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Account ID</TableHead>
@@ -1194,13 +1176,8 @@ export const ExpensesPage: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   {categories.map((cat) => (
-                    <TableRow
-                      key={cat.id}
-                      className="border-b border-slate-100 dark:border-slate-800/60"
-                    >
-                      <TableCell className="font-semibold text-slate-900 dark:text-slate-100">
-                        {cat.name}
-                      </TableCell>
+                    <TableRow key={cat.id} className="border-b border-slate-100">
+                      <TableCell className="font-semibold text-slate-900">{cat.name}</TableCell>
                       <TableCell className="text-xs text-slate-500">
                         {cat.description || '—'}
                       </TableCell>
@@ -1232,21 +1209,19 @@ export const ExpensesPage: React.FC = () => {
       >
         <form onSubmit={handleCreateExpense} className="space-y-4">
           {addFormError && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-md">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-md">
               {addFormError}
             </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Category *
-              </label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Category *</label>
               <select
                 value={addCategoryId}
                 onChange={(e) => setAddCategoryId(e.target.value)}
                 required
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1257,14 +1232,12 @@ export const ExpensesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Branch *
-              </label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Branch *</label>
               <select
                 value={addBranchId}
                 onChange={(e) => setAddBranchId(e.target.value)}
                 required
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -1275,7 +1248,7 @@ export const ExpensesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Amount (PKR) *
               </label>
               <Input
@@ -1291,7 +1264,7 @@ export const ExpensesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Expense Date *
               </label>
               <Input
@@ -1306,7 +1279,7 @@ export const ExpensesPage: React.FC = () => {
 
           {/* Live Approval Warning Banner */}
           {liveThresholdCheck && (
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-md flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-2 text-xs text-amber-800">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold">Approval Required</p>
@@ -1321,17 +1294,15 @@ export const ExpensesPage: React.FC = () => {
 
           {/* Payment Type Selection */}
           <div className="space-y-2">
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-              Payment Settlement *
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Payment Settlement *</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setAddPaymentType('paid')}
                 className={`p-3 rounded-lg border text-left flex items-center gap-3 transition-colors ${
                   addPaymentType === 'paid'
-                    ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-200 font-medium'
-                    : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                    ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 font-medium'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <CreditCard className="w-5 h-5 text-indigo-600" />
@@ -1346,8 +1317,8 @@ export const ExpensesPage: React.FC = () => {
                 onClick={() => setAddPaymentType('credit')}
                 className={`p-3 rounded-lg border text-left flex items-center gap-3 transition-colors ${
                   addPaymentType === 'credit'
-                    ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200 font-medium'
-                    : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                    ? 'border-purple-600 bg-purple-50/50 text-purple-900 font-medium'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
                 <Landmark className="w-5 h-5 text-purple-600" />
@@ -1362,7 +1333,7 @@ export const ExpensesPage: React.FC = () => {
           {/* If Paid Immediately, choose method */}
           {addPaymentType === 'paid' && (
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Payment Method *
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -1373,8 +1344,8 @@ export const ExpensesPage: React.FC = () => {
                     onClick={() => setAddPaymentMethod(method)}
                     className={`py-2 px-3 rounded border text-xs capitalize flex items-center justify-center gap-1.5 transition-colors ${
                       addPaymentMethod === method
-                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold'
+                        : 'border-slate-200 text-slate-600'
                     }`}
                   >
                     {method === 'cash' && <DollarSign className="w-3.5 h-3.5" />}
@@ -1389,7 +1360,7 @@ export const ExpensesPage: React.FC = () => {
 
           {/* Optional Vendor */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Vendor / Beneficiary Name (Optional)
             </label>
             <Input
@@ -1403,7 +1374,7 @@ export const ExpensesPage: React.FC = () => {
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Notes & Bill References (Optional)
             </label>
             <textarea
@@ -1411,11 +1382,11 @@ export const ExpensesPage: React.FC = () => {
               placeholder="Provide invoice/receipt number or reference details. (Attachment storage is deferred: do not upload files)."
               value={addNotes}
               onChange={(e) => setAddNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
               Cancel
             </Button>
@@ -1442,10 +1413,10 @@ export const ExpensesPage: React.FC = () => {
         {selectedExpense && (
           <div className="space-y-5">
             {/* Header Status & Amount */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div>
                 <p className="text-xs text-slate-500">Total Expense Amount</p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-2xl font-bold text-slate-900">
                   {formatPaisa(selectedExpense.amountPaisa)}
                 </h3>
               </div>
@@ -1467,34 +1438,34 @@ export const ExpensesPage: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div>
                 <p className="text-slate-500">Expense Date</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                <p className="font-semibold text-slate-800 mt-0.5">
                   {formatKarachiDateOnly(selectedExpense.expenseDate)}
                 </p>
               </div>
               <div>
                 <p className="text-slate-500">Category</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                <p className="font-semibold text-slate-800 mt-0.5">
                   {selectedExpense.categoryName}
                 </p>
               </div>
               <div>
                 <p className="text-slate-500">Branch</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                <p className="font-semibold text-slate-800 mt-0.5">
                   {selectedExpense.branchName || 'Main'}
                 </p>
               </div>
               <div>
                 <p className="text-slate-500">Vendor / Payee</p>
-                <p className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
+                <p className="font-semibold text-slate-800 mt-0.5">
                   {selectedExpense.vendorName || '—'}
                 </p>
               </div>
             </div>
 
             {selectedExpense.notes && (
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded text-xs">
+              <div className="p-3 bg-slate-50 rounded text-xs">
                 <p className="text-slate-500 font-medium mb-1">Notes / References</p>
-                <p className="text-slate-700 dark:text-slate-300">{selectedExpense.notes}</p>
+                <p className="text-slate-700">{selectedExpense.notes}</p>
               </div>
             )}
 
@@ -1502,7 +1473,7 @@ export const ExpensesPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-4 h-4 text-indigo-500" />
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   General Ledger Posting
                 </h4>
               </div>
@@ -1513,10 +1484,10 @@ export const ExpensesPage: React.FC = () => {
                   Loading ledger entries...
                 </div>
               ) : selectedExpense.journalLines && selectedExpense.journalLines.length > 0 ? (
-                <div className="border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden">
+                <div className="border border-slate-200 rounded-md overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-slate-50 dark:bg-slate-800/50 text-[11px]">
+                      <TableRow className="bg-slate-50 text-[11px]">
                         <TableHead>Account Code</TableHead>
                         <TableHead>Account Name</TableHead>
                         <TableHead className="text-right">Debit</TableHead>
@@ -1540,7 +1511,7 @@ export const ExpensesPage: React.FC = () => {
                   </Table>
                 </div>
               ) : selectedExpense.status === 'pending_approval' ? (
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-md text-xs text-amber-800 dark:text-amber-300">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800">
                   <p className="font-semibold">No journal entries created yet</p>
                   <p className="mt-0.5">
                     This expense requires approval because the amount (
@@ -1557,7 +1528,7 @@ export const ExpensesPage: React.FC = () => {
 
             {/* Reversal Audit trail if reversed */}
             {selectedExpense.status === 'reversed' && (
-              <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-md text-xs text-rose-800 dark:text-rose-300">
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-xs text-rose-800">
                 <p className="font-semibold flex items-center gap-1.5">
                   <RotateCcw className="w-3.5 h-3.5" />
                   Transaction Reversed
@@ -1569,7 +1540,7 @@ export const ExpensesPage: React.FC = () => {
             )}
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <Button variant="outline" size="sm" onClick={() => setIsDetailModalOpen(false)}>
                 Close
               </Button>
@@ -1616,7 +1587,7 @@ export const ExpensesPage: React.FC = () => {
         maxWidth="md"
       >
         <form onSubmit={handleReverseExpense} className="space-y-4">
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-md text-xs text-amber-800 dark:text-amber-300">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-800">
             <p className="font-semibold">Immutable Accounting Regulation</p>
             <p className="mt-0.5">
               Financial and accounting records cannot be modified or deleted. Reversing this expense
@@ -1626,7 +1597,7 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Reversal Reason (Mandatory) *
             </label>
             <textarea
@@ -1635,11 +1606,11 @@ export const ExpensesPage: React.FC = () => {
               placeholder="Explain why this expense is being reversed (e.g. Duplicate entry, incorrect amount recorded)..."
               value={reverseReason}
               onChange={(e) => setReverseReason(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+              className="w-full px-3 py-2 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <Button
               type="button"
               variant="outline"
@@ -1672,13 +1643,13 @@ export const ExpensesPage: React.FC = () => {
       >
         <form onSubmit={handleCreateRecurring} className="space-y-4">
           {recFormError && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-md">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-md">
               {recFormError}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Template Title *
             </label>
             <Input
@@ -1693,14 +1664,12 @@ export const ExpensesPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Category *
-              </label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Category *</label>
               <select
                 value={recCategoryId}
                 onChange={(e) => setRecCategoryId(e.target.value)}
                 required
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1711,13 +1680,13 @@ export const ExpensesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Branch (Optional)
               </label>
               <select
                 value={recBranchId}
                 onChange={(e) => setRecBranchId(e.target.value)}
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">All Branches / Main</option>
                 {branches.map((b) => (
@@ -1729,7 +1698,7 @@ export const ExpensesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Recurring Amount (PKR) *
               </label>
               <Input
@@ -1745,7 +1714,7 @@ export const ExpensesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Day of Month (1 - 31) *
               </label>
               <Input
@@ -1762,13 +1731,13 @@ export const ExpensesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Settlement Type
               </label>
               <select
                 value={recPaymentType}
                 onChange={(e) => setRecPaymentType(e.target.value as ExpensePaymentType)}
-                className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="paid">Paid Immediately</option>
                 <option value="credit">On Credit (Payable)</option>
@@ -1777,7 +1746,7 @@ export const ExpensesPage: React.FC = () => {
 
             {recPaymentType === 'paid' && (
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
                   Payment Method
                 </label>
                 <select
@@ -1785,7 +1754,7 @@ export const ExpensesPage: React.FC = () => {
                   onChange={(e) =>
                     setRecPaymentMethod(e.target.value as 'cash' | 'bank' | 'wallet')
                   }
-                  className="w-full h-10 px-3 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="cash">Cash</option>
                   <option value="bank">Bank Transfer</option>
@@ -1796,7 +1765,7 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Beneficiary / Vendor Name
             </label>
             <Input
@@ -1809,19 +1778,17 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Notes
-            </label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Notes</label>
             <textarea
               rows={2}
               placeholder="Optional notes or details..."
               value={recNotes}
               onChange={(e) => setRecNotes(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-md border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <Button
               type="button"
               variant="outline"
@@ -1850,7 +1817,7 @@ export const ExpensesPage: React.FC = () => {
         maxWidth="lg"
       >
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-slate-50 rounded-lg">
             <div>
               <p className="text-xs text-slate-500">Target Billing Period (YYYY-MM)</p>
               <Input
@@ -1860,7 +1827,7 @@ export const ExpensesPage: React.FC = () => {
                   setGenPeriod(e.target.value);
                   handlePreviewRecurring(e.target.value);
                 }}
-                className="h-9 w-44 mt-1 bg-white dark:bg-slate-900 font-mono text-xs"
+                className="h-9 w-44 mt-1 bg-white font-mono text-xs"
               />
             </div>
 
@@ -1876,7 +1843,7 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           {genResultMsg && (
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300 text-xs rounded-md">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-md">
               {genResultMsg}
             </div>
           )}
@@ -1890,29 +1857,27 @@ export const ExpensesPage: React.FC = () => {
           ) : genPreview ? (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded">
-                  <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
-                    Eligible To Generate
-                  </p>
-                  <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                <div className="p-3 bg-indigo-50/50 border border-indigo-100 rounded">
+                  <p className="text-[11px] text-indigo-600 font-medium">Eligible To Generate</p>
+                  <p className="text-xl font-bold text-slate-900 mt-0.5">
                     {genPreview.pendingCount}
                   </p>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded">
                   <p className="text-[11px] text-slate-500 font-medium">
                     Already Generated for {genPeriod}
                   </p>
-                  <p className="text-xl font-bold text-slate-700 dark:text-slate-300 mt-0.5">
+                  <p className="text-xl font-bold text-slate-700 mt-0.5">
                     {genPreview.alreadyGeneratedCount}
                   </p>
                 </div>
               </div>
 
               {genPreview.templates.length > 0 ? (
-                <div className="border border-slate-200 dark:border-slate-800 rounded overflow-hidden max-h-56 overflow-y-auto">
+                <div className="border border-slate-200 rounded overflow-hidden max-h-56 overflow-y-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-slate-50 dark:bg-slate-800/50 text-[11px]">
+                      <TableRow className="bg-slate-50 text-[11px]">
                         <TableHead>Template Title</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
@@ -1936,7 +1901,7 @@ export const ExpensesPage: React.FC = () => {
                   </Table>
                 </div>
               ) : (
-                <div className="p-4 text-center text-xs text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded">
+                <div className="p-4 text-center text-xs text-slate-500 border border-dashed border-slate-200 rounded">
                   All active templates have already been generated for {genPeriod}. Idempotency
                   ensures no duplicates are created.
                 </div>
@@ -1944,7 +1909,7 @@ export const ExpensesPage: React.FC = () => {
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
             <Button variant="outline" onClick={() => setIsGenerateModalOpen(false)}>
               Close
             </Button>
@@ -1973,15 +1938,13 @@ export const ExpensesPage: React.FC = () => {
       >
         <form onSubmit={handleCreateCategory} className="space-y-4">
           {catFormError && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-md">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-md">
               {catFormError}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Category Name *
-            </label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">Category Name *</label>
             <Input
               type="text"
               placeholder="e.g. Legal & Professional Fees"
@@ -1993,7 +1956,7 @@ export const ExpensesPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Description (Optional)
             </label>
             <Input
@@ -2005,7 +1968,7 @@ export const ExpensesPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <Button
               type="button"
               variant="outline"

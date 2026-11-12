@@ -280,31 +280,28 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Accounts Receivable (AR)
             </h1>
-            <Badge
-              variant="outline"
-              className="border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs"
-            >
+            <Badge variant="outline" className="border-blue-500/30 text-blue-600 text-xs">
               Asset Class 1100
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Customer credit sales, debt aging buckets, account statements, and control account
             reconciliation
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs">
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-xs">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-slate-500">As Of Date:</span>
             <input
               type="date"
               value={asOfDate}
               onChange={(e) => setAsOfDate(e.target.value)}
-              className="bg-transparent border-none text-slate-700 dark:text-slate-200 focus:outline-none text-xs"
+              className="bg-transparent border-none text-slate-700 focus:outline-none text-xs"
             />
           </div>
 
@@ -333,89 +330,81 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-md">
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-md">
           {error}
         </div>
       )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Total Outstanding AR
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Total Outstanding AR</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {summary ? formatPaisa(summary.totalOutstandingPaisa) : '—'}
                 </h3>
               </div>
-              <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
+              <div className="p-3 bg-blue-500/10 text-blue-600 rounded-lg">
                 <DollarSign className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+            <div className="mt-3 text-xs text-slate-500 flex items-center gap-1">
               <span>Customer credit balance</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Overdue Receivables
-                </p>
-                <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+                <p className="text-xs font-medium text-slate-500">Overdue Receivables</p>
+                <h3 className="text-2xl font-bold text-amber-600 mt-1">
                   {summary ? formatPaisa(summary.overduePaisa) : '—'}
                 </h3>
               </div>
-              <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg">
+              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-lg">
                 <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-3 text-xs text-slate-500">
               <span>Past credit term date</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Collected This Month
-                </p>
-                <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                <p className="text-xs font-medium text-slate-500">Collected This Month</p>
+                <h3 className="text-2xl font-bold text-emerald-600 mt-1">
                   {summary ? formatPaisa(summary.collectedThisMonthPaisa) : '—'}
                 </h3>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-lg">
                 <ArrowDownLeft className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-3 text-xs text-slate-500">
               <span>Credits posted to Account 1100</span>
             </div>
           </CardContent>
         </Card>
 
         <Card
-          className={`bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm ${
+          className={`bg-white border-slate-200 shadow-sm ${
             summary?.reconciliation.isReconciled ? '' : 'ring-2 ring-rose-500/40'
           }`}
         >
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Ledger Reconciliation
-                </p>
+                <p className="text-xs font-medium text-slate-500">Ledger Reconciliation</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-lg font-bold text-slate-900">
                     {summary?.reconciliation.isReconciled ? 'Balanced' : 'Mismatch'}
                   </h3>
                   <Badge
@@ -433,8 +422,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
               <div
                 className={`p-3 rounded-lg ${
                   summary?.reconciliation.isReconciled
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                    ? 'bg-emerald-500/10 text-emerald-600'
+                    : 'bg-rose-500/10 text-rose-600'
                 }`}
               >
                 <CheckCircle2 className="w-6 h-6" />
@@ -450,8 +439,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
 
       {/* Aging Distribution Visual Bar */}
       {summary && (
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-4">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+        <Card className="bg-white border-slate-200 p-4">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-700 mb-2">
             <span>Aging Schedule Breakdown (As of {asOfDate})</span>
             <span className="text-slate-400 font-normal">
               Calculated from individual debt lines
@@ -459,41 +448,41 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-            <div className="p-2.5 rounded bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+            <div className="p-2.5 rounded bg-emerald-50/50 border border-emerald-100">
               <span className="text-[11px] text-emerald-600 font-medium">Current (0d)</span>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+              <p className="text-sm font-bold text-slate-900 mt-0.5">
                 {formatPaisa(summary.aging.currentPaisa)}
               </p>
               <span className="text-[10px] text-slate-400">{agingPct?.current ?? 0}%</span>
             </div>
 
-            <div className="p-2.5 rounded bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
+            <div className="p-2.5 rounded bg-blue-50/50 border border-blue-100">
               <span className="text-[11px] text-blue-600 font-medium">1 - 30 Days</span>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+              <p className="text-sm font-bold text-slate-900 mt-0.5">
                 {formatPaisa(summary.aging.days1to30Paisa)}
               </p>
               <span className="text-[10px] text-slate-400">{agingPct?.days1to30 ?? 0}%</span>
             </div>
 
-            <div className="p-2.5 rounded bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
+            <div className="p-2.5 rounded bg-amber-50/50 border border-amber-100">
               <span className="text-[11px] text-amber-600 font-medium">31 - 60 Days</span>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+              <p className="text-sm font-bold text-slate-900 mt-0.5">
                 {formatPaisa(summary.aging.days31to60Paisa)}
               </p>
               <span className="text-[10px] text-slate-400">{agingPct?.days31to60 ?? 0}%</span>
             </div>
 
-            <div className="p-2.5 rounded bg-orange-50/50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/40">
+            <div className="p-2.5 rounded bg-orange-50/50 border border-orange-100">
               <span className="text-[11px] text-orange-600 font-medium">61 - 90 Days</span>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+              <p className="text-sm font-bold text-slate-900 mt-0.5">
                 {formatPaisa(summary.aging.days61to90Paisa)}
               </p>
               <span className="text-[10px] text-slate-400">{agingPct?.days61to90 ?? 0}%</span>
             </div>
 
-            <div className="p-2.5 rounded bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40">
+            <div className="p-2.5 rounded bg-rose-50/50 border border-rose-100">
               <span className="text-[11px] text-rose-600 font-medium">90+ Days</span>
-              <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+              <p className="text-sm font-bold text-slate-900 mt-0.5">
                 {formatPaisa(summary.aging.days90PlusPaisa)}
               </p>
               <span className="text-[10px] text-slate-400">{agingPct?.days90Plus ?? 0}%</span>
@@ -503,13 +492,13 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
       )}
 
       {/* Main Tabs Navigation */}
-      <div className="border-b border-slate-200 dark:border-slate-800 flex items-center gap-6">
+      <div className="border-b border-slate-200 flex items-center gap-6">
         <button
           onClick={() => setActiveTab('customers')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'customers'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -523,8 +512,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
           onClick={() => setActiveTab('products')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'products'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <Package className="w-4 h-4" />
@@ -538,8 +527,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
           onClick={() => setActiveTab('reminders')}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'reminders'
-              ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <Bell className="w-4 h-4" />
@@ -559,15 +548,15 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
               placeholder="Search customer by name or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10 bg-white dark:bg-slate-900"
+              className="pl-9 h-10 bg-white"
             />
           </div>
 
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <Card className="bg-white border-slate-200">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-b border-slate-200 dark:border-slate-800">
+                  <TableRow className="border-b border-slate-200">
                     <TableHead className="w-[40px]"></TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Phone</TableHead>
@@ -597,11 +586,11 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                       const isExpanded = expandedCustomers.has(c.id);
                       return (
                         <React.Fragment key={c.id}>
-                          <TableRow className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                          <TableRow className="border-b border-slate-100 hover:bg-slate-50/50">
                             <TableCell>
                               <button
                                 onClick={() => toggleCustomerExpand(c.id)}
-                                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500"
+                                className="p-1 hover:bg-slate-200 rounded text-slate-500"
                               >
                                 {isExpanded ? (
                                   <ChevronDown className="w-4 h-4" />
@@ -610,7 +599,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                                 )}
                               </button>
                             </TableCell>
-                            <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                            <TableCell className="font-medium text-slate-900">
                               <div>
                                 <p>{c.name}</p>
                                 <span className="text-[11px] text-slate-400">
@@ -618,10 +607,10 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                            <TableCell className="text-xs text-slate-600">
                               {c.phone || '—'}
                             </TableCell>
-                            <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                            <TableCell className="text-right font-bold text-slate-900">
                               {formatPaisa(c.outstandingPaisa)}
                             </TableCell>
                             <TableCell>
@@ -694,10 +683,10 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
 
                           {/* Expandable Documents Subtable */}
                           {isExpanded && (
-                            <TableRow className="bg-slate-50/80 dark:bg-slate-800/30">
+                            <TableRow className="bg-slate-50/80">
                               <TableCell colSpan={7} className="p-4 pl-12">
                                 <div className="space-y-2">
-                                  <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                  <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
                                     <span>Open Credit Invoices ({c.documents.length})</span>
                                   </div>
 
@@ -706,10 +695,10 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                                       No open invoice documents pending settlement.
                                     </p>
                                   ) : (
-                                    <div className="border border-slate-200 dark:border-slate-700 rounded overflow-hidden">
+                                    <div className="border border-slate-200 rounded overflow-hidden">
                                       <Table>
                                         <TableHeader>
-                                          <TableRow className="bg-white dark:bg-slate-800 text-[11px]">
+                                          <TableRow className="bg-white text-[11px]">
                                             <TableHead>Invoice #</TableHead>
                                             <TableHead>Date</TableHead>
                                             <TableHead className="text-right">Total</TableHead>
@@ -738,7 +727,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                                                 <TableCell className="text-right text-emerald-600">
                                                   {formatPaisa(doc.paidPaisa)}
                                                 </TableCell>
-                                                <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                                                <TableCell className="text-right font-bold text-slate-900">
                                                   {formatPaisa(doc.balanceDuePaisa)}
                                                 </TableCell>
                                                 <TableCell>
@@ -789,11 +778,11 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
 
       {/* TAB 2: By Product */}
       {activeTab === 'products' && (
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-slate-200 dark:border-slate-800">
+                <TableRow className="border-b border-slate-200">
                   <TableHead>Product Name</TableHead>
                   <TableHead>Generic Name</TableHead>
                   <TableHead className="text-right">Units on Credit</TableHead>
@@ -812,11 +801,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                   </TableRow>
                 ) : (
                   productsList.map((p) => (
-                    <TableRow
-                      key={p.productId}
-                      className="border-b border-slate-100 dark:border-slate-800/60"
-                    >
-                      <TableCell className="font-semibold text-slate-900 dark:text-slate-100">
+                    <TableRow key={p.productId} className="border-b border-slate-100">
+                      <TableCell className="font-semibold text-slate-900">
                         {p.productName}
                       </TableCell>
                       <TableCell className="text-xs text-slate-500">
@@ -826,7 +812,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                       <TableCell className="text-right">
                         {formatPaisa(p.creditSalesPaisa)}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-blue-600 dark:text-blue-400">
+                      <TableCell className="text-right font-bold text-blue-600">
                         {formatPaisa(p.receivablePaisa)}
                       </TableCell>
                       <TableCell className="text-right text-xs text-slate-500">
@@ -843,11 +829,11 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
 
       {/* TAB 3: Reminders Log */}
       {activeTab === 'reminders' && (
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+        <Card className="bg-white border-slate-200">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-slate-200 dark:border-slate-800">
+                <TableRow className="border-b border-slate-200">
                   <TableHead>Customer</TableHead>
                   <TableHead>Channel</TableHead>
                   <TableHead>Recipient</TableHead>
@@ -870,13 +856,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                   </TableRow>
                 ) : (
                   remindersList.map((r) => (
-                    <TableRow
-                      key={r.id}
-                      className="border-b border-slate-100 dark:border-slate-800/60 text-xs"
-                    >
-                      <TableCell className="font-medium text-slate-900 dark:text-slate-100">
-                        {r.partyName}
-                      </TableCell>
+                    <TableRow key={r.id} className="border-b border-slate-100 text-xs">
+                      <TableCell className="font-medium text-slate-900">{r.partyName}</TableCell>
                       <TableCell className="capitalize">
                         <Badge variant="outline" className="text-[10px]">
                           {r.channel}
@@ -891,7 +872,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                       <TableCell className="text-slate-500">
                         {formatKarachiDateOnly(r.sentAt)}
                       </TableCell>
-                      <TableCell className="text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                      <TableCell className="text-slate-600 max-w-xs truncate">
                         {r.message || '—'}
                       </TableCell>
                     </TableRow>
@@ -918,21 +899,21 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
         {statementCustomer && (
           <div className="space-y-4">
             {/* Filter Date Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 rounded-lg text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-slate-500">From:</span>
                 <input
                   type="date"
                   value={statementStartDate}
                   onChange={(e) => setStatementStartDate(e.target.value)}
-                  className="h-8 px-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  className="h-8 px-2 rounded border border-slate-300 bg-white text-xs"
                 />
                 <span className="text-slate-500">To:</span>
                 <input
                   type="date"
                   value={statementEndDate}
                   onChange={(e) => setStatementEndDate(e.target.value)}
-                  className="h-8 px-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                  className="h-8 px-2 rounded border border-slate-300 bg-white text-xs"
                 />
                 <Button size="sm" variant="outline" onClick={handleRefreshStatement}>
                   Update
@@ -952,10 +933,10 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
             {/* Printable Statement Container */}
             <div
               id="statement-print-area"
-              className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-4"
+              className="p-6 bg-white border border-slate-200 rounded-lg space-y-4"
             >
               {/* Header */}
-              <div className="flex justify-between items-start border-b pb-4 border-slate-200 dark:border-slate-800">
+              <div className="flex justify-between items-start border-b pb-4 border-slate-200">
                 <div>
                   <h2 className="text-xl font-bold tracking-tight">STATEMENT OF ACCOUNT</h2>
                   <p className="text-xs text-slate-500 mt-1">
@@ -963,9 +944,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                   </p>
                 </div>
                 <div className="text-right text-xs">
-                  <p className="font-bold text-slate-900 dark:text-slate-100">
-                    {statementCustomer.name}
-                  </p>
+                  <p className="font-bold text-slate-900">{statementCustomer.name}</p>
                   <p className="text-slate-500">{statementCustomer.phone || 'No phone'}</p>
                   <p className="text-slate-500">
                     {statementCustomer.address || 'Karachi, Pakistan'}
@@ -981,16 +960,16 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
               ) : statementData ? (
                 <>
                   {/* Summary row */}
-                  <div className="grid grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 rounded text-xs text-center">
+                  <div className="grid grid-cols-4 gap-3 p-3 bg-slate-50 rounded text-xs text-center">
                     <div>
                       <p className="text-slate-400">Opening Balance</p>
-                      <p className="font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                      <p className="font-bold text-slate-900 mt-0.5">
                         {formatPaisa(statementData.openingBalancePaisa)}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-400">Total Invoiced (Dr)</p>
-                      <p className="font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                      <p className="font-bold text-slate-900 mt-0.5">
                         {formatPaisa(statementData.totalDebitsPaisa)}
                       </p>
                     </div>
@@ -1009,10 +988,10 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                   </div>
 
                   {/* Lines Table */}
-                  <div className="border border-slate-200 dark:border-slate-800 rounded overflow-hidden">
+                  <div className="border border-slate-200 rounded overflow-hidden">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-slate-50 dark:bg-slate-800/50 text-[11px]">
+                        <TableRow className="bg-slate-50 text-[11px]">
                           <TableHead>Date</TableHead>
                           <TableHead>Entry #</TableHead>
                           <TableHead>Description</TableHead>
@@ -1034,7 +1013,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                         ) : (
                           statementData.lines.map((l) => (
                             <TableRow key={l.id} className="text-xs">
-                              <TableCell className="font-mono text-slate-600 dark:text-slate-400">
+                              <TableCell className="font-mono text-slate-600">
                                 {formatKarachiDateOnly(l.date)}
                               </TableCell>
                               <TableCell className="font-mono">{l.entryNo}</TableCell>
@@ -1090,11 +1069,9 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
               </div>
             )}
 
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded text-xs flex justify-between items-center">
+            <div className="p-3 bg-slate-50 rounded text-xs flex justify-between items-center">
               <div>
-                <p className="font-semibold text-slate-900 dark:text-slate-100">
-                  {reminderTarget.name}
-                </p>
+                <p className="font-semibold text-slate-900">{reminderTarget.name}</p>
                 <p className="text-slate-500 mt-0.5">
                   Outstanding Balance: {formatPaisa(reminderTarget.outstandingPaisa)}
                 </p>
@@ -1105,7 +1082,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Communication Channel
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -1116,8 +1093,8 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
                     onClick={() => setReminderChannel(ch)}
                     className={`py-2 text-xs capitalize rounded border text-center font-medium transition-colors ${
                       reminderChannel === ch
-                        ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 text-slate-600'
                     }`}
                   >
                     {ch}
@@ -1127,7 +1104,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Recipient Contact (Phone / Email)
               </label>
               <Input
@@ -1140,18 +1117,18 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Reminder Message
               </label>
               <textarea
                 rows={4}
                 value={reminderMessage}
                 onChange={(e) => setReminderMessage(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs rounded border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <Button type="button" variant="outline" onClick={() => setReminderTarget(null)}>
                 Cancel
               </Button>

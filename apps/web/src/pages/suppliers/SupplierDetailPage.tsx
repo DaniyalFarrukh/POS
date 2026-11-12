@@ -105,15 +105,15 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                <Building2 className="w-6 h-6 text-[#2F64D8]" />
                 {supplier.name}
               </h1>
               <Badge variant={supplier.isActive ? 'success' : 'secondary'}>
                 {supplier.isActive ? 'Active' : 'Inactive'}
               </Badge>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Contact: {supplier.contactPerson || 'Not specified'} • Terms:{' '}
               {supplier.paymentTermsDays} days
               {supplier.taxNumber ? ` • NTN/STRN: ${supplier.taxNumber}` : ''}
@@ -140,9 +140,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <Phone className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
               <div>
                 <span className="text-slate-400 block font-medium">Phone Number</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {supplier.phone || '—'}
-                </span>
+                <span className="font-semibold text-slate-800">{supplier.phone || '—'}</span>
               </div>
             </div>
 
@@ -150,9 +148,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <Mail className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
               <div>
                 <span className="text-slate-400 block font-medium">Email Address</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {supplier.email || '—'}
-                </span>
+                <span className="font-semibold text-slate-800">{supplier.email || '—'}</span>
               </div>
             </div>
 
@@ -160,7 +156,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <CreditCard className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
               <div>
                 <span className="text-slate-400 block font-medium">Credit Limit</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                <span className="font-semibold text-slate-800 font-mono">
                   {supplier.creditLimitPaisa > 0
                     ? formatPaisa(supplier.creditLimitPaisa)
                     : 'No limit'}
@@ -172,7 +168,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <MapPin className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
               <div>
                 <span className="text-slate-400 block font-medium">Business Address</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block max-w-xs">
+                <span className="font-semibold text-slate-800 truncate block max-w-xs">
                   {supplier.address || '—'}
                 </span>
               </div>
@@ -183,16 +179,16 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-blue-600">
+        <Card className="border-l-4 border-l-[#2F64D8]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                 Outstanding Balance
               </span>
-              <Scale className="w-4 h-4 text-blue-600" />
+              <Scale className="w-4 h-4 text-[#2F64D8]" />
             </div>
             <div className="mt-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
                 {formatPaisa(supplier.payableBalancePaisa)}
               </span>
               <p className="text-[11px] text-slate-400 mt-0.5">Current Accounts Payable balance</p>
@@ -209,7 +205,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <Clock className="w-4 h-4 text-amber-500" />
             </div>
             <div className="mt-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
                 {formatPaisa(supplier.overduePayablePaisa || 0)}
               </span>
               <p className="text-[11px] text-slate-400 mt-0.5">
@@ -228,7 +224,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
               <Receipt className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="mt-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
                 {purchases.length}
               </span>
               <p className="text-[11px] text-slate-400 mt-0.5">
@@ -242,13 +238,13 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800">
+      <div className="flex border-b border-slate-200">
         <button
           onClick={() => setActiveTab('ledger')}
           className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'ledger'
-              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              ? 'border-[#2F64D8] text-[#2F64D8] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -258,8 +254,8 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
           onClick={() => setActiveTab('purchases')}
           className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'purchases'
-              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              ? 'border-[#2F64D8] text-[#2F64D8] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <Receipt className="w-4 h-4" />
@@ -290,13 +286,13 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
                 <TableBody>
                   {ledger.map((line) => (
                     <TableRow key={line.id}>
-                      <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                      <TableCell className="text-xs text-slate-600">
                         {formatKarachiDateOnly(line.entryDate)}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-semibold">
                         #{line.entryNo}
                       </TableCell>
-                      <TableCell className="text-xs text-slate-800 dark:text-slate-200">
+                      <TableCell className="text-xs text-slate-800">
                         {line.memo || line.lineMemo || 'Journal Line'}
                         {line.sourceType && (
                           <span className="block text-[10px] text-slate-400 uppercase">
@@ -310,7 +306,7 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
                       <TableCell className="text-xs text-right font-mono tabular-nums text-amber-600">
                         {line.creditPaisa > 0 ? formatPaisa(line.creditPaisa) : '—'}
                       </TableCell>
-                      <TableCell className="text-xs text-right font-mono tabular-nums font-bold text-slate-900 dark:text-slate-100">
+                      <TableCell className="text-xs text-right font-mono tabular-nums font-bold text-slate-900">
                         {formatPaisa(line.runningBalancePaisa)}
                       </TableCell>
                     </TableRow>
@@ -343,13 +339,13 @@ export const SupplierDetailPage: React.FC<SupplierDetailPageProps> = ({ supplier
                 <TableBody>
                   {purchases.map((p) => (
                     <TableRow key={p.id}>
-                      <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                      <TableCell className="text-xs text-slate-600">
                         {formatKarachiDateOnly(p.entryDate)}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-semibold">
                         #{p.entryNo}
                       </TableCell>
-                      <TableCell className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                      <TableCell className="text-xs font-medium text-slate-800">
                         {p.memo || 'Purchase Receipt'}
                       </TableCell>
                       <TableCell className="text-xs text-slate-500 font-mono">

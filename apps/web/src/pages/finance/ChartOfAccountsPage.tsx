@@ -43,26 +43,26 @@ const TYPE_CONFIG: Record<
     headerBg: string;
   }
 > = {
-  asset: { label: 'Assets', badgeVariant: 'info', headerBg: 'bg-blue-50/50 dark:bg-blue-950/20' },
+  asset: { label: 'Assets', badgeVariant: 'info', headerBg: 'bg-blue-50/70' },
   liability: {
     label: 'Liabilities',
     badgeVariant: 'warning',
-    headerBg: 'bg-amber-50/50 dark:bg-amber-950/20',
+    headerBg: 'bg-amber-50/70',
   },
   equity: {
     label: 'Equity',
     badgeVariant: 'default',
-    headerBg: 'bg-purple-50/50 dark:bg-purple-950/20',
+    headerBg: 'bg-purple-50/70',
   },
   revenue: {
     label: 'Revenue',
     badgeVariant: 'success',
-    headerBg: 'bg-emerald-50/50 dark:bg-emerald-950/20',
+    headerBg: 'bg-emerald-50/70',
   },
   expense: {
     label: 'Expenses',
     badgeVariant: 'destructive',
-    headerBg: 'bg-rose-50/50 dark:bg-rose-950/20',
+    headerBg: 'bg-rose-50/70',
   },
 };
 
@@ -269,27 +269,19 @@ export const ChartOfAccountsPage: React.FC = () => {
 
       return (
         <React.Fragment key={account.id}>
-          <TableRow
-            className={
-              !account.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/30' : undefined
-            }
-          >
+          <TableRow className={!account.isActive ? 'opacity-60 bg-slate-50/50' : undefined}>
             <TableCell className="py-2.5">
               <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
                 {depth > 0 && <span className="text-slate-400 font-mono text-xs">└─</span>}
-                <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">
-                  {account.code}
-                </span>
+                <span className="font-mono font-semibold text-slate-900">{account.code}</span>
               </div>
             </TableCell>
             <TableCell className="py-2.5">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900 dark:text-slate-100">
-                  {account.name}
-                </span>
+                <span className="font-medium text-slate-900">{account.name}</span>
                 {account.isSystem && (
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-[#2F64D8]"
                     title="Protected system account"
                   >
                     <Lock className="w-2.5 h-2.5" />
@@ -349,11 +341,11 @@ export const ChartOfAccountsPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-[#2F64D8]" />
             Chart of Accounts
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             General ledger accounts structure, classification, and operational document posting
             mappings
           </p>
@@ -371,13 +363,13 @@ export const ChartOfAccountsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800">
+      <div className="flex border-b border-slate-200">
         <button
           onClick={() => setActiveTab('coa')}
           className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'coa'
-              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              ? 'border-[#2F64D8] text-[#2F64D8] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <FolderTree className="w-4 h-4" />
@@ -387,8 +379,8 @@ export const ChartOfAccountsPage: React.FC = () => {
           onClick={() => setActiveTab('mappings')}
           className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'mappings'
-              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-              : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+              ? 'border-[#2F64D8] text-[#2F64D8] font-bold'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
           <Sliders className="w-4 h-4" />
@@ -397,7 +389,7 @@ export const ChartOfAccountsPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300 rounded-lg flex items-center gap-3">
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span className="text-sm font-medium">{error}</span>
         </div>
@@ -448,7 +440,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                   <Card key={type} className="overflow-hidden">
                     <div
                       onClick={() => toggleSection(type)}
-                      className={`px-4 py-3 cursor-pointer flex items-center justify-between border-b border-slate-200 dark:border-slate-800 select-none ${config.headerBg}`}
+                      className={`px-4 py-3 cursor-pointer flex items-center justify-between border-b border-slate-200 select-none ${config.headerBg}`}
                     >
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
@@ -456,10 +448,8 @@ export const ChartOfAccountsPage: React.FC = () => {
                         ) : (
                           <ChevronDown className="w-4 h-4 text-slate-500" />
                         )}
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          {config.label}
-                        </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                        <span className="font-semibold text-slate-900">{config.label}</span>
+                        <span className="text-xs text-slate-500 font-normal">
                           ({typeNodes.reduce((acc, n) => acc + 1 + n.children.length, 0)} accounts)
                         </span>
                       </div>
@@ -506,17 +496,17 @@ export const ChartOfAccountsPage: React.FC = () => {
         <Card>
           <CardContent className="p-6">
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <h2 className="text-lg font-semibold text-slate-900">
                 Operational Document Account Mappings
               </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-sm text-slate-500 mt-1">
                 Configure which general ledger accounts are debited and credited automatically when
                 invoices, returns, purchases, and stock adjustments are posted.
               </p>
             </div>
 
             {mappingsSavedSuccess && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-300 rounded-lg flex items-center gap-2">
+              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm font-medium">Account mappings updated successfully.</span>
               </div>
@@ -535,20 +525,18 @@ export const ChartOfAccountsPage: React.FC = () => {
                     return (
                       <div
                         key={roleKey}
-                        className="p-4 border rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 flex flex-col justify-between"
+                        className="p-4 border rounded-lg border-slate-200 bg-slate-50/50 flex flex-col justify-between"
                       >
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                            <span className="font-semibold text-sm text-slate-900">
                               {meta.label}
                             </span>
-                            <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
                               role: {roleKey}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                            {meta.desc}
-                          </p>
+                          <p className="text-xs text-slate-500 mb-3">{meta.desc}</p>
                         </div>
 
                         <div>
@@ -558,7 +546,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                             onChange={(e) =>
                               setMappings((prev) => ({ ...prev, [roleKey]: e.target.value }))
                             }
-                            className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-sm border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2F64D8]/20 focus:border-[#2F64D8]"
                           >
                             <option value="">-- Select Ledger Account --</option>
                             {activeOptions.map((acc) => (
@@ -574,7 +562,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                 </div>
 
                 {canManage && (
-                  <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <div className="flex justify-end pt-4 border-t border-slate-200">
                     <Button
                       type="submit"
                       disabled={isSubmitting}
@@ -600,13 +588,13 @@ export const ChartOfAccountsPage: React.FC = () => {
         >
           <form onSubmit={handleCreateAccount} className="space-y-4">
             {modalError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300 text-xs rounded-md">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-md">
                 {modalError}
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Account Code <span className="text-rose-500">*</span>
               </label>
               <Input
@@ -621,7 +609,7 @@ export const ChartOfAccountsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Account Name <span className="text-rose-500">*</span>
               </label>
               <Input
@@ -633,7 +621,7 @@ export const ChartOfAccountsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Classification Type <span className="text-rose-500">*</span>
               </label>
               <select
@@ -642,7 +630,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                   setNewType(e.target.value as AccountType);
                   setNewParentId('');
                 }}
-                className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2F64D8]/20 focus:border-[#2F64D8]"
               >
                 <option value="asset">Asset</option>
                 <option value="liability">Liability</option>
@@ -653,13 +641,13 @@ export const ChartOfAccountsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Parent Account (Optional)
               </label>
               <select
                 value={newParentId}
                 onChange={(e) => setNewParentId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2F64D8]/20 focus:border-[#2F64D8]"
               >
                 <option value="">-- No Parent (Top Level) --</option>
                 {accounts
@@ -672,7 +660,7 @@ export const ChartOfAccountsPage: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"

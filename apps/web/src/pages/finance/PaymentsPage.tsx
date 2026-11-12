@@ -479,11 +479,11 @@ export const PaymentsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-emerald-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <CreditCard className="h-6 w-6 text-emerald-600" />
             Financial Payments & Receipts
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             Customer receipts on credit, supplier purchase payments, document allocations, and
             cheque clearing.
           </p>
@@ -495,7 +495,7 @@ export const PaymentsPage: React.FC = () => {
             size="sm"
             onClick={fetchPayments}
             disabled={loading}
-            className="border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700"
+            className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -504,7 +504,7 @@ export const PaymentsPage: React.FC = () => {
           {canCreate && (
             <Button
               onClick={() => setIsRecordOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-900"
             >
               <Plus className="h-4 w-4 mr-2" />
               Record Payment
@@ -516,68 +516,68 @@ export const PaymentsPage: React.FC = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Receipts */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-slate-200/80 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-400">Total Customer Receipts</p>
-              <h3 className="text-xl font-bold text-emerald-400 mt-1">
+              <p className="text-xs font-medium text-slate-500">Total Customer Receipts</p>
+              <h3 className="text-xl font-bold text-emerald-600 mt-1">
                 {formatPaisa(kpis.totalReceiptsPaisa)}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">Settled credit invoices</p>
             </div>
-            <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-emerald-400">
+            <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-emerald-600">
               <ArrowDownLeft className="h-6 w-6" />
             </div>
           </CardContent>
         </Card>
 
         {/* Total Payments */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-slate-200/80 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-400">Total Supplier Payments</p>
-              <h3 className="text-xl font-bold text-amber-400 mt-1">
+              <p className="text-xs font-medium text-slate-500">Total Supplier Payments</p>
+              <h3 className="text-xl font-bold text-amber-600 mt-1">
                 {formatPaisa(kpis.totalPaymentsPaisa)}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">Settled purchase bills</p>
             </div>
-            <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20 text-amber-400">
+            <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20 text-amber-600">
               <ArrowUpRight className="h-6 w-6" />
             </div>
           </CardContent>
         </Card>
 
         {/* Net Cash Flow */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-slate-200/80 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-400">Net Cash Flow</p>
+              <p className="text-xs font-medium text-slate-500">Net Cash Flow</p>
               <h3
                 className={`text-xl font-bold mt-1 ${
-                  kpis.netCashFlowPaisa >= 0 ? 'text-sky-400' : 'text-rose-400'
+                  kpis.netCashFlowPaisa >= 0 ? 'text-[#2F64D8]' : 'text-rose-400'
                 }`}
               >
                 {formatPaisa(kpis.netCashFlowPaisa)}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">Receipts minus payments</p>
             </div>
-            <div className="p-3 bg-sky-500/10 rounded-lg border border-sky-500/20 text-sky-400">
+            <div className="p-3 bg-sky-500/10 rounded-lg border border-sky-500/20 text-[#2F64D8]">
               <Scale className="h-6 w-6" />
             </div>
           </CardContent>
         </Card>
 
         {/* Pending Cheques */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-slate-200/80 shadow-2xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-400">Pending Cheques</p>
-              <h3 className="text-xl font-bold text-violet-400 mt-1">{kpis.pendingChequesCount}</h3>
+              <p className="text-xs font-medium text-slate-500">Pending Cheques</p>
+              <h3 className="text-xl font-bold text-purple-600 mt-1">{kpis.pendingChequesCount}</h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Value: {formatPaisa(kpis.pendingChequesValuePaisa)}
               </p>
             </div>
-            <div className="p-3 bg-violet-500/10 rounded-lg border border-violet-500/20 text-violet-400">
+            <div className="p-3 bg-violet-500/10 rounded-lg border border-violet-500/20 text-purple-600">
               <CreditCard className="h-6 w-6" />
             </div>
           </CardContent>
@@ -585,9 +585,9 @@ export const PaymentsPage: React.FC = () => {
       </div>
 
       {/* Tabs & Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-3 rounded-lg border border-slate-200/80 shadow-2xs">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 border-b sm:border-b-0 border-slate-800 pb-2 sm:pb-0">
+        <div className="flex items-center gap-1 border-b sm:border-b-0 border-slate-200 pb-2 sm:pb-0">
           <Button
             variant="ghost"
             size="sm"
@@ -597,8 +597,8 @@ export const PaymentsPage: React.FC = () => {
             }}
             className={
               activeTab === 'all'
-                ? 'bg-slate-800 text-white font-medium'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#EEF4FF] text-[#2F64D8] font-bold'
+                : 'text-slate-500 hover:text-slate-900'
             }
           >
             All Transactions
@@ -613,8 +613,8 @@ export const PaymentsPage: React.FC = () => {
             }}
             className={
               activeTab === 'receipt'
-                ? 'bg-slate-800 text-emerald-400 font-medium'
-                : 'text-slate-400 hover:text-emerald-400'
+                ? 'bg-emerald-50 text-emerald-700 font-bold'
+                : 'text-slate-500 hover:text-emerald-600'
             }
           >
             Receipts
@@ -629,8 +629,8 @@ export const PaymentsPage: React.FC = () => {
             }}
             className={
               activeTab === 'payment'
-                ? 'bg-slate-800 text-amber-400 font-medium'
-                : 'text-slate-400 hover:text-amber-400'
+                ? 'bg-amber-50 text-amber-800 font-bold'
+                : 'text-slate-500 hover:text-amber-600'
             }
           >
             Payments
@@ -645,8 +645,8 @@ export const PaymentsPage: React.FC = () => {
             }}
             className={
               activeTab === 'cheque'
-                ? 'bg-slate-800 text-violet-400 font-medium'
-                : 'text-slate-400 hover:text-violet-400'
+                ? 'bg-slate-800 text-purple-600 font-medium'
+                : 'text-slate-500 hover:text-purple-600'
             }
           >
             Cheque Register
@@ -662,7 +662,7 @@ export const PaymentsPage: React.FC = () => {
                 setChequeStatusFilter(e.target.value as 'all' | ChequeStatus);
                 setPage(1);
               }}
-              className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="bg-white border border-slate-300 text-slate-800 text-xs rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
               <option value="all">All Cheque Statuses</option>
               <option value="pending">Pending Clearing</option>
@@ -672,7 +672,7 @@ export const PaymentsPage: React.FC = () => {
           )}
 
           <div className="relative">
-            <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <Search className="h-3.5 w-3.5 text-slate-500 absolute left-2.5 top-2.5" />
             <input
               type="text"
               placeholder="Search #, cheque, notes..."
@@ -681,7 +681,7 @@ export const PaymentsPage: React.FC = () => {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-md pl-8 pr-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-44 sm:w-56"
+              className="bg-white border border-slate-300 text-slate-800 text-xs rounded-md pl-8 pr-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-44 sm:w-56"
             />
           </div>
 
@@ -692,7 +692,7 @@ export const PaymentsPage: React.FC = () => {
               setStartDate(e.target.value);
               setPage(1);
             }}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="bg-white border border-slate-300 text-slate-800 text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
 
           <input
@@ -702,7 +702,7 @@ export const PaymentsPage: React.FC = () => {
               setEndDate(e.target.value);
               setPage(1);
             }}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="bg-white border border-slate-300 text-slate-800 text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500"
           />
         </div>
       </div>
@@ -716,36 +716,36 @@ export const PaymentsPage: React.FC = () => {
       )}
 
       {/* Payments Table */}
-      <Card className="bg-slate-900 border-slate-800 overflow-hidden">
+      <Card className="bg-white border-slate-200/80 overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-800/60">
-              <TableRow className="border-slate-800">
-                <TableHead className="text-slate-400 font-medium">Payment #</TableHead>
-                <TableHead className="text-slate-400 font-medium">Date</TableHead>
-                <TableHead className="text-slate-400 font-medium">Type</TableHead>
-                <TableHead className="text-slate-400 font-medium">Party</TableHead>
-                <TableHead className="text-slate-400 font-medium">Method</TableHead>
-                <TableHead className="text-slate-400 font-medium text-right">Amount</TableHead>
-                <TableHead className="text-slate-400 font-medium text-right">
+            <TableHeader className="bg-[#F7F8FC]">
+              <TableRow className="border-slate-200">
+                <TableHead className="text-slate-500 font-medium">Payment #</TableHead>
+                <TableHead className="text-slate-500 font-medium">Date</TableHead>
+                <TableHead className="text-slate-500 font-medium">Type</TableHead>
+                <TableHead className="text-slate-500 font-medium">Party</TableHead>
+                <TableHead className="text-slate-500 font-medium">Method</TableHead>
+                <TableHead className="text-slate-500 font-medium text-right">Amount</TableHead>
+                <TableHead className="text-slate-500 font-medium text-right">
                   Allocated / Advance
                 </TableHead>
-                <TableHead className="text-slate-400 font-medium">Cheque Status</TableHead>
-                <TableHead className="text-slate-400 font-medium">Status</TableHead>
-                <TableHead className="text-slate-400 font-medium text-right">Actions</TableHead>
+                <TableHead className="text-slate-500 font-medium">Cheque Status</TableHead>
+                <TableHead className="text-slate-500 font-medium">Status</TableHead>
+                <TableHead className="text-slate-500 font-medium text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-10 text-slate-400">
+                  <TableCell colSpan={10} className="text-center py-10 text-slate-500">
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-emerald-500" />
                     Loading payment records...
                   </TableCell>
                 </TableRow>
               ) : payments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-10 text-slate-400">
+                  <TableCell colSpan={10} className="text-center py-10 text-slate-500">
                     No transactions found for the selected filters.
                   </TableCell>
                 </TableRow>
@@ -757,7 +757,7 @@ export const PaymentsPage: React.FC = () => {
                     p.method === 'cheque' ? getChequeStatusMeta(p.chequeStatus) : null;
 
                   return (
-                    <TableRow key={p.id} className="border-slate-800 hover:bg-slate-800/30">
+                    <TableRow key={p.id} className="border-slate-200 hover:bg-slate-50">
                       <TableCell className="font-mono text-sm font-semibold text-slate-200">
                         {p.paymentNumber}
                       </TableCell>
@@ -768,8 +768,8 @@ export const PaymentsPage: React.FC = () => {
                         <Badge
                           className={
                             p.direction === 'receipt'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                           }
                         >
                           {p.direction === 'receipt' ? 'Receipt' : 'Payment'}
@@ -786,7 +786,7 @@ export const PaymentsPage: React.FC = () => {
                             {methodMeta.label}
                           </span>
                           {p.method === 'cheque' && p.chequeNumber && (
-                            <span className="text-xs font-mono text-slate-400 mt-0.5">
+                            <span className="text-xs font-mono text-slate-500 mt-0.5">
                               #{p.chequeNumber}
                             </span>
                           )}
@@ -801,7 +801,7 @@ export const PaymentsPage: React.FC = () => {
                             {formatPaisa(p.allocatedPaisa)}
                           </span>
                           {p.advancePaisa > 0 && (
-                            <span className="text-xs text-sky-400 font-mono">
+                            <span className="text-xs text-[#2F64D8] font-mono">
                               +{formatPaisa(p.advancePaisa)} adv
                             </span>
                           )}
@@ -831,7 +831,7 @@ export const PaymentsPage: React.FC = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenDetail(p)}
-                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                            className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
                             title="View Details"
                           >
                             <Eye className="h-4 w-4" />
@@ -845,7 +845,7 @@ export const PaymentsPage: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleClearCheque(p)}
-                                className="h-8 w-8 p-0 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-300 hover:bg-emerald-500/10"
                                 title="Mark Cheque Cleared"
                               >
                                 <CheckCircle2 className="h-4 w-4" />
@@ -863,7 +863,7 @@ export const PaymentsPage: React.FC = () => {
                                   setPaymentToBounce(p);
                                   setIsBounceOpen(true);
                                 }}
-                                className="h-8 w-8 p-0 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                                className="h-8 w-8 p-0 text-amber-600 hover:text-amber-300 hover:bg-amber-500/10"
                                 title="Mark Cheque Bounced"
                               >
                                 <AlertTriangle className="h-4 w-4" />
@@ -896,7 +896,7 @@ export const PaymentsPage: React.FC = () => {
 
         {/* Pagination Footer */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div className="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
             <span>
               Page {page} of {totalPages}
             </span>
@@ -906,7 +906,7 @@ export const PaymentsPage: React.FC = () => {
                 size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="border-slate-700 bg-slate-800 text-slate-300"
+                className="border-slate-300 bg-slate-800 text-slate-300"
               >
                 Previous
               </Button>
@@ -915,7 +915,7 @@ export const PaymentsPage: React.FC = () => {
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="border-slate-700 bg-slate-800 text-slate-300"
+                className="border-slate-300 bg-slate-800 text-slate-300"
               >
                 Next
               </Button>
@@ -949,8 +949,8 @@ export const PaymentsPage: React.FC = () => {
               }}
               className={`py-2 text-sm font-semibold rounded-md transition-all ${
                 direction === 'receipt'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-emerald-600 text-slate-900 shadow-md'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Customer Receipt (Inflow)
@@ -963,8 +963,8 @@ export const PaymentsPage: React.FC = () => {
               }}
               className={`py-2 text-sm font-semibold rounded-md transition-all ${
                 direction === 'payment'
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-600 text-slate-900 shadow-md'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               Supplier Payment (Outflow)
@@ -983,7 +983,7 @@ export const PaymentsPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsNewCustomerOpen(true)}
-                    className="text-xs text-emerald-400 hover:underline flex items-center gap-0.5"
+                    className="text-xs text-emerald-600 hover:underline flex items-center gap-0.5"
                   >
                     <Plus className="h-3 w-3" /> New
                   </button>
@@ -993,7 +993,7 @@ export const PaymentsPage: React.FC = () => {
                 value={partyId}
                 onChange={(e) => setPartyId(e.target.value)}
                 required
-                className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-emerald-500"
+                className="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-emerald-500"
               >
                 <option value="">
                   Select {direction === 'receipt' ? 'Customer' : 'Supplier'}...
@@ -1019,7 +1019,7 @@ export const PaymentsPage: React.FC = () => {
                 value={branchId}
                 onChange={(e) => setBranchId(e.target.value)}
                 required
-                className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-emerald-500"
+                className="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-emerald-500"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -1039,7 +1039,7 @@ export const PaymentsPage: React.FC = () => {
                 value={paymentDate}
                 onChange={(e) => setPaymentDate(e.target.value)}
                 required
-                className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+                className="bg-white border-slate-300 text-slate-800 text-sm"
               />
             </div>
           </div>
@@ -1059,7 +1059,7 @@ export const PaymentsPage: React.FC = () => {
                 value={amountRupees}
                 onChange={(e) => setAmountRupees(e.target.value)}
                 required
-                className="bg-slate-800 border-slate-700 text-slate-200 text-sm font-semibold"
+                className="bg-white border-slate-300 text-slate-800 text-sm font-semibold"
               />
             </div>
 
@@ -1071,7 +1071,7 @@ export const PaymentsPage: React.FC = () => {
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value as PaymentMethod)}
-                className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-emerald-500"
+                className="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-2 focus:ring-1 focus:ring-emerald-500"
               >
                 <option value="cash">Cash in Hand</option>
                 <option value="bank">Bank Transfer</option>
@@ -1090,7 +1090,7 @@ export const PaymentsPage: React.FC = () => {
                 placeholder="Optional receipt / slip #"
                 value={referenceNo}
                 onChange={(e) => setReferenceNo(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+                className="bg-white border-slate-300 text-slate-800 text-sm"
               />
             </div>
           </div>
@@ -1108,7 +1108,7 @@ export const PaymentsPage: React.FC = () => {
                   value={chequeNumber}
                   onChange={(e) => setChequeNumber(e.target.value)}
                   required
-                  className="bg-slate-800 border-amber-500/30 text-slate-200 text-sm font-mono"
+                  className="bg-white border-amber-300 text-slate-800 text-sm font-mono"
                 />
               </div>
 
@@ -1118,7 +1118,7 @@ export const PaymentsPage: React.FC = () => {
                   type="date"
                   value={chequeDate}
                   onChange={(e) => setChequeDate(e.target.value)}
-                  className="bg-slate-800 border-amber-500/30 text-slate-200 text-sm"
+                  className="bg-white border-amber-300 text-slate-800 text-sm"
                 />
               </div>
 
@@ -1131,21 +1131,21 @@ export const PaymentsPage: React.FC = () => {
                   placeholder="e.g. Meezan Bank, HBL"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
-                  className="bg-slate-800 border-amber-500/30 text-slate-200 text-sm"
+                  className="bg-white border-amber-300 text-slate-800 text-sm"
                 />
               </div>
             </div>
           )}
 
           {/* Document Allocation Section */}
-          <div className="pt-2 border-t border-slate-800">
+          <div className="pt-2 border-t border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <h4 className="text-sm font-semibold text-white flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-emerald-400" />
+                <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-emerald-600" />
                   Apply Payment to Open Documents
                 </h4>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   Select open credit invoices or bills to allocate against.
                 </p>
               </div>
@@ -1156,7 +1156,7 @@ export const PaymentsPage: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={handleAutoAllocate}
-                  className="border-emerald-600/40 text-emerald-400 hover:bg-emerald-600/10 text-xs"
+                  className="border-emerald-600/40 text-emerald-600 hover:bg-emerald-600/10 text-xs"
                 >
                   Auto-Allocate (FIFO)
                 </Button>
@@ -1164,27 +1164,27 @@ export const PaymentsPage: React.FC = () => {
             </div>
 
             {docsLoading ? (
-              <div className="p-4 text-center text-xs text-slate-400">
+              <div className="p-4 text-center text-xs text-slate-500">
                 Loading open documents...
               </div>
             ) : unpaidDocs.length === 0 ? (
-              <div className="p-3 bg-slate-800/40 border border-slate-800 rounded text-xs text-slate-400 text-center">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-500 text-center">
                 {partyId
                   ? 'No open credit documents pending for this party. The full amount will be recorded as an Advance Balance.'
                   : 'Select a customer or supplier to view outstanding credit balances.'}
               </div>
             ) : (
-              <div className="border border-slate-800 rounded-lg overflow-hidden max-h-56 overflow-y-auto">
+              <div className="border border-slate-200 rounded-lg overflow-hidden max-h-56 overflow-y-auto">
                 <Table>
-                  <TableHeader className="bg-slate-800/80">
-                    <TableRow className="border-slate-800">
-                      <TableHead className="text-xs text-slate-400">Doc #</TableHead>
-                      <TableHead className="text-xs text-slate-400">Date</TableHead>
-                      <TableHead className="text-xs text-slate-400 text-right">Total Due</TableHead>
-                      <TableHead className="text-xs text-slate-400 text-right">
+                  <TableHeader className="bg-[#F7F8FC]">
+                    <TableRow className="border-slate-200">
+                      <TableHead className="text-xs text-slate-500">Doc #</TableHead>
+                      <TableHead className="text-xs text-slate-500">Date</TableHead>
+                      <TableHead className="text-xs text-slate-500 text-right">Total Due</TableHead>
+                      <TableHead className="text-xs text-slate-500 text-right">
                         Balance Due
                       </TableHead>
-                      <TableHead className="text-xs text-slate-400 text-right w-36">
+                      <TableHead className="text-xs text-slate-500 text-right w-36">
                         Apply (PKR)
                       </TableHead>
                     </TableRow>
@@ -1193,15 +1193,15 @@ export const PaymentsPage: React.FC = () => {
                     {unpaidDocs.map((doc, idx) => {
                       const curAlloc = allocations.find((a) => a.documentId === doc.id);
                       return (
-                        <TableRow key={doc.id} className="border-slate-800">
+                        <TableRow key={doc.id} className="border-slate-200">
                           <TableCell className="text-xs font-mono font-medium text-slate-200">
                             {doc.documentNumber}
                           </TableCell>
-                          <TableCell className="text-xs text-slate-400">{doc.date}</TableCell>
-                          <TableCell className="text-xs text-right text-slate-400">
+                          <TableCell className="text-xs text-slate-500">{doc.date}</TableCell>
+                          <TableCell className="text-xs text-right text-slate-500">
                             {formatPaisa(doc.totalPaisa)}
                           </TableCell>
-                          <TableCell className="text-xs text-right font-semibold text-amber-400">
+                          <TableCell className="text-xs text-right font-semibold text-amber-600">
                             {formatPaisa(doc.balanceDuePaisa)}
                           </TableCell>
                           <TableCell className="text-right">
@@ -1219,7 +1219,7 @@ export const PaymentsPage: React.FC = () => {
                                   )
                                 );
                               }}
-                              className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded px-2 py-1 text-right focus:ring-1 focus:ring-emerald-500"
+                              className="w-full bg-white border border-slate-300 text-slate-800 text-xs rounded px-2 py-1 text-right focus:ring-1 focus:ring-emerald-500"
                             />
                           </TableCell>
                         </TableRow>
@@ -1231,21 +1231,23 @@ export const PaymentsPage: React.FC = () => {
             )}
 
             {/* Allocation Summary Bar */}
-            <div className="mt-3 p-3 bg-slate-800/80 rounded-lg flex flex-wrap items-center justify-between text-xs border border-slate-700">
+            <div className="mt-3 p-3 bg-[#F7F8FC] rounded-lg flex flex-wrap items-center justify-between text-xs border border-slate-300">
               <div className="flex items-center gap-4">
                 <span>
                   Total Amount:{' '}
-                  <strong className="text-white font-mono">{formatPaisa(totalAmountPaisa)}</strong>
+                  <strong className="text-slate-900 font-mono">
+                    {formatPaisa(totalAmountPaisa)}
+                  </strong>
                 </span>
                 <span>
                   Allocated:{' '}
-                  <strong className="text-emerald-400 font-mono">
+                  <strong className="text-emerald-600 font-mono">
                     {formatPaisa(totalAllocatedPaisa)}
                   </strong>
                 </span>
                 <span>
                   Advance Balance:{' '}
-                  <strong className="text-sky-400 font-mono">{formatPaisa(advancePaisa)}</strong>
+                  <strong className="text-[#2F64D8] font-mono">{formatPaisa(advancePaisa)}</strong>
                 </span>
               </div>
 
@@ -1265,24 +1267,24 @@ export const PaymentsPage: React.FC = () => {
               placeholder="Settlement notes, cheque memo, etc."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+              className="bg-white border-slate-300 text-slate-800 text-sm"
             />
           </div>
 
           {/* Submit Actions */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsRecordOpen(false)}
-              className="border-slate-700 text-slate-300"
+              className="border-slate-300 text-slate-300"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={recordSubmitting || isOverAllocated}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-900"
             >
               {recordSubmitting ? 'Posting...' : 'Confirm & Post Payment'}
             </Button>
@@ -1301,26 +1303,26 @@ export const PaymentsPage: React.FC = () => {
           <div className="space-y-4">
             {/* Summary Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-2.5 bg-slate-800/80 rounded border border-slate-700">
-                <span className="text-slate-400 block">Date</span>
-                <span className="text-white font-medium">
+              <div className="p-2.5 bg-[#F7F8FC] rounded border border-slate-300">
+                <span className="text-slate-500 block">Date</span>
+                <span className="text-slate-900 font-medium">
                   {formatKarachiDateOnly(selectedPayment.paymentDate)}
                 </span>
               </div>
-              <div className="p-2.5 bg-slate-800/80 rounded border border-slate-700">
-                <span className="text-slate-400 block">Direction</span>
-                <span className="font-semibold text-emerald-400 capitalize">
+              <div className="p-2.5 bg-[#F7F8FC] rounded border border-slate-300">
+                <span className="text-slate-500 block">Direction</span>
+                <span className="font-semibold text-emerald-600 capitalize">
                   {selectedPayment.direction}
                 </span>
               </div>
-              <div className="p-2.5 bg-slate-800/80 rounded border border-slate-700">
-                <span className="text-slate-400 block">Amount</span>
-                <span className="text-white font-mono font-bold">
+              <div className="p-2.5 bg-[#F7F8FC] rounded border border-slate-300">
+                <span className="text-slate-500 block">Amount</span>
+                <span className="text-slate-900 font-mono font-bold">
                   {formatPaisa(selectedPayment.amountPaisa)}
                 </span>
               </div>
-              <div className="p-2.5 bg-slate-800/80 rounded border border-slate-700">
-                <span className="text-slate-400 block">Method</span>
+              <div className="p-2.5 bg-[#F7F8FC] rounded border border-slate-300">
+                <span className="text-slate-500 block">Method</span>
                 <span className="text-slate-200 capitalize font-medium">
                   {selectedPayment.method}
                 </span>
@@ -1351,27 +1353,27 @@ export const PaymentsPage: React.FC = () => {
                 Document Allocations
               </h4>
               {selectedPayment.allocations && selectedPayment.allocations.length > 0 ? (
-                <div className="border border-slate-800 rounded overflow-hidden">
+                <div className="border border-slate-200 rounded overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-slate-800/60">
-                      <TableRow className="border-slate-800">
-                        <TableHead className="text-xs text-slate-400">Document #</TableHead>
-                        <TableHead className="text-xs text-slate-400">Type</TableHead>
-                        <TableHead className="text-xs text-slate-400 text-right">
+                    <TableHeader className="bg-[#F7F8FC]">
+                      <TableRow className="border-slate-200">
+                        <TableHead className="text-xs text-slate-500">Document #</TableHead>
+                        <TableHead className="text-xs text-slate-500">Type</TableHead>
+                        <TableHead className="text-xs text-slate-500 text-right">
                           Allocated
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {selectedPayment.allocations.map((a) => (
-                        <TableRow key={a.id} className="border-slate-800">
+                        <TableRow key={a.id} className="border-slate-200">
                           <TableCell className="text-xs font-mono text-slate-200">
                             {a.documentNumber}
                           </TableCell>
-                          <TableCell className="text-xs text-slate-400 capitalize">
+                          <TableCell className="text-xs text-slate-500 capitalize">
                             {a.documentType}
                           </TableCell>
-                          <TableCell className="text-xs font-mono font-semibold text-right text-emerald-400">
+                          <TableCell className="text-xs font-mono font-semibold text-right text-emerald-600">
                             {formatPaisa(a.allocatedPaisa)}
                           </TableCell>
                         </TableRow>
@@ -1388,7 +1390,7 @@ export const PaymentsPage: React.FC = () => {
 
             {/* Advance Callout */}
             {selectedPayment.advancePaisa > 0 && (
-              <div className="p-3 bg-sky-500/10 border border-sky-500/20 rounded text-xs flex justify-between items-center text-sky-400">
+              <div className="p-3 bg-sky-500/10 border border-sky-500/20 rounded text-xs flex justify-between items-center text-[#2F64D8]">
                 <span>Advance Balance Remaining:</span>
                 <span className="font-mono font-bold text-sm">
                   {formatPaisa(selectedPayment.advancePaisa)}
@@ -1409,7 +1411,7 @@ export const PaymentsPage: React.FC = () => {
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-200">
               <div className="flex items-center gap-2">
                 {selectedPayment.method === 'cheque' &&
                   selectedPayment.chequeStatus === 'pending' &&
@@ -1418,7 +1420,7 @@ export const PaymentsPage: React.FC = () => {
                     <Button
                       size="sm"
                       onClick={() => handleClearCheque(selectedPayment)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-xs"
                     >
                       <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Clear Cheque
                     </Button>
@@ -1435,7 +1437,7 @@ export const PaymentsPage: React.FC = () => {
                         setPaymentToBounce(selectedPayment);
                         setIsBounceOpen(true);
                       }}
-                      className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10 text-xs"
+                      className="border-amber-500/40 text-amber-600 hover:bg-amber-500/10 text-xs"
                     >
                       <AlertTriangle className="h-3.5 w-3.5 mr-1" /> Cheque Bounced
                     </Button>
@@ -1460,7 +1462,7 @@ export const PaymentsPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsDetailOpen(false)}
-                className="border-slate-700 text-slate-300"
+                className="border-slate-300 text-slate-300"
               >
                 Close
               </Button>
@@ -1493,17 +1495,17 @@ export const PaymentsPage: React.FC = () => {
                 value={reversalReason}
                 onChange={(e) => setReversalReason(e.target.value)}
                 required
-                className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+                className="bg-white border-slate-300 text-slate-800 text-sm"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsReverseOpen(false)}
-                className="border-slate-700 text-slate-300"
+                className="border-slate-300 text-slate-300"
               >
                 Cancel
               </Button>
@@ -1511,7 +1513,7 @@ export const PaymentsPage: React.FC = () => {
                 type="submit"
                 size="sm"
                 disabled={reversalSubmitting || !reversalReason.trim()}
-                className="bg-rose-600 hover:bg-rose-500 text-white"
+                className="bg-rose-600 hover:bg-rose-500 text-slate-900"
               >
                 {reversalSubmitting ? 'Reversing...' : 'Confirm Reversal'}
               </Button>
@@ -1544,17 +1546,17 @@ export const PaymentsPage: React.FC = () => {
                 value={bounceReason}
                 onChange={(e) => setBounceReason(e.target.value)}
                 required
-                className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+                className="bg-white border-slate-300 text-slate-800 text-sm"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsBounceOpen(false)}
-                className="border-slate-700 text-slate-300"
+                className="border-slate-300 text-slate-300"
               >
                 Cancel
               </Button>
@@ -1562,7 +1564,7 @@ export const PaymentsPage: React.FC = () => {
                 type="submit"
                 size="sm"
                 disabled={bounceSubmitting || !bounceReason.trim()}
-                className="bg-amber-600 hover:bg-amber-500 text-white"
+                className="bg-amber-600 hover:bg-amber-500 text-slate-900"
               >
                 {bounceSubmitting ? 'Processing...' : 'Confirm Cheque Bounced'}
               </Button>
@@ -1587,7 +1589,7 @@ export const PaymentsPage: React.FC = () => {
               value={newCustName}
               onChange={(e) => setNewCustName(e.target.value)}
               required
-              className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+              className="bg-white border-slate-300 text-slate-800 text-sm"
             />
           </div>
 
@@ -1598,7 +1600,7 @@ export const PaymentsPage: React.FC = () => {
               placeholder="03001234567"
               value={newCustPhone}
               onChange={(e) => setNewCustPhone(e.target.value)}
-              className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+              className="bg-white border-slate-300 text-slate-800 text-sm"
             />
           </div>
 
@@ -1612,17 +1614,17 @@ export const PaymentsPage: React.FC = () => {
               min="0"
               value={newCustLimit}
               onChange={(e) => setNewCustLimit(e.target.value)}
-              className="bg-slate-800 border-slate-700 text-slate-200 text-sm"
+              className="bg-white border-slate-300 text-slate-800 text-sm"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsNewCustomerOpen(false)}
-              className="border-slate-700 text-slate-300"
+              className="border-slate-300 text-slate-300"
             >
               Cancel
             </Button>
@@ -1630,7 +1632,7 @@ export const PaymentsPage: React.FC = () => {
               type="submit"
               size="sm"
               disabled={newCustSubmitting}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+              className="bg-emerald-600 hover:bg-emerald-500 text-slate-900"
             >
               <UserCheck className="h-4 w-4 mr-1" />
               {newCustSubmitting ? 'Saving...' : 'Save Customer'}

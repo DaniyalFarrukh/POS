@@ -10,30 +10,27 @@ export function getAgingBucketMeta(bucket: AgingBucketKey): {
     case 'current':
       return {
         label: 'Current (0d)',
-        badgeClass:
-          'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+        badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
       };
     case 'days1to30':
       return {
         label: '1 - 30 Days',
-        badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
+        badgeClass: 'bg-blue-50 text-[#2F64D8] border border-blue-200',
       };
     case 'days31to60':
       return {
         label: '31 - 60 Days',
-        badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+        badgeClass: 'bg-amber-50 text-amber-800 border border-amber-200',
       };
     case 'days61to90':
       return {
         label: '61 - 90 Days',
-        badgeClass:
-          'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20',
+        badgeClass: 'bg-orange-50 text-orange-800 border border-orange-200',
       };
     case 'days90Plus':
       return {
         label: '90+ Days',
-        badgeClass:
-          'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-semibold',
+        badgeClass: 'bg-rose-50 text-rose-700 border border-rose-200 font-semibold',
       };
   }
 }

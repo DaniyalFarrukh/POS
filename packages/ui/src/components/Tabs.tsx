@@ -43,7 +43,7 @@ export const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
     <div
       ref={ref}
       className={cn(
-        'inline-flex h-11 items-center justify-center rounded-lg bg-slate-100 p-1 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+        'inline-flex h-11 items-center justify-center rounded-lg bg-slate-100 p-1 text-slate-600',
         className
       )}
       {...props}
@@ -71,10 +71,10 @@ export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>
         aria-selected={isActive}
         onClick={() => ctx.onValueChange(value)}
         className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-50',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2F64D8] disabled:pointer-events-none disabled:opacity-50',
           isActive
-            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
-            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100',
+            ? 'bg-white text-[#2F64D8] font-bold shadow-2xs'
+            : 'text-slate-600 hover:text-slate-900',
           className
         )}
         {...props}

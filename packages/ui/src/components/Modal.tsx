@@ -59,22 +59,18 @@ export const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'relative w-full rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900',
+          'relative w-full rounded-xl border border-slate-200 bg-white shadow-2xl',
           maxWidthClasses[maxWidth]
         )}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div>
-            {title && (
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-            )}
-            {description && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
-            )}
+            {title && <h3 className="text-lg font-semibold text-slate-900">{title}</h3>}
+            {description && <p className="text-sm text-slate-500">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
           >
             <X className="h-5 w-5" />
           </button>
@@ -83,7 +79,7 @@ export const Modal: React.FC<ModalProps> = ({
         <div className="p-6">{children}</div>
 
         {footer && (
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-800/40">
+          <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
             {footer}
           </div>
         )}

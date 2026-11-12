@@ -747,7 +747,7 @@ export const PayrollPage: React.FC = () => {
       )}
 
       {/* Primary Tab Navigation */}
-      <div className="flex border-b border-slate-800 space-x-6">
+      <div className="flex border-b border-slate-200 space-x-6">
         <button
           onClick={() => {
             setActiveTab('runs');
@@ -827,12 +827,12 @@ export const PayrollPage: React.FC = () => {
               </div>
 
               {/* Run Overview Header Card */}
-              <Card className="bg-slate-900 border-slate-800">
+              <Card className="bg-white border-slate-200/80">
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
-                        <h2 className="text-xl font-bold text-white tracking-wide">
+                        <h2 className="text-xl font-bold text-slate-900 tracking-wide">
                           {selectedRun.runNumber}
                         </h2>
                         <span className="text-sm px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300">
@@ -920,29 +920,29 @@ export const PayrollPage: React.FC = () => {
                   </div>
 
                   {/* Financial Metrics Strip */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-800">
-                    <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-200">
+                    <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200">
                       <div className="text-xs text-slate-400">Total Gross Salary</div>
-                      <div className="text-lg font-bold text-white mt-1">
+                      <div className="text-lg font-bold text-slate-900 mt-1">
                         {formatPKR(selectedRun.totalGrossPaisa)}
                       </div>
                     </div>
 
-                    <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200">
                       <div className="text-xs text-slate-400">Total Deductions</div>
                       <div className="text-lg font-bold text-red-400 mt-1">
                         {formatPKR(selectedRun.totalDeductionsPaisa)}
                       </div>
                     </div>
 
-                    <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200">
                       <div className="text-xs text-slate-400">Total Net Payable</div>
                       <div className="text-lg font-bold text-emerald-400 mt-1">
                         {formatPKR(selectedRun.totalNetPaisa)}
                       </div>
                     </div>
 
-                    <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+                    <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200">
                       <div className="text-xs text-slate-400">Advances Recovered</div>
                       <div className="text-lg font-bold text-amber-400 mt-1">
                         {formatPKR(selectedRun.totalAdvancesRecoveredPaisa)}
@@ -953,7 +953,7 @@ export const PayrollPage: React.FC = () => {
               </Card>
 
               {/* Items Search and Table */}
-              <Card className="bg-slate-900 border-slate-800">
+              <Card className="bg-white border-slate-200/80">
                 <CardContent className="p-6 space-y-4">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="relative w-full sm:w-72">
@@ -962,7 +962,7 @@ export const PayrollPage: React.FC = () => {
                         placeholder="Search employee by name or code..."
                         value={itemSearchTerm}
                         onChange={(e) => setItemSearchTerm(e.target.value)}
-                        className="pl-9 bg-slate-950 border-slate-700 text-white placeholder-slate-500"
+                        className="pl-9 bg-white text-slate-800 border-slate-300 text-slate-800 placeholder-slate-500"
                       />
                     </div>
                     <div className="text-xs text-slate-400">
@@ -971,10 +971,10 @@ export const PayrollPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-lg border border-slate-800">
+                  <div className="overflow-x-auto rounded-lg border border-slate-200">
                     <Table>
-                      <TableHeader className="bg-slate-950/80">
-                        <TableRow className="border-slate-800">
+                      <TableHeader className="bg-[#F7F8FC]">
+                        <TableRow className="border-slate-200">
                           <TableHead className="text-slate-300">Employee</TableHead>
                           <TableHead className="text-slate-300">Base Salary</TableHead>
                           <TableHead className="text-slate-300">Attendance</TableHead>
@@ -990,17 +990,14 @@ export const PayrollPage: React.FC = () => {
                       </TableHeader>
                       <TableBody>
                         {filteredRunItems.length === 0 ? (
-                          <TableRow className="border-slate-800">
+                          <TableRow className="border-slate-200">
                             <TableCell colSpan={11} className="text-center py-8 text-slate-400">
                               No employee payroll items found.
                             </TableCell>
                           </TableRow>
                         ) : (
                           filteredRunItems.map((item) => (
-                            <TableRow
-                              key={item.id}
-                              className="border-slate-800 hover:bg-slate-800/40"
-                            >
+                            <TableRow key={item.id} className="border-slate-200 hover:bg-slate-50">
                               <TableCell>
                                 <div className="font-semibold text-white">{item.employeeName}</div>
                                 <div className="text-xs text-slate-400">
@@ -1101,25 +1098,29 @@ export const PayrollPage: React.FC = () => {
             /* Runs List Sub-view */
             <div className="space-y-6">
               {/* Filter Strip */}
-              <Card className="bg-slate-900 border-slate-800">
+              <Card className="bg-white border-slate-200/80">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Month (YYYY-MM)</label>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">
+                        Month (YYYY-MM)
+                      </label>
                       <Input
                         type="month"
                         value={filterMonth}
                         onChange={(e) => setFilterMonth(e.target.value)}
-                        className="bg-slate-950 border-slate-700 text-white"
+                        className="bg-white text-slate-800 border-slate-300 text-slate-800"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Branch</label>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">
+                        Branch
+                      </label>
                       <select
                         value={filterBranchId}
                         onChange={(e) => setFilterBranchId(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                       >
                         <option value="all">All Branches</option>
                         {branchesList.map((b) => (
@@ -1131,11 +1132,13 @@ export const PayrollPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Status</label>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">
+                        Status
+                      </label>
                       <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                       >
                         <option value="all">All Statuses</option>
                         <option value="draft">Draft</option>
@@ -1166,7 +1169,7 @@ export const PayrollPage: React.FC = () => {
               </Card>
 
               {/* Runs Table */}
-              <Card className="bg-slate-900 border-slate-800">
+              <Card className="bg-white border-slate-200/80">
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-white">Monthly Payroll Runs</h3>
@@ -1175,10 +1178,10 @@ export const PayrollPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="overflow-x-auto rounded-lg border border-slate-800">
+                  <div className="overflow-x-auto rounded-lg border border-slate-200">
                     <Table>
-                      <TableHeader className="bg-slate-950/80">
-                        <TableRow className="border-slate-800">
+                      <TableHeader className="bg-[#F7F8FC]">
+                        <TableRow className="border-slate-200">
                           <TableHead className="text-slate-300">Run Number</TableHead>
                           <TableHead className="text-slate-300">Branch</TableHead>
                           <TableHead className="text-slate-300">Month</TableHead>
@@ -1191,7 +1194,7 @@ export const PayrollPage: React.FC = () => {
                       </TableHeader>
                       <TableBody>
                         {filteredRuns.length === 0 ? (
-                          <TableRow className="border-slate-800">
+                          <TableRow className="border-slate-200">
                             <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                               No payroll runs found for the selected filters.
                             </TableCell>
@@ -1202,7 +1205,7 @@ export const PayrollPage: React.FC = () => {
                             return (
                               <TableRow
                                 key={run.id}
-                                className="border-slate-800 hover:bg-slate-800/40 cursor-pointer"
+                                className="border-slate-200 hover:bg-slate-50 cursor-pointer"
                                 onClick={() => loadRunDetails(run.id)}
                               >
                                 <TableCell className="font-semibold text-white">
@@ -1269,7 +1272,7 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {activeTab === 'advances' && (
         <div className="space-y-6">
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-slate-200/80">
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
@@ -1292,10 +1295,10 @@ export const PayrollPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <Table>
-                  <TableHeader className="bg-slate-950/80">
-                    <TableRow className="border-slate-800">
+                  <TableHeader className="bg-[#F7F8FC]">
+                    <TableRow className="border-slate-200">
                       <TableHead className="text-slate-300">Employee</TableHead>
                       <TableHead className="text-slate-300">Date</TableHead>
                       <TableHead className="text-slate-300">Principal</TableHead>
@@ -1308,14 +1311,14 @@ export const PayrollPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {advancesList.length === 0 ? (
-                      <TableRow className="border-slate-800">
+                      <TableRow className="border-slate-200">
                         <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                           No salary advances recorded.
                         </TableCell>
                       </TableRow>
                     ) : (
                       advancesList.map((adv) => (
-                        <TableRow key={adv.id} className="border-slate-800 hover:bg-slate-800/40">
+                        <TableRow key={adv.id} className="border-slate-200 hover:bg-slate-50">
                           <TableCell className="font-medium text-white">
                             {adv.employeeName || adv.employeeId}
                           </TableCell>
@@ -1383,7 +1386,7 @@ export const PayrollPage: React.FC = () => {
           </div>
 
           {/* Statutory Deductions Table */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-slate-200/80">
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
@@ -1408,10 +1411,10 @@ export const PayrollPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <Table>
-                  <TableHeader className="bg-slate-950/80">
-                    <TableRow className="border-slate-800">
+                  <TableHeader className="bg-[#F7F8FC]">
+                    <TableRow className="border-slate-200">
                       <TableHead className="text-slate-300">Code</TableHead>
                       <TableHead className="text-slate-300">Name</TableHead>
                       <TableHead className="text-slate-300">Type</TableHead>
@@ -1426,14 +1429,14 @@ export const PayrollPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {statutoryRates.length === 0 ? (
-                      <TableRow className="border-slate-800">
+                      <TableRow className="border-slate-200">
                         <TableCell colSpan={8} className="text-center py-8 text-slate-400">
                           No statutory components configured.
                         </TableCell>
                       </TableRow>
                     ) : (
                       statutoryRates.map((c) => (
-                        <TableRow key={c.id} className="border-slate-800 hover:bg-slate-800/40">
+                        <TableRow key={c.id} className="border-slate-200 hover:bg-slate-50">
                           <TableCell className="font-semibold text-white flex items-center gap-1.5">
                             {c.code}
                             {c.isExample && (
@@ -1487,7 +1490,7 @@ export const PayrollPage: React.FC = () => {
           </Card>
 
           {/* Progressive Income Tax Slabs */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-slate-200/80">
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
@@ -1510,10 +1513,10 @@ export const PayrollPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
                 <Table>
-                  <TableHeader className="bg-slate-950/80">
-                    <TableRow className="border-slate-800">
+                  <TableHeader className="bg-[#F7F8FC]">
+                    <TableRow className="border-slate-200">
                       <TableHead className="text-slate-300">Min Monthly Income</TableHead>
                       <TableHead className="text-slate-300">Max Monthly Income</TableHead>
                       <TableHead className="text-slate-300">Base Tax</TableHead>
@@ -1526,7 +1529,7 @@ export const PayrollPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {taxSlabs.length === 0 ? (
-                      <TableRow className="border-slate-800">
+                      <TableRow className="border-slate-200">
                         <TableCell colSpan={6} className="text-center py-8 text-slate-400">
                           No tax slabs configured. All monthly gross earnings will compute with Rs.
                           0 tax.
@@ -1534,7 +1537,7 @@ export const PayrollPage: React.FC = () => {
                       </TableRow>
                     ) : (
                       taxSlabs.map((s) => (
-                        <TableRow key={s.id} className="border-slate-800 hover:bg-slate-800/40">
+                        <TableRow key={s.id} className="border-slate-200 hover:bg-slate-50">
                           <TableCell className="font-mono text-slate-200">
                             {formatPKR(s.minMonthlyIncomePaisa)}
                           </TableCell>
@@ -1580,15 +1583,15 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Banknote className="h-5 w-5 text-emerald-400" />
                 Generate Monthly Payroll Run
               </h3>
               <button
                 onClick={() => setShowGenerateModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1596,11 +1599,11 @@ export const PayrollPage: React.FC = () => {
 
             <form onSubmit={handleGenerateRun} className="space-y-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Branch</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Branch</label>
                 <select
                   value={genBranchId}
                   onChange={(e) => setGenBranchId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                   required
                 >
                   {branchesList.map((b) => (
@@ -1612,25 +1615,27 @@ export const PayrollPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Month</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Month</label>
                 <Input
                   type="month"
                   value={genMonth}
                   onChange={(e) => setGenMonth(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Monthly Working Days</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Monthly Working Days
+                </label>
                 <Input
                   type="number"
                   min="1"
                   max="31"
                   value={genWorkingDays}
                   onChange={(e) => setGenWorkingDays(parseInt(e.target.value) || 26)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
@@ -1638,7 +1643,7 @@ export const PayrollPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -1665,21 +1670,21 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showDisburseModal && selectedRun && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-purple-400" />
                 Disburse Payment Batch
               </h3>
               <button
                 onClick={() => setShowDisburseModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
+            <div className="p-3 rounded-lg bg-white text-slate-800 border border-slate-200 text-xs text-slate-300 space-y-1">
               <div className="flex justify-between">
                 <span>Run Number:</span>
                 <span className="font-semibold text-white">{selectedRun.runNumber}</span>
@@ -1694,13 +1699,13 @@ export const PayrollPage: React.FC = () => {
 
             <form onSubmit={handleDisburseBatch} className="space-y-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   Disbursement Account (Cash or Bank)
                 </label>
                 <select
                   value={disburseAccountId}
                   onChange={(e) => setDisburseAccountId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                   required
                 >
                   {accountsList.map((acc) => (
@@ -1712,29 +1717,31 @@ export const PayrollPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   Payment Reference / Cheque No.
                 </label>
                 <Input
                   placeholder="e.g. CHEQ-9012 or Online Transfer"
                   value={disburseReference}
                   onChange={(e) => setDisburseReference(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Payment Date</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Payment Date
+                </label>
                 <Input
                   type="date"
                   value={disburseDate}
                   onChange={(e) => setDisburseDate(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -1761,15 +1768,15 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showAdjustmentModal && selectedRun && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-amber-400" />
                 Create Adjustment Run
               </h3>
               <button
                 onClick={() => setShowAdjustmentModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1782,18 +1789,20 @@ export const PayrollPage: React.FC = () => {
 
             <form onSubmit={handleCreateAdjustment} className="space-y-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Adjustment Reason</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Adjustment Reason
+                </label>
                 <textarea
                   rows={3}
                   value={adjustmentReason}
                   onChange={(e) => setAdjustmentReason(e.target.value)}
                   placeholder="e.g. Retroactive overtime correction for employee EMP-002"
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                   required
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -1820,14 +1829,14 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showEditItemModal && editingItem && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Edit Payslip ({editingItem.employeeName})
               </h3>
               <button
                 onClick={() => setShowEditItemModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1835,31 +1844,35 @@ export const PayrollPage: React.FC = () => {
 
             <form onSubmit={handleSaveEditItem} className="space-y-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Overtime Hours</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Overtime Hours
+                </label>
                 <Input
                   type="number"
                   step="0.5"
                   min="0"
                   value={editOvertimeHours}
                   onChange={(e) => setEditOvertimeHours(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Advance Recovery (PKR)</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Advance Recovery (PKR)
+                </label>
                 <Input
                   type="number"
                   step="1"
                   min="0"
                   value={editAdvanceRecoveryRs}
                   onChange={(e) => setEditAdvanceRecoveryRs(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   Income Tax Override (PKR)
                 </label>
                 <Input
@@ -1868,21 +1881,21 @@ export const PayrollPage: React.FC = () => {
                   min="0"
                   value={editTaxRs}
                   onChange={(e) => setEditTaxRs(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Notes</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Notes</label>
                 <Input
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   placeholder="Optional modification reason"
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -2081,15 +2094,15 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showNewAdvanceModal && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Coins className="h-5 w-5 text-emerald-400" />
                 Issue Employee Advance / Loan
               </h3>
               <button
                 onClick={() => setShowNewAdvanceModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2097,11 +2110,11 @@ export const PayrollPage: React.FC = () => {
 
             <form onSubmit={handleIssueAdvance} className="space-y-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Employee</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Employee</label>
                 <select
                   value={advEmployeeId}
                   onChange={(e) => setAdvEmployeeId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                   required
                 >
                   {employeesList.map((e) => (
@@ -2113,19 +2126,21 @@ export const PayrollPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Principal Amount (PKR)</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Principal Amount (PKR)
+                </label>
                 <Input
                   type="number"
                   min="100"
                   value={advPrincipalRs}
                   onChange={(e) => setAdvPrincipalRs(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   Monthly Installment (PKR)
                 </label>
                 <Input
@@ -2133,33 +2148,37 @@ export const PayrollPage: React.FC = () => {
                   min="100"
                   value={advInstallmentRs}
                   onChange={(e) => setAdvInstallmentRs(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Disbursement Date</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Disbursement Date
+                </label>
                 <Input
                   type="date"
                   value={advDisbursementDate}
                   onChange={(e) => setAdvDisbursementDate(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Reason / Notes</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Reason / Notes
+                </label>
                 <Input
                   value={advReason}
                   onChange={(e) => setAdvReason(e.target.value)}
                   placeholder="e.g. Medical emergency advance"
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -2186,14 +2205,14 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showNewComponentModal && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Add Statutory Component
               </h3>
               <button
                 onClick={() => setShowNewComponentModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2202,56 +2221,62 @@ export const PayrollPage: React.FC = () => {
             <form onSubmit={handleCreateComponent} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Code</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Code</label>
                   <Input
                     placeholder="e.g. EOBI"
                     value={compCode}
                     onChange={(e) => setCompCode(e.target.value)}
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="bg-white text-slate-800 border-slate-300 text-slate-800"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">GL Account Code</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    GL Account Code
+                  </label>
                   <Input
                     placeholder="2210"
                     value={compAccountCode}
                     onChange={(e) => setCompAccountCode(e.target.value)}
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="bg-white text-slate-800 border-slate-300 text-slate-800"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Name</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Name</label>
                 <Input
                   placeholder="e.g. Employees Old-Age Benefits"
                   value={compName}
                   onChange={(e) => setCompName(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Component Type</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    Component Type
+                  </label>
                   <select
                     value={compType}
                     onChange={(e) => setCompType(e.target.value as 'statutory_deduction' | 'tax')}
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                   >
                     <option value="statutory_deduction">Statutory Deduction</option>
                     <option value="tax">Tax Withholding</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Calculation Type</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    Calculation Type
+                  </label>
                   <select
                     value={compCalcType}
                     onChange={(e) => setCompCalcType(e.target.value as 'fixed' | 'percentage')}
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full bg-white text-slate-800 border border-slate-300 text-slate-800 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                   >
                     <option value="fixed">Fixed Amount (PKR)</option>
                     <option value="percentage">Percentage of Base (%)</option>
@@ -2262,20 +2287,24 @@ export const PayrollPage: React.FC = () => {
               <div>
                 {compCalcType === 'fixed' ? (
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1">Fixed Amount (PKR)</label>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">
+                      Fixed Amount (PKR)
+                    </label>
                     <Input
                       type="number"
                       step="1"
                       min="0"
                       value={compAmountRs}
                       onChange={(e) => setCompAmountRs(e.target.value)}
-                      className="bg-slate-950 border-slate-700 text-white"
+                      className="bg-white text-slate-800 border-slate-300 text-slate-800"
                       required
                     />
                   </div>
                 ) : (
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1">Rate (%)</label>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">
+                      Rate (%)
+                    </label>
                     <Input
                       type="number"
                       step="0.01"
@@ -2283,7 +2312,7 @@ export const PayrollPage: React.FC = () => {
                       max="100"
                       value={compPercentageRate}
                       onChange={(e) => setCompPercentageRate(e.target.value)}
-                      className="bg-slate-950 border-slate-700 text-white"
+                      className="bg-white text-slate-800 border-slate-300 text-slate-800"
                       required
                     />
                   </div>
@@ -2291,16 +2320,16 @@ export const PayrollPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Notes</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Notes</label>
                 <Input
                   placeholder="Legal ordinance or reference"
                   value={compNotes}
                   onChange={(e) => setCompNotes(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
@@ -2327,14 +2356,14 @@ export const PayrollPage: React.FC = () => {
       {/* ======================================================== */}
       {showNewTaxSlabModal && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Add Monthly Income Tax Slab
               </h3>
               <button
                 onClick={() => setShowNewTaxSlabModal(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -2343,7 +2372,7 @@ export const PayrollPage: React.FC = () => {
             <form onSubmit={handleCreateTaxSlab} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
                     Min Monthly Income (PKR)
                   </label>
                   <Input
@@ -2351,12 +2380,12 @@ export const PayrollPage: React.FC = () => {
                     min="0"
                     value={slabMinRs}
                     onChange={(e) => setSlabMinRs(e.target.value)}
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="bg-white text-slate-800 border-slate-300 text-slate-800"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
                     Max Monthly Income (PKR)
                   </label>
                   <Input
@@ -2365,25 +2394,29 @@ export const PayrollPage: React.FC = () => {
                     placeholder="Leave empty for unlimited"
                     value={slabMaxRs}
                     onChange={(e) => setSlabMaxRs(e.target.value)}
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="bg-white text-slate-800 border-slate-300 text-slate-800"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Base Tax (PKR)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    Base Tax (PKR)
+                  </label>
                   <Input
                     type="number"
                     min="0"
                     value={slabBaseTaxRs}
                     onChange={(e) => setSlabBaseTaxRs(e.target.value)}
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="bg-white text-slate-800 border-slate-300 text-slate-800"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Excess Rate (%)</label>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    Excess Rate (%)
+                  </label>
                   <Input
                     type="number"
                     step="0.01"
@@ -2391,25 +2424,25 @@ export const PayrollPage: React.FC = () => {
                     max="100"
                     value={slabExcessRate}
                     onChange={(e) => setSlabExcessRate(e.target.value)}
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="bg-white text-slate-800 border-slate-300 text-slate-800"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
                   Notes / Finance Act Reference
                 </label>
                 <Input
                   placeholder="e.g. Finance Act 2024 Slab 2"
                   value={slabNotes}
                   onChange={(e) => setSlabNotes(e.target.value)}
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="bg-white text-slate-800 border-slate-300 text-slate-800"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"

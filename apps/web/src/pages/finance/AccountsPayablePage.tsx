@@ -286,31 +286,28 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Accounts Payable (AP)
             </h1>
-            <Badge
-              variant="outline"
-              className="border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs"
-            >
+            <Badge variant="outline" className="border-amber-500/30 text-amber-600 text-xs">
               Liability Class 2000
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Supplier credit bills, debt aging schedules, supplier statements of account, and control
             account reconciliation
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs">
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-xs">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-slate-500">As Of Date:</span>
             <input
               type="date"
               value={asOfDate}
               onChange={(e) => setAsOfDate(e.target.value)}
-              className="bg-transparent border-none text-slate-700 dark:text-slate-200 focus:outline-none text-xs"
+              className="bg-transparent border-none text-slate-700 focus:outline-none text-xs"
             />
           </div>
 
@@ -339,108 +336,97 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-md">
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-md">
           {error}
         </div>
       )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Total Outstanding AP
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Total Outstanding AP</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {summary ? formatPaisa(summary.totalOutstandingPaisa) : '—'}
                 </h3>
               </div>
-              <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg">
+              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-lg">
                 <Truck className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+            <div className="mt-3 text-xs text-slate-500 flex items-center gap-1">
               <span>Total supplier payables</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Overdue Payables
-                </p>
-                <h3 className="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">
+                <p className="text-xs font-medium text-slate-500">Overdue Payables</p>
+                <h3 className="text-2xl font-bold text-rose-600 mt-1">
                   {summary ? formatPaisa(summary.overduePaisa) : '—'}
                 </h3>
               </div>
-              <div className="p-3 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-lg">
+              <div className="p-3 bg-rose-500/10 text-rose-600 rounded-lg">
                 <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-xs text-rose-600/80 dark:text-rose-400/80 flex items-center gap-1">
+            <div className="mt-3 text-xs text-rose-600/80 flex items-center gap-1">
               <span>Past credit term maturity</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Paid This Month
-                </p>
-                <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                <p className="text-xs font-medium text-slate-500">Paid This Month</p>
+                <h3 className="text-2xl font-bold text-emerald-600 mt-1">
                   {summary ? formatPaisa(summary.paidThisMonthPaisa) : '—'}
                 </h3>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-lg">
                 <CreditCard className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-xs text-emerald-600/80 dark:text-emerald-400/80 flex items-center gap-1">
+            <div className="mt-3 text-xs text-emerald-600/80 flex items-center gap-1">
               <span>Supplier settlements cleared</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Ledger Reconciliation
-                </p>
+                <p className="text-xs font-medium text-slate-500">Ledger Reconciliation</p>
                 <div className="flex items-center gap-2 mt-1">
                   {summary?.reconciliation.isReconciled ? (
                     <Badge
                       variant="outline"
-                      className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200"
+                      className="bg-emerald-50 text-emerald-700 border-emerald-200"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                       Balanced (Diff: 0)
                     </Badge>
                   ) : (
-                    <Badge
-                      variant="outline"
-                      className="bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border-rose-200"
-                    >
+                    <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">
                       <AlertTriangle className="w-3.5 h-3.5 mr-1" />
                       Diff: {summary ? formatPaisa(summary.reconciliation.differencePaisa) : '—'}
                     </Badge>
                   )}
                 </div>
               </div>
-              <div className="p-3 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-lg">
+              <div className="p-3 bg-purple-500/10 text-purple-600 rounded-lg">
                 <FileText className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="mt-3 text-[11px] text-slate-500">
               <span>
                 Ctrl:{' '}
                 {summary ? formatPaisa(summary.reconciliation.controlAccountBalancePaisa) : '—'} |
@@ -453,10 +439,10 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
 
       {/* Visual Aging Schedule Breakdown Bar */}
       {summary && agingPct && (
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-semibold text-slate-700">
                 Accounts Payable Aging Schedule ({asOfDate})
               </span>
               <span className="text-xs text-slate-400">
@@ -465,7 +451,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             </div>
 
             {/* Segmented bar */}
-            <div className="w-full h-3.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+            <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden flex">
               <div
                 style={{ width: `${agingPct.current}%` }}
                 className="bg-emerald-500 transition-all"
@@ -499,7 +485,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
                 <div>
                   <span className="text-slate-500 block text-[10px]">Current</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="font-semibold text-slate-700">
                     {formatPaisa(summary.aging.currentPaisa)}
                   </span>
                   <span className="text-[10px] text-slate-400 ml-1">({agingPct.current}%)</span>
@@ -510,7 +496,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
                 <div>
                   <span className="text-slate-500 block text-[10px]">1 - 30 Days</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="font-semibold text-slate-700">
                     {formatPaisa(summary.aging.days1to30Paisa)}
                   </span>
                   <span className="text-[10px] text-slate-400 ml-1">({agingPct.days1to30}%)</span>
@@ -521,7 +507,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
                 <div>
                   <span className="text-slate-500 block text-[10px]">31 - 60 Days</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="font-semibold text-slate-700">
                     {formatPaisa(summary.aging.days31to60Paisa)}
                   </span>
                   <span className="text-[10px] text-slate-400 ml-1">({agingPct.days31to60}%)</span>
@@ -532,7 +518,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                 <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0" />
                 <div>
                   <span className="text-slate-500 block text-[10px]">61 - 90 Days</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="font-semibold text-slate-700">
                     {formatPaisa(summary.aging.days61to90Paisa)}
                   </span>
                   <span className="text-[10px] text-slate-400 ml-1">({agingPct.days61to90}%)</span>
@@ -543,7 +529,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
                 <div>
                   <span className="text-slate-500 block text-[10px]">90+ Days</span>
-                  <span className="font-semibold text-rose-600 dark:text-rose-400">
+                  <span className="font-semibold text-rose-600">
                     {formatPaisa(summary.aging.days90PlusPaisa)}
                   </span>
                   <span className="text-[10px] text-slate-400 ml-1">({agingPct.days90Plus}%)</span>
@@ -555,12 +541,12 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
       )}
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-slate-200 dark:border-slate-800 gap-6">
+      <div className="flex items-center border-b border-slate-200 gap-6">
         <button
           onClick={() => setActiveTab('suppliers')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'suppliers'
-              ? 'border-amber-600 text-amber-600 dark:text-amber-400'
+              ? 'border-amber-600 text-amber-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -571,7 +557,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
           onClick={() => setActiveTab('bills')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'bills'
-              ? 'border-amber-600 text-amber-600 dark:text-amber-400'
+              ? 'border-amber-600 text-amber-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -582,7 +568,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
           onClick={() => setActiveTab('reminders')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'reminders'
-              ? 'border-amber-600 text-amber-600 dark:text-amber-400'
+              ? 'border-amber-600 text-amber-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -607,11 +593,11 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             <span className="text-xs text-slate-400">Showing {suppliersList.length} suppliers</span>
           </div>
 
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50 dark:bg-slate-850 text-xs font-semibold">
+                  <TableRow className="bg-slate-50 text-xs font-semibold">
                     <TableHead className="w-10"></TableHead>
                     <TableHead>Supplier Name</TableHead>
                     <TableHead>Contact / Phone</TableHead>
@@ -642,11 +628,11 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                       const isExpanded = expandedSuppliers.has(s.id);
                       return (
                         <React.Fragment key={s.id}>
-                          <TableRow className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                          <TableRow className="border-b border-slate-100 hover:bg-slate-50/50">
                             <TableCell>
                               <button
                                 onClick={() => toggleSupplierExpand(s.id)}
-                                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500"
+                                className="p-1 hover:bg-slate-200 rounded text-slate-500"
                               >
                                 {isExpanded ? (
                                   <ChevronDown className="w-4 h-4" />
@@ -655,7 +641,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                                 )}
                               </button>
                             </TableCell>
-                            <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                            <TableCell className="font-medium text-slate-900">
                               <div>
                                 <p>{s.name}</p>
                                 <span className="text-[11px] text-slate-400">
@@ -663,7 +649,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell className="text-xs text-slate-600 dark:text-slate-400">
+                            <TableCell className="text-xs text-slate-600">
                               <div>
                                 {s.contactPerson && (
                                   <p className="font-medium">{s.contactPerson}</p>
@@ -671,7 +657,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                                 <p className="text-[11px] text-slate-400">{s.phone || '—'}</p>
                               </div>
                             </TableCell>
-                            <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                            <TableCell className="text-right font-bold text-slate-900">
                               {formatPaisa(s.outstandingPaisa)}
                             </TableCell>
                             <TableCell>
@@ -747,10 +733,10 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
 
                           {/* Expandable Bills Subtable */}
                           {isExpanded && (
-                            <TableRow className="bg-slate-50/80 dark:bg-slate-800/30">
+                            <TableRow className="bg-slate-50/80">
                               <TableCell colSpan={8} className="p-4 pl-12">
                                 <div className="space-y-2">
-                                  <div className="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                  <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
                                     <span>Open Purchase Bills / Invoices ({s.bills.length})</span>
                                   </div>
 
@@ -759,10 +745,10 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                                       No open purchase bills pending payment.
                                     </p>
                                   ) : (
-                                    <div className="border border-slate-200 dark:border-slate-700 rounded overflow-hidden">
+                                    <div className="border border-slate-200 rounded overflow-hidden">
                                       <Table>
                                         <TableHeader>
-                                          <TableRow className="bg-white dark:bg-slate-800 text-[11px]">
+                                          <TableRow className="bg-white text-[11px]">
                                             <TableHead>Bill / PO #</TableHead>
                                             <TableHead>Order Date</TableHead>
                                             <TableHead className="text-right">
@@ -793,7 +779,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                                                 <TableCell className="text-right text-emerald-600">
                                                   {formatPaisa(bill.paidPaisa)}
                                                 </TableCell>
-                                                <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                                                <TableCell className="text-right font-bold text-slate-900">
                                                   {formatPaisa(bill.balanceDuePaisa)}
                                                 </TableCell>
                                                 <TableCell>
@@ -860,11 +846,11 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             </span>
           </div>
 
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50 dark:bg-slate-850 text-xs font-semibold">
+                  <TableRow className="bg-slate-50 text-xs font-semibold">
                     <TableHead>Bill / PO #</TableHead>
                     <TableHead>Supplier</TableHead>
                     <TableHead>Date</TableHead>
@@ -895,11 +881,8 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                     filteredBills.map((b) => {
                       const bucketMeta = getAgingBucketMeta(b.agingBucket);
                       return (
-                        <TableRow
-                          key={b.id}
-                          className="text-xs hover:bg-slate-50/50 dark:hover:bg-slate-850/40"
-                        >
-                          <TableCell className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableRow key={b.id} className="text-xs hover:bg-slate-50/50">
+                          <TableCell className="font-semibold text-slate-900">
                             {b.billNumber}
                           </TableCell>
                           <TableCell className="font-medium">{b.supplierName}</TableCell>
@@ -915,7 +898,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                           <TableCell className="text-right text-emerald-600">
                             {formatPaisa(b.paidPaisa)}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                          <TableCell className="text-right font-bold text-slate-900">
                             {formatPaisa(b.balanceDuePaisa)}
                           </TableCell>
                           <TableCell>
@@ -956,11 +939,11 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
       {/* TAB 3: Reminders Log */}
       {activeTab === 'reminders' && (
         <div className="space-y-4">
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50 dark:bg-slate-850 text-xs font-semibold">
+                  <TableRow className="bg-slate-50 text-xs font-semibold">
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Supplier</TableHead>
                     <TableHead>Channel</TableHead>
@@ -984,7 +967,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                         <TableCell className="text-slate-500">
                           {formatKarachiDateOnly(r.sentAt)}
                         </TableCell>
-                        <TableCell className="font-semibold text-slate-900 dark:text-slate-100">
+                        <TableCell className="font-semibold text-slate-900">
                           {r.partyName || r.partyId}
                         </TableCell>
                         <TableCell>
@@ -992,16 +975,14 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                             {r.channel}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-slate-600 dark:text-slate-400">
-                          {r.recipient || '—'}
-                        </TableCell>
+                        <TableCell className="text-slate-600">{r.recipient || '—'}</TableCell>
                         <TableCell className="text-right font-medium">
                           {formatPaisa(r.amountPaisa)}
                         </TableCell>
                         <TableCell>
                           <span className="text-[11px] text-amber-600">{r.daysOverdue} days</span>
                         </TableCell>
-                        <TableCell className="max-w-xs truncate text-slate-600 dark:text-slate-400">
+                        <TableCell className="max-w-xs truncate text-slate-600">
                           {r.message || '—'}
                         </TableCell>
                       </TableRow>
@@ -1026,21 +1007,21 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
         >
           <div className="space-y-4 text-xs max-h-[80vh] overflow-y-auto p-1">
             {/* Filter toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg print:hidden">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 rounded-lg print:hidden">
               <div className="flex items-center gap-2">
                 <span>From:</span>
                 <input
                   type="date"
                   value={statementStartDate}
                   onChange={(e) => setStatementStartDate(e.target.value)}
-                  className="px-2 py-1 border rounded bg-white dark:bg-slate-900"
+                  className="px-2 py-1 border rounded bg-white"
                 />
                 <span>To:</span>
                 <input
                   type="date"
                   value={statementEndDate}
                   onChange={(e) => setStatementEndDate(e.target.value)}
-                  className="px-2 py-1 border rounded bg-white dark:bg-slate-900"
+                  className="px-2 py-1 border rounded bg-white"
                 />
                 <Button
                   size="sm"
@@ -1057,7 +1038,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
 
               <Button
                 size="sm"
-                className="bg-slate-800 hover:bg-slate-900 text-white"
+                className="bg-[#2F64D8] hover:bg-[#2452B6] text-white"
                 onClick={handlePrintStatement}
               >
                 <Printer className="w-3.5 h-3.5 mr-1.5" />
@@ -1068,13 +1049,11 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             {/* Printable Statement Document */}
             <div
               id="printable-statement"
-              className="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-lg space-y-4"
+              className="p-4 bg-white border border-slate-200 rounded-lg space-y-4"
             >
               <div className="flex justify-between items-start border-b pb-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                    STATEMENT OF ACCOUNT
-                  </h2>
+                  <h2 className="text-base font-bold text-slate-900">STATEMENT OF ACCOUNT</h2>
                   <p className="text-slate-500 font-medium">{statementSupplier.name}</p>
                   {statementSupplier.contactPerson && (
                     <p className="text-slate-400">Attn: {statementSupplier.contactPerson}</p>
@@ -1084,9 +1063,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-slate-700 dark:text-slate-300">
-                    Liability Account 2000 (AP)
-                  </p>
+                  <p className="font-bold text-slate-700">Liability Account 2000 (AP)</p>
                   <p className="text-slate-500">
                     Period: {statementStartDate} to {statementEndDate}
                   </p>
@@ -1102,12 +1079,12 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
               ) : statementData ? (
                 <>
                   {/* Summary Bar */}
-                  <div className="grid grid-cols-4 gap-2 p-3 bg-slate-50 dark:bg-slate-900 rounded text-center border">
+                  <div className="grid grid-cols-4 gap-2 p-3 bg-slate-50 rounded text-center border">
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase font-semibold">
                         Opening Balance
                       </span>
-                      <p className="font-bold text-slate-800 dark:text-slate-200">
+                      <p className="font-bold text-slate-800">
                         {formatPaisa(statementData.openingBalancePaisa)}
                       </p>
                     </div>
@@ -1115,7 +1092,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                       <span className="text-[10px] text-slate-400 uppercase font-semibold">
                         Total Bills (Credit)
                       </span>
-                      <p className="font-bold text-slate-800 dark:text-slate-200">
+                      <p className="font-bold text-slate-800">
                         {formatPaisa(statementData.totalCreditsPaisa)}
                       </p>
                     </div>
@@ -1131,7 +1108,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                       <span className="text-[10px] text-slate-400 uppercase font-semibold">
                         Closing Balance Due
                       </span>
-                      <p className="font-bold text-amber-600 dark:text-amber-400">
+                      <p className="font-bold text-amber-600">
                         {formatPaisa(statementData.closingBalancePaisa)}
                       </p>
                     </div>
@@ -1140,7 +1117,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
                   {/* Lines Table */}
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-slate-100 dark:bg-slate-800 text-[11px]">
+                      <TableRow className="bg-slate-100 text-[11px]">
                         <TableHead>Date</TableHead>
                         <TableHead>Entry #</TableHead>
                         <TableHead>Description</TableHead>
@@ -1204,13 +1181,13 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             )}
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">Channel</label>
+              <label className="font-semibold text-slate-700">Channel</label>
               <select
                 value={reminderChannel}
                 onChange={(e) =>
                   setReminderChannel(e.target.value as 'sms' | 'whatsapp' | 'phone' | 'email')
                 }
-                className="w-full px-3 py-2 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full px-3 py-2 border rounded bg-white text-xs"
               >
                 <option value="phone">Phone Call</option>
                 <option value="whatsapp">WhatsApp</option>
@@ -1220,9 +1197,7 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Recipient Contact Info
-              </label>
+              <label className="font-semibold text-slate-700">Recipient Contact Info</label>
               <Input
                 value={reminderRecipient}
                 onChange={(e) => setReminderRecipient(e.target.value)}
@@ -1232,14 +1207,12 @@ export const AccountsPayablePage: React.FC<AccountsPayablePageProps> = ({ onReco
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Follow-up / Reminder Notes
-              </label>
+              <label className="font-semibold text-slate-700">Follow-up / Reminder Notes</label>
               <textarea
                 rows={3}
                 value={reminderMessage}
                 onChange={(e) => setReminderMessage(e.target.value)}
-                className="w-full px-3 py-2 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full px-3 py-2 border rounded bg-white text-xs"
                 placeholder="Enter discussion notes or payment follow-up details..."
               />
             </div>

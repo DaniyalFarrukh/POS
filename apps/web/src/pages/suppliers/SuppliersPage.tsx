@@ -299,11 +299,11 @@ export const SuppliersPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-[#2F64D8]" />
             Distributors & Suppliers
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Supplier directory, payment terms, Accounts Payable balances, and purchase ledgers
           </p>
         </div>
@@ -313,7 +313,7 @@ export const SuppliersPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={handleOpenDuplicateReview}
-              className="flex items-center gap-1.5 text-amber-600 border-amber-300 dark:border-amber-800 hover:bg-amber-50"
+              className="flex items-center gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50"
             >
               <GitMerge className="w-4 h-4" />
               Review Duplicates ({duplicateGroups.length})
@@ -338,16 +338,16 @@ export const SuppliersPage: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-blue-600">
+        <Card className="border-l-4 border-l-[#2F64D8]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Total Payable (AP)
               </span>
-              <Scale className="w-4 h-4 text-blue-600" />
+              <Scale className="w-4 h-4 text-[#2F64D8]" />
             </div>
             <div className="mt-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
                 {formatPaisa(kpis.totalPayablePaisa)}
               </span>
               <p className="text-[11px] text-slate-400 mt-0.5">
@@ -366,7 +366,7 @@ export const SuppliersPage: React.FC = () => {
               <Clock className="w-4 h-4 text-amber-500" />
             </div>
             <div className="mt-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
                 {formatPaisa(kpis.overduePayablePaisa)}
               </span>
               <p className="text-[11px] text-slate-400 mt-0.5">Past supplier credit terms</p>
@@ -383,7 +383,7 @@ export const SuppliersPage: React.FC = () => {
               <Building2 className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="mt-2">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">
                 {kpis.activeSuppliersCount}
               </span>
               <p className="text-[11px] text-slate-400 mt-0.5">
@@ -415,7 +415,7 @@ export const SuppliersPage: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'true' | 'false')}
-                className="w-full px-3 py-2 text-xs border rounded-md bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2F64D8]/20 focus:border-[#2F64D8]"
               >
                 <option value="all">All Statuses</option>
                 <option value="true">Active Only</option>
@@ -455,10 +455,8 @@ export const SuppliersPage: React.FC = () => {
             </div>
           ) : suppliersList.length === 0 ? (
             <div className="p-12 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
-              <Building2 className="w-10 h-10 text-slate-300 dark:text-slate-700" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                No suppliers found
-              </p>
+              <Building2 className="w-10 h-10 text-slate-300" />
+              <p className="text-sm font-semibold text-slate-700">No suppliers found</p>
               <p className="text-xs text-slate-400">
                 Adjust search criteria or click &quot;New Supplier&quot; to register a distributor.
               </p>
@@ -480,15 +478,11 @@ export const SuppliersPage: React.FC = () => {
                 {suppliersList.map((s) => (
                   <TableRow
                     key={s.id}
-                    className={
-                      !s.isActive ? 'opacity-60 bg-slate-50/50 dark:bg-slate-900/30' : undefined
-                    }
+                    className={!s.isActive ? 'opacity-60 bg-slate-50/50' : undefined}
                   >
                     <TableCell>
                       <div>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100 block text-xs">
-                          {s.name}
-                        </span>
+                        <span className="font-semibold text-slate-900 block text-xs">{s.name}</span>
                         {s.taxNumber && (
                           <span className="text-[10px] text-slate-400 font-mono block">
                             NTN: {s.taxNumber}
@@ -496,16 +490,16 @@ export const SuppliersPage: React.FC = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs text-slate-700 dark:text-slate-300">
+                    <TableCell className="text-xs text-slate-700">
                       {s.contactPerson || '—'}
                     </TableCell>
-                    <TableCell className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                    <TableCell className="text-xs font-mono text-slate-600">
                       {s.phone || '—'}
                     </TableCell>
                     <TableCell className="text-xs text-center font-mono">
                       {s.paymentTermsDays}d
                     </TableCell>
-                    <TableCell className="text-xs text-right font-mono font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                    <TableCell className="text-xs text-right font-mono font-bold tabular-nums text-slate-900">
                       {formatPaisa(s.payableBalancePaisa)}
                     </TableCell>
                     <TableCell className="text-center">
@@ -575,7 +569,7 @@ export const SuppliersPage: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Distributor / Supplier Name <span className="text-rose-500">*</span>
               </label>
               <Input
@@ -591,7 +585,7 @@ export const SuppliersPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Contact Person
                 </label>
                 <Input
@@ -602,7 +596,7 @@ export const SuppliersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Phone Number
                 </label>
                 <Input
@@ -615,7 +609,7 @@ export const SuppliersPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Email Address
                 </label>
                 <Input
@@ -630,7 +624,7 @@ export const SuppliersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   NTN / STRN (Optional)
                 </label>
                 <Input
@@ -642,7 +636,7 @@ export const SuppliersPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Office / Warehouse Address
               </label>
               <Input
@@ -654,7 +648,7 @@ export const SuppliersPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Payment Terms (Days)
                 </label>
                 <Input
@@ -675,7 +669,7 @@ export const SuppliersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Credit Limit (PKR)
                 </label>
                 <Input
@@ -692,7 +686,7 @@ export const SuppliersPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Opening Balance (PKR)
                 </label>
                 <Input
@@ -713,7 +707,7 @@ export const SuppliersPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"
@@ -739,7 +733,7 @@ export const SuppliersPage: React.FC = () => {
           title="Review & Merge Duplicate Suppliers"
         >
           <form onSubmit={handleConfirmMerge} className="space-y-4 max-w-2xl">
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 text-xs rounded-md">
+            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-md">
               <p className="font-semibold mb-1">Safe Single Source of Truth Merge</p>
               <p>
                 Identified distributors with identical names or phone numbers created independently.
@@ -759,22 +753,17 @@ export const SuppliersPage: React.FC = () => {
               {duplicateGroups.map((group, gIdx) => (
                 <div
                   key={gIdx}
-                  className="p-3 border rounded-lg border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 space-y-2"
+                  className="p-3 border rounded-lg border-slate-200 bg-slate-50/50 space-y-2"
                 >
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
                     <span>Candidate Pair #{gIdx + 1}</span>
                     <Badge variant="warning">{group.reason}</Badge>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     {group.candidates.map((c) => (
-                      <div
-                        key={c.id}
-                        className="p-2.5 bg-white dark:bg-slate-900 border rounded-md border-slate-200 dark:border-slate-700"
-                      >
-                        <span className="font-bold block text-slate-900 dark:text-slate-100">
-                          {c.name}
-                        </span>
+                      <div key={c.id} className="p-2.5 bg-white border rounded-md border-slate-200">
+                        <span className="font-bold block text-slate-900">{c.name}</span>
                         <span className="text-[11px] text-slate-500 block">
                           Phone: {c.phone || '—'}
                         </span>
@@ -793,7 +782,7 @@ export const SuppliersPage: React.FC = () => {
                       <select
                         value={selectedTargetId}
                         onChange={(e) => setSelectedTargetId(e.target.value)}
-                        className="w-full px-2 py-1.5 text-xs border rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                        className="w-full px-2 py-1.5 text-xs border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                       >
                         {group.candidates.map((c) => (
                           <option key={c.id} value={c.id}>
@@ -810,7 +799,7 @@ export const SuppliersPage: React.FC = () => {
                       <select
                         value={selectedSourceId}
                         onChange={(e) => setSelectedSourceId(e.target.value)}
-                        className="w-full px-2 py-1.5 text-xs border rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                        className="w-full px-2 py-1.5 text-xs border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                       >
                         {group.candidates.map((c) => (
                           <option key={c.id} value={c.id}>
@@ -824,7 +813,7 @@ export const SuppliersPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"

@@ -263,11 +263,11 @@ export const JournalEntriesPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <Scale className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <Scale className="w-6 h-6 text-[#2F64D8]" />
             General Journal
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Immutable double-entry transaction ledger with audit trails, document links, and
             reversing entries
           </p>
@@ -290,7 +290,7 @@ export const JournalEntriesPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300 rounded-lg flex items-center gap-3">
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span className="text-sm font-medium">{error}</span>
         </div>
@@ -301,27 +301,23 @@ export const JournalEntriesPage: React.FC = () => {
         <CardContent className="p-4">
           <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                From Date
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">From Date</label>
               <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                To Date
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">To Date</label>
               <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Document Source
               </label>
               <select
                 value={sourceType}
                 onChange={(e) => setSourceType(e.target.value)}
-                className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2F64D8]/20 focus:border-[#2F64D8]"
               >
                 <option value="all">All Sources</option>
                 <option value="manual">Manual Journals</option>
@@ -333,13 +329,11 @@ export const JournalEntriesPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Status
-              </label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border rounded-lg bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2F64D8]/20 focus:border-[#2F64D8]"
               >
                 <option value="all">All Statuses</option>
                 <option value="posted">Posted</option>
@@ -374,10 +368,8 @@ export const JournalEntriesPage: React.FC = () => {
             </div>
           ) : entries.length === 0 ? (
             <div className="p-12 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
-              <Scale className="w-10 h-10 text-slate-300 dark:text-slate-700" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                No journal entries found
-              </p>
+              <Scale className="w-10 h-10 text-slate-300" />
+              <p className="text-sm font-semibold text-slate-700">No journal entries found</p>
               <p className="text-xs text-slate-400">
                 Adjust date or source filters, or create a manual journal entry.
               </p>
@@ -413,27 +405,25 @@ export const JournalEntriesPage: React.FC = () => {
 
                   return (
                     <TableRow key={entry.id}>
-                      <TableCell className="font-mono font-bold text-slate-900 dark:text-slate-100">
+                      <TableCell className="font-mono font-bold text-slate-900">
                         #{entry.entryNo}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600 dark:text-slate-400">
+                      <TableCell className="text-sm text-slate-600">
                         {formatKarachiDateOnly(entry.entryDate)}
                       </TableCell>
                       <TableCell>
                         {docLink.hasLink ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-[#2F64D8] border border-blue-200">
                             {docLink.label}
                           </span>
                         ) : (
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                            Manual Journal
-                          </span>
+                          <span className="text-xs font-medium text-slate-500">Manual Journal</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-800 dark:text-slate-200 max-w-xs truncate">
+                      <TableCell className="text-sm text-slate-800 max-w-xs truncate">
                         {entry.memo}
                         {entry.reversesEntryId && (
-                          <span className="block text-xs text-amber-600 dark:text-amber-400 font-medium">
+                          <span className="block text-xs text-amber-600 font-medium">
                             Opposing reversal entry
                           </span>
                         )}
@@ -448,7 +438,7 @@ export const JournalEntriesPage: React.FC = () => {
                           {entry.status === 'posted' ? 'Posted' : 'Reversed'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono font-medium tabular-nums text-slate-900 dark:text-slate-100">
+                      <TableCell className="text-right font-mono font-medium tabular-nums text-slate-900">
                         {formatPaisa(totalPaisa)}
                       </TableCell>
                       <TableCell className="text-right">
@@ -462,7 +452,7 @@ export const JournalEntriesPage: React.FC = () => {
                               setIsDetailModalOpen(true);
                             }}
                           >
-                            <Eye className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                            <Eye className="w-4 h-4 text-slate-600" />
                           </Button>
                           {canReverse && (
                             <Button
@@ -498,10 +488,10 @@ export const JournalEntriesPage: React.FC = () => {
         >
           <div className="space-y-4 max-w-2xl">
             {/* Header info */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-lg text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg text-xs">
               <div>
                 <span className="text-slate-500 block">Date</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                <span className="font-semibold text-slate-800">
                   {formatKarachiDateOnly(selectedEntry.entryDate)}
                 </span>
               </div>
@@ -513,34 +503,28 @@ export const JournalEntriesPage: React.FC = () => {
               </div>
               <div>
                 <span className="text-slate-500 block">Posted At</span>
-                <span className="font-medium text-slate-700 dark:text-slate-300">
+                <span className="font-medium text-slate-700">
                   {formatKarachiDateTime(selectedEntry.postedAt)}
                 </span>
               </div>
               <div className="col-span-2 sm:col-span-3">
                 <span className="text-slate-500 block">Memo / Narration</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">
-                  {selectedEntry.memo}
-                </span>
+                <span className="font-medium text-slate-900">{selectedEntry.memo}</span>
               </div>
               {selectedEntry.reversalReason && (
-                <div className="col-span-2 sm:col-span-3 p-2 bg-amber-50 dark:bg-amber-950/30 rounded border border-amber-200 dark:border-amber-900">
-                  <span className="text-amber-800 dark:text-amber-300 font-semibold block">
-                    Reversal Reason:
-                  </span>
-                  <span className="text-amber-700 dark:text-amber-400">
-                    {selectedEntry.reversalReason}
-                  </span>
+                <div className="col-span-2 sm:col-span-3 p-2 bg-amber-50 rounded border border-amber-200">
+                  <span className="text-amber-800 font-semibold block">Reversal Reason:</span>
+                  <span className="text-amber-700">{selectedEntry.reversalReason}</span>
                 </div>
               )}
             </div>
 
             {/* Lines Table */}
             <div>
-              <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
+              <h4 className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider">
                 Journal Lines ({selectedEntry.lines?.length || 0})
               </h4>
-              <div className="border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden">
+              <div className="border border-slate-200 rounded-md overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -554,7 +538,7 @@ export const JournalEntriesPage: React.FC = () => {
                     {(selectedEntry.lines || []).map((line) => (
                       <TableRow key={line.id}>
                         <TableCell className="text-xs font-medium">
-                          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400 mr-1.5">
+                          <span className="font-mono font-semibold text-[#2F64D8] mr-1.5">
                             [{line.accountCode || '—'}]
                           </span>
                           {line.accountName || line.accountId}
@@ -569,8 +553,8 @@ export const JournalEntriesPage: React.FC = () => {
                       </TableRow>
                     ))}
                     {/* Totals row */}
-                    <TableRow className="bg-slate-50 dark:bg-slate-900/60 font-semibold border-t-2">
-                      <TableCell colSpan={2} className="text-xs text-slate-700 dark:text-slate-300">
+                    <TableRow className="bg-slate-50 font-semibold border-t-2">
+                      <TableCell colSpan={2} className="text-xs text-slate-700">
                         Total Balanced
                       </TableCell>
                       <TableCell className="text-xs text-right font-mono tabular-nums">
@@ -610,7 +594,7 @@ export const JournalEntriesPage: React.FC = () => {
         >
           <form onSubmit={handleCreateJournal} className="space-y-4 max-w-3xl">
             {createError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300 text-xs rounded-md flex items-center gap-2">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-md flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>{createError}</span>
               </div>
@@ -618,7 +602,7 @@ export const JournalEntriesPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Entry Date <span className="text-rose-500">*</span>
                 </label>
                 <Input
@@ -629,7 +613,7 @@ export const JournalEntriesPage: React.FC = () => {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   General Memo / Narration <span className="text-rose-500">*</span>
                 </label>
                 <Input
@@ -644,7 +628,7 @@ export const JournalEntriesPage: React.FC = () => {
             {/* Dynamic Lines */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   Journal Lines (Minimum 2)
                 </span>
                 <Button
@@ -659,7 +643,7 @@ export const JournalEntriesPage: React.FC = () => {
                 </Button>
               </div>
 
-              <div className="space-y-2 border border-slate-200 dark:border-slate-800 rounded-md p-2 bg-slate-50/50 dark:bg-slate-900/30">
+              <div className="space-y-2 border border-slate-200 rounded-md p-2 bg-slate-50/50">
                 {lines.map((line, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     {/* Account selection */}
@@ -667,7 +651,7 @@ export const JournalEntriesPage: React.FC = () => {
                       <select
                         value={line.accountId}
                         onChange={(e) => handleLineChange(idx, 'accountId', e.target.value)}
-                        className="w-full px-2.5 py-1.5 text-xs border rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-2.5 py-1.5 text-xs border rounded bg-white border-slate-300 text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#2F64D8]"
                         required
                       >
                         <option value="">-- Select Account --</option>
@@ -734,17 +718,17 @@ export const JournalEntriesPage: React.FC = () => {
             </div>
 
             {/* Live Balanced Tally Footer */}
-            <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+            <div className="p-3 bg-white border border-slate-200 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
               <div className="flex items-center gap-4 font-mono">
                 <div>
                   <span className="text-slate-400 block text-[10px] uppercase">Total Debit</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="font-semibold text-slate-800">
                     {formatPaisa(validationResult.totalDebitPaisa)}
                   </span>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px] uppercase">Total Credit</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="font-semibold text-slate-800">
                     {formatPaisa(validationResult.totalCreditPaisa)}
                   </span>
                 </div>
@@ -776,7 +760,7 @@ export const JournalEntriesPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"
@@ -809,7 +793,7 @@ export const JournalEntriesPage: React.FC = () => {
           title={`Reverse Journal Entry #${entryToReverse.entryNo}`}
         >
           <form onSubmit={handleConfirmReverse} className="space-y-4">
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 text-xs rounded-md space-y-1">
+            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-md space-y-1">
               <div className="flex items-center gap-1.5 font-semibold">
                 <ShieldAlert className="w-4 h-4" />
                 Immutable Ledger Protection
@@ -822,13 +806,13 @@ export const JournalEntriesPage: React.FC = () => {
             </div>
 
             {reversalError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900 dark:text-rose-300 text-xs rounded-md">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-md">
                 {reversalError}
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Reason for Reversal <span className="text-rose-500">*</span>
               </label>
               <Input
@@ -839,7 +823,7 @@ export const JournalEntriesPage: React.FC = () => {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
               <Button
                 type="button"
                 variant="outline"

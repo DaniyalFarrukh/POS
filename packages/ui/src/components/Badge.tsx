@@ -7,19 +7,13 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 export const Badge: React.FC<BadgeProps> = ({ className, variant = 'default', ...props }) => {
   const variantClasses = {
-    default:
-      'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
-    secondary:
-      'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-    success:
-      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-    warning:
-      'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-    destructive:
-      'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 border-rose-200 dark:border-rose-800',
-    info: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border-sky-200 dark:border-sky-800',
-    outline:
-      'border border-slate-300 text-slate-700 dark:border-slate-700 dark:text-slate-300 bg-transparent',
+    default: 'bg-[#EEF4FF] text-[#2F64D8] border-[#2F64D8]/20',
+    secondary: 'bg-slate-100 text-slate-700 border-slate-200',
+    success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    warning: 'bg-amber-50 text-amber-800 border-amber-200',
+    destructive: 'bg-rose-50 text-rose-700 border-rose-200',
+    info: 'bg-blue-50 text-[#2F64D8] border-blue-200',
+    outline: 'border border-slate-300 text-slate-700 bg-white',
   };
 
   return (

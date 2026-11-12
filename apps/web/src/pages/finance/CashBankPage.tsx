@@ -546,17 +546,14 @@ export const CashBankPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Cash & Bank Management
             </h1>
-            <Badge
-              variant="outline"
-              className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs"
-            >
+            <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 text-xs">
               Asset Class 1000 - 1099
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Cash tills, bank accounts, fund transfers, day-end counter deposits, and simple bank
             reconciliations
           </p>
@@ -614,25 +611,23 @@ export const CashBankPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-md">
+        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-md">
           {error}
         </div>
       )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Total Cash in Hand
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Total Cash in Hand</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {formatPaisa(kpis.totalCashPaisa)}
                 </h3>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-lg">
                 <Wallet className="w-6 h-6" />
               </div>
             </div>
@@ -640,18 +635,16 @@ export const CashBankPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Total Bank Balances
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Total Bank Balances</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {formatPaisa(kpis.totalBankPaisa)}
                 </h3>
               </div>
-              <div className="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
+              <div className="p-3 bg-blue-500/10 text-blue-600 rounded-lg">
                 <Landmark className="w-6 h-6" />
               </div>
             </div>
@@ -659,18 +652,16 @@ export const CashBankPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Transfers This Month
-                </p>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                <p className="text-xs font-medium text-slate-500">Transfers This Month</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
                   {formatPaisa(kpis.transfersThisMonthPaisa)}
                 </h3>
               </div>
-              <div className="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg">
+              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-lg">
                 <ArrowRightLeft className="w-6 h-6" />
               </div>
             </div>
@@ -678,18 +669,16 @@ export const CashBankPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm">
+        <Card className="bg-white border-slate-200 shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  Day-End Cash Deposited
-                </p>
-                <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                <p className="text-xs font-medium text-slate-500">Day-End Cash Deposited</p>
+                <h3 className="text-2xl font-bold text-emerald-600 mt-1">
                   {formatPaisa(kpis.depositsThisMonthPaisa)}
                 </h3>
               </div>
-              <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-lg">
                 <ArrowDownToLine className="w-6 h-6" />
               </div>
             </div>
@@ -699,12 +688,12 @@ export const CashBankPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-slate-200 dark:border-slate-800 gap-6">
+      <div className="flex items-center border-b border-slate-200 gap-6">
         <button
           onClick={() => setActiveTab('accounts')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'accounts'
-              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+              ? 'border-emerald-600 text-emerald-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -715,7 +704,7 @@ export const CashBankPage: React.FC = () => {
           onClick={() => setActiveTab('transfers')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'transfers'
-              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+              ? 'border-emerald-600 text-emerald-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -726,7 +715,7 @@ export const CashBankPage: React.FC = () => {
           onClick={() => setActiveTab('deposits')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'deposits'
-              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+              ? 'border-emerald-600 text-emerald-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -737,7 +726,7 @@ export const CashBankPage: React.FC = () => {
           onClick={() => setActiveTab('reconciliation')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'reconciliation'
-              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+              ? 'border-emerald-600 text-emerald-600'
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
@@ -750,20 +739,17 @@ export const CashBankPage: React.FC = () => {
       {activeTab === 'accounts' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {accounts.map((acct) => (
-            <Card
-              key={acct.id}
-              className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm"
-            >
+            <Card key={acct.id} className="bg-white border-slate-200 shadow-sm">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div
                       className={`p-2.5 rounded-lg ${
                         acct.type === 'bank'
-                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                          ? 'bg-blue-500/10 text-blue-600'
                           : acct.type === 'wallet'
-                            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
-                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            ? 'bg-purple-500/10 text-purple-600'
+                            : 'bg-emerald-500/10 text-emerald-600'
                       }`}
                     >
                       {acct.type === 'bank' ? (
@@ -773,9 +759,7 @@ export const CashBankPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
-                        {acct.name}
-                      </h3>
+                      <h3 className="font-semibold text-slate-900 text-sm">{acct.name}</h3>
                       <p className="text-xs text-slate-400">
                         {acct.accountCode} - {acct.accountName}
                       </p>
@@ -786,15 +770,15 @@ export const CashBankPage: React.FC = () => {
                   </Badge>
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="pt-2 border-t border-slate-100">
                   <span className="text-[11px] text-slate-400 block">Ledger Balance</span>
-                  <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                  <div className="text-xl font-bold text-slate-900 mt-0.5">
                     {formatPaisa(acct.ledgerBalancePaisa)}
                   </div>
                 </div>
 
                 {acct.type === 'bank' && (
-                  <div className="text-xs text-slate-500 space-y-1 bg-slate-50 dark:bg-slate-800/50 p-2 rounded">
+                  <div className="text-xs text-slate-500 space-y-1 bg-slate-50 p-2 rounded">
                     {acct.bankName && <p>Bank: {acct.bankName}</p>}
                     {acct.accountNumber && <p>A/C: {acct.accountNumber}</p>}
                     {acct.iban && <p className="truncate">IBAN: {acct.iban}</p>}
@@ -808,11 +792,11 @@ export const CashBankPage: React.FC = () => {
 
       {/* TAB 2: Fund Transfers */}
       {activeTab === 'transfers' && (
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 dark:bg-slate-850 text-xs font-semibold">
+                <TableRow className="bg-slate-50 text-xs font-semibold">
                   <TableHead>Transfer #</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>From Account</TableHead>
@@ -833,19 +817,19 @@ export const CashBankPage: React.FC = () => {
                 ) : (
                   transfers.map((t) => (
                     <TableRow key={t.id} className="text-xs">
-                      <TableCell className="font-semibold text-slate-900 dark:text-slate-100">
+                      <TableCell className="font-semibold text-slate-900">
                         {t.transferNumber}
                       </TableCell>
                       <TableCell className="text-slate-500">
                         {formatKarachiDateOnly(t.transferDate)}
                       </TableCell>
-                      <TableCell className="font-medium text-slate-700 dark:text-slate-300">
+                      <TableCell className="font-medium text-slate-700">
                         {t.fromAccountName}
                       </TableCell>
-                      <TableCell className="font-medium text-slate-700 dark:text-slate-300">
+                      <TableCell className="font-medium text-slate-700">
                         {t.toAccountName}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                      <TableCell className="text-right font-bold text-slate-900">
                         {formatPaisa(t.amountPaisa)}
                       </TableCell>
                       <TableCell className="text-slate-500 max-w-xs truncate">
@@ -894,11 +878,11 @@ export const CashBankPage: React.FC = () => {
 
       {/* TAB 3: Day-End Deposits */}
       {activeTab === 'deposits' && (
-        <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 dark:bg-slate-850 text-xs font-semibold">
+                <TableRow className="bg-slate-50 text-xs font-semibold">
                   <TableHead>Deposit #</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Branch / Counter</TableHead>
@@ -919,27 +903,23 @@ export const CashBankPage: React.FC = () => {
                 ) : (
                   deposits.map((d) => (
                     <TableRow key={d.id} className="text-xs">
-                      <TableCell className="font-semibold text-slate-900 dark:text-slate-100">
+                      <TableCell className="font-semibold text-slate-900">
                         {d.depositNumber}
                       </TableCell>
                       <TableCell className="text-slate-500">
                         {formatKarachiDateOnly(d.depositDate)}
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium text-slate-800 dark:text-slate-200">
-                          {d.branchName}
-                        </p>
+                        <p className="font-medium text-slate-800">{d.branchName}</p>
                         <span className="text-[11px] text-slate-400">
                           {d.counterName || 'Till'}
                         </span>
                       </TableCell>
-                      <TableCell className="text-slate-600 dark:text-slate-400">
-                        {d.sourceCashAccountName}
-                      </TableCell>
-                      <TableCell className="font-medium text-slate-800 dark:text-slate-200">
+                      <TableCell className="text-slate-600">{d.sourceCashAccountName}</TableCell>
+                      <TableCell className="font-medium text-slate-800">
                         {d.targetAccountName}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-slate-900 dark:text-slate-100">
+                      <TableCell className="text-right font-bold text-slate-900">
                         {formatPaisa(d.amountPaisa)}
                       </TableCell>
                       <TableCell>
@@ -986,7 +966,7 @@ export const CashBankPage: React.FC = () => {
       {activeTab === 'reconciliation' && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-4">
+          <Card className="bg-white border-slate-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 <div>
@@ -996,7 +976,7 @@ export const CashBankPage: React.FC = () => {
                   <select
                     value={reconBankAccountId}
                     onChange={(e) => setReconBankAccountId(e.target.value)}
-                    className="h-9 px-3 border rounded bg-white dark:bg-slate-800 text-xs"
+                    className="h-9 px-3 border rounded bg-white text-xs"
                   >
                     {accounts.map((a) => (
                       <option key={a.id} value={a.id}>
@@ -1014,7 +994,7 @@ export const CashBankPage: React.FC = () => {
                     type="date"
                     value={reconStatementDate}
                     onChange={(e) => setReconStatementDate(e.target.value)}
-                    className="h-9 px-3 border rounded bg-white dark:bg-slate-800 text-xs"
+                    className="h-9 px-3 border rounded bg-white text-xs"
                   />
                 </div>
 
@@ -1055,7 +1035,7 @@ export const CashBankPage: React.FC = () => {
                     onChange={handleCsvFileUpload}
                     className="hidden"
                   />
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-xs font-medium rounded border">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-xs font-medium rounded border">
                     <Upload className="w-3.5 h-3.5" />
                     Import CSV Statement
                   </span>
@@ -1075,12 +1055,12 @@ export const CashBankPage: React.FC = () => {
           </Card>
 
           {/* Reconciliation Math Summary Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4 bg-slate-50 dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200 text-center">
             <div>
               <span className="text-[10px] text-slate-400 uppercase font-semibold">
                 Statement Balance
               </span>
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5">
+              <p className="font-bold text-slate-900 text-sm mt-0.5">
                 {formatPaisa(parsePkrToPaisa(reconStatementBalancePaisa))}
               </p>
             </div>
@@ -1088,7 +1068,7 @@ export const CashBankPage: React.FC = () => {
               <span className="text-[10px] text-slate-400 uppercase font-semibold">
                 Ledger Balance
               </span>
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5">
+              <p className="font-bold text-slate-900 text-sm mt-0.5">
                 {formatPaisa(ledgerBalancePaisa)}
               </p>
             </div>
@@ -1096,7 +1076,7 @@ export const CashBankPage: React.FC = () => {
               <span className="text-[10px] text-slate-400 uppercase font-semibold">
                 Adjusted Balance
               </span>
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5">
+              <p className="font-bold text-slate-900 text-sm mt-0.5">
                 {formatPaisa(reconMath.adjustedStatementBalancePaisa)}
               </p>
             </div>
@@ -1128,7 +1108,7 @@ export const CashBankPage: React.FC = () => {
               <span className="text-[10px] text-slate-400 uppercase font-semibold">
                 Matched Items
               </span>
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm mt-0.5">
+              <p className="font-bold text-slate-900 text-sm mt-0.5">
                 {statementLines.filter((l) => l.matched).length} / {statementLines.length}
               </p>
             </div>
@@ -1137,8 +1117,8 @@ export const CashBankPage: React.FC = () => {
           {/* Split View: Statement Lines vs Ledger Lines */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Left: Statement Lines */}
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-3 bg-slate-50 dark:bg-slate-850 border-b flex justify-between items-center text-xs font-semibold">
+            <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-3 bg-slate-50 border-b flex justify-between items-center text-xs font-semibold">
                 <span>Bank Statement Lines ({statementLines.length})</span>
                 <span className="text-slate-400">Tick items matched with ledger</span>
               </div>
@@ -1165,7 +1145,7 @@ export const CashBankPage: React.FC = () => {
                         <TableRow
                           key={l.id}
                           className={`text-xs cursor-pointer ${
-                            l.matched ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''
+                            l.matched ? 'bg-emerald-50/40' : ''
                           }`}
                           onClick={() => toggleStatementLineMatch(l.id)}
                         >
@@ -1194,8 +1174,8 @@ export const CashBankPage: React.FC = () => {
             </Card>
 
             {/* Right: Ledger Lines */}
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-3 bg-slate-50 dark:bg-slate-850 border-b flex justify-between items-center text-xs font-semibold">
+            <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-3 bg-slate-50 border-b flex justify-between items-center text-xs font-semibold">
                 <span>General Ledger Transactions ({ledgerLines.length})</span>
                 <span className="text-slate-400">Account 1010/1000 Activity</span>
               </div>
@@ -1222,7 +1202,7 @@ export const CashBankPage: React.FC = () => {
                         <TableRow
                           key={l.id}
                           className={`text-xs cursor-pointer ${
-                            l.cleared ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''
+                            l.cleared ? 'bg-emerald-50/40' : ''
                           }`}
                           onClick={() => toggleLedgerLineClear(l.id)}
                         >
@@ -1261,9 +1241,7 @@ export const CashBankPage: React.FC = () => {
       >
         <form onSubmit={handleCreateAccount} className="space-y-4 text-xs">
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
-              Account Name *
-            </label>
+            <label className="font-semibold text-slate-700">Account Name *</label>
             <Input
               value={newAccountName}
               onChange={(e) => setNewAccountName(e.target.value)}
@@ -1275,13 +1253,11 @@ export const CashBankPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Account Type *
-              </label>
+              <label className="font-semibold text-slate-700">Account Type *</label>
               <select
                 value={newAccountType}
                 onChange={(e) => setNewAccountType(e.target.value as 'cash' | 'bank' | 'wallet')}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
               >
                 <option value="bank">Commercial Bank</option>
                 <option value="cash">Cash in Hand / Till</option>
@@ -1290,13 +1266,11 @@ export const CashBankPage: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Mapped Ledger Account *
-              </label>
+              <label className="font-semibold text-slate-700">Mapped Ledger Account *</label>
               <select
                 value={newAccountLedgerId}
                 onChange={(e) => setNewAccountLedgerId(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               >
                 {ledgerAccounts.map((a) => (
@@ -1309,12 +1283,10 @@ export const CashBankPage: React.FC = () => {
           </div>
 
           {newAccountType === 'bank' && (
-            <div className="space-y-3 p-3 bg-slate-50 dark:bg-slate-800 rounded">
+            <div className="space-y-3 p-3 bg-slate-50 rounded">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 dark:text-slate-300">
-                    Bank Name
-                  </label>
+                  <label className="font-semibold text-slate-700">Bank Name</label>
                   <Input
                     value={newAccountBankName}
                     onChange={(e) => setNewAccountBankName(e.target.value)}
@@ -1323,9 +1295,7 @@ export const CashBankPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 dark:text-slate-300">
-                    Account Number
-                  </label>
+                  <label className="font-semibold text-slate-700">Account Number</label>
                   <Input
                     value={newAccountNumber}
                     onChange={(e) => setNewAccountNumber(e.target.value)}
@@ -1336,9 +1306,7 @@ export const CashBankPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 dark:text-slate-300">
-                    Branch Name
-                  </label>
+                  <label className="font-semibold text-slate-700">Branch Name</label>
                   <Input
                     value={newAccountBranch}
                     onChange={(e) => setNewAccountBranch(e.target.value)}
@@ -1347,7 +1315,7 @@ export const CashBankPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700 dark:text-slate-300">IBAN</label>
+                  <label className="font-semibold text-slate-700">IBAN</label>
                   <Input
                     value={newAccountIban}
                     onChange={(e) => setNewAccountIban(e.target.value)}
@@ -1360,9 +1328,7 @@ export const CashBankPage: React.FC = () => {
           )}
 
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
-              Opening Balance (PKR)
-            </label>
+            <label className="font-semibold text-slate-700">Opening Balance (PKR)</label>
             <Input
               type="number"
               step="0.01"
@@ -1403,13 +1369,11 @@ export const CashBankPage: React.FC = () => {
         <form onSubmit={handleCreateTransfer} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                From Account *
-              </label>
+              <label className="font-semibold text-slate-700">From Account *</label>
               <select
                 value={transferFromId}
                 onChange={(e) => setTransferFromId(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               >
                 {accounts.map((a) => (
@@ -1421,13 +1385,11 @@ export const CashBankPage: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                To Account *
-              </label>
+              <label className="font-semibold text-slate-700">To Account *</label>
               <select
                 value={transferToId}
                 onChange={(e) => setTransferToId(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               >
                 {accounts.map((a) => (
@@ -1441,9 +1403,7 @@ export const CashBankPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Amount (PKR) *
-              </label>
+              <label className="font-semibold text-slate-700">Amount (PKR) *</label>
               <Input
                 type="number"
                 step="0.01"
@@ -1457,23 +1417,19 @@ export const CashBankPage: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Transfer Date *
-              </label>
+              <label className="font-semibold text-slate-700">Transfer Date *</label>
               <input
                 type="date"
                 value={transferDate}
                 onChange={(e) => setTransferDate(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
-              Reference / Cheque #
-            </label>
+            <label className="font-semibold text-slate-700">Reference / Cheque #</label>
             <Input
               value={transferRef}
               onChange={(e) => setTransferRef(e.target.value)}
@@ -1483,13 +1439,13 @@ export const CashBankPage: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">Notes</label>
+            <label className="font-semibold text-slate-700">Notes</label>
             <textarea
               rows={2}
               value={transferNotes}
               onChange={(e) => setTransferNotes(e.target.value)}
               placeholder="Reason or notes..."
-              className="w-full p-2 border rounded bg-white dark:bg-slate-900 text-xs"
+              className="w-full p-2 border rounded bg-white text-xs"
             />
           </div>
 
@@ -1522,11 +1478,11 @@ export const CashBankPage: React.FC = () => {
       >
         <form onSubmit={handleCreateDeposit} className="space-y-4 text-xs">
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">Branch *</label>
+            <label className="font-semibold text-slate-700">Branch *</label>
             <select
               value={depositBranchId}
               onChange={(e) => setDepositBranchId(e.target.value)}
-              className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+              className="w-full h-9 px-3 border rounded bg-white text-xs"
               required
             >
               {branchesList.map((b) => (
@@ -1539,13 +1495,11 @@ export const CashBankPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Source Cash Till *
-              </label>
+              <label className="font-semibold text-slate-700">Source Cash Till *</label>
               <select
                 value={depositSourceCashId}
                 onChange={(e) => setDepositSourceCashId(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               >
                 {accounts
@@ -1559,13 +1513,11 @@ export const CashBankPage: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Target Bank / Vault *
-              </label>
+              <label className="font-semibold text-slate-700">Target Bank / Vault *</label>
               <select
                 value={depositTargetId}
                 onChange={(e) => setDepositTargetId(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               >
                 {accounts.map((a) => (
@@ -1579,9 +1531,7 @@ export const CashBankPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Deposit Amount (PKR) *
-              </label>
+              <label className="font-semibold text-slate-700">Deposit Amount (PKR) *</label>
               <Input
                 type="number"
                 step="0.01"
@@ -1595,29 +1545,25 @@ export const CashBankPage: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="font-semibold text-slate-700 dark:text-slate-300">
-                Deposit Date *
-              </label>
+              <label className="font-semibold text-slate-700">Deposit Date *</label>
               <input
                 type="date"
                 value={depositDate}
                 onChange={(e) => setDepositDate(e.target.value)}
-                className="w-full h-9 px-3 border rounded bg-white dark:bg-slate-900 text-xs"
+                className="w-full h-9 px-3 border rounded bg-white text-xs"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
-              Notes / Shift Reference
-            </label>
+            <label className="font-semibold text-slate-700">Notes / Shift Reference</label>
             <textarea
               rows={2}
               value={depositNotes}
               onChange={(e) => setDepositNotes(e.target.value)}
               placeholder="Notes or shift reference..."
-              className="w-full p-2 border rounded bg-white dark:bg-slate-900 text-xs"
+              className="w-full p-2 border rounded bg-white text-xs"
             />
           </div>
 
@@ -1655,9 +1601,7 @@ export const CashBankPage: React.FC = () => {
           </p>
 
           <div className="space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
-              Reason for Reversal *
-            </label>
+            <label className="font-semibold text-slate-700">Reason for Reversal *</label>
             <Input
               value={reversalReason}
               onChange={(e) => setReversalReason(e.target.value)}
