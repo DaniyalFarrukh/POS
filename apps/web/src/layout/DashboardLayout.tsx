@@ -417,7 +417,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
           <div className="overflow-hidden">
             <h1 className="font-bold text-sm tracking-tight truncate text-slate-900">
-              {user?.pharmacyName || 'Pharmacy POS'}
+              {user?.pharmacyName || 'HexaPharm'}
             </h1>
             <p className="text-xs text-slate-500 font-medium tracking-wide">Management Portal</p>
           </div>

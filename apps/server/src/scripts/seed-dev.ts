@@ -39,7 +39,7 @@ export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Pro
   const existingPharmacies = await db
     .select()
     .from(pharmacies)
-    .where(eq(pharmacies.name, 'Apex Health Pharmacy (Dev)'))
+    .where(eq(pharmacies.name, 'HexaPharm'))
     .limit(1);
 
   let pharmacy = existingPharmacies[0];
@@ -49,7 +49,7 @@ export async function seedDevEnvironment(db: NodePgDatabase<typeof schema>): Pro
       .insert(pharmacies)
       .values({
         id: pharmacyId,
-        name: 'Apex Health Pharmacy (Dev)',
+        name: 'HexaPharm',
         code: 'DEV',
         createdAt: now,
         updatedAt: now,

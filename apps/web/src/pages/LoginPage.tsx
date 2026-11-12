@@ -54,8 +54,8 @@ export const LoginPage: React.FC = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-xl shadow-blue-500/25 mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">MediCare Portal</h1>
-          <p className="text-slate-400 text-xs mt-1">Executive Owner &amp; Pharmacist Dashboard</p>
+          <h1 className="text-2xl font-black text-white tracking-tight">HexaPharm</h1>
+          <p className="text-slate-400 text-xs mt-1">Management Portal</p>
         </div>
 
         {/* Login Card */}
