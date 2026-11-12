@@ -33,11 +33,18 @@ export function getPool(connectionString?: string): pg.Pool {
     if (globalPool) {
       globalPool.end().catch(() => {});
     }
+    const isRemote =
+      url.includes('supabase.co') ||
+      url.includes('pooler.supabase.com') ||
+      url.includes('sslmode=require') ||
+      process.env.DB_SSL === 'true';
+
     globalPool = new Pool({
       connectionString: url,
       max: 10,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 10000,
+      ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
     });
   }
   return globalPool;
@@ -45,9 +52,19 @@ export function getPool(connectionString?: string): pg.Pool {
 
 export function getDb(poolOrUrl?: pg.Pool | string): NodePgDatabase<typeof schema> {
   if (poolOrUrl) {
-    const pool =
-      typeof poolOrUrl === 'string' ? new Pool({ connectionString: poolOrUrl }) : poolOrUrl;
-    return drizzle(pool, { schema });
+    if (typeof poolOrUrl === 'string') {
+      const isRemote =
+        poolOrUrl.includes('supabase.co') ||
+        poolOrUrl.includes('pooler.supabase.com') ||
+        poolOrUrl.includes('sslmode=require') ||
+        process.env.DB_SSL === 'true';
+      const pool = new Pool({
+        connectionString: poolOrUrl,
+        ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
+      });
+      return drizzle(pool, { schema });
+    }
+    return drizzle(poolOrUrl, { schema });
   }
 
   if (!globalDb) {

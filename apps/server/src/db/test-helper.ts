@@ -23,9 +23,15 @@ export interface TestDatabaseContext {
  */
 export async function isPostgresReachable(url?: string): Promise<boolean> {
   const targetUrl = url || getDatabaseUrl();
+  const isRemote =
+    targetUrl.includes('supabase.co') ||
+    targetUrl.includes('pooler.supabase.com') ||
+    targetUrl.includes('sslmode=require') ||
+    process.env.DB_SSL === 'true';
   const client = new Client({
     connectionString: targetUrl,
     connectionTimeoutMillis: 2000,
+    ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
   });
 
   try {
@@ -44,10 +50,16 @@ export async function isPostgresReachable(url?: string): Promise<boolean> {
  */
 export async function createTestContext(connectionUrl?: string): Promise<TestDatabaseContext> {
   const url = connectionUrl || getDatabaseUrl();
+  const isRemote =
+    url.includes('supabase.co') ||
+    url.includes('pooler.supabase.com') ||
+    url.includes('sslmode=require') ||
+    process.env.DB_SSL === 'true';
 
   const client = new Client({
     connectionString: url,
     connectionTimeoutMillis: 5000,
+    ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
   });
 
   try {
