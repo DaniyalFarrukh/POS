@@ -1691,3 +1691,28 @@ BEGIN
 END $$;
 
 
+-- =============================================
+-- Security: Enable RLS and Lock Down Public API Access
+-- =============================================
+
+-- Enable Row Level Security on all public tables to eliminate UNRESTRICTED exposure
+DO $$
+DECLARE
+    tbl text;
+BEGIN
+    FOR tbl IN
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+    LOOP
+        EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', tbl);
+    END LOOP;
+END $$;
+
+-- Revoke direct PostgREST web access from Supabase anon and authenticated roles
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM anon, authenticated;
+
+
+
