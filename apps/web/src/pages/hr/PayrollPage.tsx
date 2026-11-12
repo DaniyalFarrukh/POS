@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { parsePkrToPaisa } from '@pos/shared';
+import { parsePkrToPaisa, getKarachiBusinessDate } from '@pos/shared';
 import type {
   PayrollRunRecord,
   PayrollItemRecord,
@@ -82,7 +82,7 @@ export const PayrollPage: React.FC = () => {
   const [selectedRunItems, setSelectedRunItems] = useState<PayrollItemRecord[]>([]);
 
   // Filter states
-  const currentMonthStr = useMemo(() => new Date().toISOString().substring(0, 7), []);
+  const currentMonthStr = useMemo(() => getKarachiBusinessDate().slice(0, 7), []);
   const [filterMonth, setFilterMonth] = useState<string>(currentMonthStr);
   const [filterBranchId, setFilterBranchId] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -107,7 +107,7 @@ export const PayrollPage: React.FC = () => {
   // Form states - Disburse Batch
   const [disburseAccountId, setDisburseAccountId] = useState('');
   const [disburseReference, setDisburseReference] = useState('');
-  const [disburseDate, setDisburseDate] = useState(new Date().toISOString().substring(0, 10));
+  const [disburseDate, setDisburseDate] = useState(() => getKarachiBusinessDate());
 
   // Form states - Adjustment Run
   const [adjustmentReason, setAdjustmentReason] = useState('');
@@ -122,9 +122,7 @@ export const PayrollPage: React.FC = () => {
   const [advEmployeeId, setAdvEmployeeId] = useState('');
   const [advPrincipalRs, setAdvPrincipalRs] = useState('10000');
   const [advInstallmentRs, setAdvInstallmentRs] = useState('2000');
-  const [advDisbursementDate, setAdvDisbursementDate] = useState(
-    new Date().toISOString().substring(0, 10)
-  );
+  const [advDisbursementDate, setAdvDisbursementDate] = useState(() => getKarachiBusinessDate());
   const [advReason, setAdvReason] = useState('');
 
   // Form states - Statutory Component

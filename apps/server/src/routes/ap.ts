@@ -523,8 +523,9 @@ export const apRoutes: FastifyPluginAsync = async (fastify) => {
       const { supplierId } = request.params as { supplierId: string };
       const query = request.query as { startDate?: string; endDate?: string };
 
-      const startDate = query.startDate || `${new Date().getFullYear()}-01-01`;
-      const endDate = query.endDate || getKarachiBusinessDate();
+      const todayDate = getKarachiBusinessDate();
+      const startDate = query.startDate || `${todayDate.slice(0, 4)}-01-01`;
+      const endDate = query.endDate || todayDate;
 
       // Verify supplier exists in pharmacy
       const [supplier] = await db

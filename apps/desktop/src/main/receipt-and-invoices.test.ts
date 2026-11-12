@@ -342,15 +342,26 @@ describe('Prompt 2.4: Payments, Receipts, and Invoice History', () => {
     const invEndId = generateUuidV7();
     const invNextId = generateUuidV7();
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO invoices (id, counter_id, cashier_user_id, invoice_number, client_request_id, status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at)
       VALUES (?, ?, ?, ?, ?, 'finalized', 1000, 0, 0, 1000, ?)
-    `).run(invEndId, counterId, cashierUserId, 'INV-END-DAY', generateUuidV7(), endOfDayMicrosecondUtc);
+    `
+    ).run(
+      invEndId,
+      counterId,
+      cashierUserId,
+      'INV-END-DAY',
+      generateUuidV7(),
+      endOfDayMicrosecondUtc
+    );
 
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO invoices (id, counter_id, cashier_user_id, invoice_number, client_request_id, status, subtotal_paisa, discount_paisa, tax_paisa, total_paisa, created_at)
       VALUES (?, ?, ?, ?, ?, 'finalized', 1000, 0, 0, 1000, ?)
-    `).run(invNextId, counterId, cashierUserId, 'INV-NEXT-DAY', generateUuidV7(), nextDayStartUtc);
+    `
+    ).run(invNextId, counterId, cashierUserId, 'INV-NEXT-DAY', generateUuidV7(), nextDayStartUtc);
 
     // Search with dateTo = '2026-10-28': must include invEndId and exclude invNextId
     const results = searchInvoices(branchId, { dateTo: '2026-10-28' }, db);

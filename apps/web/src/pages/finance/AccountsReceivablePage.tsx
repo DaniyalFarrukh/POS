@@ -78,7 +78,7 @@ export const AccountsReceivablePage: React.FC<AccountsReceivablePageProps> = ({
   const [statementData, setStatementData] = useState<PartyStatementData | null>(null);
   const [statementLoading, setStatementLoading] = useState<boolean>(false);
   const [statementStartDate, setStatementStartDate] = useState<string>(
-    () => `${new Date().getFullYear()}-01-01`
+    () => `${getKarachiBusinessDate().slice(0, 4)}-01-01`
   );
   const [statementEndDate, setStatementEndDate] = useState<string>(() => getKarachiBusinessDate());
 

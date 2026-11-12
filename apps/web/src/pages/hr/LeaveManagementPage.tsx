@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { getKarachiBusinessDate } from '@pos/shared';
 import type {
   EmployeeRecord,
   LeaveTypeRecord,
@@ -66,9 +67,11 @@ export const LeaveManagementPage: React.FC = () => {
   const [payrollItems, setPayrollItems] = useState<PayrollPreviewItem[]>([]);
 
   // Filter states
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    new Date().toISOString().substring(0, 7)
+  const [selectedYear, setSelectedYear] = useState<number>(() =>
+    parseInt(getKarachiBusinessDate().slice(0, 4), 10)
+  );
+  const [selectedMonth, setSelectedMonth] = useState<string>(() =>
+    getKarachiBusinessDate().slice(0, 7)
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -85,8 +88,8 @@ export const LeaveManagementPage: React.FC = () => {
   // Form states
   const [formEmployeeId, setFormEmployeeId] = useState('');
   const [formLeaveTypeId, setFormLeaveTypeId] = useState('');
-  const [formStartDate, setFormStartDate] = useState(new Date().toISOString().substring(0, 10));
-  const [formEndDate, setFormEndDate] = useState(new Date().toISOString().substring(0, 10));
+  const [formStartDate, setFormStartDate] = useState(() => getKarachiBusinessDate());
+  const [formEndDate, setFormEndDate] = useState(() => getKarachiBusinessDate());
   const [formReason, setFormReason] = useState('');
 
   // Fetch all core datasets

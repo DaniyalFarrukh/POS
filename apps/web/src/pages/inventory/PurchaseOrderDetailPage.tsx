@@ -3,7 +3,7 @@ import type { PurchaseOrderRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { formatPaisa, formatKarachiDateOnly } from '../../lib/formatters';
-import { getKarachiBusinessDate, parsePkrToPaisa } from '@pos/shared';
+import { getKarachiBusinessDate, addDaysToBusinessDate, parsePkrToPaisa } from '@pos/shared';
 import {
   Card,
   CardContent,
@@ -134,15 +134,14 @@ export const PurchaseOrderDetailPage: React.FC<PurchaseOrderDetailPageProps> = (
     if (!po?.lines) return;
     const initial: ReceiveLineInput[] = po.lines.map((l) => {
       const remaining = Math.max(0, l.quantityOrdered - l.quantityReceived);
-      const defaultExpiry = new Date();
-      defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 2);
+      const defaultExpiryDate = addDaysToBusinessDate(getKarachiBusinessDate(), 730);
 
       return {
         poLineId: l.id,
         productId: l.productId,
         brandName: l.product?.brandName || 'Product',
         batchNo: `BATCH-${Date.now().toString().slice(-4)}`,
-        expiryDate: getKarachiBusinessDate(defaultExpiry),
+        expiryDate: defaultExpiryDate,
         quantity: remaining,
         costPaisa: l.expectedCostPaisa,
         mrpPaisa: l.product?.mrpPaisa || Math.round(l.expectedCostPaisa * 1.25),

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { parsePkrToPaisa } from '@pos/shared';
+import { parsePkrToPaisa, getKarachiBusinessDate } from '@pos/shared';
 import type { ActualVsBudgetReportData, BranchRecord } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { formatPaisa } from '../../lib/formatters';
@@ -43,7 +43,7 @@ interface AccountOption {
 }
 
 export const BudgetPlanningPage: React.FC = () => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = parseInt(getKarachiBusinessDate().slice(0, 4), 10);
 
   // Filters
   const [fiscalYear, setFiscalYear] = useState<number>(currentYear);

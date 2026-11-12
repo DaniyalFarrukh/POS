@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database, { type Database as DatabaseInstance } from 'better-sqlite3';
+import { getKarachiBusinessDate, addDaysToBusinessDate } from '@pos/shared';
 import { MIGRATIONS, setDatabaseForTesting } from './db';
 import { seedDatabase } from './db/seed';
 import { setSessionForTesting, logout, ForbiddenError } from './auth';
@@ -417,7 +418,7 @@ describe('Purchasing, GRN Receiving & Stock Management', () => {
           {
             productId: testProduct1Id,
             batchNo: 'BN-EXP-60',
-            expiryDate: new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10),
+            expiryDate: addDaysToBusinessDate(getKarachiBusinessDate(), 45),
             quantity: 15,
             costPaisa: 1000,
             mrpPaisa: 2000,

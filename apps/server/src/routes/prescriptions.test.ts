@@ -1,15 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { eq, and } from 'drizzle-orm';
-import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate, addDaysToBusinessDate } from '@pos/shared';
 import { buildApp } from '../app';
 
-function addDaysToIsoDate(dateStr: string, days: number): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const dt = new Date(Date.UTC(y!, m! - 1, d!));
-  dt.setUTCDate(dt.getUTCDate() + days);
-  return dt.toISOString().slice(0, 10);
-}
+const addDaysToIsoDate = addDaysToBusinessDate;
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
   pharmacies,

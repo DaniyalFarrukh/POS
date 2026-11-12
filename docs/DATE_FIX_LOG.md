@@ -10,7 +10,9 @@
 
 | Item | Title | Status | Commit | Verdict / Notes |
 |:---|:---|:---:|:---:|:---|
-| Group A Initial | Log setup | IN_PROGRESS | - | Initializing running log |
+| Group A Initial | Log setup | DONE | `8d2a71f` | Log initialized |
+| A1-A5 | Half-open intervals & offset validation | DONE | `8d2a71f`, `3d72f40` | Half-open intervals applied; offset validation enforced |
+| B1-B4 | Eradicate UTC slicing & machine timezone | DONE | PENDING | Day loops, test slicing, ESLint rules, machine Date APIs fixed |
 
 ---
 
@@ -61,5 +63,45 @@
 ### A5. Machine-Timezone Rejection in `getKarachiBusinessDate`
 - Added check throwing `TypeError` when input string does not contain `Z` or an explicit UTC offset (`[+-]HH:MM`).
 - Added tests verifying strings without offset throw `TypeError`.
+
+---
+
+## Group B: Leftover UTC Date Slicing & Machine-Timezone Dates
+
+### B1. Replace day loops with pure business date arithmetic
+- Replaced day-by-day iteration in `apps/server/src/routes/hr-leave.ts` (calendar leave map) with `addDaysToBusinessDate(curDateStr, 1)`.
+- Replaced day-by-day iteration in `apps/web/src/lib/leave-utils.ts` (leave calendar map) with `addDaysToBusinessDate(curDateStr, 1)`.
+- Replaced `.substring(0, 10)` in `apps/web/src/pages/hr/LeaveManagementPage.tsx` and `PayrollPage.tsx` with `getKarachiBusinessDate()`.
+
+### B2. Convert test `.toISOString().slice(0, 10)` to `getKarachiBusinessDate()`
+- Replaced test date slicing in:
+  - `apps/server/src/routes/expenses.test.ts`
+  - `apps/server/src/routes/payments.test.ts`
+  - `apps/server/src/routes/prescriptions.test.ts`
+  - `apps/server/src/routes/stock.test.ts`
+  - `apps/server/src/reports/reports.test.ts`
+  - `apps/desktop/src/main/purchasing.test.ts`
+  - `apps/desktop/src/renderer/components/pos/pos.test.ts`
+  - `tests/audit-regression/tenant-isolation.test.ts`
+- Added `tests/audit-regression/date-sensitive-mocked-clock.test.ts` running tests under mocked clock `2026-11-11T20:00:00Z` (`01:00 PKT Nov 12`). Verified passes.
+
+### B3. Extended ESLint rule forbidding UTC date slicing
+- Updated `eslint.config.mjs` to target all source, shared, and test files (`apps/**`, `packages/**`, `tests/**`).
+- Added AST selectors forbidding `slice`, `substring`, `substr`, and `split('T')` on `toISOString()` calls.
+- Added `tests/audit-regression/eslint-date-rules.test.ts` verifying ESLint flags all four variants with appropriate error messages.
+
+### B4. Eradicate machine-timezone APIs
+- `apps/server/src/ledger/budget-service.ts`: Replaced local `new Date(fiscalYear, month, 0).getDate()` with `new Date(Date.UTC(fiscalYear, month, 0)).getUTCDate()`.
+- `apps/server/src/routes/ap.ts` & `ar.ts`: Replaced `new Date().getFullYear()` with `getKarachiBusinessDate().slice(0, 4)`.
+- `apps/server/src/routes/hr-leave.ts`: Replaced `new Date().getFullYear()` with `parseInt(getKarachiBusinessDate().slice(0, 4), 10)`.
+- `apps/server/src/routes/purchase-orders.ts` & `stock-transfers.ts`: Replaced `new Date().getFullYear()` with `parseInt(getKarachiBusinessDate().slice(0, 4), 10)`.
+- `apps/server/src/routes/suppliers.ts`: Replaced `new Date().getFullYear()` with `parseInt(getKarachiBusinessDate(now).slice(0, 4), 10)`.
+- `apps/desktop/src/renderer/components/pos/types.ts`: Replaced machine-local `today.setHours(0, 0, 0, 0)` with calendar day arithmetic using `getKarachiBusinessDate()` and `Date.UTC`.
+- `apps/desktop/src/main/backup.ts`: Replaced local `getFullYear()`, `getMonth()`, `getDate()`, `getHours()`, etc. with `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`, `getUTCHours()`, etc.
+- `apps/web/src/pages/finance/PeriodClosePage.tsx`: Replaced `currentDate.getFullYear()` and `currentDate.getMonth() + 1` with `getKarachiBusinessDate()`.
+- `apps/web/src/pages/finance/AccountsPayablePage.tsx` & `AccountsReceivablePage.tsx`: Replaced `new Date().getFullYear()` with `getKarachiBusinessDate().slice(0, 4)`.
+- `apps/web/src/pages/finance/BudgetPlanningPage.tsx`: Replaced `new Date().getFullYear()` with `parseInt(getKarachiBusinessDate().slice(0, 4), 10)`.
+- `apps/web/src/pages/inventory/PurchaseOrderDetailPage.tsx`: Replaced `defaultExpiry.setFullYear(...)` with `addDaysToBusinessDate(getKarachiBusinessDate(), 730)`.
+- `package.json`: Added cross-platform `test:tz-utc` and `test:tz-karachi` scripts forwarding any CLI arguments.
 
 ---

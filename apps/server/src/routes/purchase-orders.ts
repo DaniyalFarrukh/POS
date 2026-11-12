@@ -298,7 +298,7 @@ export const purchaseOrderRoutes: FastifyPluginAsync = async (app) => {
       }
 
       const poId = generateUuidV7();
-      const year = new Date().getFullYear();
+      const year = parseInt(getKarachiBusinessDate().slice(0, 4), 10);
 
       // Get next sequential PO number for this pharmacy
       const [maxPo] = await db

@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, desc, asc, ilike, or, sql } from 'drizzle-orm';
-import { z, generateUuidV7, isValidUuid } from '@pos/shared';
+import { z, generateUuidV7, isValidUuid, getKarachiBusinessDate } from '@pos/shared';
 import { requirePermission } from '../auth/user-auth';
 import { getDb } from '../db';
 import {
@@ -258,7 +258,7 @@ export const stockTransferRoutes: FastifyPluginAsync = async (app) => {
       }
 
       // Generate transfer number
-      const year = new Date().getFullYear();
+      const year = parseInt(getKarachiBusinessDate().slice(0, 4), 10);
       const allRows = await db
         .select({ transferNumber: stockTransfers.transferNumber })
         .from(stockTransfers)

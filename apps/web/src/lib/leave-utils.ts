@@ -1,3 +1,4 @@
+import { addDaysToBusinessDate } from '@pos/shared';
 import type { LeaveRequestRecord, LeaveCalendarItem } from '../types';
 
 export function formatLeaveDateRange(
@@ -65,17 +66,12 @@ export function groupCalendarLeavesByDate(
   const map: Record<string, LeaveCalendarItem[]> = {};
 
   for (const item of items) {
-    const start = new Date(`${item.startDate}T00:00:00Z`);
-    const end = new Date(`${item.endDate}T00:00:00Z`);
-    const cur = new Date(start);
+    let curDateStr = item.startDate;
 
-    while (cur <= end) {
-      const dateStr = cur.toISOString().substring(0, 10);
-      if (!map[dateStr]) {
-        map[dateStr] = [];
-      }
-      map[dateStr].push(item);
-      cur.setUTCDate(cur.getUTCDate() + 1);
+    while (curDateStr <= item.endDate) {
+      const entry = map[curDateStr] ?? (map[curDateStr] = []);
+      entry.push(item);
+      curDateStr = addDaysToBusinessDate(curDateStr, 1);
     }
   }
 

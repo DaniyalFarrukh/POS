@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { getKarachiBusinessDate } from '@pos/shared';
 import type { FiscalPeriodItem, MonthEndChecklistData, YearEndClosingResult } from '../../types';
 import { apiFetch } from '../../lib/api';
 import {
@@ -54,9 +55,9 @@ const MONTH_NAMES = [
 
 export const PeriodClosePage: React.FC = () => {
   // Date selection state
-  const currentDate = new Date();
-  const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
+  const todayStr = getKarachiBusinessDate();
+  const [selectedYear, setSelectedYear] = useState<number>(parseInt(todayStr.slice(0, 4), 10));
+  const [selectedMonth, setSelectedMonth] = useState<number>(parseInt(todayStr.slice(5, 7), 10));
 
   // Active tab
   const [activeTab, setActiveTab] = useState<'checklist' | 'periods' | 'year-end'>('checklist');

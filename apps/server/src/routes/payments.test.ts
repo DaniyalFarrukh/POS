@@ -399,7 +399,7 @@ describe('ERP Payments Module (Customer Receipts & Supplier Payments)', () => {
         partyId: customer1Id,
         method: 'wallet',
         amountPaisa: 90000,
-        paymentDate: new Date().toISOString().slice(0, 10),
+        paymentDate: getKarachiBusinessDate(),
         notes: 'Monthly clinic bill settlement + advance',
         allocations: [
           {
@@ -478,7 +478,7 @@ describe('ERP Payments Module (Customer Receipts & Supplier Payments)', () => {
         partyId: supplier1Id,
         method: 'bank',
         amountPaisa: 60000,
-        paymentDate: new Date().toISOString().slice(0, 10),
+        paymentDate: getKarachiBusinessDate(),
         notes: 'Partial payment against GRN-APEX-101',
         allocations: [
           {
@@ -544,9 +544,9 @@ describe('ERP Payments Module (Customer Receipts & Supplier Payments)', () => {
         partyId: supplier1Id,
         method: 'cheque',
         amountPaisa: 40000,
-        paymentDate: new Date().toISOString().slice(0, 10),
+        paymentDate: getKarachiBusinessDate(),
         chequeNumber: 'CHQ-882211',
-        chequeDate: new Date().toISOString().slice(0, 10),
+        chequeDate: getKarachiBusinessDate(),
         bankName: 'Meezan Bank Ltd',
         chequeStatus: 'pending',
         notes: 'Post-dated clearing cheque',

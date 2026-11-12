@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { computeLineWarning, type CartItem, type PosCatalogItem } from './types';
-import { computeInvoiceTotals, formatPKR, type Paisa } from '@pos/shared';
+import {
+  computeInvoiceTotals,
+  formatPKR,
+  type Paisa,
+  getKarachiBusinessDate,
+  addDaysToBusinessDate,
+} from '@pos/shared';
 
 describe('POS Cart & Warning Logic', () => {
   const dummyProduct: PosCatalogItem = {
@@ -65,9 +71,7 @@ describe('POS Cart & Warning Logic', () => {
   });
 
   it('marks line as "expired" when batch expiry is in the past', () => {
-    const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 10);
-    const pastDateStr = pastDate.toISOString().slice(0, 10);
+    const pastDateStr = addDaysToBusinessDate(getKarachiBusinessDate(), -10);
 
     const line: CartItem = {
       id: 'line-1',
@@ -91,9 +95,7 @@ describe('POS Cart & Warning Logic', () => {
   });
 
   it('marks line as "near-expiry" when expiry date is within 90 days', () => {
-    const nearDate = new Date();
-    nearDate.setDate(nearDate.getDate() + 30);
-    const nearDateStr = nearDate.toISOString().slice(0, 10);
+    const nearDateStr = addDaysToBusinessDate(getKarachiBusinessDate(), 30);
 
     const line: CartItem = {
       id: 'line-1',
@@ -118,9 +120,7 @@ describe('POS Cart & Warning Logic', () => {
   });
 
   it('marks normal line as "none" warning when stock is ample and expiry > 90 days', () => {
-    const futureDate = new Date();
-    futureDate.setFullYear(futureDate.getFullYear() + 2);
-    const futureDateStr = futureDate.toISOString().slice(0, 10);
+    const futureDateStr = addDaysToBusinessDate(getKarachiBusinessDate(), 730);
 
     const line: CartItem = {
       id: 'line-1',

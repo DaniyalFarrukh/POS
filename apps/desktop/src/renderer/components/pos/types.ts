@@ -1,4 +1,5 @@
 import type { Paisa } from '@pos/shared';
+import { getKarachiBusinessDate, isBatchExpired } from '@pos/shared';
 
 export interface PosCatalogItem {
   id: string;
@@ -94,13 +95,20 @@ export function computeLineWarning(line: CartItem): LineWarning {
 
   // 2. Check expiry if batch has expiry date
   if (line.expiryDate) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(line.expiryDate);
-    const diffTime = expiry.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const todayStr = getKarachiBusinessDate();
+    const isExpired = isBatchExpired(line.expiryDate, todayStr);
 
-    if (diffDays <= 0) {
+    const [ty, tm, td] = line.expiryDate.includes('-')
+      ? todayStr.split('-').map(Number)
+      : [0, 0, 0];
+    const [ey, em, ed] = line.expiryDate.includes('-')
+      ? line.expiryDate.split('-').map(Number)
+      : [0, 0, 0];
+    const todayUtc = Date.UTC(ty ?? 0, (tm ?? 1) - 1, td ?? 1);
+    const expiryUtc = Date.UTC(ey ?? 0, (em ?? 1) - 1, ed ?? 1);
+    const diffDays = Math.round((expiryUtc - todayUtc) / (1000 * 60 * 60 * 24));
+
+    if (isExpired) {
       return {
         type: 'expired',
         message: `Expired (Exp: ${line.expiryDate})`,

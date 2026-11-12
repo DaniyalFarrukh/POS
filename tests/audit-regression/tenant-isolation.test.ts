@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { generateUuidV7 } from '../../packages/shared/src/index';
+import { generateUuidV7, getKarachiBusinessDate } from '../../packages/shared/src/index';
 import { buildApp } from '../../apps/server/src/app';
 import { createTestContext, type TestDatabaseContext } from '../../apps/server/src/db/test-helper';
 import {
@@ -992,8 +992,6 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
     });
 
     it('Finance expenses routes strictly enforce tenant isolation', async () => {
-      const nowIso = new Date().toISOString();
-
       // 1. Get/seed categories for Tenant A
       const catResA = await app.inject({
         method: 'GET',
@@ -1015,7 +1013,7 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
           amountPaisa: 5000,
           paymentType: 'paid',
           paymentMethod: 'cash',
-          expenseDate: nowIso.slice(0, 10),
+          expenseDate: getKarachiBusinessDate(),
         },
       });
       expect(foreignCatExp.statusCode).toBe(404);
@@ -1031,7 +1029,7 @@ describe('Tenant Isolation Verification Suite (C-09 & Cross-Tenant Boundary Enfo
           amountPaisa: 5000,
           paymentType: 'paid',
           paymentMethod: 'cash',
-          expenseDate: nowIso.slice(0, 10),
+          expenseDate: getKarachiBusinessDate(),
         },
       });
       expect(validExpA.statusCode).toBe(201);

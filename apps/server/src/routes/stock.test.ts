@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { eq } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate, addDaysToBusinessDate } from '@pos/shared';
 import { buildApp } from '../app';
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
@@ -324,8 +324,8 @@ describe('Stock Management & Batches Expiry Module', () => {
 
     // Batches & Expiry Dates
     // Batch 1: Expiring in 25 days (Amoxil, cost 20,000 paisa, qty 40)
-    const d25 = new Date(now.getTime() + 25 * 86400 * 1000);
-    const exp25 = d25.toISOString().slice(0, 10);
+    const todayKarachi = getKarachiBusinessDate(now);
+    const exp25 = addDaysToBusinessDate(todayKarachi, 25);
     batch1ExpiringSoonId = generateUuidV7();
     await db.insert(batches).values({
       id: batch1ExpiringSoonId,
@@ -340,8 +340,7 @@ describe('Stock Management & Batches Expiry Module', () => {
     });
 
     // Batch 2: Expiring in 75 days (Panadol, cost 3,500 paisa, qty 60)
-    const d75 = new Date(now.getTime() + 75 * 86400 * 1000);
-    const exp75 = d75.toISOString().slice(0, 10);
+    const exp75 = addDaysToBusinessDate(todayKarachi, 75);
     batch2Expiring90Id = generateUuidV7();
     await db.insert(batches).values({
       id: batch2Expiring90Id,
@@ -356,8 +355,7 @@ describe('Stock Management & Batches Expiry Module', () => {
     });
 
     // Batch 3: Expired 10 days ago (Panadol, cost 3,500 paisa, qty 10)
-    const dPast = new Date(now.getTime() - 10 * 86400 * 1000);
-    const expPast = dPast.toISOString().slice(0, 10);
+    const expPast = addDaysToBusinessDate(todayKarachi, -10);
     batch3ExpiredId = generateUuidV7();
     await db.insert(batches).values({
       id: batch3ExpiredId,
@@ -372,8 +370,7 @@ describe('Stock Management & Batches Expiry Module', () => {
     });
 
     // Batch 4: Fresh, expires in 300 days (Panadol, cost 3,500 paisa, qty 30)
-    const d300 = new Date(now.getTime() + 300 * 86400 * 1000);
-    const exp300 = d300.toISOString().slice(0, 10);
+    const exp300 = addDaysToBusinessDate(todayKarachi, 300);
     batch4FreshId = generateUuidV7();
     await db.insert(batches).values({
       id: batch4FreshId,

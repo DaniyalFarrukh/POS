@@ -34,16 +34,22 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/**/src/**/*.ts', 'apps/**/src/**/*.tsx'],
-    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    files: [
+      'apps/**/src/**/*.ts',
+      'apps/**/src/**/*.tsx',
+      'packages/**/src/**/*.ts',
+      'packages/**/src/**/*.tsx',
+      'tests/**/*.ts',
+      'tests/**/*.tsx',
+    ],
     rules: {
       'no-restricted-syntax': [
         'error',
         {
           selector:
-            "CallExpression[callee.property.name='slice'][callee.object.callee.property.name='toISOString']",
+            "CallExpression[callee.property.name=/^(slice|substring|substr|split)$/][callee.object.callee.property.name='toISOString']",
           message:
-            'Do not use .toISOString().slice() for business dates. Use getKarachiBusinessDate() or toKarachiBusinessDate() from @pos/shared.',
+            'Do not use .toISOString().slice(), .substring(), .substr(), or .split() for business dates. Use getKarachiBusinessDate(), toKarachiBusinessDate(), or addDaysToBusinessDate() from @pos/shared.',
         },
       ],
     },

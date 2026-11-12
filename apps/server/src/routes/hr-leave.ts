@@ -6,6 +6,8 @@ import {
   calculateLeaveDays,
   calculateCarryOver,
   calculateUnpaidLeaveDeduction,
+  addDaysToBusinessDate,
+  getKarachiBusinessDate,
   CreateEmployeeSchema,
   CreateLeaveTypeSchema,
   CreateLeaveRequestSchema,
@@ -191,7 +193,9 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
       const db = request.server.db || getDb();
       const query = request.query as { employeeId?: string; year?: string };
 
-      const year = query.year ? parseInt(query.year, 10) : new Date().getFullYear();
+      const year = query.year
+        ? parseInt(query.year, 10)
+        : parseInt(getKarachiBusinessDate().slice(0, 4), 10);
 
       // If specific employee queried, verify tenancy
       if (query.employeeId) {
@@ -724,13 +728,9 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         // 2. Mark attendance records as on_leave for all dates in range
-        const startDateObj = new Date(`${req.startDate}T00:00:00Z`);
-        const endDateObj = new Date(`${req.endDate}T00:00:00Z`);
-        const curDate = new Date(startDateObj);
+        let curDateStr = req.startDate;
 
-        while (curDate <= endDateObj) {
-          const dateStr = curDate.toISOString().substring(0, 10);
-
+        while (curDateStr <= req.endDate) {
           const [existingAtt] = await tx
             .select()
             .from(attendanceRecords)
@@ -738,7 +738,7 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
               and(
                 eq(attendanceRecords.pharmacyId, pharmacyId),
                 eq(attendanceRecords.employeeId, req.employeeId),
-                eq(attendanceRecords.date, dateStr)
+                eq(attendanceRecords.date, curDateStr)
               )
             );
 
@@ -757,7 +757,7 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
               pharmacyId,
               branchId: emp?.branchId || null,
               employeeId: req.employeeId,
-              date: dateStr,
+              date: curDateStr,
               status: 'on_leave',
               leaveRequestId: req.id,
               createdAt: nowIso,
@@ -765,7 +765,7 @@ export const hrLeaveRoutes: FastifyPluginAsync = async (fastify) => {
             });
           }
 
-          curDate.setUTCDate(curDate.getUTCDate() + 1);
+          curDateStr = addDaysToBusinessDate(curDateStr, 1);
         }
 
         // 3. Mark request approved

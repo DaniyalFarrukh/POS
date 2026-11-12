@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { eq } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate } from '@pos/shared';
 import { buildApp } from '../app';
 import { createTestContext, type TestDatabaseContext } from '../db/test-helper';
 import {
@@ -249,7 +249,7 @@ describe('ERP Expenses Module (Categories, Entries, Approvals, Recurring, Postin
         amountPaisa: 15000,
         paymentType: 'paid',
         paymentMethod: 'cash',
-        expenseDate: new Date().toISOString().slice(0, 10),
+        expenseDate: getKarachiBusinessDate(),
         notes: 'Monthly branch rent advance portion',
       },
     });
@@ -293,7 +293,7 @@ describe('ERP Expenses Module (Categories, Entries, Approvals, Recurring, Postin
         amountPaisa: 80000,
         paymentType: 'credit',
         vendorName: 'Cooling Masters HVAC Services',
-        expenseDate: new Date().toISOString().slice(0, 10),
+        expenseDate: getKarachiBusinessDate(),
         notes: 'Main floor air conditioner servicing on 30-day credit',
       },
     });
@@ -332,7 +332,7 @@ describe('ERP Expenses Module (Categories, Entries, Approvals, Recurring, Postin
         amountPaisa: 5000000,
         paymentType: 'paid',
         paymentMethod: 'bank',
-        expenseDate: new Date().toISOString().slice(0, 10),
+        expenseDate: getKarachiBusinessDate(),
         notes: 'Quarterly full building lease payment',
       },
     });
@@ -381,7 +381,7 @@ describe('ERP Expenses Module (Categories, Entries, Approvals, Recurring, Postin
         amountPaisa: 25000,
         paymentType: 'paid',
         paymentMethod: 'cash',
-        expenseDate: new Date().toISOString().slice(0, 10),
+        expenseDate: getKarachiBusinessDate(),
         notes: 'Door hinge repair',
       },
     });

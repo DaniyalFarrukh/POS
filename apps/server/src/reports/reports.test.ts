@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
-import { generateUuidV7 } from '@pos/shared';
+import { generateUuidV7, getKarachiBusinessDate, addDaysToBusinessDate } from '@pos/shared';
 import { buildApp } from '../app';
 import {
   isPostgresReachable,
@@ -229,9 +229,10 @@ describe('Phase 4: Reports, RBAC, and Owner Dashboard Integration Tests', () => 
     // B1: 1 year from now (good)
     // B2: 15 days from now (expiring_soon)
     // B3: 30 days ago (expired)
-    const futureDate = new Date(now.getTime() + 365 * 86400000).toISOString().slice(0, 10);
-    const soonDate = new Date(now.getTime() + 15 * 86400000).toISOString().slice(0, 10);
-    const pastDate = new Date(now.getTime() - 30 * 86400000).toISOString().slice(0, 10);
+    const todayKarachi = getKarachiBusinessDate(now);
+    const futureDate = addDaysToBusinessDate(todayKarachi, 365);
+    const soonDate = addDaysToBusinessDate(todayKarachi, 15);
+    const pastDate = addDaysToBusinessDate(todayKarachi, -30);
 
     await ctx.db.insert(batches).values([
       {

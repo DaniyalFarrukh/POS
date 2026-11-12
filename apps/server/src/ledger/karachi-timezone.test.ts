@@ -6,6 +6,7 @@ describe('F-H-04: Asia/Karachi Business Date Consistency Across Timezones', () =
     // 2026-02-28 21:30:00 UTC is 2026-03-01 02:30:00 Asia/Karachi
     const lateUtcNight = new Date('2026-02-28T21:30:00.000Z');
 
+    // eslint-disable-next-line no-restricted-syntax -- Intentional audit demonstration proving UTC date slice returns yesterday between 00:00 and 05:00 PKT
     const utcDate = lateUtcNight.toISOString().slice(0, 10);
     expect(utcDate).toBe('2026-02-28'); // UTC returns yesterday
 

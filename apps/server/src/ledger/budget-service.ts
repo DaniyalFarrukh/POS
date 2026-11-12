@@ -287,8 +287,8 @@ export async function getActualVsBudget(
   if (month && month >= 1 && month <= 12) {
     const mm = String(month).padStart(2, '0');
     startDate = `${fiscalYear}-${mm}-01`;
-    // Last day of month
-    const lastDay = new Date(fiscalYear, month, 0).getDate();
+    // Last day of month using UTC date arithmetic
+    const lastDay = new Date(Date.UTC(fiscalYear, month, 0)).getUTCDate();
     endDate = `${fiscalYear}-${mm}-${String(lastDay).padStart(2, '0')}`;
   } else {
     startDate = `${fiscalYear}-01-01`;

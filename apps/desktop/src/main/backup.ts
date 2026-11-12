@@ -51,12 +51,12 @@ export function getBackupDirectory(customDir?: string): string {
  */
 function getTimestampString(date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
-  const y = date.getFullYear();
-  const m = pad(date.getMonth() + 1);
-  const d = pad(date.getDate());
-  const hh = pad(date.getHours());
-  const mm = pad(date.getMinutes());
-  const ss = pad(date.getSeconds());
+  const y = date.getUTCFullYear();
+  const m = pad(date.getUTCMonth() + 1);
+  const d = pad(date.getUTCDate());
+  const hh = pad(date.getUTCHours());
+  const mm = pad(date.getUTCMinutes());
+  const ss = pad(date.getUTCSeconds());
   return `${y}-${m}-${d}-${hh}${mm}${ss}`;
 }
 

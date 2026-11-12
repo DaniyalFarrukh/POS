@@ -524,8 +524,9 @@ export const arRoutes: FastifyPluginAsync = async (fastify) => {
       const { customerId } = request.params as { customerId: string };
       const query = request.query as { startDate?: string; endDate?: string };
 
-      const startDate = query.startDate || `${new Date().getFullYear()}-01-01`;
-      const endDate = query.endDate || getKarachiBusinessDate();
+      const todayDate = getKarachiBusinessDate();
+      const startDate = query.startDate || `${todayDate.slice(0, 4)}-01-01`;
+      const endDate = query.endDate || todayDate;
 
       // Verify customer exists in pharmacy
       const [customer] = await db

@@ -290,7 +290,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
 
           if (!period) {
             // Auto-create current year open period
-            const currentYear = new Date().getFullYear();
+            const currentYear = parseInt(getKarachiBusinessDate(now).slice(0, 4), 10);
             const periodId = generateUuidV7();
             await tx.insert(fiscalPeriods).values({
               id: periodId,
@@ -498,7 +498,7 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
             .limit(1);
 
           if (!period) {
-            const currentYear = new Date().getFullYear();
+            const currentYear = parseInt(getKarachiBusinessDate(now).slice(0, 4), 10);
             const periodId = generateUuidV7();
             await tx.insert(fiscalPeriods).values({
               id: periodId,
