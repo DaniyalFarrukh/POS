@@ -14,7 +14,8 @@
 | A1-A5 | Half-open intervals & offset validation | DONE | `8d2a71f`, `3d72f40` | Half-open intervals applied; offset validation enforced |
 | B1-B4 | Eradicate UTC slicing & machine timezone | DONE | `43ab317` | Day loops, test slicing, ESLint rules, machine Date APIs fixed |
 | C1 | Verify auth audience rejection tests | DONE | `e008f15` (verified) | Verified forged audience tests with correct secrets exist |
-| C2 | Verify stock response shapes & Karachi dates | DONE | PENDING | Product names, barcodes, and Karachi date helpers verified & tested |
+| C2 | Verify stock response shapes & Karachi dates | DONE | `b18d758` | Product names, barcodes, and Karachi date helpers verified & tested |
+| C3 | Document batch expiry rules & normalization | DONE | PENDING | Documented in `docs/EXPIRY_RULES.md`; pinned with tests; raw YYYY-MM marked NEEDS-REVIEW |
 
 ---
 
@@ -128,5 +129,16 @@
 - Refactored date helpers in `stock.ts`: replaced `new Date(now.getTime() + N * 86400 * 1000)` with `addDaysToBusinessDate(nowIsoDate, N)` and exact UTC calendar day difference for `daysUntilExpiry`.
 - Added test in `apps/server/src/routes/stock.test.ts` verifying all response shapes and properties.
 - Status: **FIXED & TESTED**.
+
+### C3. Document Exact Batch Expiry Rules & Normalization
+- Audited how batch expiry is stored and evaluated across desktop, server, and shared (`isBatchExpired`, `fefo.ts`, `purchasing.ts`, `stock.ts`).
+- **Expiry Boundary Rule:** A batch expiring on date `D` (`2026-11-12`) is strictly **sellable** throughout the business day of `D`. It is expired only when `expiryDate < referenceDate`.
+- **Month/Year Expiry:**
+  - Standard pharmaceutical practice (DRAP/FDA/WHO) stipulates that a batch labeled with month/year (e.g. `11/2026` or `2026-11`) is valid until the **last day of that month** (`2026-11-30`).
+  - Storing raw `YYYY-MM` without normalization causes premature expiration on the first of the month (`'2026-11' < '2026-11-01'` is true in string comparison).
+  - Marked as **`NEEDS-REVIEW`** in `docs/EXPIRY_RULES.md` and log.
+  - Implemented `normalizeBatchExpiry(expiryInput: string): string` in `packages/shared/src/time.ts` to convert `YYYY-MM` and `MM/YYYY` to the month's last day (`2026-11-30`), handling leap years.
+  - Pinned behavior with unit tests in `packages/shared/src/time.test.ts`.
+- Status: **DOCUMENTED & TESTED (NEEDS-REVIEW flagged for raw YYYY-MM storage)**.
 
 ---

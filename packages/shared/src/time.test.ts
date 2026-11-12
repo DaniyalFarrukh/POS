@@ -7,6 +7,7 @@ import {
   getKarachiNextDayStartUtc,
   addDaysToBusinessDate,
   isBatchExpired,
+  normalizeBatchExpiry,
 } from './time';
 
 describe('Asia/Karachi Business Date and Time Utilities', () => {
@@ -89,5 +90,48 @@ describe('Asia/Karachi Business Date and Time Utilities', () => {
     // Expired yesterday -> expired, unsellable
     expect(isBatchExpired('2026-10-27', today)).toBe(true);
     expect(isBatchExpired('2025-01-01', today)).toBe(true);
+  });
+
+  describe('C3: Batch Expiry Rules & Normalization', () => {
+    it('verifies exact batch expiry behavior on reference date', () => {
+      // Is a batch expiring on 2026-11-12 sellable on 2026-11-12?
+      expect(isBatchExpired('2026-11-12', '2026-11-12')).toBe(false); // SELLABLE throughout 2026-11-12
+      expect(isBatchExpired('2026-11-12', '2026-11-13')).toBe(true); // EXPIRED on 2026-11-13
+    });
+
+    it('proves raw unnormalized YYYY-MM string comparison causes premature expiry on first of month', () => {
+      // Without normalization, '2026-11' < '2026-11-01' is TRUE due to string length/character comparison
+      expect('2026-11' < '2026-11-01').toBe(true);
+      expect(isBatchExpired('2026-11', '2026-11-01')).toBe(true);
+      expect(isBatchExpired('2026-11', '2026-11-12')).toBe(true);
+    });
+
+    it('normalizes month/year inputs to the LAST day of the month according to pharmaceutical standards', () => {
+      // Standard YYYY-MM-DD passes through
+      expect(normalizeBatchExpiry('2026-11-12')).toBe('2026-11-12');
+
+      // YYYY-MM converts to last day of month
+      expect(normalizeBatchExpiry('2026-11')).toBe('2026-11-30');
+      expect(normalizeBatchExpiry('2026-12')).toBe('2026-12-31');
+      expect(normalizeBatchExpiry('2024-02')).toBe('2024-02-29'); // Leap year
+      expect(normalizeBatchExpiry('2025-02')).toBe('2025-02-28'); // Non-leap year
+
+      // MM/YYYY converts to last day of month
+      expect(normalizeBatchExpiry('11/2026')).toBe('2026-11-30');
+      expect(normalizeBatchExpiry('1/2026')).toBe('2026-01-31');
+      expect(normalizeBatchExpiry('02/2024')).toBe('2024-02-29');
+
+      // Normalized 11/2026 is sellable throughout November 2026
+      const normalized = normalizeBatchExpiry('11/2026');
+      expect(normalized).toBe('2026-11-30');
+      expect(isBatchExpired(normalized, '2026-11-01')).toBe(false);
+      expect(isBatchExpired(normalized, '2026-11-12')).toBe(false);
+      expect(isBatchExpired(normalized, '2026-11-30')).toBe(false);
+      expect(isBatchExpired(normalized, '2026-12-01')).toBe(true);
+
+      // Rejects invalid formats
+      expect(() => normalizeBatchExpiry('invalid')).toThrow(TypeError);
+      expect(() => normalizeBatchExpiry('13/2026')).toThrow(TypeError);
+    });
   });
 });

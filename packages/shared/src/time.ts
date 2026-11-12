@@ -116,3 +116,40 @@ export function isBatchExpired(
 ): boolean {
   return expiryDate < referenceDate;
 }
+
+/**
+ * Normalizes batch expiry input into standard YYYY-MM-DD format:
+ * - Full date 'YYYY-MM-DD' -> preserved as-is.
+ * - Month format 'YYYY-MM' -> converted to the LAST day of that month (e.g. '2026-11' -> '2026-11-30').
+ * - Slash month format 'MM/YYYY' -> converted to the LAST day of that month (e.g. '11/2026' -> '2026-11-30').
+ */
+export function normalizeBatchExpiry(expiryInput: string): string {
+  const trimmed = expiryInput.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const ymMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
+  if (ymMatch) {
+    const year = Number(ymMatch[1]);
+    const month = Number(ymMatch[2]);
+    if (month < 1 || month > 12) {
+      throw new TypeError(`Invalid month in batch expiry: "${expiryInput}"`);
+    }
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return `${ymMatch[1]}-${ymMatch[2]}-${String(lastDay).padStart(2, '0')}`;
+  }
+  const myMatch = trimmed.match(/^(\d{1,2})\/(\d{4})$/);
+  if (myMatch) {
+    const month = Number(myMatch[1]);
+    const year = Number(myMatch[2]);
+    if (month < 1 || month > 12) {
+      throw new TypeError(`Invalid month in batch expiry: "${expiryInput}"`);
+    }
+    const mStr = String(month).padStart(2, '0');
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return `${year}-${mStr}-${String(lastDay).padStart(2, '0')}`;
+  }
+  throw new TypeError(
+    `Invalid batch expiry format: "${expiryInput}" (expected YYYY-MM-DD, YYYY-MM, or MM/YYYY)`
+  );
+}
