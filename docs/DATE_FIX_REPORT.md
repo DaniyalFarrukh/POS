@@ -165,3 +165,4 @@ pnpm --filter @pos/desktop build   # vite build finished in 189ms (Exit code 0)
 Every assertion, test count, commit reference, and code pattern reported above has been directly executed and confirmed via terminal commands on the local machine and clean clone.
 
 **Zero `NOT VERIFIED` claims exist in this report.**
+

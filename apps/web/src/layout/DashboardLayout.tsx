@@ -407,19 +407,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ];
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 text-slate-800 overflow-hidden font-sans">
+    <div className="flex h-screen w-full bg-[#F7F8FC] text-slate-800 overflow-hidden font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 shadow-xl border-r border-slate-800">
+      <aside className="w-64 bg-white text-slate-800 flex flex-col flex-shrink-0 border-r border-slate-200/90 shadow-2xs">
         {/* Pharmacy Brand */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#2F64D8] flex items-center justify-center shadow-md shadow-[#2F64D8]/25 text-white">
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <div className="overflow-hidden">
-            <h1 className="font-bold text-sm tracking-tight truncate text-white">
+            <h1 className="font-bold text-sm tracking-tight truncate text-slate-900">
               {user?.pharmacyName || 'Pharmacy POS'}
             </h1>
-            <p className="text-xs text-slate-400 font-medium tracking-wide">Management Portal</p>
+            <p className="text-xs text-slate-500 font-medium tracking-wide">Management Portal</p>
           </div>
         </div>
 
@@ -443,15 +443,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       onClick={() => onTabChange(item.id)}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                         isActive
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 font-semibold'
-                          : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                          ? 'bg-[#EEF4FF] text-[#2F64D8] font-bold border-l-4 border-[#2F64D8] rounded-r-lg rounded-l-none shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        <Icon
+                          className={`w-4 h-4 ${isActive ? 'text-[#2F64D8]' : 'text-slate-400'}`}
+                        />
                         <span className="truncate">{item.label}</span>
                       </div>
-                      {isActive && <ChevronRight className="w-3.5 h-3.5 opacity-80" />}
+                      {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#2F64D8]" />}
                     </button>
                   );
                 })}
@@ -461,10 +463,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </nav>
 
         {/* User Card & Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/40">
+        <div className="p-4 border-t border-slate-100 bg-[#F7F8FC]/80">
           <div className="flex items-center justify-between">
             <div className="overflow-hidden mr-2">
-              <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
+              <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
               <div className="mt-0.5">
                 <Badge
                   variant={
@@ -474,7 +476,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         ? 'secondary'
                         : 'outline'
                   }
-                  className="text-[10px] uppercase font-bold py-0 px-1.5"
+                  className={`text-[10px] uppercase font-bold py-0 px-1.5 ${
+                    user?.role === 'owner' ? 'bg-[#2F64D8] text-white hover:bg-[#2452B6]' : ''
+                  }`}
                 >
                   {user?.role}
                 </Badge>
@@ -483,7 +487,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <button
               onClick={logout}
               title="Sign Out"
-              className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800/60 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -494,13 +498,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-8 flex items-center justify-between flex-shrink-0 shadow-sm">
+        <header className="h-16 bg-white border-b border-slate-200/80 px-8 flex items-center justify-between flex-shrink-0 shadow-2xs">
           <div className="flex items-center gap-6">
             <div>
-              <h2 className="text-lg font-bold text-slate-800 tracking-tight capitalize">
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight capitalize">
                 {currentTab.replace('-', ' ')}
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 font-medium">
                 Live enterprise sync &amp; multi-branch ledger
               </p>
             </div>
@@ -509,11 +513,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-100/80 text-xs transition-all shadow-xs"
+              className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50/70 text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-100/80 text-xs transition-all shadow-2xs"
             >
               <Search className="w-3.5 h-3.5 text-slate-400" />
               <span>Search invoices, medicines, customers...</span>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono font-semibold text-slate-500 shadow-xs">
+              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono font-semibold text-slate-500 shadow-2xs">
                 Ctrl+K
               </kbd>
             </button>
@@ -526,10 +530,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <div className="h-6 w-px bg-slate-200" />
 
             {/* Asia/Karachi Live Time */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200/60 text-slate-700 text-xs font-medium">
-              <Clock className="w-3.5 h-3.5 text-blue-600" />
-              <span>PKT:</span>
-              <span className="font-mono font-semibold">{karachiTime || 'Loading...'}</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F7F8FC] rounded-lg border border-slate-200 text-slate-700 text-xs font-medium">
+              <Clock className="w-3.5 h-3.5 text-[#2F64D8]" />
+              <span className="text-slate-500 font-medium">PKT:</span>
+              <span className="font-mono font-semibold text-slate-900">
+                {karachiTime || 'Loading...'}
+              </span>
             </div>
 
             <div className="h-6 w-px bg-slate-200" />

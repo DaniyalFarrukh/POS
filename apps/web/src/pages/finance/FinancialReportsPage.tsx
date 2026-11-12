@@ -255,7 +255,7 @@ export const FinancialReportsPage: React.FC = () => {
           onClick={() => setActiveTab('trial-balance')}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
             activeTab === 'trial-balance'
-              ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs'
+              ? 'bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/30 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -268,7 +268,7 @@ export const FinancialReportsPage: React.FC = () => {
           onClick={() => setActiveTab('profit-loss')}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
             activeTab === 'profit-loss'
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs'
+              ? 'bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/30 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -281,7 +281,7 @@ export const FinancialReportsPage: React.FC = () => {
           onClick={() => setActiveTab('balance-sheet')}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
             activeTab === 'balance-sheet'
-              ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-xs'
+              ? 'bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/30 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -294,7 +294,7 @@ export const FinancialReportsPage: React.FC = () => {
           onClick={() => setActiveTab('cash-flow')}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
             activeTab === 'cash-flow'
-              ? 'bg-teal-50 text-teal-700 border border-teal-200 shadow-xs'
+              ? 'bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/30 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -307,7 +307,7 @@ export const FinancialReportsPage: React.FC = () => {
           onClick={() => setActiveTab('general-ledger')}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
             activeTab === 'general-ledger'
-              ? 'bg-amber-50 text-amber-700 border border-amber-200 shadow-xs'
+              ? 'bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/30 shadow-2xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >

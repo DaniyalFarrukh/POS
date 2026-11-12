@@ -310,7 +310,7 @@ export const BudgetPlanningPage: React.FC = () => {
           </Button>
 
           <Button
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="flex items-center gap-1.5 bg-[#2F64D8] hover:bg-[#2452B6] text-white"
             onClick={() => openSetBudgetDrawer()}
           >
             <Plus className="h-4 w-4" />
@@ -348,11 +348,11 @@ export const BudgetPlanningPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
             {/* Year Selector */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1">
                 Fiscal Year
               </label>
               <select
-                className="w-full text-sm border rounded-md px-3 py-1.5 bg-white focus:ring-2 focus:ring-emerald-500"
+                className="w-full text-sm border border-slate-300 rounded-md px-3 py-1.5 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 value={fiscalYear}
                 onChange={(e) => setFiscalYear(Number(e.target.value))}
               >
@@ -372,11 +372,11 @@ export const BudgetPlanningPage: React.FC = () => {
 
             {/* Month Selector */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1">
                 Period
               </label>
               <select
-                className="w-full text-sm border rounded-md px-3 py-1.5 bg-white focus:ring-2 focus:ring-emerald-500"
+                className="w-full text-sm border border-slate-300 rounded-md px-3 py-1.5 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
               >
@@ -391,11 +391,11 @@ export const BudgetPlanningPage: React.FC = () => {
 
             {/* Branch Selector */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1">
                 Branch
               </label>
               <select
-                className="w-full text-sm border rounded-md px-3 py-1.5 bg-white focus:ring-2 focus:ring-emerald-500"
+                className="w-full text-sm border border-slate-300 rounded-md px-3 py-1.5 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 value={branchId}
                 onChange={(e) => setBranchId(e.target.value)}
               >
@@ -410,11 +410,11 @@ export const BudgetPlanningPage: React.FC = () => {
 
             {/* Account Type Filter */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1">
                 Account Type
               </label>
               <select
-                className="w-full text-sm border rounded-md px-3 py-1.5 bg-white focus:ring-2 focus:ring-emerald-500"
+                className="w-full text-sm border border-slate-300 rounded-md px-3 py-1.5 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 value={accountTypeFilter}
                 onChange={(e) =>
                   setAccountTypeFilter(e.target.value as 'all' | 'expense' | 'revenue')
@@ -428,14 +428,14 @@ export const BudgetPlanningPage: React.FC = () => {
 
             {/* Search */}
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider block mb-1">
                 Filter Accounts
               </label>
               <div className="relative">
-                <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-400" />
+                <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-slate-400" />
                 <Input
                   placeholder="Search code or name..."
-                  className="pl-8 text-sm h-9"
+                  className="pl-8 text-sm h-9 bg-white border-slate-300 text-slate-800 placeholder:text-slate-400"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />

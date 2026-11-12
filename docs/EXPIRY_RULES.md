@@ -92,3 +92,4 @@ export function normalizeBatchExpiry(expiryInput: string): string
 | **Explicit Date** | `2026-11-12` | `2026-11-12` | Sellable | Expired (on 13th) | Expired | Standard behavior |
 | **Raw YYYY-MM (Legacy)** | `2026-11` | `2026-11` | **EXPIRED** (`'2026-11' < '2026-11-01'`) | Expired | Expired | **NEEDS-REVIEW**: Prematurely expires on 1st of month |
 | **Normalized Month** | `11/2026` or `2026-11` | `2026-11-30` | Sellable | Sellable | Expired | **Recommended**: Matches pharmaceutical standards |
+

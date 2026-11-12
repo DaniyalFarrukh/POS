@@ -83,7 +83,7 @@ export const OverviewPage: React.FC = () => {
         </div>
         <Button
           onClick={fetchOverview}
-          variant="outline"
+          variant="default"
           size="sm"
           className="gap-2 text-xs"
           disabled={isLoading}

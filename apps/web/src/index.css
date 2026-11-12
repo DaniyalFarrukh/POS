@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --background: 248 250 252;
+  --background: 247 248 252;
   --foreground: 15 23 42;
   --card: 255 255 255;
   --card-foreground: 15 23 42;
+  --accent: 47 100 216;
 }
 
 body {
