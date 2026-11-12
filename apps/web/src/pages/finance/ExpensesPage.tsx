@@ -713,7 +713,7 @@ export const ExpensesPage: React.FC = () => {
           className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'all'
               ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           All Expenses
@@ -724,7 +724,7 @@ export const ExpensesPage: React.FC = () => {
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'pending'
               ? 'border-amber-600 text-amber-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           <span>Pending Approval</span>
@@ -740,7 +740,7 @@ export const ExpensesPage: React.FC = () => {
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'recurring'
               ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           <span>Recurring Templates</span>
@@ -754,7 +754,7 @@ export const ExpensesPage: React.FC = () => {
           className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'categories'
               ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700:text-slate-200'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           <span>Expense Categories</span>

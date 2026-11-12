@@ -43,9 +43,9 @@ const MainAppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-slate-900 text-white gap-3">
-        <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
-        <span className="text-sm font-semibold tracking-wide">
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#F7F8FC] text-slate-800 gap-3">
+        <RefreshCw className="w-6 h-6 animate-spin text-[#2F64D8]" />
+        <span className="text-sm font-semibold tracking-wide text-slate-700">
           Verifying security credentials...
         </span>
       </div>

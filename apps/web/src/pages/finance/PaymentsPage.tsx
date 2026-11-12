@@ -645,8 +645,8 @@ export const PaymentsPage: React.FC = () => {
             }}
             className={
               activeTab === 'cheque'
-                ? 'bg-slate-800 text-purple-600 font-medium'
-                : 'text-slate-500 hover:text-purple-600'
+                ? 'bg-[#EEF4FF] text-[#2F64D8] font-bold shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900'
             }
           >
             Cheque Register
@@ -758,24 +758,24 @@ export const PaymentsPage: React.FC = () => {
 
                   return (
                     <TableRow key={p.id} className="border-slate-200 hover:bg-slate-50">
-                      <TableCell className="font-mono text-sm font-semibold text-slate-200">
+                      <TableCell className="font-mono text-sm font-bold text-slate-900">
                         {p.paymentNumber}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-300">
+                      <TableCell className="text-sm text-slate-700">
                         {formatKarachiDateOnly(p.paymentDate)}
                       </TableCell>
                       <TableCell>
                         <Badge
                           className={
                             p.direction === 'receipt'
-                              ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                              : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold'
+                              : 'bg-amber-50 text-amber-800 border-amber-300 font-semibold'
                           }
                         >
                           {p.direction === 'receipt' ? 'Receipt' : 'Payment'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm font-medium text-slate-200">
+                      <TableCell className="text-sm font-semibold text-slate-900">
                         {p.partyName || (p.partyType === 'customer' ? 'Customer' : 'Supplier')}
                       </TableCell>
                       <TableCell>
@@ -792,16 +792,16 @@ export const PaymentsPage: React.FC = () => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm font-semibold text-right text-slate-100">
+                      <TableCell className="text-sm font-bold text-right text-slate-900 font-mono">
                         {formatPaisa(p.amountPaisa)}
                       </TableCell>
                       <TableCell className="text-sm text-right">
                         <div className="flex flex-col items-end">
-                          <span className="text-slate-300 font-medium">
+                          <span className="text-slate-700 font-semibold font-mono">
                             {formatPaisa(p.allocatedPaisa)}
                           </span>
                           {p.advancePaisa > 0 && (
-                            <span className="text-xs text-[#2F64D8] font-mono">
+                            <span className="text-xs text-[#2F64D8] font-mono font-medium">
                               +{formatPaisa(p.advancePaisa)} adv
                             </span>
                           )}
@@ -906,7 +906,6 @@ export const PaymentsPage: React.FC = () => {
                 size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="border-slate-300 bg-slate-800 text-slate-300"
               >
                 Previous
               </Button>
@@ -915,7 +914,6 @@ export const PaymentsPage: React.FC = () => {
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="border-slate-300 bg-slate-800 text-slate-300"
               >
                 Next
               </Button>
@@ -933,14 +931,14 @@ export const PaymentsPage: React.FC = () => {
       >
         <form onSubmit={handleRecordSubmit} className="space-y-4">
           {recordError && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded text-sm flex items-center gap-2">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded text-sm flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               <span>{recordError}</span>
             </div>
           )}
 
           {/* Direction Toggle */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-800 rounded-lg">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 border border-slate-200 rounded-lg">
             <button
               type="button"
               onClick={() => {
@@ -949,8 +947,8 @@ export const PaymentsPage: React.FC = () => {
               }}
               className={`py-2 text-sm font-semibold rounded-md transition-all ${
                 direction === 'receipt'
-                  ? 'bg-emerald-600 text-slate-900 shadow-md'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Customer Receipt (Inflow)
@@ -976,7 +974,7 @@ export const PaymentsPage: React.FC = () => {
             {/* Party Selector */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-slate-300">
+                <label className="text-xs font-medium text-slate-700">
                   {direction === 'receipt' ? 'Customer' : 'Supplier'} *
                 </label>
                 {direction === 'receipt' && (
@@ -1014,7 +1012,7 @@ export const PaymentsPage: React.FC = () => {
 
             {/* Branch */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">Branch *</label>
+              <label className="text-xs font-medium text-slate-700 block mb-1">Branch *</label>
               <select
                 value={branchId}
                 onChange={(e) => setBranchId(e.target.value)}
@@ -1031,7 +1029,7 @@ export const PaymentsPage: React.FC = () => {
 
             {/* Date */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">
+              <label className="text-xs font-medium text-slate-700 block mb-1">
                 Payment Date *
               </label>
               <Input
@@ -1048,7 +1046,7 @@ export const PaymentsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Amount */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">
+              <label className="text-xs font-medium text-slate-700 block mb-1">
                 Amount (PKR) *
               </label>
               <Input
@@ -1065,7 +1063,7 @@ export const PaymentsPage: React.FC = () => {
 
             {/* Method */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">
+              <label className="text-xs font-medium text-slate-700 block mb-1">
                 Payment Method *
               </label>
               <select
@@ -1082,7 +1080,7 @@ export const PaymentsPage: React.FC = () => {
 
             {/* Reference */}
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">
+              <label className="text-xs font-medium text-slate-700 block mb-1">
                 Reference / Slip #
               </label>
               <Input
@@ -1194,7 +1192,7 @@ export const PaymentsPage: React.FC = () => {
                       const curAlloc = allocations.find((a) => a.documentId === doc.id);
                       return (
                         <TableRow key={doc.id} className="border-slate-200">
-                          <TableCell className="text-xs font-mono font-medium text-slate-200">
+                          <TableCell className="text-xs font-mono font-medium text-slate-900">
                             {doc.documentNumber}
                           </TableCell>
                           <TableCell className="text-xs text-slate-500">{doc.date}</TableCell>
@@ -1261,7 +1259,7 @@ export const PaymentsPage: React.FC = () => {
 
           {/* Notes */}
           <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">Notes</label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">Notes</label>
             <Input
               type="text"
               placeholder="Settlement notes, cheque memo, etc."
@@ -1277,7 +1275,7 @@ export const PaymentsPage: React.FC = () => {
               type="button"
               variant="outline"
               onClick={() => setIsRecordOpen(false)}
-              className="border-slate-300 text-slate-300"
+              className="border-slate-300 text-slate-700"
             >
               Cancel
             </Button>
@@ -1323,7 +1321,7 @@ export const PaymentsPage: React.FC = () => {
               </div>
               <div className="p-2.5 bg-[#F7F8FC] rounded border border-slate-300">
                 <span className="text-slate-500 block">Method</span>
-                <span className="text-slate-200 capitalize font-medium">
+                <span className="text-slate-900 capitalize font-medium">
                   {selectedPayment.method}
                 </span>
               </div>
@@ -1334,8 +1332,8 @@ export const PaymentsPage: React.FC = () => {
               <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded text-xs space-y-1">
                 <div className="flex justify-between font-medium">
                   <span className="text-amber-300">Cheque #: {selectedPayment.chequeNumber}</span>
-                  <span className="text-slate-300">Bank: {selectedPayment.bankName || '—'}</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-700">Bank: {selectedPayment.bankName || '—'}</span>
+                  <span className="text-slate-700">
                     Status: <strong className="capitalize">{selectedPayment.chequeStatus}</strong>
                   </span>
                 </div>
@@ -1349,7 +1347,7 @@ export const PaymentsPage: React.FC = () => {
 
             {/* Allocations Table */}
             <div>
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Document Allocations
               </h4>
               {selectedPayment.allocations && selectedPayment.allocations.length > 0 ? (
@@ -1367,7 +1365,7 @@ export const PaymentsPage: React.FC = () => {
                     <TableBody>
                       {selectedPayment.allocations.map((a) => (
                         <TableRow key={a.id} className="border-slate-200">
-                          <TableCell className="text-xs font-mono text-slate-200">
+                          <TableCell className="text-xs font-mono text-slate-900">
                             {a.documentNumber}
                           </TableCell>
                           <TableCell className="text-xs text-slate-500 capitalize">
@@ -1405,7 +1403,7 @@ export const PaymentsPage: React.FC = () => {
                   <RotateCcw className="h-4 w-4" /> This payment has been reversed in the ledger.
                 </p>
                 {selectedPayment.reversalReason && (
-                  <p className="mt-1 text-slate-300">Reason: {selectedPayment.reversalReason}</p>
+                  <p className="mt-1 text-slate-700">Reason: {selectedPayment.reversalReason}</p>
                 )}
               </div>
             )}
@@ -1462,7 +1460,7 @@ export const PaymentsPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsDetailOpen(false)}
-                className="border-slate-300 text-slate-300"
+                className="border-slate-300 text-slate-700"
               >
                 Close
               </Button>
@@ -1480,13 +1478,13 @@ export const PaymentsPage: React.FC = () => {
           maxWidth="md"
         >
           <form onSubmit={handleExecuteReverse} className="space-y-4">
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-700">
               Reversing this payment will post an immutable reversal journal entry to the general
               ledger and re-open all allocated credit documents.
             </p>
 
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">
+              <label className="text-xs font-medium text-slate-700 block mb-1">
                 Reversal Reason *
               </label>
               <Input
@@ -1505,7 +1503,7 @@ export const PaymentsPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsReverseOpen(false)}
-                className="border-slate-300 text-slate-300"
+                className="border-slate-300 text-slate-700"
               >
                 Cancel
               </Button>
@@ -1531,13 +1529,13 @@ export const PaymentsPage: React.FC = () => {
           maxWidth="md"
         >
           <form onSubmit={handleExecuteBounce} className="space-y-4">
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-700">
               Recording this cheque as bounced will reverse the financial ledger entry, reopen all
               associated balances, and update the cheque register status to Bounced.
             </p>
 
             <div>
-              <label className="text-xs font-medium text-slate-300 block mb-1">
+              <label className="text-xs font-medium text-slate-700 block mb-1">
                 Bounce Reason / Bank Advice *
               </label>
               <Input
@@ -1556,7 +1554,7 @@ export const PaymentsPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsBounceOpen(false)}
-                className="border-slate-300 text-slate-300"
+                className="border-slate-300 text-slate-700"
               >
                 Cancel
               </Button>
@@ -1582,7 +1580,7 @@ export const PaymentsPage: React.FC = () => {
       >
         <form onSubmit={handleCreateCustomer} className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">Customer Name *</label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">Customer Name *</label>
             <Input
               type="text"
               placeholder="e.g. Dr. Zafar Clinic"
@@ -1594,7 +1592,7 @@ export const PaymentsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">Phone Number</label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">Phone Number</label>
             <Input
               type="text"
               placeholder="03001234567"
@@ -1605,7 +1603,7 @@ export const PaymentsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-slate-300 block mb-1">
+            <label className="text-xs font-medium text-slate-700 block mb-1">
               Credit Limit (PKR)
             </label>
             <Input
@@ -1624,7 +1622,7 @@ export const PaymentsPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsNewCustomerOpen(false)}
-              className="border-slate-300 text-slate-300"
+              className="border-slate-300 text-slate-700"
             >
               Cancel
             </Button>

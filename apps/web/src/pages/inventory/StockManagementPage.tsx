@@ -300,8 +300,8 @@ export const StockManagementPage: React.FC = () => {
               }}
               className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-colors ${
                 statusFilter === s.id
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-[#2F64D8] text-white shadow-2xs font-semibold'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
               {s.label}

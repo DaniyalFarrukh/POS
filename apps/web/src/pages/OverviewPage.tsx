@@ -232,21 +232,24 @@ export const OverviewPage: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs">Product Name</TableHead>
-                  <TableHead className="text-xs text-right">Total Current Stock</TableHead>
-                  <TableHead className="text-xs text-right">Status</TableHead>
+                  <TableHead className="text-xs text-right w-48">Total Current Stock</TableHead>
+                  <TableHead className="text-xs text-center w-44">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.lowStockProducts.map((p) => (
                   <TableRow key={p.productId}>
-                    <TableCell className="font-semibold text-xs text-slate-800">
+                    <TableCell className="font-semibold text-xs text-slate-900">
                       {p.brandName}
                     </TableCell>
-                    <TableCell className="text-right text-xs font-mono font-bold text-rose-600">
+                    <TableCell className="text-right text-xs font-mono font-bold text-rose-600 w-48">
                       {p.currentStock} units
                     </TableCell>
-                    <TableCell className="text-right text-xs">
-                      <Badge variant="destructive" className="text-[10px] uppercase font-bold">
+                    <TableCell className="text-center text-xs w-44">
+                      <Badge
+                        variant="destructive"
+                        className="text-[10px] uppercase font-bold px-3 py-1 whitespace-nowrap shadow-2xs"
+                      >
                         Reorder Needed
                       </Badge>
                     </TableCell>

@@ -273,15 +273,15 @@ export const ChartOfAccountsPage: React.FC = () => {
             <TableCell className="py-2.5">
               <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
                 {depth > 0 && <span className="text-slate-400 font-mono text-xs">└─</span>}
-                <span className="font-mono font-semibold text-slate-900">{account.code}</span>
+                <span className="font-mono font-bold text-slate-900">{account.code}</span>
               </div>
             </TableCell>
             <TableCell className="py-2.5">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-900">{account.name}</span>
+                <span className="font-semibold text-slate-900">{account.name}</span>
                 {account.isSystem && (
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-[#2F64D8]"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/20"
                     title="Protected system account"
                   >
                     <Lock className="w-2.5 h-2.5" />
@@ -290,12 +290,12 @@ export const ChartOfAccountsPage: React.FC = () => {
                 )}
               </div>
             </TableCell>
-            <TableCell className="py-2.5">
+            <TableCell className="py-2.5 text-center">
               <Badge variant={TYPE_CONFIG[account.type].badgeVariant}>
                 {TYPE_CONFIG[account.type].label}
               </Badge>
             </TableCell>
-            <TableCell className="py-2.5">
+            <TableCell className="py-2.5 text-center">
               <Badge variant={account.isActive ? 'success' : 'default'}>
                 {account.isActive ? 'Active' : 'Inactive'}
               </Badge>
@@ -440,7 +440,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                   <Card key={type} className="overflow-hidden">
                     <div
                       onClick={() => toggleSection(type)}
-                      className={`px-4 py-3 cursor-pointer flex items-center justify-between border-b border-slate-200 select-none ${config.headerBg}`}
+                      className="px-4 py-3 cursor-pointer flex items-center justify-between border-b border-slate-200 select-none bg-slate-50 hover:bg-slate-100/90 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
@@ -448,7 +448,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                         ) : (
                           <ChevronDown className="w-4 h-4 text-slate-500" />
                         )}
-                        <span className="font-semibold text-slate-900">{config.label}</span>
+                        <span className="font-bold text-slate-900">{config.label}</span>
                         <span className="text-xs text-slate-500 font-normal">
                           ({typeNodes.reduce((acc, n) => acc + 1 + n.children.length, 0)} accounts)
                         </span>
@@ -460,11 +460,21 @@ export const ChartOfAccountsPage: React.FC = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-48">Code</TableHead>
-                            <TableHead>Account Name</TableHead>
-                            <TableHead className="w-32">Classification</TableHead>
-                            <TableHead className="w-28">Status</TableHead>
-                            <TableHead className="w-32 text-right">Actions</TableHead>
+                            <TableHead className="w-48 text-slate-700 font-bold text-xs uppercase">
+                              Code
+                            </TableHead>
+                            <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                              Account Name
+                            </TableHead>
+                            <TableHead className="w-36 text-center text-slate-700 font-bold text-xs uppercase">
+                              Classification
+                            </TableHead>
+                            <TableHead className="w-28 text-center text-slate-700 font-bold text-xs uppercase">
+                              Status
+                            </TableHead>
+                            <TableHead className="w-32 text-right text-slate-700 font-bold text-xs uppercase">
+                              Actions
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>

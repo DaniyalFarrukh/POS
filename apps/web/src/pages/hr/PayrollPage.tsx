@@ -678,11 +678,14 @@ export const PayrollPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-              <Banknote className="h-7 w-7 text-emerald-400" />
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <Banknote className="h-7 w-7 text-emerald-700" />
               Monthly Payroll Management
             </h1>
-            <Badge variant="outline" className="border-emerald-500/40 text-emerald-400">
+            <Badge
+              variant="outline"
+              className="border-emerald-300 bg-emerald-50 text-emerald-800 text-emerald-700"
+            >
               HR & GL Integrated
             </Badge>
           </div>
@@ -737,10 +740,10 @@ export const PayrollPage: React.FC = () => {
       {successMsg && (
         <div className="p-4 rounded-lg bg-emerald-950/60 border border-emerald-800 text-emerald-200 text-sm flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
+            <CheckCircle className="h-5 w-5 text-emerald-700 shrink-0" />
             <span>{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-400 hover:text-white">
+          <button onClick={() => setSuccessMsg(null)} className="text-emerald-700 hover:text-white">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -755,8 +758,8 @@ export const PayrollPage: React.FC = () => {
           }}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'runs'
-              ? 'border-emerald-500 text-emerald-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-emerald-500 text-emerald-700'
+              : 'border-transparent text-slate-400 hover:text-slate-900'
           }`}
         >
           <Receipt className="h-4 w-4" />
@@ -767,8 +770,8 @@ export const PayrollPage: React.FC = () => {
           onClick={() => setActiveTab('advances')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'advances'
-              ? 'border-emerald-500 text-emerald-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-emerald-500 text-emerald-700'
+              : 'border-transparent text-slate-400 hover:text-slate-900'
           }`}
         >
           <Coins className="h-4 w-4" />
@@ -779,15 +782,15 @@ export const PayrollPage: React.FC = () => {
           onClick={() => setActiveTab('config')}
           className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'config'
-              ? 'border-emerald-500 text-emerald-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-emerald-500 text-emerald-700'
+              : 'border-transparent text-slate-400 hover:text-slate-900'
           }`}
         >
           <ShieldAlert className="h-4 w-4" />
           Statutory & Tax Rates
           <Badge
             variant="outline"
-            className="text-amber-400 border-amber-500/40 text-xs px-1.5 py-0"
+            className="text-amber-800 border-amber-500/40 text-xs px-1.5 py-0"
           >
             Accountant Verified
           </Badge>
@@ -807,7 +810,7 @@ export const PayrollPage: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedRun(null)}
-                  className="text-slate-300 hover:text-white flex items-center gap-1.5"
+                  className="text-slate-700 hover:text-white flex items-center gap-1.5"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to All Runs
@@ -835,11 +838,11 @@ export const PayrollPage: React.FC = () => {
                         <h2 className="text-xl font-bold text-slate-900 tracking-wide">
                           {selectedRun.runNumber}
                         </h2>
-                        <span className="text-sm px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                        <span className="text-sm px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
                           {selectedRun.month}
                         </span>
                         {selectedRun.branchName && (
-                          <span className="text-sm px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 flex items-center gap-1">
+                          <span className="text-sm px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 flex items-center gap-1">
                             <Building2 className="h-3 w-3 text-slate-400" />
                             {selectedRun.branchName}
                           </span>
@@ -909,7 +912,7 @@ export const PayrollPage: React.FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => setShowAdjustmentModal(true)}
-                            className="border-slate-700 text-slate-300 hover:text-white flex items-center gap-1.5"
+                            className="border-slate-700 text-slate-700 hover:text-white flex items-center gap-1.5"
                             disabled={isLoading}
                           >
                             <TrendingUp className="h-4 w-4" />
@@ -937,14 +940,14 @@ export const PayrollPage: React.FC = () => {
 
                     <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200">
                       <div className="text-xs text-slate-400">Total Net Payable</div>
-                      <div className="text-lg font-bold text-emerald-400 mt-1">
+                      <div className="text-lg font-bold text-emerald-700 mt-1">
                         {formatPKR(selectedRun.totalNetPaisa)}
                       </div>
                     </div>
 
                     <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200">
                       <div className="text-xs text-slate-400">Advances Recovered</div>
-                      <div className="text-lg font-bold text-amber-400 mt-1">
+                      <div className="text-lg font-bold text-amber-800 mt-1">
                         {formatPKR(selectedRun.totalAdvancesRecoveredPaisa)}
                       </div>
                     </div>
@@ -975,17 +978,37 @@ export const PayrollPage: React.FC = () => {
                     <Table>
                       <TableHeader className="bg-[#F7F8FC]">
                         <TableRow className="border-slate-200">
-                          <TableHead className="text-slate-300">Employee</TableHead>
-                          <TableHead className="text-slate-300">Base Salary</TableHead>
-                          <TableHead className="text-slate-300">Attendance</TableHead>
-                          <TableHead className="text-slate-300">Overtime</TableHead>
-                          <TableHead className="text-slate-300">Allowances</TableHead>
-                          <TableHead className="text-slate-300">Gross Salary</TableHead>
-                          <TableHead className="text-slate-300">Tax & Statutory</TableHead>
-                          <TableHead className="text-slate-300">Advance Rec.</TableHead>
-                          <TableHead className="text-slate-300">Net Payable</TableHead>
-                          <TableHead className="text-slate-300">Status</TableHead>
-                          <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Employee
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Base Salary
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Attendance
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Overtime
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Allowances
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Gross Salary
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Tax & Statutory
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Advance Rec.
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Net Payable
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Status
+                          </TableHead>
+                          <TableHead className="text-slate-700 text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -999,16 +1022,18 @@ export const PayrollPage: React.FC = () => {
                           filteredRunItems.map((item) => (
                             <TableRow key={item.id} className="border-slate-200 hover:bg-slate-50">
                               <TableCell>
-                                <div className="font-semibold text-white">{item.employeeName}</div>
+                                <div className="font-semibold text-slate-900">
+                                  {item.employeeName}
+                                </div>
                                 <div className="text-xs text-slate-400">
                                   {item.employeeCode} • {item.designation}
                                 </div>
                               </TableCell>
-                              <TableCell className="text-slate-300 font-mono text-sm">
+                              <TableCell className="text-slate-700 font-mono text-sm">
                                 {formatPKR(item.baseSalaryPaisa)}
                               </TableCell>
                               <TableCell>
-                                <div className="text-xs text-slate-300">
+                                <div className="text-xs text-slate-700">
                                   {item.attendedDays} / {item.workingDays} days
                                 </div>
                                 {item.unpaidLeaveDays > 0 && (
@@ -1018,7 +1043,7 @@ export const PayrollPage: React.FC = () => {
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="text-slate-300 font-mono text-xs">
+                              <TableCell className="text-slate-700 font-mono text-xs">
                                 {item.overtimeHours > 0 ? (
                                   <span>
                                     {item.overtimeHours} hrs (+{formatPKR(item.overtimeAmountPaisa)}
@@ -1028,7 +1053,7 @@ export const PayrollPage: React.FC = () => {
                                   <span className="text-slate-500">—</span>
                                 )}
                               </TableCell>
-                              <TableCell className="text-slate-300 font-mono text-xs">
+                              <TableCell className="text-slate-700 font-mono text-xs">
                                 {item.allowancesPaisa > 0 ? (
                                   <span title={formatAllowancesSummary(item.allowancesBreakdown)}>
                                     +{formatPKR(item.allowancesPaisa)}
@@ -1037,7 +1062,7 @@ export const PayrollPage: React.FC = () => {
                                   <span className="text-slate-500">—</span>
                                 )}
                               </TableCell>
-                              <TableCell className="text-slate-200 font-mono font-semibold text-sm">
+                              <TableCell className="text-slate-900 font-mono font-semibold text-sm">
                                 {formatPKR(item.grossSalaryPaisa)}
                               </TableCell>
                               <TableCell className="font-mono text-xs text-red-400">
@@ -1046,12 +1071,12 @@ export const PayrollPage: React.FC = () => {
                                   Stat: {formatPKR(item.statutoryDeductionsPaisa)}
                                 </div>
                               </TableCell>
-                              <TableCell className="font-mono text-xs text-amber-400">
+                              <TableCell className="font-mono text-xs text-amber-800">
                                 {item.advanceRecoveryPaisa > 0
                                   ? `-${formatPKR(item.advanceRecoveryPaisa)}`
                                   : '—'}
                               </TableCell>
-                              <TableCell className="font-mono font-bold text-sm text-emerald-400">
+                              <TableCell className="font-mono font-bold text-sm text-emerald-700">
                                 {formatPKR(item.netSalaryPaisa)}
                               </TableCell>
                               <TableCell>
@@ -1069,7 +1094,7 @@ export const PayrollPage: React.FC = () => {
                                       size="sm"
                                       variant="ghost"
                                       onClick={() => openEditItemModal(item)}
-                                      className="text-slate-300 hover:text-white h-7 px-2 text-xs"
+                                      className="text-slate-700 hover:text-white h-7 px-2 text-xs"
                                     >
                                       Edit
                                     </Button>
@@ -1078,7 +1103,7 @@ export const PayrollPage: React.FC = () => {
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleViewPayslip(item)}
-                                    className="border-slate-700 text-slate-300 hover:text-white h-7 px-2 text-xs flex items-center gap-1"
+                                    className="border-slate-700 text-slate-700 hover:text-white h-7 px-2 text-xs flex items-center gap-1"
                                   >
                                     <FileText className="h-3 w-3" />
                                     Payslip
@@ -1172,7 +1197,7 @@ export const PayrollPage: React.FC = () => {
               <Card className="bg-white border-slate-200/80">
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-white">Monthly Payroll Runs</h3>
+                    <h3 className="font-bold text-slate-900">Monthly Payroll Runs</h3>
                     <span className="text-xs text-slate-400">
                       Showing {filteredRuns.length} of {runsList.length} runs
                     </span>
@@ -1182,14 +1207,28 @@ export const PayrollPage: React.FC = () => {
                     <Table>
                       <TableHeader className="bg-[#F7F8FC]">
                         <TableRow className="border-slate-200">
-                          <TableHead className="text-slate-300">Run Number</TableHead>
-                          <TableHead className="text-slate-300">Branch</TableHead>
-                          <TableHead className="text-slate-300">Month</TableHead>
-                          <TableHead className="text-slate-300">Gross Salary</TableHead>
-                          <TableHead className="text-slate-300">Deductions</TableHead>
-                          <TableHead className="text-slate-300">Net Payable</TableHead>
-                          <TableHead className="text-slate-300">Status</TableHead>
-                          <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Run Number
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Branch
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Month
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Gross Salary
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Deductions
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Net Payable
+                          </TableHead>
+                          <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            Status
+                          </TableHead>
+                          <TableHead className="text-slate-700 text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1208,7 +1247,7 @@ export const PayrollPage: React.FC = () => {
                                 className="border-slate-200 hover:bg-slate-50 cursor-pointer"
                                 onClick={() => loadRunDetails(run.id)}
                               >
-                                <TableCell className="font-semibold text-white">
+                                <TableCell className="font-semibold text-slate-900">
                                   <div className="flex items-center gap-1.5">
                                     <span>{run.runNumber}</span>
                                     {run.isAdjustmentRun && (
@@ -1221,19 +1260,19 @@ export const PayrollPage: React.FC = () => {
                                     )}
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-slate-300">
+                                <TableCell className="text-slate-700">
                                   {run.branchName || 'All Branches'}
                                 </TableCell>
-                                <TableCell className="text-slate-300 font-mono text-sm">
+                                <TableCell className="text-slate-700 font-mono text-sm">
                                   {run.month}
                                 </TableCell>
-                                <TableCell className="font-mono text-slate-200">
+                                <TableCell className="font-mono text-slate-900">
                                   {formatPKR(run.totalGrossPaisa)}
                                 </TableCell>
                                 <TableCell className="font-mono text-red-400">
                                   {formatPKR(run.totalDeductionsPaisa)}
                                 </TableCell>
-                                <TableCell className="font-mono font-bold text-emerald-400">
+                                <TableCell className="font-mono font-bold text-emerald-700">
                                   {formatPKR(run.totalNetPaisa)}
                                 </TableCell>
                                 <TableCell>
@@ -1247,7 +1286,7 @@ export const PayrollPage: React.FC = () => {
                                       e.stopPropagation();
                                       loadRunDetails(run.id);
                                     }}
-                                    className="text-slate-300 hover:text-white flex items-center gap-1 ml-auto"
+                                    className="text-slate-700 hover:text-white flex items-center gap-1 ml-auto"
                                   >
                                     View Details
                                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1276,7 +1315,7 @@ export const PayrollPage: React.FC = () => {
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold text-white">Employee Salary Advances & Loans</h3>
+                  <h3 className="font-bold text-slate-900">Employee Salary Advances & Loans</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     Advances are automatically recovered in monthly payroll installments until fully
                     amortized.
@@ -1299,14 +1338,30 @@ export const PayrollPage: React.FC = () => {
                 <Table>
                   <TableHeader className="bg-[#F7F8FC]">
                     <TableRow className="border-slate-200">
-                      <TableHead className="text-slate-300">Employee</TableHead>
-                      <TableHead className="text-slate-300">Date</TableHead>
-                      <TableHead className="text-slate-300">Principal</TableHead>
-                      <TableHead className="text-slate-300">Recovered</TableHead>
-                      <TableHead className="text-slate-300">Remaining Balance</TableHead>
-                      <TableHead className="text-slate-300">Monthly Installment</TableHead>
-                      <TableHead className="text-slate-300">Reason</TableHead>
-                      <TableHead className="text-slate-300">Status</TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Employee
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Date
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Principal
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Recovered
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Remaining Balance
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Monthly Installment
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Reason
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Status
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1319,22 +1374,22 @@ export const PayrollPage: React.FC = () => {
                     ) : (
                       advancesList.map((adv) => (
                         <TableRow key={adv.id} className="border-slate-200 hover:bg-slate-50">
-                          <TableCell className="font-medium text-white">
+                          <TableCell className="font-semibold text-slate-900">
                             {adv.employeeName || adv.employeeId}
                           </TableCell>
-                          <TableCell className="text-slate-300 font-mono text-xs">
+                          <TableCell className="text-slate-700 font-mono text-xs">
                             {adv.disbursementDate}
                           </TableCell>
-                          <TableCell className="font-mono text-slate-200">
+                          <TableCell className="font-mono text-slate-900">
                             {formatPKR(adv.principalPaisa)}
                           </TableCell>
-                          <TableCell className="font-mono text-emerald-400">
+                          <TableCell className="font-mono text-emerald-700">
                             {formatPKR(adv.recoveredPaisa)}
                           </TableCell>
-                          <TableCell className="font-mono font-bold text-amber-400">
+                          <TableCell className="font-mono font-bold text-amber-800">
                             {formatPKR(adv.remainingPaisa)}
                           </TableCell>
-                          <TableCell className="font-mono text-slate-300">
+                          <TableCell className="font-mono text-slate-700">
                             {formatPKR(adv.monthlyInstallmentPaisa)}
                           </TableCell>
                           <TableCell className="text-slate-400 text-xs max-w-xs truncate">
@@ -1370,12 +1425,12 @@ export const PayrollPage: React.FC = () => {
       {activeTab === 'config' && (
         <div className="space-y-6">
           {/* Statutory & Legal Warning Banner */}
-          <div className="p-4 rounded-lg bg-amber-950/40 border border-amber-600/60 text-amber-200 space-y-2">
-            <div className="flex items-center gap-2 font-semibold text-amber-400">
-              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+          <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-amber-800">
+              <AlertTriangle className="h-5 w-5 text-amber-800 shrink-0" />
               <span>Configurable Statutory Rates & Income Tax Warning</span>
             </div>
-            <p className="text-xs text-amber-300/90 leading-relaxed">
+            <p className="text-xs text-amber-800 leading-relaxed">
               Statutory rates (EOBI, PESSI, Provincial Social Security) and progressive income tax
               slabs are configurable business parameters and must be verified by a qualified
               Pakistani chartered accountant or licensed tax advisor. Rates and legal brackets vary
@@ -1390,7 +1445,7 @@ export const PayrollPage: React.FC = () => {
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold text-white">
+                  <h3 className="font-bold text-slate-900">
                     Statutory Components (EOBI, Social Security, etc.)
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
@@ -1415,15 +1470,29 @@ export const PayrollPage: React.FC = () => {
                 <Table>
                   <TableHeader className="bg-[#F7F8FC]">
                     <TableRow className="border-slate-200">
-                      <TableHead className="text-slate-300">Code</TableHead>
-                      <TableHead className="text-slate-300">Name</TableHead>
-                      <TableHead className="text-slate-300">Type</TableHead>
-                      <TableHead className="text-slate-300">Amount / Rate</TableHead>
-                      <TableHead className="text-slate-300">GL Account Code</TableHead>
-                      <TableHead className="text-slate-300">Status</TableHead>
-                      <TableHead className="text-slate-300">Notes</TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Code
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Name
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Type
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Amount / Rate
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        GL Account Code
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Status
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Notes
+                      </TableHead>
                       {isOwner && (
-                        <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                        <TableHead className="text-slate-700 text-right">Actions</TableHead>
                       )}
                     </TableRow>
                   </TableHeader>
@@ -1442,22 +1511,22 @@ export const PayrollPage: React.FC = () => {
                             {c.isExample && (
                               <Badge
                                 variant="outline"
-                                className="text-[10px] text-amber-400 border-amber-500/40"
+                                className="text-[10px] text-amber-800 border-amber-500/40"
                               >
                                 Example
                               </Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-slate-300">{c.name}</TableCell>
+                          <TableCell className="text-slate-700">{c.name}</TableCell>
                           <TableCell className="text-xs text-slate-400 uppercase">
                             {c.calculationType}
                           </TableCell>
-                          <TableCell className="font-mono text-slate-200">
+                          <TableCell className="font-mono text-slate-900">
                             {c.calculationType === 'fixed'
                               ? formatPKR(c.fixedAmountPaisa)
                               : `${c.percentageRate}%`}
                           </TableCell>
-                          <TableCell className="font-mono text-emerald-400 text-xs">
+                          <TableCell className="font-mono text-emerald-700 text-xs">
                             {c.accountCode}
                           </TableCell>
                           <TableCell>
@@ -1494,7 +1563,7 @@ export const PayrollPage: React.FC = () => {
             <CardContent className="p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold text-white">Monthly Progressive Income Tax Slabs</h3>
+                  <h3 className="font-bold text-slate-900">Monthly Progressive Income Tax Slabs</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     Monthly income tax computed bracket-by-bracket from employee gross taxable
                     earnings.
@@ -1517,13 +1586,23 @@ export const PayrollPage: React.FC = () => {
                 <Table>
                   <TableHeader className="bg-[#F7F8FC]">
                     <TableRow className="border-slate-200">
-                      <TableHead className="text-slate-300">Min Monthly Income</TableHead>
-                      <TableHead className="text-slate-300">Max Monthly Income</TableHead>
-                      <TableHead className="text-slate-300">Base Tax</TableHead>
-                      <TableHead className="text-slate-300">Excess Tax Rate (%)</TableHead>
-                      <TableHead className="text-slate-300">Notes</TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Min Monthly Income
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Max Monthly Income
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Base Tax
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Excess Tax Rate (%)
+                      </TableHead>
+                      <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                        Notes
+                      </TableHead>
                       {isOwner && (
-                        <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                        <TableHead className="text-slate-700 text-right">Actions</TableHead>
                       )}
                     </TableRow>
                   </TableHeader>
@@ -1538,18 +1617,18 @@ export const PayrollPage: React.FC = () => {
                     ) : (
                       taxSlabs.map((s) => (
                         <TableRow key={s.id} className="border-slate-200 hover:bg-slate-50">
-                          <TableCell className="font-mono text-slate-200">
+                          <TableCell className="font-mono text-slate-900">
                             {formatPKR(s.minMonthlyIncomePaisa)}
                           </TableCell>
-                          <TableCell className="font-mono text-slate-200">
+                          <TableCell className="font-mono text-slate-900">
                             {s.maxMonthlyIncomePaisa
                               ? formatPKR(s.maxMonthlyIncomePaisa)
                               : 'Unlimited'}
                           </TableCell>
-                          <TableCell className="font-mono text-slate-300">
+                          <TableCell className="font-mono text-slate-700">
                             {formatPKR(s.baseTaxPaisa)}
                           </TableCell>
-                          <TableCell className="font-mono text-amber-400 font-semibold">
+                          <TableCell className="font-mono text-amber-800 font-semibold">
                             {s.excessRatePercentage}%
                           </TableCell>
                           <TableCell className="text-xs text-slate-400 max-w-xs truncate">
@@ -1586,7 +1665,7 @@ export const PayrollPage: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Banknote className="h-5 w-5 text-emerald-400" />
+                <Banknote className="h-5 w-5 text-emerald-700" />
                 Generate Monthly Payroll Run
               </h3>
               <button
@@ -1684,14 +1763,14 @@ export const PayrollPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-3 rounded-lg bg-white text-slate-800 border border-slate-200 text-xs text-slate-300 space-y-1">
+            <div className="p-3 rounded-lg bg-white text-slate-800 border border-slate-200 text-xs text-slate-700 space-y-1">
               <div className="flex justify-between">
                 <span>Run Number:</span>
-                <span className="font-semibold text-white">{selectedRun.runNumber}</span>
+                <span className="font-semibold text-slate-900">{selectedRun.runNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span>Net Disbursement Total:</span>
-                <span className="font-bold text-emerald-400 font-mono">
+                <span className="font-bold text-emerald-700 font-mono">
                   {formatPKR(selectedRun.totalNetPaisa)}
                 </span>
               </div>
@@ -1771,7 +1850,7 @@ export const PayrollPage: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-amber-400" />
+                <TrendingUp className="h-5 w-5 text-amber-800" />
                 Create Adjustment Run
               </h3>
               <button
@@ -2097,7 +2176,7 @@ export const PayrollPage: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Coins className="h-5 w-5 text-emerald-400" />
+                <Coins className="h-5 w-5 text-emerald-700" />
                 Issue Employee Advance / Loan
               </h3>
               <button

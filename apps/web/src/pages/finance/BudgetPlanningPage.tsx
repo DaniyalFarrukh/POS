@@ -291,9 +291,9 @@ export const BudgetPlanningPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <PiggyBank className="h-7 w-7 text-emerald-600" />
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">Budget Planning</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Budget Planning</h1>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Monthly budgets per branch, actual vs budget tracking, variance math, and threshold
             alerts.
           </p>
@@ -468,7 +468,7 @@ export const BudgetPlanningPage: React.FC = () => {
                     className="p-2.5 rounded bg-white border border-amber-200 shadow-2xs flex flex-col justify-between"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-gray-900 truncate">
+                      <span className="font-semibold text-xs text-slate-900 truncate">
                         {alert.accountCode} - {alert.accountName}
                       </span>
                       <Badge
@@ -482,12 +482,12 @@ export const BudgetPlanningPage: React.FC = () => {
                       </Badge>
                     </div>
 
-                    <div className="mt-2 text-xs flex justify-between text-gray-600">
+                    <div className="mt-2 text-xs flex justify-between text-slate-600">
                       <span>Actual: {formatPaisa(alert.actualPaisa)}</span>
                       <span>Budget: {formatPaisa(alert.budgetPaisa)}</span>
                     </div>
 
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                    <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
                       <div
                         className={`h-1.5 rounded-full ${
                           alert.level === 'exceeded' ? 'bg-rose-600' : 'bg-amber-500'
@@ -510,7 +510,7 @@ export const BudgetPlanningPage: React.FC = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Total Expenses
                 </span>
                 <span className="p-1.5 rounded-full bg-rose-50 text-rose-600">
@@ -518,10 +518,10 @@ export const BudgetPlanningPage: React.FC = () => {
                 </span>
               </div>
               <div className="mt-2">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-slate-900">
                   {formatPaisa(report.summary.totalExpenseActualPaisa)}
                 </div>
-                <div className="text-xs text-gray-500 flex justify-between mt-1">
+                <div className="text-xs text-slate-500 flex justify-between mt-1">
                   <span>Budget: {formatPaisa(report.summary.totalExpenseBudgetPaisa)}</span>
                   <span
                     className={`font-semibold ${
@@ -542,7 +542,7 @@ export const BudgetPlanningPage: React.FC = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Total Revenue
                 </span>
                 <span className="p-1.5 rounded-full bg-emerald-50 text-emerald-600">
@@ -550,10 +550,10 @@ export const BudgetPlanningPage: React.FC = () => {
                 </span>
               </div>
               <div className="mt-2">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-slate-900">
                   {formatPaisa(report.summary.totalRevenueActualPaisa)}
                 </div>
-                <div className="text-xs text-gray-500 flex justify-between mt-1">
+                <div className="text-xs text-slate-500 flex justify-between mt-1">
                   <span>Target: {formatPaisa(report.summary.totalRevenueBudgetPaisa)}</span>
                   <span
                     className={`font-semibold ${
@@ -574,7 +574,7 @@ export const BudgetPlanningPage: React.FC = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Net Operating
                 </span>
                 <span className="p-1.5 rounded-full bg-blue-50 text-blue-600">
@@ -582,10 +582,10 @@ export const BudgetPlanningPage: React.FC = () => {
                 </span>
               </div>
               <div className="mt-2">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-slate-900">
                   {formatPaisa(report.summary.netActualPaisa)}
                 </div>
-                <div className="text-xs text-gray-500 flex justify-between mt-1">
+                <div className="text-xs text-slate-500 flex justify-between mt-1">
                   <span>Budget: {formatPaisa(report.summary.netBudgetPaisa)}</span>
                   <span
                     className={`font-semibold ${
@@ -604,7 +604,7 @@ export const BudgetPlanningPage: React.FC = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Threshold Alerts
                 </span>
                 <span
@@ -618,10 +618,10 @@ export const BudgetPlanningPage: React.FC = () => {
                 </span>
               </div>
               <div className="mt-2">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-slate-900">
                   {report.summary.alertCount} Lines &ge; 90%
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-slate-500 mt-1">
                   {report.summary.alertCount === 0
                     ? 'All expenses well within budget'
                     : 'Requires management attention'}
@@ -637,7 +637,7 @@ export const BudgetPlanningPage: React.FC = () => {
         <Card className="overflow-hidden">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
                 <Layers className="h-4 w-4 text-emerald-600" />
                 Actual vs Budget Breakdown by Category
               </h2>
@@ -662,10 +662,10 @@ export const BudgetPlanningPage: React.FC = () => {
                 return (
                   <div key={row.accountId} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-slate-800">
                         {row.accountCode} - {row.accountName}
                       </span>
-                      <span className="text-gray-500">
+                      <span className="text-slate-500">
                         {formatPaisa(row.actualPaisa)} / {formatPaisa(row.budgetPaisa)} (
                         {row.percentageUsed.toFixed(1)}%)
                       </span>
@@ -673,14 +673,14 @@ export const BudgetPlanningPage: React.FC = () => {
 
                     <div className="flex flex-col gap-1">
                       {/* Budget bar */}
-                      <div className="w-full bg-gray-100 rounded-xs h-2 overflow-hidden">
+                      <div className="w-full bg-slate-100 rounded-xs h-2 overflow-hidden">
                         <div
                           className="bg-indigo-500 h-2 rounded-xs transition-all"
                           style={{ width: `${budgetPct}%` }}
                         />
                       </div>
                       {/* Actual bar */}
-                      <div className="w-full bg-gray-100 rounded-xs h-2 overflow-hidden">
+                      <div className="w-full bg-slate-100 rounded-xs h-2 overflow-hidden">
                         <div
                           className={`h-2 rounded-xs transition-all ${
                             row.accountType === 'expense'
@@ -708,7 +708,7 @@ export const BudgetPlanningPage: React.FC = () => {
         <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
+              <TableRow className="bg-slate-50">
                 <TableHead className="w-24">Code</TableHead>
                 <TableHead>Account Name</TableHead>
                 <TableHead className="w-24">Type</TableHead>
@@ -724,7 +724,7 @@ export const BudgetPlanningPage: React.FC = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={10} className="text-center py-12 text-slate-500">
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-emerald-600" />
                     Loading budget planning report...
                   </TableCell>
@@ -737,10 +737,10 @@ export const BudgetPlanningPage: React.FC = () => {
                 </TableRow>
               ) : filteredRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-12 text-gray-400">
+                  <TableCell colSpan={10} className="text-center py-12 text-slate-400">
                     <PiggyBank className="h-10 w-10 mx-auto mb-3 opacity-30" />
                     <p className="text-sm font-medium">No budget records found for this period.</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       Click &quot;Set Budget&quot; to plan monthly budgets or &quot;Copy Last
                       Year&quot; to replicate previous budgets.
                     </p>
@@ -748,11 +748,11 @@ export const BudgetPlanningPage: React.FC = () => {
                 </TableRow>
               ) : (
                 filteredRows.map((row) => (
-                  <TableRow key={row.accountId} className="hover:bg-gray-50">
+                  <TableRow key={row.accountId} className="hover:bg-slate-50">
                     <TableCell className="font-mono text-xs font-semibold">
                       {row.accountCode}
                     </TableCell>
-                    <TableCell className="font-medium text-gray-900">{row.accountName}</TableCell>
+                    <TableCell className="font-medium text-slate-900">{row.accountName}</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -765,7 +765,7 @@ export const BudgetPlanningPage: React.FC = () => {
                         {row.accountType.toUpperCase()}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-gray-600">
+                    <TableCell className="text-xs text-slate-600">
                       {row.branchName || 'All'}
                     </TableCell>
                     <TableCell className="text-right font-mono font-medium">
@@ -784,7 +784,7 @@ export const BudgetPlanningPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
                           <div
                             className={`h-2 rounded-full ${
                               row.accountType === 'expense'
@@ -812,7 +812,7 @@ export const BudgetPlanningPage: React.FC = () => {
                               ? 'bg-amber-100 text-amber-800 border-amber-300'
                               : row.alertStatus === 'achieved'
                                 ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                : 'bg-gray-100 text-gray-700 border-gray-300'
+                                : 'bg-slate-100 text-slate-700 border-gray-300'
                         }
                       >
                         {row.alertStatus.replace('_', ' ').toUpperCase()}
@@ -844,8 +844,8 @@ export const BudgetPlanningPage: React.FC = () => {
             <div className="p-6 space-y-5">
               <div className="flex items-center justify-between pb-3 border-b">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Set Monthly Budget</h2>
-                  <p className="text-xs text-gray-500">
+                  <h2 className="text-lg font-bold text-slate-900">Set Monthly Budget</h2>
+                  <p className="text-xs text-slate-500">
                     Plan monthly targets for Fiscal Year {fiscalYear}
                   </p>
                 </div>
@@ -856,7 +856,7 @@ export const BudgetPlanningPage: React.FC = () => {
 
               {/* Branch Selection */}
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                <label className="text-xs font-semibold text-slate-600 block mb-1">
                   Target Branch
                 </label>
                 <select
@@ -877,7 +877,7 @@ export const BudgetPlanningPage: React.FC = () => {
 
               {/* Account Selection */}
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                <label className="text-xs font-semibold text-slate-600 block mb-1">
                   Account (Expense / Revenue)
                 </label>
                 <select
@@ -922,13 +922,13 @@ export const BudgetPlanningPage: React.FC = () => {
 
               {/* 12 Months Grid */}
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-gray-600 block">
+                <span className="text-xs font-semibold text-slate-600 block">
                   Monthly Budget Amounts (PKR)
                 </span>
                 <div className="grid grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
                   {MONTH_NAMES.map((name, idx) => (
                     <div key={idx} className="space-y-1">
-                      <label className="text-xs text-gray-500">{name}</label>
+                      <label className="text-xs text-slate-500">{name}</label>
                       <Input
                         type="number"
                         min="0"
@@ -951,7 +951,7 @@ export const BudgetPlanningPage: React.FC = () => {
 
               {/* Notes */}
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                <label className="text-xs font-semibold text-slate-600 block mb-1">
                   Notes (Optional)
                 </label>
                 <Input
@@ -964,7 +964,7 @@ export const BudgetPlanningPage: React.FC = () => {
             </div>
 
             {/* Drawer Actions Footer */}
-            <div className="p-4 border-t bg-gray-50 flex items-center justify-end gap-3">
+            <div className="p-4 border-t bg-slate-50 flex items-center justify-end gap-3">
               <Button variant="outline" onClick={() => setIsDrawerOpen(false)}>
                 Cancel
               </Button>
@@ -987,7 +987,7 @@ export const BudgetPlanningPage: React.FC = () => {
             <div className="p-5 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Copy className="h-5 w-5 text-emerald-600" />
-                <h3 className="font-bold text-gray-900">Copy Last Year&apos;s Budget</h3>
+                <h3 className="font-bold text-slate-900">Copy Last Year&apos;s Budget</h3>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setIsCopyModalOpen(false)}>
                 <X className="h-4 w-4" />
@@ -995,14 +995,14 @@ export const BudgetPlanningPage: React.FC = () => {
             </div>
 
             <div className="p-5 space-y-4">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 Replicate all monthly budgets from a previous fiscal year into a target year, with
                 an optional percentage inflation adjustment.
               </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-600 block mb-1">
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">
                     Source Year
                   </label>
                   <Input
@@ -1013,7 +1013,7 @@ export const BudgetPlanningPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-600 block mb-1">
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">
                     Target Year
                   </label>
                   <Input
@@ -1026,7 +1026,7 @@ export const BudgetPlanningPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                <label className="text-xs font-semibold text-slate-600 block mb-1">
                   Branch (Optional)
                 </label>
                 <select
@@ -1044,7 +1044,7 @@ export const BudgetPlanningPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-600 block mb-1">
+                <label className="text-xs font-semibold text-slate-600 block mb-1">
                   Inflation / Adjustment (% Change)
                 </label>
                 <div className="flex items-center gap-2">
@@ -1056,15 +1056,15 @@ export const BudgetPlanningPage: React.FC = () => {
                     onChange={(e) => setCopyAdjustmentPct(parseFloat(e.target.value) || 0)}
                     className="text-sm font-mono"
                   />
-                  <span className="text-sm font-semibold text-gray-500">%</span>
+                  <span className="text-sm font-semibold text-slate-500">%</span>
                 </div>
-                <span className="text-xs text-gray-400 mt-1 block">
+                <span className="text-xs text-slate-400 mt-1 block">
                   Example: +10% will multiply all budget lines by 1.10.
                 </span>
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 border-t flex justify-end gap-2">
+            <div className="p-4 bg-slate-50 border-t flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsCopyModalOpen(false)}>
                 Cancel
               </Button>
