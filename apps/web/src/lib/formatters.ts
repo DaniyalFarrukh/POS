@@ -4,9 +4,7 @@ import { formatPKR } from '@pos/shared';
  * Rule 1: Money is always integer paisa.
  * Formats integer paisa as PKR currency string: "Rs. 1,250.00"
  */
-export function formatPaisa(paisa: number): string {
-  return formatPKR(paisa);
-}
+export const formatPaisa = formatPKR;
 
 /**
  * Rule 8: Timestamps stored in UTC ISO string;

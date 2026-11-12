@@ -82,13 +82,9 @@ export function allocateFefo(
   }
 
   // 4. Deterministic sort: earliest expiryDate first, tie-break by batchId
-  eligibleBatches.sort((a, b) => {
-    if (a.expiryDate < b.expiryDate) return -1;
-    if (a.expiryDate > b.expiryDate) return 1;
-    if (a.batchId < b.batchId) return -1;
-    if (a.batchId > b.batchId) return 1;
-    return 0;
-  });
+  eligibleBatches.sort(
+    (a, b) => a.expiryDate.localeCompare(b.expiryDate) || a.batchId.localeCompare(b.batchId)
+  );
 
   // 5. Greedily fulfill allocation across sorted batches
   let remaining = requestedQty;

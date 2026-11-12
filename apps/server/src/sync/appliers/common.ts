@@ -10,9 +10,7 @@ export type TenantTable = AnyPgTable & {
 
 /**
  * Verifies that a single referenced ID belongs to the current tenant.
- * - If found for ctxPharmacyId: returns void.
- * - If not found for ctxPharmacyId, but exists in another pharmacy: throws SyncRejectedError('CROSS_TENANT_REFERENCE', ...).
- * - If not found anywhere: throws SyncRetryLaterError(notFoundCode, ...).
+ * Delegates to verifyTenantEntities to eliminate redundant query boilerplate.
  */
 export async function verifyTenantEntity(
   tx: DbClient,
@@ -22,27 +20,7 @@ export async function verifyTenantEntity(
   notFoundCode: string,
   entityName: string
 ): Promise<void> {
-  const [local] = await tx
-    .select({ id: table.id })
-    .from(table)
-    .where(and(eq(table.id, id), eq(table.pharmacyId, ctxPharmacyId)))
-    .limit(1);
-
-  if (local) return;
-
-  const [other] = await tx.select({ id: table.id }).from(table).where(eq(table.id, id)).limit(1);
-
-  if (other) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Referenced ${entityName} ${id} belongs to another pharmacy tenant`
-    );
-  }
-
-  throw new SyncRetryLaterError(
-    notFoundCode,
-    `Referenced ${entityName} ${id} not found for pharmacy ${ctxPharmacyId}`
-  );
+  return verifyTenantEntities(tx, table, [id], ctxPharmacyId, notFoundCode, entityName);
 }
 
 /**
