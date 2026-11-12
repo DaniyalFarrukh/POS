@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-electron
+release
+dist-release
+.git
+.github
+*.log
+.env
+.env.local
+coverage
+apps/desktop
+apps/web
