@@ -142,7 +142,7 @@ export async function seedDefaultChartOfAccounts(
     code: def.code,
     name: def.name,
     type: def.type,
-    parentId: null,
+    parentId: null as string | null,
     isActive: true,
     isSystem: true,
   }));

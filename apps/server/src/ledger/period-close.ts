@@ -458,7 +458,7 @@ export async function executeYearEndClosing(
 
     if (lines.length === 0) {
       return {
-        journalEntryId: null,
+        journalEntryId: null as string | null,
         netProfitPaisa: 0,
         linesCount: 0,
       };

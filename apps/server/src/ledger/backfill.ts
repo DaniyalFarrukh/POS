@@ -178,7 +178,7 @@ export async function backfillLedgerEntries(
               purchase: {
                 id: purchaseId,
                 branchId: first.branchId,
-                supplierId: null,
+                supplierId: null as string | null,
                 supplierInvoiceNo,
                 invoiceDate: toKarachiBusinessDate(first.createdAt),
                 totalCostPaisa,
