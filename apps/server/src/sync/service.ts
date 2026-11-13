@@ -18,7 +18,11 @@ function isTransientError(err: unknown): boolean {
   if (err instanceof SyncRetryLaterError) return true;
   if (!err || typeof err !== 'object') return false;
 
-  const pgCode = (err as { code?: string }).code;
+  const pgError =
+    (err as { cause?: { code?: string; message?: string } }).cause ||
+    (err as { code?: string; message?: string });
+  const pgCode = pgError?.code || (err as { code?: string }).code;
+
   if (pgCode) {
     if (['23505', '23503', '23502', '23514', '22P02'].includes(pgCode)) return false;
     if (['40001', '40P01', '55P03', '57P01', '57P02', '57P03'].includes(pgCode)) return true;
@@ -26,15 +30,19 @@ function isTransientError(err: unknown): boolean {
       return true;
   }
 
-  const msg = (err as Error).message?.toLowerCase() || '';
+  const combinedMsg = `${(err as Error).message || ''} ${pgError?.message || ''}`.toLowerCase();
   if (
-    msg.includes('connection reset') ||
-    msg.includes('etimedout') ||
-    msg.includes('econnrefused') ||
-    msg.includes('econnreset') ||
-    msg.includes('deadlock') ||
-    msg.includes('lock timeout') ||
-    msg.includes('transient')
+    combinedMsg.includes('connection reset') ||
+    combinedMsg.includes('etimedout') ||
+    combinedMsg.includes('econnrefused') ||
+    combinedMsg.includes('econnreset') ||
+    combinedMsg.includes('deadlock') ||
+    combinedMsg.includes('lock timeout') ||
+    combinedMsg.includes('transient') ||
+    combinedMsg.includes('connection terminated') ||
+    combinedMsg.includes('terminating connection') ||
+    combinedMsg.includes('pool') ||
+    combinedMsg.includes('ssl connection has been closed unexpectedly')
   ) {
     return true;
   }

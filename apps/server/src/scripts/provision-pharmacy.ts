@@ -255,3 +255,4 @@ async function main() {
 if (process.argv[1]?.includes('provision-pharmacy')) {
   void main();
 }
+

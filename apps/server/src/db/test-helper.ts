@@ -7,7 +7,7 @@ import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
 import { getDatabaseUrl } from './index';
 
-const { Client } = pg;
+const { Client, Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.resolve(__dirname, '../../drizzle');
 
@@ -34,13 +34,30 @@ export async function isPostgresReachable(url?: string): Promise<boolean> {
     ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
   });
 
+  let timeoutId: NodeJS.Timeout | null = null;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Postgres reachability timeout')), 2000);
+  });
+
   try {
-    await client.connect();
-    await client.query('SELECT 1;');
-    await client.end();
+    await Promise.race([
+      (async () => {
+        await client.connect();
+        await client.query('SELECT 1;');
+        await client.end();
+      })(),
+      timeoutPromise,
+    ]);
     return true;
   } catch {
+    try {
+      await client.end().catch(() => {});
+    } catch {
+      // ignore cleanup errors
+    }
     return false;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }
 
@@ -103,7 +120,15 @@ export async function createTestContext(connectionUrl?: string): Promise<TestDat
     }
   }
 
-  const db = drizzle(client, { schema });
+  const pool = new Pool({
+    connectionString: url,
+    connectionTimeoutMillis: 5000,
+    max: 10,
+    options: `-c search_path="${schemaName}",public`,
+    ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
+  });
+
+  const db = drizzle(pool, { schema });
 
   const cleanup = async () => {
     try {
@@ -111,7 +136,8 @@ export async function createTestContext(connectionUrl?: string): Promise<TestDat
     } catch (e) {
       console.warn(`[TestHelper] Warning: Failed to drop schema ${schemaName}:`, e);
     } finally {
-      await client.end();
+      await pool.end().catch(() => {});
+      await client.end().catch(() => {});
     }
   };
 

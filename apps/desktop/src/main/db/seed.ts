@@ -801,14 +801,11 @@ export function runStartupAutoSeed(options?: {
   if (!shouldAutoSeedOnStartup(options)) {
     return { seeded: false, seededCount: 0 };
   }
-  const res = seedDatabase(options?.db, { isPackaged: options?.isPackaged ?? false });
+  const res = seedDatabase(options?.db);
   return { seeded: true, seededCount: res.seededCount };
 }
 
-export function seedDatabase(
-  rawDb?: DatabaseInstance,
-  options?: SeedOptions
-): {
+export function seedDatabase(rawDb?: DatabaseInstance): {
   seededCount: number;
   defaultTaxCategoryId: string;
 } {

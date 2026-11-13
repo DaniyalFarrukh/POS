@@ -11,7 +11,14 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export interface ApiFetchOptions extends RequestInit {
+  timeoutMs?: number;
+  retries?: number;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export async function apiFetch<T>(endpoint: string, options: ApiFetchOptions = {}): Promise<T> {
   const token = localStorage.getItem('pos_auth_token');
   const headers = new Headers(options.headers || {});
 
@@ -24,31 +31,81 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   }
 
   const url = `${BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const timeoutMs = options.timeoutMs ?? 15_000;
+  const isIdempotent =
+    !options.method ||
+    options.method.toUpperCase() === 'GET' ||
+    options.method.toUpperCase() === 'HEAD';
+  const maxRetries = options.retries ?? (isIdempotent ? 2 : 0);
 
-  if (!response.ok) {
-    let errorMsg = `HTTP ${response.status} ${response.statusText}`;
-    let errData: unknown;
-    try {
-      errData = await response.json();
-      if (errData && typeof errData === 'object' && 'message' in errData) {
-        errorMsg = String((errData as { message: unknown }).message);
+  let attempt = 0;
+  while (true) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    const callerSignal = options.signal;
+    const onCallerAbort = () => controller.abort();
+    if (callerSignal) {
+      if (callerSignal.aborted) {
+        controller.abort();
+      } else {
+        callerSignal.addEventListener('abort', onCallerAbort);
       }
-    } catch {
-      // Non-json response
     }
 
-    if (response.status === 401) {
-      localStorage.removeItem('pos_auth_token');
-      localStorage.removeItem('pos_user_context');
-      window.dispatchEvent(new Event('auth:unauthorized'));
-    }
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        signal: controller.signal,
+      });
 
-    throw new ApiError(response.status, errorMsg, errData);
+      if (!response.ok) {
+        if (isIdempotent && [502, 503, 504].includes(response.status) && attempt < maxRetries) {
+          attempt++;
+          const backoffMs = Math.round(500 * Math.pow(2, attempt - 1) * (0.8 + Math.random() * 0.4));
+          await sleep(backoffMs);
+          continue;
+        }
+
+        let errorMsg = `HTTP ${response.status} ${response.statusText}`;
+        let errData: unknown;
+        try {
+          errData = await response.json();
+          if (errData && typeof errData === 'object' && 'message' in errData) {
+            errorMsg = String((errData as { message: unknown }).message);
+          }
+        } catch {
+          // Non-json response
+        }
+
+        if (response.status === 401) {
+          localStorage.removeItem('pos_auth_token');
+          localStorage.removeItem('pos_user_context');
+          window.dispatchEvent(new Event('auth:unauthorized'));
+        }
+
+        throw new ApiError(response.status, errorMsg, errData);
+      }
+
+      return (await response.json()) as Promise<T>;
+    } catch (err) {
+      if (callerSignal?.aborted) {
+        throw err;
+      }
+
+      if (isIdempotent && attempt < maxRetries && !(err instanceof ApiError)) {
+        attempt++;
+        const backoffMs = Math.round(500 * Math.pow(2, attempt - 1) * (0.8 + Math.random() * 0.4));
+        await sleep(backoffMs);
+        continue;
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+      if (callerSignal) {
+        callerSignal.removeEventListener('abort', onCallerAbort);
+      }
+    }
   }
-
-  return response.json() as Promise<T>;
 }

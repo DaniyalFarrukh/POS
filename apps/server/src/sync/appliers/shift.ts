@@ -15,7 +15,7 @@ async function verifyShiftCounterAndCashier(
 ): Promise<string> {
   const targetCounterId = ctx.counterId || counterId;
 
-  let counterRows = await tx
+  const counterRows = await tx
     .select({ id: counters.id, branchId: counters.branchId })
     .from(counters)
     .where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId)))

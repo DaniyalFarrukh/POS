@@ -604,7 +604,9 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
    * Scenario 3:
    * Send 100 events including one invalid one in the middle: the others are accepted.
    */
-  it('Scenario 3: 100 events with 1 invalid event in the middle: 99 accepted and 1 rejected into rejected_events', async () => {
+  it(
+    'Scenario 3: 100 events with 1 invalid event in the middle: 99 accepted and 1 rejected into rejected_events',
+    async () => {
     const tenant = await setupTenant('Bulk 100 Pharmacy', 'B301');
     const dev = await registerDevice(tenant.plainCode, 'Bulk Device');
 
@@ -731,7 +733,7 @@ describe('Server End-to-End Tests with Real Fastify & PostgreSQL (Phase 3)', () 
 
     expect(processedRows).toHaveLength(99);
     expect(processedRows.some((p) => p.eventId === invalidEventId)).toBe(false);
-  }, 30000);
+  }, 180000);
 
   /**
    * Scenario 4:

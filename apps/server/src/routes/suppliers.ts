@@ -82,6 +82,8 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
       const query = request.query as {
         search?: string;
         isActive?: string;
+        limit?: string;
+        offset?: string;
       };
 
       const accountMap = await getPharmacyAccountMap(db, pharmacyId);
@@ -107,11 +109,24 @@ export const supplierRoutes: FastifyPluginAsync = async (app) => {
         );
       }
 
-      const supplierRows = await db
+      const limit =
+        query.limit !== undefined ? Math.min(Math.max(Number(query.limit) || 100, 1), 500) : undefined;
+      const offset = query.offset !== undefined ? Math.max(Number(query.offset) || 0, 0) : undefined;
+
+      let supplierQuery = db
         .select()
         .from(suppliers)
         .where(and(...conditions))
         .orderBy(asc(suppliers.name));
+
+      if (limit !== undefined) {
+        supplierQuery = supplierQuery.limit(limit) as typeof supplierQuery;
+      }
+      if (offset !== undefined) {
+        supplierQuery = supplierQuery.offset(offset) as typeof supplierQuery;
+      }
+
+      const supplierRows = await supplierQuery;
 
       // Fetch all AP lines for this pharmacy
       const apLines = await db
