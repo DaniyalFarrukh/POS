@@ -97,7 +97,8 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   // Enforce HTTPS in production when ENFORCE_HTTPS=true
   app.addHook('onRequest', async (request, reply) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENFORCE_HTTPS === 'true') {
-      const isHttps = request.protocol === 'https';
+      const isHttps =
+        request.protocol === 'https' || request.headers['x-forwarded-proto'] === 'https';
       if (!isHttps && request.url !== '/health') {
         return reply.status(403).send({
           statusCode: 403,
