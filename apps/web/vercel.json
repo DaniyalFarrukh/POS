@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.hexalogictechandsolutions.com/api/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://api.hexalogictechandsolutions.com/health"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
