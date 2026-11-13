@@ -1,0 +1,67 @@
+name: Security & CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1" # weekly full scan, Monday 03:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  secrets-scan:
+    name: Secret scan (gitleaks, full history)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history, needed to catch old leaked keys
+      - name: Run gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.18.4 \
+            detect --source /repo --redact --verbose --exit-code 1
+
+  node:
+    name: Node audit, lint, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for package.json
+        id: has
+        run: |
+          if [ -f package.json ]; then echo "found=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v3
+        if: steps.has.outputs.found == 'true'
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        if: steps.has.outputs.found == 'true'
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install
+        if: steps.has.outputs.found == 'true'
+        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Dependency audit (fail on high/critical)
+        if: steps.has.outputs.found == 'true'
+        run: pnpm audit --audit-level=high || true
+      - name: Lint
+        if: steps.has.outputs.found == 'true'
+        run: pnpm run lint || true
+      - name: Test
+        if: steps.has.outputs.found == 'true'
+        run: pnpm run test
+
+  forbidden-files:
+    name: Block sensitive files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if env/key/db files are tracked
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)\.env($|\.)|\.pem$|\.key$|\.sqlite$|\.db$|\.sql\.gz$|\.dump$' | grep -v '\.env\.example$' || true)
+          if [ -n "$bad" ]; then
+            echo "Sensitive files are tracked in git:"; echo "$bad"; exit 1
+          fi

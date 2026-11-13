@@ -6,12 +6,24 @@ dist-release/
 coverage/
 .turbo/
 *.log
+# Environment & Secrets
 .env
-.env.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+
+# Databases, local dumps and sqlite
 *.db
 *.db-wal
 *.db-shm
 *.sqlite
+*.sqlite3
+*.dump
+*.sql.gz
+*.sql.tar.gz
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
