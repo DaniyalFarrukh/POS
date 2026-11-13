@@ -174,6 +174,7 @@ export async function processSyncPushEvents(
         };
       } else {
         // Permanent unexpected database error (e.g. unique constraint or foreign key violation)
+        console.error('[SyncPush] Unexpected internal error while applying event:', event.type, err);
         const sanitizedMessage = 'An unexpected internal error occurred';
 
         try {

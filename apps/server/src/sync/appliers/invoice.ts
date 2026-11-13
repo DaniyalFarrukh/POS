@@ -101,6 +101,8 @@ export async function applyInvoiceCreated(
   const branchId = effectiveBranchId;
 
   // 3. Verify Cashier User belongs to this pharmacy (or sync local cashier snapshot if new)
+  let effectiveCashierUserId = payload.cashierUserId;
+
   if (payload.cashierUser && payload.cashierUser.id === payload.cashierUserId) {
     const [existingTenantUser] = await tx
       .select({ id: users.id })
@@ -109,54 +111,73 @@ export async function applyInvoiceCreated(
       .limit(1);
 
     if (!existingTenantUser) {
-      const [crossUser] = await tx
+      // Check if user already exists by name for this pharmacy (handle re-initialized counters)
+      const [existingUserByName] = await tx
         .select({ id: users.id })
         .from(users)
-        .where(eq(users.id, payload.cashierUserId))
+        .where(and(eq(users.name, payload.cashierUser.name), eq(users.pharmacyId, ctx.pharmacyId)))
         .limit(1);
 
-      if (crossUser) {
-        throw new SyncRejectedError(
-          'CROSS_TENANT_REFERENCE',
-          `Referenced user ${payload.cashierUserId} belongs to another pharmacy tenant`
-        );
-      }
+      if (existingUserByName) {
+        effectiveCashierUserId = existingUserByName.id;
+        await tx
+          .update(users)
+          .set({
+            isActive: true,
+            pinHash: payload.cashierUser.pinHash || undefined,
+            updatedAt: now,
+          })
+          .where(eq(users.id, existingUserByName.id));
+      } else {
+        const [crossUser] = await tx
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.id, payload.cashierUserId))
+          .limit(1);
 
-      const uCreatedAt = payload.cashierUser.createdAt || now;
-      await tx.insert(users).values({
-        id: payload.cashierUser.id,
-        pharmacyId: ctx.pharmacyId,
-        name: payload.cashierUser.name,
-        role: payload.cashierUser.role,
-        pinHash:
-          payload.cashierUser.pinHash || '$2b$10$localplaceholderhash0000000000000000000000000000',
-        isActive: payload.cashierUser.isActive ?? true,
-        createdAt: uCreatedAt,
-        updatedAt: uCreatedAt,
-      });
+        if (crossUser) {
+          throw new SyncRejectedError(
+            'CROSS_TENANT_REFERENCE',
+            `Referenced user ${payload.cashierUserId} belongs to another pharmacy tenant`
+          );
+        }
 
-      await insertChangeLog(tx, {
-        pharmacyId: ctx.pharmacyId,
-        entity: 'user',
-        entityId: payload.cashierUser.id,
-        op: 'upsert',
-        data: {
+        const uCreatedAt = payload.cashierUser.createdAt || now;
+        await tx.insert(users).values({
           id: payload.cashierUser.id,
+          pharmacyId: ctx.pharmacyId,
           name: payload.cashierUser.name,
           role: payload.cashierUser.role,
-          pinHash: payload.cashierUser.pinHash || '',
+          pinHash:
+            payload.cashierUser.pinHash || '$2b$10$localplaceholderhash0000000000000000000000000000',
           isActive: payload.cashierUser.isActive ?? true,
           createdAt: uCreatedAt,
           updatedAt: uCreatedAt,
-        },
-        createdAt: now,
-      });
+        });
+
+        await insertChangeLog(tx, {
+          pharmacyId: ctx.pharmacyId,
+          entity: 'user',
+          entityId: payload.cashierUser.id,
+          op: 'upsert',
+          data: {
+            id: payload.cashierUser.id,
+            name: payload.cashierUser.name,
+            role: payload.cashierUser.role,
+            pinHash: payload.cashierUser.pinHash || '',
+            isActive: payload.cashierUser.isActive ?? true,
+            createdAt: uCreatedAt,
+            updatedAt: uCreatedAt,
+          },
+          createdAt: now,
+        });
+      }
     }
   }
   await verifyTenantEntity(
     tx,
     users,
-    payload.cashierUserId,
+    effectiveCashierUserId,
     ctx.pharmacyId,
     'UNKNOWN_USER',
     'user'
@@ -185,15 +206,30 @@ export async function applyInvoiceCreated(
           );
         }
 
-        if (prod.taxCategoryId) {
-          await verifyTenantEntity(
-            tx,
-            taxCategories,
-            prod.taxCategoryId,
-            ctx.pharmacyId,
-            'UNKNOWN_TAX_CATEGORY',
-            'tax category'
-          );
+        let effectiveTaxCategoryId = prod.taxCategoryId ?? null;
+        if (effectiveTaxCategoryId) {
+          const [existingTc] = await tx
+            .select({ id: taxCategories.id })
+            .from(taxCategories)
+            .where(
+              and(
+                eq(taxCategories.id, effectiveTaxCategoryId),
+                eq(taxCategories.pharmacyId, ctx.pharmacyId)
+              )
+            )
+            .limit(1);
+
+          if (!existingTc) {
+            // Find default tax category for this pharmacy to gracefully adopt local catalog products
+            const [defaultTc] = await tx
+              .select({ id: taxCategories.id })
+              .from(taxCategories)
+              .where(eq(taxCategories.pharmacyId, ctx.pharmacyId))
+              .orderBy(sql`${taxCategories.rateBp} DESC`)
+              .limit(1);
+
+            effectiveTaxCategoryId = defaultTc?.id ?? null;
+          }
         }
 
         const pCreatedAt = prod.createdAt || now;
@@ -206,7 +242,7 @@ export async function applyInvoiceCreated(
           form: prod.form ?? '',
           manufacturer: prod.manufacturer ?? '',
           barcode: prod.barcode ?? null,
-          taxCategoryId: prod.taxCategoryId ?? null,
+          taxCategoryId: effectiveTaxCategoryId,
           mrpPaisa: prod.mrpPaisa,
           isControlled: prod.isControlled ?? false,
           isActive: prod.isActive ?? true,
@@ -342,7 +378,7 @@ export async function applyInvoiceCreated(
     id: payload.id,
     pharmacyId: ctx.pharmacyId,
     counterId: effectiveCounterId,
-    cashierUserId: payload.cashierUserId,
+    cashierUserId: effectiveCashierUserId,
     invoiceNumber: payload.invoiceNumber,
     clientRequestId: payload.clientRequestId,
     status: payload.status,
@@ -508,7 +544,7 @@ export async function applyInvoiceCreated(
     await postInvoiceCreated(tx, {
       pharmacyId: ctx.pharmacyId,
       branchId,
-      createdBy: payload.cashierUserId,
+      createdBy: effectiveCashierUserId,
       invoice: payload,
     });
   }
