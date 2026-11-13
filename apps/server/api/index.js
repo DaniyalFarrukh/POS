@@ -79899,7 +79899,7 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
     );
   }
   const targetCounterId = ctx.counterId || payload.counterId;
-  let counterRows = await tx.select({ id: counters.id, branchId: counters.branchId }).from(counters).where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId))).limit(1);
+  const counterRows = await tx.select({ id: counters.id, branchId: counters.branchId }).from(counters).where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId))).limit(1);
   let counter = counterRows[0];
   if (!counter && ctx.branchId) {
     const branchCounters = await tx.select({ id: counters.id, branchId: counters.branchId }).from(counters).where(and(eq(counters.branchId, ctx.branchId), eq(counters.pharmacyId, ctx.pharmacyId))).limit(1);
@@ -80863,7 +80863,7 @@ async function applyStockTransferReceived(tx, ctx, rawPayload) {
 // src/sync/appliers/shift.ts
 async function verifyShiftCounterAndCashier(tx, ctx, counterId, cashierUserId, explicitBranchId) {
   const targetCounterId = ctx.counterId || counterId;
-  let counterRows = await tx.select({ id: counters.id, branchId: counters.branchId }).from(counters).where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId))).limit(1);
+  const counterRows = await tx.select({ id: counters.id, branchId: counters.branchId }).from(counters).where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId))).limit(1);
   let counter = counterRows[0];
   if (!counter && ctx.branchId) {
     const branchCounters = await tx.select({ id: counters.id, branchId: counters.branchId }).from(counters).where(and(eq(counters.branchId, ctx.branchId), eq(counters.pharmacyId, ctx.pharmacyId))).limit(1);
@@ -81218,15 +81218,16 @@ async function applyCustomerReceiptCreated(tx, ctx, rawPayload, entityId) {
 function isTransientError(err) {
   if (err instanceof SyncRetryLaterError) return true;
   if (!err || typeof err !== "object") return false;
-  const pgCode = err.code;
+  const pgError = err.cause || err;
+  const pgCode = pgError?.code || err.code;
   if (pgCode) {
     if (["23505", "23503", "23502", "23514", "22P02"].includes(pgCode)) return false;
     if (["40001", "40P01", "55P03", "57P01", "57P02", "57P03"].includes(pgCode)) return true;
     if (typeof pgCode === "string" && (pgCode.startsWith("08") || pgCode.startsWith("57")))
       return true;
   }
-  const msg = err.message?.toLowerCase() || "";
-  if (msg.includes("connection reset") || msg.includes("etimedout") || msg.includes("econnrefused") || msg.includes("econnreset") || msg.includes("deadlock") || msg.includes("lock timeout") || msg.includes("transient")) {
+  const combinedMsg = `${err.message || ""} ${pgError?.message || ""}`.toLowerCase();
+  if (combinedMsg.includes("connection reset") || combinedMsg.includes("etimedout") || combinedMsg.includes("econnrefused") || combinedMsg.includes("econnreset") || combinedMsg.includes("deadlock") || combinedMsg.includes("lock timeout") || combinedMsg.includes("transient") || combinedMsg.includes("connection terminated") || combinedMsg.includes("terminating connection") || combinedMsg.includes("pool") || combinedMsg.includes("ssl connection has been closed unexpectedly")) {
     return true;
   }
   return false;
@@ -91022,7 +91023,16 @@ var supplierRoutes = async (app) => {
           )
         );
       }
-      const supplierRows = await db.select().from(suppliers).where(and(...conditions)).orderBy(asc(suppliers.name));
+      const limit = query.limit !== void 0 ? Math.min(Math.max(Number(query.limit) || 100, 1), 500) : void 0;
+      const offset = query.offset !== void 0 ? Math.max(Number(query.offset) || 0, 0) : void 0;
+      let supplierQuery = db.select().from(suppliers).where(and(...conditions)).orderBy(asc(suppliers.name));
+      if (limit !== void 0) {
+        supplierQuery = supplierQuery.limit(limit);
+      }
+      if (offset !== void 0) {
+        supplierQuery = supplierQuery.offset(offset);
+      }
+      const supplierRows = await supplierQuery;
       const apLines = await db.select({
         partyId: journalLines.partyId,
         debitPaisa: journalLines.debitPaisa,
