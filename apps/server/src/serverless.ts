@@ -80,9 +80,17 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         res.setHeader(key, val);
       }
     }
-    if (!res.getHeader('Access-Control-Allow-Origin')) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+    try {
+      if (typeof res.getHeader === 'function') {
+        if (!res.getHeader('Access-Control-Allow-Origin')) {
+          res.setHeader('Access-Control-Allow-Origin', origin);
+        }
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      }
       res.setHeader('Access-Control-Allow-Credentials', 'true');
+    } catch {
+      // Ignore header write failure if already written
     }
     res.end(response.body);
   } catch (err: unknown) {

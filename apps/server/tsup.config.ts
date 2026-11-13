@@ -2,12 +2,12 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: { index: 'src/serverless.ts' },
-  format: ['esm'],
+  format: ['cjs'],
   target: 'node20',
   noExternal: [/.*/],
   clean: false,
   dts: false,
-  shims: true,
+  cjsInterop: true,
   outDir: 'api',
   outExtension() {
     return {
