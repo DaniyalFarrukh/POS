@@ -186,6 +186,15 @@ export async function pullAndApply(
       is_active = excluded.is_active,
       updated_at = excluded.updated_at
   `);
+  const updateUserByNameStmt = db.prepare(`
+    UPDATE users SET
+      role = ?,
+      pin_hash = CASE WHEN ? != '' THEN ? ELSE pin_hash END,
+      is_active = ?,
+      updated_at = ?
+    WHERE name = ?
+  `);
+  const checkUserByNameStmt = db.prepare('SELECT id FROM users WHERE name = ?');
   const deleteUserStmt = db.prepare(`
     UPDATE users SET is_active = 0, updated_at = ? WHERE id = ?
   `);
@@ -239,6 +248,10 @@ export async function pullAndApply(
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
+  const checkTaxCatStmt = db.prepare('SELECT id FROM tax_categories WHERE id = ?');
+  const checkProductStmt = db.prepare('SELECT id FROM products WHERE id = ?');
+  const checkBatchStmt = db.prepare('SELECT id FROM batches WHERE id = ?');
+
   const updateCursorStmt = db.prepare(`
     INSERT OR REPLACE INTO sync_state (key, value) VALUES ('pull_cursor', ?)
   `);
@@ -264,7 +277,8 @@ export async function pullAndApply(
             break;
           }
           const valid = parsed.data;
-          const taxCatId = valid.taxCategoryId || defaultTaxCatId;
+          const hasTaxCat = valid.taxCategoryId && Boolean(checkTaxCatStmt.get(valid.taxCategoryId));
+          const taxCatId = hasTaxCat ? valid.taxCategoryId : defaultTaxCatId;
           if (!taxCatId) {
             deps.logger?.warn?.(
               `[PullAndApply] Cannot apply product ${valid.id} without a tax category in local database`
@@ -342,23 +356,39 @@ export async function pullAndApply(
         if (op === 'delete') {
           deleteUserStmt.run(now, change.entityId);
         } else {
-          upsertUserStmt.run(
-            change.entityId,
-            (data.name || '') as string,
-            (data.role || 'cashier') as string,
-            (data.pinHash || data.pin_hash || '') as string,
-            (
-              data.isActive !== undefined
-                ? data.isActive
-                : data.is_active !== undefined
-                  ? data.is_active
-                  : true
-            )
-              ? 1
-              : 0,
-            (data.createdAt || data.created_at || now) as string,
-            (data.updatedAt || data.updated_at || now) as string
-          );
+          const uName = (data.name || '') as string;
+          const uRole = (data.role || 'cashier') as string;
+          const uPin = (data.pinHash || data.pin_hash || '') as string;
+          const uActive = (
+            data.isActive !== undefined
+              ? data.isActive
+              : data.is_active !== undefined
+                ? data.is_active
+                : true
+          )
+            ? 1
+            : 0;
+          const existingUser = checkUserByNameStmt.get(uName) as { id: string } | undefined;
+          if (existingUser && existingUser.id !== change.entityId) {
+            updateUserByNameStmt.run(
+              uRole,
+              uPin,
+              uPin,
+              uActive,
+              (data.updatedAt || data.updated_at || now) as string,
+              uName
+            );
+          } else {
+            upsertUserStmt.run(
+              change.entityId,
+              uName,
+              uRole,
+              uPin,
+              uActive,
+              (data.createdAt || data.created_at || now) as string,
+              (data.updatedAt || data.updated_at || now) as string
+            );
+          }
         }
         break;
       }
@@ -442,6 +472,13 @@ export async function pullAndApply(
       case 'batch':
       case 'batches': {
         if (op !== 'delete') {
+          const productId = (data.productId || data.product_id || '') as string;
+          if (!checkProductStmt.get(productId)) {
+            deps.logger?.warn?.(
+              `[PullAndApply] Skipping batch ${change.entityId} because referenced product ${productId} is not in local catalog`
+            );
+            break;
+          }
           const rawExp = (data.expiryDate || data.expiry_date || '') as string;
           let safeExp: string;
           try {
@@ -451,7 +488,7 @@ export async function pullAndApply(
           }
           insertBatchIfMissingStmt.run(
             change.entityId,
-            (data.productId || data.product_id || '') as string,
+            productId,
             (data.batchNo || data.batch_no || '') as string,
             safeExp,
             Number(data.costPaisa || data.cost_paisa || 0),
@@ -467,7 +504,14 @@ export async function pullAndApply(
       case 'stock_movements': {
         if (op !== 'delete') {
           const productId = (data.productId || data.product_id || '') as string;
-          const batchId = ((data.batchId || data.batch_id) ?? null) as string | null;
+          if (!checkProductStmt.get(productId)) {
+            deps.logger?.warn?.(
+              `[PullAndApply] Skipping stock_movement ${change.entityId} because referenced product ${productId} is not in local catalog`
+            );
+            break;
+          }
+          const rawBatchId = ((data.batchId || data.batch_id) ?? null) as string | null;
+          const batchId = rawBatchId && checkBatchStmt.get(rawBatchId) ? rawBatchId : null;
           const branchId = (data.branchId || data.branch_id || '') as string;
           const locationId = ((data.locationId || data.location_id) ?? null) as string | null;
           const type = (data.type || 'adjustment') as string;

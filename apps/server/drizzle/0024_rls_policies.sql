@@ -1,7 +1,7 @@
 -- Migration 0024: Multi-Tenant Row Level Security (RLS) & Branch/Role Policies
 
 -- 1. Helper Functions for Tenant, Role, and Branch Resolution
-CREATE OR REPLACE FUNCTION public.current_tenant_pharmacy_id()
+CREATE OR REPLACE FUNCTION "public".current_tenant_pharmacy_id()
 RETURNS uuid
 LANGUAGE sql
 STABLE
@@ -14,7 +14,7 @@ AS $$
   );
 $$;
 
-CREATE OR REPLACE FUNCTION public.current_user_role()
+CREATE OR REPLACE FUNCTION "public".current_user_role()
 RETURNS text
 LANGUAGE sql
 STABLE
@@ -27,7 +27,7 @@ AS $$
   );
 $$;
 
-CREATE OR REPLACE FUNCTION public.current_branch_id()
+CREATE OR REPLACE FUNCTION "public".current_branch_id()
 RETURNS uuid
 LANGUAGE sql
 STABLE
@@ -40,38 +40,46 @@ AS $$
   );
 $$;
 
-GRANT EXECUTE ON FUNCTION public.current_tenant_pharmacy_id() TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.current_user_role() TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.current_branch_id() TO authenticated, service_role;
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN
+    GRANT EXECUTE ON FUNCTION "public".current_tenant_pharmacy_id() TO authenticated;
+    GRANT EXECUTE ON FUNCTION "public".current_user_role() TO authenticated;
+    GRANT EXECUTE ON FUNCTION "public".current_branch_id() TO authenticated;
+  END IF;
+  IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'service_role') THEN
+    GRANT EXECUTE ON FUNCTION "public".current_tenant_pharmacy_id() TO service_role;
+    GRANT EXECUTE ON FUNCTION "public".current_user_role() TO service_role;
+    GRANT EXECUTE ON FUNCTION "public".current_branch_id() TO service_role;
+  END IF;
+END $$;
 
 -- 2. Tenant Tables: pharmacies and branches
 ALTER TABLE pharmacies ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_pharmacy_policy ON pharmacies;
 CREATE POLICY tenant_pharmacy_policy ON pharmacies
   FOR ALL
-  TO authenticated
-  USING (id = public.current_tenant_pharmacy_id())
-  WITH CHECK (id = public.current_tenant_pharmacy_id());
+  USING (id = "public".current_tenant_pharmacy_id())
+  WITH CHECK (id = "public".current_tenant_pharmacy_id());
 
 ALTER TABLE branches ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_branch_policy ON branches;
 CREATE POLICY tenant_branch_policy ON branches
   FOR ALL
-  TO authenticated
   USING (
-    pharmacy_id = public.current_tenant_pharmacy_id() AND
+    pharmacy_id = "public".current_tenant_pharmacy_id() AND
     (
-      public.current_branch_id() IS NULL OR
-      public.current_user_role() IN ('owner', 'manager') OR
-      id = public.current_branch_id()
+      "public".current_branch_id() IS NULL OR
+      "public".current_user_role() IN ('owner', 'manager') OR
+      id = "public".current_branch_id()
     )
   )
   WITH CHECK (
-    pharmacy_id = public.current_tenant_pharmacy_id() AND
+    pharmacy_id = "public".current_tenant_pharmacy_id() AND
     (
-      public.current_branch_id() IS NULL OR
-      public.current_user_role() IN ('owner', 'manager') OR
-      id = public.current_branch_id()
+      "public".current_branch_id() IS NULL OR
+      "public".current_user_role() IN ('owner', 'manager') OR
+      id = "public".current_branch_id()
     )
   );
 
@@ -96,23 +104,22 @@ BEGIN
     EXECUTE format('
       CREATE POLICY branch_scoped_policy ON %I
         FOR ALL
-        TO authenticated
-        USING (
-          pharmacy_id = public.current_tenant_pharmacy_id() AND
+              USING (
+          pharmacy_id = "public".current_tenant_pharmacy_id() AND
           (
-            public.current_branch_id() IS NULL OR
-            public.current_user_role() IN (''owner'', ''manager'') OR
+            "public".current_branch_id() IS NULL OR
+            "public".current_user_role() IN (''owner'', ''manager'') OR
             branch_id IS NULL OR
-            branch_id = public.current_branch_id()
+            branch_id = "public".current_branch_id()
           )
         )
         WITH CHECK (
-          pharmacy_id = public.current_tenant_pharmacy_id() AND
+          pharmacy_id = "public".current_tenant_pharmacy_id() AND
           (
-            public.current_branch_id() IS NULL OR
-            public.current_user_role() IN (''owner'', ''manager'') OR
+            "public".current_branch_id() IS NULL OR
+            "public".current_user_role() IN (''owner'', ''manager'') OR
             branch_id IS NULL OR
-            branch_id = public.current_branch_id()
+            branch_id = "public".current_branch_id()
           )
         );
     ', tbl);
@@ -124,23 +131,22 @@ ALTER TABLE stock_transfers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS stock_transfers_branch_policy ON stock_transfers;
 CREATE POLICY stock_transfers_branch_policy ON stock_transfers
   FOR ALL
-  TO authenticated
   USING (
-    pharmacy_id = public.current_tenant_pharmacy_id() AND
+    pharmacy_id = "public".current_tenant_pharmacy_id() AND
     (
-      public.current_branch_id() IS NULL OR
-      public.current_user_role() IN ('owner', 'manager') OR
-      source_branch_id = public.current_branch_id() OR
-      destination_branch_id = public.current_branch_id()
+      "public".current_branch_id() IS NULL OR
+      "public".current_user_role() IN ('owner', 'manager') OR
+      source_branch_id = "public".current_branch_id() OR
+      destination_branch_id = "public".current_branch_id()
     )
   )
   WITH CHECK (
-    pharmacy_id = public.current_tenant_pharmacy_id() AND
+    pharmacy_id = "public".current_tenant_pharmacy_id() AND
     (
-      public.current_branch_id() IS NULL OR
-      public.current_user_role() IN ('owner', 'manager') OR
-      source_branch_id = public.current_branch_id() OR
-      destination_branch_id = public.current_branch_id()
+      "public".current_branch_id() IS NULL OR
+      "public".current_user_role() IN ('owner', 'manager') OR
+      source_branch_id = "public".current_branch_id() OR
+      destination_branch_id = "public".current_branch_id()
     )
   );
 
@@ -172,14 +178,13 @@ BEGIN
     EXECUTE format('
       CREATE POLICY role_scoped_finance_policy ON %I
         FOR ALL
-        TO authenticated
-        USING (
-          pharmacy_id = public.current_tenant_pharmacy_id() AND
-          public.current_user_role() IN (''owner'', ''accountant'', ''manager'')
+              USING (
+          pharmacy_id = "public".current_tenant_pharmacy_id() AND
+          "public".current_user_role() IN (''owner'', ''accountant'', ''manager'')
         )
         WITH CHECK (
-          pharmacy_id = public.current_tenant_pharmacy_id() AND
-          public.current_user_role() IN (''owner'', ''accountant'', ''manager'')
+          pharmacy_id = "public".current_tenant_pharmacy_id() AND
+          "public".current_user_role() IN (''owner'', ''accountant'', ''manager'')
         );
     ', tbl);
   END LOOP;
@@ -234,9 +239,8 @@ BEGIN
     EXECUTE format('
       CREATE POLICY tenant_isolation_policy ON %I
         FOR ALL
-        TO authenticated
-        USING (pharmacy_id = public.current_tenant_pharmacy_id())
-        WITH CHECK (pharmacy_id = public.current_tenant_pharmacy_id());
+              USING (pharmacy_id = "public".current_tenant_pharmacy_id())
+        WITH CHECK (pharmacy_id = "public".current_tenant_pharmacy_id());
     ', tbl);
   END LOOP;
 END $$;

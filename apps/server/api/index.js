@@ -79884,6 +79884,10 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
   }
   const payload = parseResult.data;
   const now = (/* @__PURE__ */ new Date()).toISOString();
+  const [existingInvoice] = await tx.select({ id: invoices.id }).from(invoices).where(and(eq(invoices.id, payload.id), eq(invoices.pharmacyId, ctx.pharmacyId))).limit(1);
+  if (existingInvoice) {
+    return;
+  }
   const lineSum = payload.lines.reduce((sum, l) => sum + l.lineTotalPaisa, 0);
   if (lineSum !== payload.totalPaisa) {
     throw new SyncRejectedError(
@@ -80275,6 +80279,10 @@ async function applyCreditNoteCreated(tx, ctx, rawPayload) {
   }
   const payload = parseResult.data;
   const now = (/* @__PURE__ */ new Date()).toISOString();
+  const [existingCreditNote] = await tx.select({ id: creditNotes.id }).from(creditNotes).where(and(eq(creditNotes.id, payload.id), eq(creditNotes.pharmacyId, ctx.pharmacyId))).limit(1);
+  if (existingCreditNote) {
+    return;
+  }
   const effectiveBranchId = ctx.branchId || payload.branchId;
   const effectiveCounterId = ctx.counterId || payload.counterId;
   const lineSum = payload.lines.reduce((sum, l) => sum + l.lineTotalPaisa, 0);

@@ -36,6 +36,17 @@ export async function applyInvoiceCreated(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
+  // 0. Idempotency guard: if this invoice was already persisted in Postgres in a prior attempt, return cleanly
+  const [existingInvoice] = await tx
+    .select({ id: invoices.id })
+    .from(invoices)
+    .where(and(eq(invoices.id, payload.id), eq(invoices.pharmacyId, ctx.pharmacyId)))
+    .limit(1);
+
+  if (existingInvoice) {
+    return;
+  }
+
   // 1. Totals validation (Rule 1 & docs/SYNC.md)
   const lineSum = payload.lines.reduce((sum, l) => sum + l.lineTotalPaisa, 0);
   if (lineSum !== payload.totalPaisa) {

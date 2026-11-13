@@ -34,6 +34,17 @@ export async function applyCreditNoteCreated(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
+  // 0. Idempotency guard: if credit note already persisted, return cleanly
+  const [existingCreditNote] = await tx
+    .select({ id: creditNotes.id })
+    .from(creditNotes)
+    .where(and(eq(creditNotes.id, payload.id), eq(creditNotes.pharmacyId, ctx.pharmacyId)))
+    .limit(1);
+
+  if (existingCreditNote) {
+    return;
+  }
+
   // 1. Device alignment & tenancy resolution
   const effectiveBranchId = ctx.branchId || payload.branchId;
   const effectiveCounterId = ctx.counterId || payload.counterId;

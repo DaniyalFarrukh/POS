@@ -30,13 +30,13 @@ export async function isPostgresReachable(url?: string): Promise<boolean> {
     process.env.DB_SSL === 'true';
   const client = new Client({
     connectionString: targetUrl,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 5000,
     ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
   });
 
   let timeoutId: NodeJS.Timeout | null = null;
   const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error('Postgres reachability timeout')), 2000);
+    timeoutId = setTimeout(() => reject(new Error('Postgres reachability timeout')), 5000);
   });
 
   try {

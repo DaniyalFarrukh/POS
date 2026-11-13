@@ -805,10 +805,17 @@ export function runStartupAutoSeed(options?: {
   return { seeded: true, seededCount: res.seededCount };
 }
 
-export function seedDatabase(rawDb?: DatabaseInstance): {
+export function seedDatabase(
+  rawDb?: DatabaseInstance,
+  options?: { isPackaged?: boolean }
+): {
   seededCount: number;
   defaultTaxCategoryId: string;
 } {
+  const isPackaged = options?.isPackaged ?? (app?.isPackaged ?? false);
+  if (isPackaged) {
+    throw new Error('Refusing to seed database: packaged production application');
+  }
   const db = rawDb ?? getDatabase();
   const now = new Date().toISOString();
 

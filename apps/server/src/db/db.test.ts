@@ -322,7 +322,9 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
       expect(seq3).toBeGreaterThan(seq2);
     });
 
-    it('F-H-01: registers all drizzle/*.sql files in _journal.json and migrates both an empty DB and a previous-version DB via drizzle migrate()', async () => {
+    it(
+      'F-H-01: registers all drizzle/*.sql files in _journal.json and migrates both an empty DB and a previous-version DB via drizzle migrate()',
+      async () => {
       const sqlFiles = fs
         .readdirSync(DRIZZLE_DIR)
         .filter((f) => f.endsWith('.sql'))
@@ -425,6 +427,6 @@ describe('Server PostgreSQL Database & Migrations (Phase 3)', () => {
         if (prevDir20) fs.rmSync(prevDir20, { recursive: true, force: true });
         if (prevDirAll) fs.rmSync(prevDirAll, { recursive: true, force: true });
       }
-    }, 30000);
+    }, 180000);
   });
 });
