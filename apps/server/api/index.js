@@ -47,10 +47,24 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// ../../node_modules/.pnpm/tsup@9.0.0_jiti@2.7.0_postc_7f249e4cd2e31aadcb6385ba7cccb202/node_modules/tsup/assets/esm_shims.js
+import path from "path";
+import { fileURLToPath } from "url";
+var getFilename, getDirname, __dirname;
+var init_esm_shims = __esm({
+  "../../node_modules/.pnpm/tsup@9.0.0_jiti@2.7.0_postc_7f249e4cd2e31aadcb6385ba7cccb202/node_modules/tsup/assets/esm_shims.js"() {
+    "use strict";
+    getFilename = () => fileURLToPath(import.meta.url);
+    getDirname = () => path.dirname(getFilename());
+    __dirname = /* @__PURE__ */ getDirname();
+  }
+});
+
 // ../../node_modules/.pnpm/reusify@1.1.0/node_modules/reusify/reusify.js
 var require_reusify = __commonJS({
   "../../node_modules/.pnpm/reusify@1.1.0/node_modules/reusify/reusify.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function reusify(Constructor) {
       var head = new Constructor();
       var tail = head;
@@ -82,6 +96,7 @@ var require_reusify = __commonJS({
 var require_queue = __commonJS({
   "../../node_modules/.pnpm/fastq@1.20.3/node_modules/fastq/queue.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var reusify = require_reusify();
     function fastqueue(context, worker, _concurrency) {
       if (typeof context === "function") {
@@ -367,6 +382,7 @@ var require_queue = __commonJS({
 var require_error = __commonJS({
   "../../node_modules/.pnpm/@fastify+error@4.2.1/node_modules/@fastify/error/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { format } = __require("util");
     function toString() {
       return `${this.name} [${this.code}]: ${this.message}`;
@@ -452,6 +468,7 @@ var require_error = __commonJS({
 var require_errors = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/errors.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { createError } = require_error();
     module.exports = {
       AVV_ERR_EXPOSE_ALREADY_DEFINED: createError(
@@ -494,6 +511,7 @@ var require_errors = __commonJS({
 var require_symbols = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/symbols.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var kAvvio = /* @__PURE__ */ Symbol("avvio.Boot");
     var kIsOnCloseHandler = /* @__PURE__ */ Symbol("isOnCloseHandler");
     var kThenifyDoNotWrap = /* @__PURE__ */ Symbol("avvio.ThenifyDoNotWrap");
@@ -521,6 +539,7 @@ var require_symbols = __commonJS({
 var require_time_tree = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/time-tree.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kUntrackNode,
       kTrackNode,
@@ -674,6 +693,7 @@ var require_time_tree = __commonJS({
 var require_debug = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/debug.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { debuglog } = __require("util");
     var debug = debuglog("avvio");
     module.exports = {
@@ -686,6 +706,7 @@ var require_debug = __commonJS({
 var require_create_promise = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/create-promise.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function createPromise() {
       const obj = {
         resolve: null,
@@ -708,6 +729,7 @@ var require_create_promise = __commonJS({
 var require_get_plugin_name = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/get-plugin-name.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { kPluginMeta } = require_symbols();
     function getPluginName(plugin, options) {
       if (plugin[kPluginMeta]?.name) {
@@ -732,6 +754,7 @@ var require_get_plugin_name = __commonJS({
 var require_is_promise_like = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/is-promise-like.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function isPromiseLike(maybePromiseLike) {
       return maybePromiseLike !== null && typeof maybePromiseLike === "object" && typeof maybePromiseLike.then === "function";
     }
@@ -745,6 +768,7 @@ var require_is_promise_like = __commonJS({
 var require_plugin = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/plugin.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { EventEmitter } = __require("events");
     var { inherits } = __require("util");
     var { debug } = require_debug();
@@ -919,6 +943,7 @@ var require_plugin = __commonJS({
 var require_validate_plugin = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/validate-plugin.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { AVV_ERR_PLUGIN_NOT_VALID } = require_errors();
     function validatePlugin(maybePlugin) {
       if (!(maybePlugin && (typeof maybePlugin === "function" || typeof maybePlugin.then === "function"))) {
@@ -941,6 +966,7 @@ var require_validate_plugin = __commonJS({
 var require_is_bundled_or_typescript_plugin = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/is-bundled-or-typescript-plugin.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function isBundledOrTypescriptPlugin(maybeBundledOrTypescriptPlugin) {
       return maybeBundledOrTypescriptPlugin !== null && typeof maybeBundledOrTypescriptPlugin === "object" && typeof maybeBundledOrTypescriptPlugin.default === "function";
     }
@@ -954,6 +980,7 @@ var require_is_bundled_or_typescript_plugin = __commonJS({
 var require_thenify = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/thenify.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { debug } = require_debug();
     var { kThenifyDoNotWrap } = require_symbols();
     function thenify() {
@@ -984,6 +1011,7 @@ var require_thenify = __commonJS({
 var require_execute_with_thenable = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/lib/execute-with-thenable.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { isPromiseLike } = require_is_promise_like();
     var { kAvvio } = require_symbols();
     function executeWithThenable(func, args, callback) {
@@ -1012,6 +1040,7 @@ var require_execute_with_thenable = __commonJS({
 var require_avvio = __commonJS({
   "../../node_modules/.pnpm/avvio@9.3.1/node_modules/avvio/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fastq = require_queue();
     var EE = __require("events").EventEmitter;
     var inherits = __require("util").inherits;
@@ -1512,6 +1541,7 @@ var require_avvio = __commonJS({
 var require_symbols2 = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/symbols.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var keys = {
       kAvvioBoot: /* @__PURE__ */ Symbol("fastify.avvioBoot"),
       kChildren: /* @__PURE__ */ Symbol("fastify.children"),
@@ -1589,6 +1619,7 @@ var require_symbols2 = __commonJS({
 var require_process_warning = __commonJS({
   "../../node_modules/.pnpm/process-warning@5.1.1/node_modules/process-warning/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { format } = __require("util");
     var kWarningFn = /* @__PURE__ */ Symbol("process-warning.fn");
     var kWarningSpyData = /* @__PURE__ */ Symbol("process-warning.spyData");
@@ -1687,6 +1718,7 @@ var require_process_warning = __commonJS({
 var require_warnings = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/warnings.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { createWarning } = require_process_warning();
     var FSTWRN001 = createWarning({
       name: "FastifyWarning",
@@ -1767,6 +1799,7 @@ var require_warnings = __commonJS({
 var require_errors2 = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/errors.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var createError = require_error();
     var codes = {
       /**
@@ -2300,6 +2333,7 @@ var require_errors2 = __commonJS({
 var require_hooks = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/hooks.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var applicationHooks = [
       "onRoute",
       "onRegister",
@@ -2665,6 +2699,7 @@ var require_hooks = __commonJS({
 var require_noop_set = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/noop-set.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = function noopSet() {
       return {
         [Symbol.iterator]: function* () {
@@ -2685,6 +2720,7 @@ var require_noop_set = __commonJS({
 var require_promise = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/promise.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { kTestInternals } = require_symbols2();
     function withResolvers() {
       let res, rej;
@@ -2709,6 +2745,7 @@ var require_promise = __commonJS({
 var require_server = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/server.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var http = __require("http");
     var https = __require("https");
     var http2 = __require("http2");
@@ -3037,6 +3074,7 @@ var require_server = __commonJS({
 var require_error_status = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/error-status.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kReplyHasStatusCode
     } = require_symbols2();
@@ -3054,6 +3092,7 @@ var require_error_status = __commonJS({
 var require_wrap_thenable = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/wrap-thenable.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kReplyIsError,
       kReplyHijacked
@@ -3117,6 +3156,7 @@ var require_wrap_thenable = __commonJS({
 var require_validation = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/validation.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kSchemaHeaders: headersSchema,
       kSchemaParams: paramsSchema,
@@ -3525,6 +3565,7 @@ var require_validation = __commonJS({
 var require_toad_cache = __commonJS({
   "../../node_modules/.pnpm/toad-cache@3.7.4/node_modules/toad-cache/dist/toad-cache.cjs"(exports) {
     "use strict";
+    init_esm_shims();
     function validateCacheParams(max, ttlInMsecs) {
       if (typeof max !== "number" || !Number.isInteger(max) || max < 0) {
         throw new Error("Invalid max value");
@@ -4188,6 +4229,7 @@ var require_toad_cache = __commonJS({
 var require_content_type = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/content-type.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { FifoMap: Fifo } = require_toad_cache();
     var keyValuePairsReg = /(?:^|;)\s*([\w!#$%&'*+.^`|~-]+)=("(?:[\t\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\t\u0020-\u00ff])*"|[\w!#$%&'*+.^`|~-]+)/gu;
     var quotedPairReg = /\\([\t\u0020-\u00ff])/gu;
@@ -4316,6 +4358,7 @@ var require_content_type = __commonJS({
 var require_handle_request = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/handle-request.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var diagnostics = __require("diagnostics_channel");
     var wrapThenable = require_wrap_thenable();
     var { validate: validateSchema } = require_validation();
@@ -4497,6 +4540,7 @@ var require_handle_request = __commonJS({
 var require_config_validator = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/config-validator.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = validate10;
     module.exports.default = validate10;
     var schema11 = { "type": "object", "additionalProperties": false, "properties": { "connectionTimeout": { "type": "integer", "default": 0 }, "keepAliveTimeout": { "type": "integer", "default": 72e3 }, "forceCloseConnections": { "oneOf": [{ "type": "string", "pattern": "idle" }, { "type": "boolean" }] }, "maxRequestsPerSocket": { "type": "integer", "default": 0, "nullable": true }, "requestTimeout": { "type": "integer", "default": 0 }, "handlerTimeout": { "type": "integer", "default": 0 }, "bodyLimit": { "type": "integer", "default": 1048576 }, "caseSensitive": { "type": "boolean", "default": true }, "allowUnsafeRegex": { "type": "boolean", "default": false }, "http2": { "type": "boolean" }, "https": { "if": { "not": { "oneOf": [{ "type": "boolean" }, { "type": "null" }, { "type": "object", "additionalProperties": false, "required": ["allowHTTP1"], "properties": { "allowHTTP1": { "type": "boolean" } } }] } }, "then": { "setDefaultValue": true } }, "ignoreTrailingSlash": { "type": "boolean", "default": false }, "ignoreDuplicateSlashes": { "type": "boolean", "default": false }, "disableRequestLogging": { "default": false }, "maxParamLength": { "type": "integer", "default": 100 }, "onProtoPoisoning": { "type": "string", "default": "error" }, "onConstructorPoisoning": { "type": "string", "default": "error" }, "pluginTimeout": { "type": "integer", "default": 1e4 }, "requestIdHeader": { "anyOf": [{ "type": "boolean" }, { "type": "string" }], "default": false }, "requestIdLogLabel": { "type": "string", "default": "reqId" }, "http2SessionTimeout": { "type": "integer", "default": 72e3 }, "exposeHeadRoutes": { "type": "boolean", "default": true }, "useSemicolonDelimiter": { "type": "boolean", "default": false }, "routerOptions": { "type": "object", "additionalProperties": true, "properties": { "ignoreTrailingSlash": { "type": "boolean", "default": false }, "ignoreDuplicateSlashes": { "type": "boolean", "default": false }, "maxParamLength": { "type": "integer", "default": 100 }, "allowUnsafeRegex": { "type": "boolean", "default": false }, "useSemicolonDelimiter": { "type": "boolean", "default": false } } }, "constraints": { "type": "object", "additionalProperties": { "type": "object", "required": ["name", "storage", "validate", "deriveConstraint"], "additionalProperties": true, "properties": { "name": { "type": "string" }, "storage": {}, "validate": {}, "deriveConstraint": {} } } } } };
@@ -5660,6 +5704,7 @@ var require_config_validator = __commonJS({
 var require_rfdc = __commonJS({
   "../../node_modules/.pnpm/rfdc@1.4.1/node_modules/rfdc/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = rfdc;
     function copyBuffer(cur) {
       if (cur instanceof Buffer) {
@@ -5849,6 +5894,7 @@ var require_rfdc = __commonJS({
 var require_initial_config_validation = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/initial-config-validation.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var validate2 = require_config_validator();
     var deepClone = require_rfdc()({ circles: true, proto: false });
     var { FST_ERR_INIT_OPTS_INVALID } = require_errors2();
@@ -5882,6 +5928,7 @@ var require_initial_config_validation = __commonJS({
 var require_log_controller = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/log-controller.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { defaultInitOptions } = require_initial_config_validation();
     var LogController = class {
       /**
@@ -6043,6 +6090,7 @@ var require_log_controller = __commonJS({
 var require_abstract_logging = __commonJS({
   "../../node_modules/.pnpm/abstract-logging@2.0.1/node_modules/abstract-logging/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function noop() {
     }
     var proto = {
@@ -6065,6 +6113,7 @@ var require_abstract_logging = __commonJS({
 var require_err_helpers = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-helpers.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var isErrorLike = (err) => {
       return err && typeof err.message === "string";
     };
@@ -6122,6 +6171,7 @@ var require_err_helpers = __commonJS({
 var require_err_proto = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-proto.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var seen = /* @__PURE__ */ Symbol("circular-ref-tag");
     var rawSymbol = /* @__PURE__ */ Symbol("pino-raw-err-ref");
     var pinoErrProto = Object.create({}, {
@@ -6173,6 +6223,7 @@ var require_err_proto = __commonJS({
 var require_err = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = errSerializer;
     var { messageWithCauses, stackWithCauses, isErrorLike } = require_err_helpers();
     var { pinoErrProto, pinoErrorSymbols } = require_err_proto();
@@ -6213,6 +6264,7 @@ var require_err = __commonJS({
 var require_err_with_cause = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/err-with-cause.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = errWithCauseSerializer;
     var { isErrorLike } = require_err_helpers();
     var { pinoErrProto, pinoErrorSymbols } = require_err_proto();
@@ -6256,6 +6308,7 @@ var require_err_with_cause = __commonJS({
 var require_req = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/req.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = {
       mapHttpRequest,
       reqSerializer
@@ -6324,8 +6377,8 @@ var require_req = __commonJS({
       if (req.originalUrl) {
         _req.url = req.originalUrl;
       } else {
-        const path = req.path;
-        _req.url = typeof path === "string" ? path : req.url ? req.url.path || req.url : void 0;
+        const path2 = req.path;
+        _req.url = typeof path2 === "string" ? path2 : req.url ? req.url.path || req.url : void 0;
       }
       if (req.query) {
         _req.query = req.query;
@@ -6351,6 +6404,7 @@ var require_req = __commonJS({
 var require_res = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/lib/res.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = {
       mapHttpResponse,
       resSerializer
@@ -6400,6 +6454,7 @@ var require_res = __commonJS({
 var require_pino_std_serializers = __commonJS({
   "../../node_modules/.pnpm/pino-std-serializers@7.1.0/node_modules/pino-std-serializers/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var errSerializer = require_err();
     var errWithCauseSerializer = require_err_with_cause();
     var reqSerializers = require_req();
@@ -6437,6 +6492,7 @@ var require_pino_std_serializers = __commonJS({
 var require_caller = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/caller.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var util = __require("util");
     var getCallSites = util.getCallSites ?? util.getCallSite;
     function noOpPrepareStackTrace(_, stack) {
@@ -6470,6 +6526,7 @@ var require_caller = __commonJS({
 var require_redact = __commonJS({
   "../../node_modules/.pnpm/@pinojs+redact@0.4.0/node_modules/@pinojs/redact/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function deepClone(obj) {
       if (obj === null || typeof obj !== "object") {
         return obj;
@@ -6495,14 +6552,14 @@ var require_redact = __commonJS({
       }
       return obj;
     }
-    function parsePath(path) {
+    function parsePath(path2) {
       const parts = [];
       let current = "";
       let inBrackets = false;
       let inQuotes = false;
       let quoteChar = "";
-      for (let i = 0; i < path.length; i++) {
-        const char2 = path[i];
+      for (let i = 0; i < path2.length; i++) {
+        const char2 = path2[i];
         if (!inBrackets && char2 === ".") {
           if (current) {
             parts.push(current);
@@ -6633,10 +6690,10 @@ var require_redact = __commonJS({
       return current;
     }
     function redactPaths(obj, paths, censor, remove = false) {
-      for (const path of paths) {
-        const parts = parsePath(path);
+      for (const path2 of paths) {
+        const parts = parsePath(path2);
         if (parts.includes("*")) {
-          redactWildcardPath(obj, parts, censor, path, remove);
+          redactWildcardPath(obj, parts, censor, path2, remove);
         } else {
           if (remove) {
             removeKey(obj, parts);
@@ -6721,8 +6778,8 @@ var require_redact = __commonJS({
           }
         } else {
           if (afterWildcard.includes("*")) {
-            const wrappedCensor = typeof censor === "function" ? (value, path) => {
-              const fullPath = [...pathArray.slice(0, pathLength), ...path];
+            const wrappedCensor = typeof censor === "function" ? (value, path2) => {
+              const fullPath = [...pathArray.slice(0, pathLength), ...path2];
               return censor(value, fullPath);
             } : censor;
             redactWildcardPath(current, afterWildcard, wrappedCensor, originalPath, remove);
@@ -6757,8 +6814,8 @@ var require_redact = __commonJS({
         return null;
       }
       const pathStructure = /* @__PURE__ */ new Map();
-      for (const path of pathsToClone) {
-        const parts = parsePath(path);
+      for (const path2 of pathsToClone) {
+        const parts = parsePath(path2);
         let current = pathStructure;
         for (let i = 0; i < parts.length; i++) {
           const part = parts[i];
@@ -6810,24 +6867,24 @@ var require_redact = __commonJS({
       }
       return cloneSelectively(obj, pathStructure);
     }
-    function validatePath(path) {
-      if (typeof path !== "string") {
+    function validatePath(path2) {
+      if (typeof path2 !== "string") {
         throw new Error("Paths must be (non-empty) strings");
       }
-      if (path === "") {
+      if (path2 === "") {
         throw new Error("Invalid redaction path ()");
       }
-      if (path.includes("..")) {
-        throw new Error(`Invalid redaction path (${path})`);
+      if (path2.includes("..")) {
+        throw new Error(`Invalid redaction path (${path2})`);
       }
-      if (path.includes(",")) {
-        throw new Error(`Invalid redaction path (${path})`);
+      if (path2.includes(",")) {
+        throw new Error(`Invalid redaction path (${path2})`);
       }
       let bracketCount = 0;
       let inQuotes = false;
       let quoteChar = "";
-      for (let i = 0; i < path.length; i++) {
-        const char2 = path[i];
+      for (let i = 0; i < path2.length; i++) {
+        const char2 = path2[i];
         if ((char2 === '"' || char2 === "'") && bracketCount > 0) {
           if (!inQuotes) {
             inQuotes = true;
@@ -6841,20 +6898,20 @@ var require_redact = __commonJS({
         } else if (char2 === "]" && !inQuotes) {
           bracketCount--;
           if (bracketCount < 0) {
-            throw new Error(`Invalid redaction path (${path})`);
+            throw new Error(`Invalid redaction path (${path2})`);
           }
         }
       }
       if (bracketCount !== 0) {
-        throw new Error(`Invalid redaction path (${path})`);
+        throw new Error(`Invalid redaction path (${path2})`);
       }
     }
     function validatePaths(paths) {
       if (!Array.isArray(paths)) {
         throw new TypeError("paths must be an array");
       }
-      for (const path of paths) {
-        validatePath(path);
+      for (const path2 of paths) {
+        validatePath(path2);
       }
     }
     function slowRedact(options = {}) {
@@ -6903,6 +6960,7 @@ var require_redact = __commonJS({
 var require_symbols3 = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/symbols.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var setLevelSym = /* @__PURE__ */ Symbol("pino.setLevel");
     var getLevelSym = /* @__PURE__ */ Symbol("pino.getLevel");
     var levelValSym = /* @__PURE__ */ Symbol("pino.levelVal");
@@ -6976,6 +7034,7 @@ var require_symbols3 = __commonJS({
 var require_redaction = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/redaction.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Redact = require_redact();
     var { redactFmtSym, wildcardFirstSym } = require_symbols3();
     var rx = /[^.[\]]+|\[([^[\]]*?)\]/g;
@@ -7024,8 +7083,8 @@ var require_redaction = __commonJS({
         if (shape[k] === null) {
           o[k] = (value) => topCensor(value, [k]);
         } else {
-          const wrappedCensor = typeof censor === "function" ? (value, path) => {
-            return censor(value, [k, ...path]);
+          const wrappedCensor = typeof censor === "function" ? (value, path2) => {
+            return censor(value, [k, ...path2]);
           } : censor;
           o[k] = Redact({
             paths: shape[k],
@@ -7058,6 +7117,7 @@ var require_redaction = __commonJS({
 var require_time = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/time.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var nullTime = () => "";
     var epochTime = () => `,"time":${Date.now()}`;
     var unixTime = () => `,"time":${Math.round(Date.now() / 1e3)}`;
@@ -7089,6 +7149,7 @@ var require_time = __commonJS({
 var require_quick_format_unescaped = __commonJS({
   "../../node_modules/.pnpm/quick-format-unescaped@4.0.4/node_modules/quick-format-unescaped/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function tryStringify(o) {
       try {
         return JSON.stringify(o);
@@ -7208,6 +7269,7 @@ var require_quick_format_unescaped = __commonJS({
 var require_atomic_sleep = __commonJS({
   "../../node_modules/.pnpm/atomic-sleep@1.0.0/node_modules/atomic-sleep/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     if (typeof SharedArrayBuffer !== "undefined" && typeof Atomics !== "undefined") {
       let sleep = function(ms) {
         const valid = ms > 0 && ms < Infinity;
@@ -7243,10 +7305,11 @@ var require_atomic_sleep = __commonJS({
 var require_sonic_boom = __commonJS({
   "../../node_modules/.pnpm/sonic-boom@4.2.1/node_modules/sonic-boom/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fs = __require("fs");
     var EventEmitter = __require("events");
     var inherits = __require("util").inherits;
-    var path = __require("path");
+    var path2 = __require("path");
     var sleep = require_atomic_sleep();
     var assert2 = __require("assert");
     var BUSY_WRITE_TIMEOUT = 100;
@@ -7300,7 +7363,7 @@ var require_sonic_boom = __commonJS({
       const mode = sonic.mode;
       if (sonic.sync) {
         try {
-          if (sonic.mkdir) fs.mkdirSync(path.dirname(file2), { recursive: true });
+          if (sonic.mkdir) fs.mkdirSync(path2.dirname(file2), { recursive: true });
           const fd = fs.openSync(file2, flags, mode);
           fileOpened(null, fd);
         } catch (err) {
@@ -7308,7 +7371,7 @@ var require_sonic_boom = __commonJS({
           throw err;
         }
       } else if (sonic.mkdir) {
-        fs.mkdir(path.dirname(file2), { recursive: true }, (err) => {
+        fs.mkdir(path2.dirname(file2), { recursive: true }, (err) => {
           if (err) return fileOpened(err);
           fs.open(file2, flags, mode, fileOpened);
         });
@@ -7830,6 +7893,7 @@ var require_sonic_boom = __commonJS({
 var require_on_exit_leak_free = __commonJS({
   "../../node_modules/.pnpm/on-exit-leak-free@2.1.2/node_modules/on-exit-leak-free/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var refs = {
       exit: [],
       beforeExit: []
@@ -7980,6 +8044,7 @@ var require_package = __commonJS({
 var require_wait = __commonJS({
   "../../node_modules/.pnpm/thread-stream@4.2.0/node_modules/thread-stream/lib/wait.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var WAIT_MS = 1e4;
     function wait(state, index2, expected, timeout, done) {
       const max = timeout === Infinity ? Infinity : Date.now() + timeout;
@@ -8039,6 +8104,7 @@ var require_wait = __commonJS({
 var require_indexes = __commonJS({
   "../../node_modules/.pnpm/thread-stream@4.2.0/node_modules/thread-stream/lib/indexes.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SEQ_INDEX = 2;
     var WRITE_INDEX = 4;
     var READ_INDEX = 8;
@@ -8054,6 +8120,7 @@ var require_indexes = __commonJS({
 var require_thread_stream = __commonJS({
   "../../node_modules/.pnpm/thread-stream@4.2.0/node_modules/thread-stream/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { version: version3 } = require_package();
     var { EventEmitter } = __require("events");
     var { Worker } = __require("worker_threads");
@@ -8573,11 +8640,12 @@ var require_thread_stream = __commonJS({
 var require_transport = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/transport.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { createRequire } = __require("module");
     var { existsSync } = __require("fs");
     var getCallers = require_caller();
     var { join, isAbsolute, sep } = __require("path");
-    var { fileURLToPath } = __require("url");
+    var { fileURLToPath: fileURLToPath2 } = __require("url");
     var sleep = require_atomic_sleep();
     var onExit = require_on_exit_leak_free();
     var ThreadStream = require_thread_stream();
@@ -8641,15 +8709,15 @@ var require_transport = __commonJS({
       if (!unquoted) {
         return false;
       }
-      let path = unquoted;
-      if (path.startsWith("file://")) {
+      let path2 = unquoted;
+      if (path2.startsWith("file://")) {
         try {
-          path = fileURLToPath(path);
+          path2 = fileURLToPath2(path2);
         } catch {
           return false;
         }
       }
-      return isAbsolute(path) && !existsSync(path);
+      return isAbsolute(path2) && !existsSync(path2);
     }
     function stripQuotes(value) {
       const first = value[0];
@@ -8805,6 +8873,7 @@ var require_transport = __commonJS({
 var require_tools = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/tools.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var diagChan = __require("diagnostics_channel");
     var format = require_quick_format_unescaped();
     var { mapHttpRequest, mapHttpResponse } = require_pino_std_serializers();
@@ -9134,6 +9203,7 @@ var require_tools = __commonJS({
 var require_constants = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/constants.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var DEFAULT_LEVELS = {
       trace: 10,
       debug: 20,
@@ -9157,6 +9227,7 @@ var require_constants = __commonJS({
 var require_levels = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/levels.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       lsCacheSym,
       levelValSym,
@@ -9350,6 +9421,7 @@ var require_levels = __commonJS({
 var require_meta = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/meta.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = { version: "10.4.0" };
   }
 });
@@ -9358,6 +9430,7 @@ var require_meta = __commonJS({
 var require_proto = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/proto.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { EventEmitter } = __require("events");
     var {
       lsCacheSym,
@@ -9588,6 +9661,7 @@ var require_proto = __commonJS({
 var require_safe_stable_stringify = __commonJS({
   "../../node_modules/.pnpm/safe-stable-stringify@2.5.0/node_modules/safe-stable-stringify/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { hasOwnProperty } = Object.prototype;
     var stringify = configure();
     stringify.configure = configure;
@@ -10184,6 +10258,7 @@ ${originalIndentation}`;
 var require_multistream = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/lib/multistream.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var metadata = /* @__PURE__ */ Symbol.for("pino.metadata");
     var { DEFAULT_LEVELS } = require_constants();
     var DEFAULT_INFO_LEVEL = DEFAULT_LEVELS.info;
@@ -10354,6 +10429,7 @@ var require_multistream = __commonJS({
 var require_pino = __commonJS({
   "../../node_modules/.pnpm/pino@10.4.0/node_modules/pino/pino.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var os = __require("os");
     var stdSerializers = require_pino_std_serializers();
     var caller = require_caller();
@@ -10585,6 +10661,7 @@ var require_pino = __commonJS({
 var require_logger_pino = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/logger-pino.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var pino = require_pino();
     var { serializersSym } = pino.symbols;
     var {
@@ -10643,6 +10720,7 @@ var require_logger_pino = __commonJS({
 var require_logger_factory = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/logger-factory.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { performance } = __require("perf_hooks");
     var {
       FST_ERR_LOG_LOGGER_AND_LOGGER_INSTANCE_PROVIDED,
@@ -10749,6 +10827,7 @@ var require_logger_factory = __commonJS({
 var require_schemas = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/schemas.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fastClone = require_rfdc()({ circles: false, proto: true });
     var { kSchemaVisited, kSchemaResponse } = require_symbols2();
     var kFluentSchema = /* @__PURE__ */ Symbol.for("fluent-schema-object");
@@ -10916,6 +10995,7 @@ var require_schemas = __commonJS({
 var require_serializer = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/lib/serializer.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var STR_ESCAPE = /[\u0000-\u001f\u0022\u005c\ud800-\udfff]/;
     function asString(str) {
       const len = str.length;
@@ -11069,6 +11149,7 @@ var require_serializer = __commonJS({
 var require_error_serializer = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/error-serializer.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Serializer = require_serializer();
     var serializerState = { "mode": "standalone" };
     var serializer = Serializer.restoreFromState(serializerState);
@@ -11174,6 +11255,7 @@ var require_error_serializer = __commonJS({
 var require_error_handler = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/error-handler.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var statusCodes = __require("http").STATUS_CODES;
     var wrapThenable = require_wrap_thenable();
     var { setErrorStatusCode } = require_error_status();
@@ -11309,6 +11391,7 @@ var require_error_handler = __commonJS({
 var require_decorate = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/decorate.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kReply,
       kRequest,
@@ -11449,6 +11532,7 @@ var require_decorate = __commonJS({
 var require_reply = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/reply.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var eos = __require("stream").finished;
     var {
       kFourOhFourContext,
@@ -12306,6 +12390,7 @@ var require_reply = __commonJS({
 var require_forwarded = __commonJS({
   "../../node_modules/.pnpm/@fastify+forwarded@3.1.2/node_modules/@fastify/forwarded/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function forwarded(req) {
       if (!req) {
         throw new TypeError("argument req is required");
@@ -12351,6 +12436,7 @@ var require_forwarded = __commonJS({
 var require_ipaddr = __commonJS({
   "../../node_modules/.pnpm/ipaddr.js@2.5.0/node_modules/ipaddr.js/lib/ipaddr.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     (function(root) {
       "use strict";
       const ipv4Part = "(0?\\d+|0x[a-f0-9]+)";
@@ -13163,6 +13249,7 @@ var require_ipaddr = __commonJS({
 var require_proxy_addr = __commonJS({
   "../../node_modules/.pnpm/@fastify+proxy-addr@5.1.2/node_modules/@fastify/proxy-addr/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = proxyaddr;
     module.exports.default = proxyaddr;
     module.exports.proxyaddr = proxyaddr;
@@ -13340,6 +13427,7 @@ var require_proxy_addr = __commonJS({
 var require_request = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/request.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var proxyAddr = require_proxy_addr();
     var {
       kHasBeenDecorated,
@@ -13679,6 +13767,7 @@ var require_request = __commonJS({
 var require_context = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/context.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kFourOhFourContext,
       kReplySerializerDefault,
@@ -13768,6 +13857,7 @@ var require_context = __commonJS({
 var require_secure_json_parse = __commonJS({
   "../../node_modules/.pnpm/secure-json-parse@4.1.1/node_modules/secure-json-parse/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var hasBuffer = typeof Buffer !== "undefined";
     var suspectProtoRx = /"(?:_|\\u005[Ff])(?:_|\\u005[Ff])(?:p|\\u0070)(?:r|\\u0072)(?:o|\\u006[Ff])(?:t|\\u0074)(?:o|\\u006[Ff])(?:_|\\u005[Ff])(?:_|\\u005[Ff])"\s*:/;
     var suspectConstructorRx = /"(?:c|\\u0063)(?:o|\\u006[Ff])(?:n|\\u006[Ee])(?:s|\\u0073)(?:t|\\u0074)(?:r|\\u0072)(?:u|\\u0075)(?:c|\\u0063)(?:t|\\u0074)(?:o|\\u006[Ff])(?:r|\\u0072)"\s*:/;
@@ -13874,6 +13964,7 @@ var require_secure_json_parse = __commonJS({
 var require_content_type_parser = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/content-type-parser.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { AsyncResource } = __require("async_hooks");
     var { FifoMap: Fifo } = require_toad_cache();
     var { parse: secureJsonParse } = require_secure_json_parse();
@@ -14225,6 +14316,7 @@ var require_content_type_parser = __commonJS({
 var require_code = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.regexpCode = exports.getEsmExportName = exports.getProperty = exports.safeStringify = exports.stringify = exports.strConcat = exports.addCodeArg = exports.str = exports._ = exports.nil = exports._Code = exports.Name = exports.IDENTIFIER = exports._CodeOrName = void 0;
     var _CodeOrName = class {
@@ -14379,6 +14471,7 @@ var require_code = __commonJS({
 var require_scope = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
     var code_1 = require_code();
@@ -14524,6 +14617,7 @@ var require_scope = __commonJS({
 var require_codegen = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.or = exports.and = exports.not = exports.CodeGen = exports.operators = exports.varKinds = exports.ValueScopeName = exports.ValueScope = exports.Scope = exports.Name = exports.regexpCode = exports.stringify = exports.getProperty = exports.nil = exports.strConcat = exports.str = exports._ = void 0;
     var code_1 = require_code();
@@ -15244,6 +15338,7 @@ var require_codegen = __commonJS({
 var require_util = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.checkStrictMode = exports.getErrorPath = exports.Type = exports.useFunc = exports.setEvaluated = exports.evaluatedPropsToName = exports.mergeEvaluated = exports.eachItem = exports.unescapeJsonPointer = exports.escapeJsonPointer = exports.escapeFragment = exports.unescapeFragment = exports.schemaRefOrVal = exports.schemaHasRulesButRef = exports.schemaHasRules = exports.checkUnknownRules = exports.alwaysValidSchema = exports.toHash = void 0;
     var codegen_1 = require_codegen();
@@ -15411,6 +15506,7 @@ var require_util = __commonJS({
 var require_names = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var names = {
@@ -15450,6 +15546,7 @@ var require_names = __commonJS({
 var require_errors3 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendErrors = exports.resetErrorsCount = exports.reportExtraError = exports.reportError = exports.keyword$DataError = exports.keywordError = void 0;
     var codegen_1 = require_codegen();
@@ -15572,6 +15669,7 @@ var require_errors3 = __commonJS({
 var require_boolSchema = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.boolOrEmptySchema = exports.topBoolOrEmptySchema = void 0;
     var errors_1 = require_errors3();
@@ -15623,6 +15721,7 @@ var require_boolSchema = __commonJS({
 var require_rules = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getRules = exports.isJSONType = void 0;
     var _jsonTypes = ["string", "number", "integer", "boolean", "null", "object", "array"];
@@ -15654,6 +15753,7 @@ var require_rules = __commonJS({
 var require_applicability = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.shouldUseRule = exports.shouldUseGroup = exports.schemaHasRulesForType = void 0;
     function schemaHasRulesForType({ schema, self }, type) {
@@ -15677,6 +15777,7 @@ var require_applicability = __commonJS({
 var require_dataType = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.reportTypeError = exports.checkDataTypes = exports.checkDataType = exports.coerceAndCheckDataType = exports.getJSONTypes = exports.getSchemaTypes = exports.DataType = void 0;
     var rules_1 = require_rules();
@@ -15861,6 +15962,7 @@ var require_dataType = __commonJS({
 var require_defaults = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.assignDefaults = void 0;
     var codegen_1 = require_codegen();
@@ -15898,6 +16000,7 @@ var require_defaults = __commonJS({
 var require_code2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateUnion = exports.validateArray = exports.usePattern = exports.callValidateCode = exports.schemaProperties = exports.allSchemaProperties = exports.noPropertyInData = exports.propertyInData = exports.isOwnProperty = exports.hasPropFunc = exports.reportMissingProp = exports.checkMissingProp = exports.checkReportMissingProp = void 0;
     var codegen_1 = require_codegen();
@@ -16031,6 +16134,7 @@ var require_code2 = __commonJS({
 var require_keyword = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateKeywordUsage = exports.validSchemaType = exports.funcKeywordCode = exports.macroKeywordCode = void 0;
     var codegen_1 = require_codegen();
@@ -16149,6 +16253,7 @@ var require_keyword = __commonJS({
 var require_subschema = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.extendSubschemaMode = exports.extendSubschemaData = exports.getSubschema = void 0;
     var codegen_1 = require_codegen();
@@ -16232,6 +16337,7 @@ var require_subschema = __commonJS({
 var require_fast_deep_equal = __commonJS({
   "../../node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = function equal(a, b) {
       if (a === b) return true;
       if (a && b && typeof a == "object" && typeof b == "object") {
@@ -16267,6 +16373,7 @@ var require_fast_deep_equal = __commonJS({
 var require_json_schema_traverse = __commonJS({
   "../../node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var traverse = module.exports = function(schema, opts, cb) {
       if (typeof opts == "function") {
         cb = opts;
@@ -16355,6 +16462,7 @@ var require_json_schema_traverse = __commonJS({
 var require_resolve = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getSchemaRefs = exports.resolveUrl = exports.normalizeId = exports._getFullPath = exports.getFullPath = exports.inlineRef = void 0;
     var util_1 = require_util();
@@ -16511,6 +16619,7 @@ var require_resolve = __commonJS({
 var require_validate = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getData = exports.KeywordCxt = exports.validateFunctionCode = void 0;
     var boolSchema_1 = require_boolSchema();
@@ -17019,6 +17128,7 @@ var require_validate = __commonJS({
 var require_validation_error = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var ValidationError = class extends Error {
       constructor(errors) {
@@ -17035,6 +17145,7 @@ var require_validation_error = __commonJS({
 var require_ref_error = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var resolve_1 = require_resolve();
     var MissingRefError = class extends Error {
@@ -17052,6 +17163,7 @@ var require_ref_error = __commonJS({
 var require_compile = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveSchema = exports.getCompilingSchema = exports.resolveRef = exports.compileSchema = exports.SchemaEnv = void 0;
     var codegen_1 = require_codegen();
@@ -17295,6 +17407,7 @@ var require_data = __commonJS({
 var require_utils = __commonJS({
   "../../node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/utils.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
     var isPort = RegExp.prototype.test.bind(/^\d*$/u);
@@ -17450,8 +17563,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path) {
-      let input2 = path;
+    function removeDotSegments(path2) {
+      let input2 = path2;
       const output2 = [];
       let nextSlash = -1;
       let len = 0;
@@ -17525,11 +17638,11 @@ var require_utils = __commonJS({
       }
       return output2.join("");
     }
-    function removeDotSegmentsRelative(path) {
-      if (path === "" || path[0] === "/") {
-        return removeDotSegments(path);
+    function removeDotSegmentsRelative(path2) {
+      if (path2 === "" || path2[0] === "/") {
+        return removeDotSegments(path2);
       }
-      const segments = path.split("/");
+      const segments = path2.split("/");
       const last = segments.length - 1;
       const output2 = [];
       let trailingDirectory = false;
@@ -17829,6 +17942,7 @@ var require_utils = __commonJS({
 var require_schemes = __commonJS({
   "../../node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/lib/schemes.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { isUUID } = require_utils();
     var URN_REG = /^([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-./:;=@]|%[\da-f]{2})+)$/iu;
     var supportedSchemeNames = (
@@ -17892,8 +18006,8 @@ var require_schemes = __commonJS({
       }
       if (wsComponent.resourceName) {
         const queryIndex = wsComponent.resourceName.indexOf("?");
-        const path = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
-        wsComponent.path = path && path !== "/" ? path : void 0;
+        const path2 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path2 && path2 !== "/" ? path2 : void 0;
         wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
         wsComponent.resourceName = void 0;
       }
@@ -18040,6 +18154,7 @@ var require_schemes = __commonJS({
 var require_fast_uri = __commonJS({
   "../../node_modules/.pnpm/fast-uri@3.1.9/node_modules/fast-uri/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { normalizeIPv6, removeDotSegments, removeDotSegmentsRelative, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils();
     var { SCHEMES, getSchemeHandler } = require_schemes();
     var VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u;
@@ -18470,6 +18585,7 @@ var require_fast_uri = __commonJS({
 var require_uri = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var uri = require_fast_uri();
     uri.code = 'require("ajv/dist/runtime/uri").default';
@@ -18481,6 +18597,7 @@ var require_uri = __commonJS({
 var require_core = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = void 0;
     var validate_1 = require_validate();
@@ -19092,6 +19209,7 @@ var require_core = __commonJS({
 var require_id = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var def = {
       keyword: "id",
@@ -19107,6 +19225,7 @@ var require_id = __commonJS({
 var require_ref = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.callRef = exports.getValidate = void 0;
     var ref_error_1 = require_ref_error();
@@ -19229,6 +19348,7 @@ var require_ref = __commonJS({
 var require_core2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var id_1 = require_id();
     var ref_1 = require_ref();
@@ -19250,6 +19370,7 @@ var require_core2 = __commonJS({
 var require_limitNumber = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var ops = codegen_1.operators;
@@ -19282,6 +19403,7 @@ var require_limitNumber = __commonJS({
 var require_multipleOf = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var error62 = {
@@ -19310,6 +19432,7 @@ var require_multipleOf = __commonJS({
 var require_ucs2length = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     function ucs2length(str) {
       const len = str.length;
@@ -19336,6 +19459,7 @@ var require_ucs2length = __commonJS({
 var require_limitLength = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -19368,6 +19492,7 @@ var require_limitLength = __commonJS({
 var require_pattern = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
     var util_1 = require_util();
@@ -19405,6 +19530,7 @@ var require_pattern = __commonJS({
 var require_limitProperties = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var error62 = {
@@ -19434,6 +19560,7 @@ var require_limitProperties = __commonJS({
 var require_required = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
     var codegen_1 = require_codegen();
@@ -19516,6 +19643,7 @@ var require_required = __commonJS({
 var require_limitItems = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var error62 = {
@@ -19545,6 +19673,7 @@ var require_limitItems = __commonJS({
 var require_equal = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var equal = require_fast_deep_equal();
     equal.code = 'require("ajv/dist/runtime/equal").default';
@@ -19556,6 +19685,7 @@ var require_equal = __commonJS({
 var require_uniqueItems = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var dataType_1 = require_dataType();
     var codegen_1 = require_codegen();
@@ -19623,6 +19753,7 @@ var require_uniqueItems = __commonJS({
 var require_const = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -19652,6 +19783,7 @@ var require_const = __commonJS({
 var require_enum = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -19701,6 +19833,7 @@ var require_enum = __commonJS({
 var require_validation2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var limitNumber_1 = require_limitNumber();
     var multipleOf_1 = require_multipleOf();
@@ -19739,6 +19872,7 @@ var require_validation2 = __commonJS({
 var require_additionalItems = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateAdditionalItems = void 0;
     var codegen_1 = require_codegen();
@@ -19792,6 +19926,7 @@ var require_additionalItems = __commonJS({
 var require_items = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateTuple = void 0;
     var codegen_1 = require_codegen();
@@ -19849,6 +19984,7 @@ var require_items = __commonJS({
 var require_prefixItems = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var items_1 = require_items();
     var def = {
@@ -19866,6 +20002,7 @@ var require_prefixItems = __commonJS({
 var require_items2020 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -19901,6 +20038,7 @@ var require_items2020 = __commonJS({
 var require_contains = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -19995,6 +20133,7 @@ var require_contains = __commonJS({
 var require_dependencies = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateSchemaDeps = exports.validatePropertyDeps = exports.error = void 0;
     var codegen_1 = require_codegen();
@@ -20089,6 +20228,7 @@ var require_dependencies = __commonJS({
 var require_propertyNames = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -20132,6 +20272,7 @@ var require_propertyNames = __commonJS({
 var require_additionalProperties = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
     var codegen_1 = require_codegen();
@@ -20238,6 +20379,7 @@ var require_additionalProperties = __commonJS({
 var require_properties = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var validate_1 = require_validate();
     var code_1 = require_code2();
@@ -20296,6 +20438,7 @@ var require_properties = __commonJS({
 var require_patternProperties = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
     var codegen_1 = require_codegen();
@@ -20370,6 +20513,7 @@ var require_patternProperties = __commonJS({
 var require_not = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
     var def = {
@@ -20401,6 +20545,7 @@ var require_not = __commonJS({
 var require_anyOf = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
     var def = {
@@ -20418,6 +20563,7 @@ var require_anyOf = __commonJS({
 var require_oneOf = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -20476,6 +20622,7 @@ var require_oneOf = __commonJS({
 var require_allOf = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
     var def = {
@@ -20503,6 +20650,7 @@ var require_allOf = __commonJS({
 var require_if = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var util_1 = require_util();
@@ -20572,6 +20720,7 @@ var require_if = __commonJS({
 var require_thenElse = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
     var def = {
@@ -20590,6 +20739,7 @@ var require_thenElse = __commonJS({
 var require_applicator = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var additionalItems_1 = require_additionalItems();
     var prefixItems_1 = require_prefixItems();
@@ -20638,6 +20788,7 @@ var require_applicator = __commonJS({
 var require_format = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var error62 = {
@@ -20728,6 +20879,7 @@ var require_format = __commonJS({
 var require_format2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var format_1 = require_format();
     var format = [format_1.default];
@@ -20739,6 +20891,7 @@ var require_format2 = __commonJS({
 var require_metadata = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.contentVocabulary = exports.metadataVocabulary = void 0;
     exports.metadataVocabulary = [
@@ -20762,6 +20915,7 @@ var require_metadata = __commonJS({
 var require_draft7 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var core_1 = require_core2();
     var validation_1 = require_validation2();
@@ -20784,6 +20938,7 @@ var require_draft7 = __commonJS({
 var require_types = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DiscrError = void 0;
     var DiscrError;
@@ -20798,6 +20953,7 @@ var require_types = __commonJS({
 var require_discriminator = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var types_1 = require_types();
@@ -21060,6 +21216,7 @@ var require_json_schema_draft_07 = __commonJS({
 var require_ajv = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv = void 0;
     var core_1 = require_core();
@@ -21130,6 +21287,7 @@ var require_ajv = __commonJS({
 var require_metadata2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/metadata.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.checkMetadata = void 0;
     var util_1 = require_util();
@@ -21160,6 +21318,7 @@ var require_metadata2 = __commonJS({
 var require_ref2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/ref.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.hasRef = void 0;
     var compile_1 = require_compile();
@@ -21231,6 +21390,7 @@ var require_ref2 = __commonJS({
 var require_timestamp = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/timestamp.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var DT_SEPARATOR = /t|\s/i;
     var DATE = /^(\d\d\d\d)-(\d\d)-(\d\d)$/;
@@ -21271,6 +21431,7 @@ var require_timestamp = __commonJS({
 var require_error2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/error.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.typeErrorParams = exports.typeErrorMessage = exports.typeError = void 0;
     var codegen_1 = require_codegen();
@@ -21296,6 +21457,7 @@ var require_error2 = __commonJS({
 var require_type = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/type.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.intRange = void 0;
     var codegen_1 = require_codegen();
@@ -21369,6 +21531,7 @@ var require_type = __commonJS({
 var require_nullable = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/nullable.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.checkNullableObject = exports.checkNullable = void 0;
     var codegen_1 = require_codegen();
@@ -21395,6 +21558,7 @@ var require_nullable = __commonJS({
 var require_enum2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/enum.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var metadata_1 = require_metadata2();
@@ -21441,6 +21605,7 @@ var require_enum2 = __commonJS({
 var require_elements = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/elements.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
     var code_1 = require_code2();
@@ -21470,6 +21635,7 @@ var require_elements = __commonJS({
 var require_properties2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/properties.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateProperties = exports.error = void 0;
     var code_1 = require_code2();
@@ -21605,6 +21771,7 @@ var require_properties2 = __commonJS({
 var require_optionalProperties = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/optionalProperties.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var properties_1 = require_properties2();
     var def = {
@@ -21625,6 +21792,7 @@ var require_optionalProperties = __commonJS({
 var require_discriminator2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/discriminator.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var codegen_1 = require_codegen();
     var metadata_1 = require_metadata2();
@@ -21695,6 +21863,7 @@ var require_discriminator2 = __commonJS({
 var require_values = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/values.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var util_1 = require_util();
     var codegen_1 = require_codegen();
@@ -21750,6 +21919,7 @@ var require_values = __commonJS({
 var require_union = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/union.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var code_1 = require_code2();
     var def = {
@@ -21767,6 +21937,7 @@ var require_union = __commonJS({
 var require_jtd = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/jtd/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var ref_1 = require_ref2();
     var type_1 = require_type();
@@ -21801,6 +21972,7 @@ var require_jtd = __commonJS({
 var require_jtd_schema = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/jtd-schema.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var shared = (root) => {
       const sch = {
@@ -21924,6 +22096,7 @@ var require_jtd_schema = __commonJS({
 var require_types2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/jtd/types.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.jtdForms = void 0;
     exports.jtdForms = [
@@ -21943,6 +22116,7 @@ var require_types2 = __commonJS({
 var require_quote = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/quote.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var rxEscapable = (
       // eslint-disable-next-line no-control-regex, no-misleading-character-class
@@ -21973,6 +22147,7 @@ var require_quote = __commonJS({
 var require_serialize = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/jtd/serialize.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var types_1 = require_types2();
     var __1 = require_compile();
@@ -22207,6 +22382,7 @@ var require_serialize = __commonJS({
 var require_parseJson = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/parseJson.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.parseJsonString = exports.parseJsonNumber = exports.parseJson = void 0;
     var rxParseJson = /position\s(\d+)(?: \(line \d+ column \d+\))?$/;
@@ -22384,6 +22560,7 @@ var require_parseJson = __commonJS({
 var require_parse = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/jtd/parse.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var types_1 = require_types2();
     var __1 = require_compile();
@@ -22733,6 +22910,7 @@ var require_parse = __commonJS({
 var require_jtd2 = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/jtd.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.MissingRefError = exports.ValidationError = exports.CodeGen = exports.Name = exports.nil = exports.stringify = exports.str = exports._ = exports.KeywordCxt = exports.Ajv = void 0;
     var core_1 = require_core();
@@ -22825,6 +23003,7 @@ var require_jtd2 = __commonJS({
 var require_utils2 = __commonJS({
   "../../node_modules/.pnpm/fast-uri@4.2.3/node_modules/fast-uri/lib/utils.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
     var isPort = RegExp.prototype.test.bind(/^\d*$/u);
@@ -22971,8 +23150,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path) {
-      let input2 = path;
+    function removeDotSegments(path2) {
+      let input2 = path2;
       const output2 = [];
       let nextSlash = -1;
       let len = 0;
@@ -23046,11 +23225,11 @@ var require_utils2 = __commonJS({
       }
       return output2.join("");
     }
-    function removeDotSegmentsRelative(path) {
-      if (path === "" || path[0] === "/") {
-        return removeDotSegments(path);
+    function removeDotSegmentsRelative(path2) {
+      if (path2 === "" || path2[0] === "/") {
+        return removeDotSegments(path2);
       }
-      const segments = path.split("/");
+      const segments = path2.split("/");
       const last = segments.length - 1;
       const output2 = [];
       let trailingDirectory = false;
@@ -23406,6 +23585,7 @@ var require_utils2 = __commonJS({
 var require_schemes2 = __commonJS({
   "../../node_modules/.pnpm/fast-uri@4.2.3/node_modules/fast-uri/lib/schemes.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { isUUID, BYTE_HEX, percentEncodeNonAscii, nonSimpleMailtoDomain } = require_utils2();
     var URN_REG = /^([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-./:;=@]|%[\da-f]{2})+)$/iu;
     var supportedSchemeNames = (
@@ -23470,8 +23650,8 @@ var require_schemes2 = __commonJS({
       }
       if (wsComponent.resourceName) {
         const queryIndex = wsComponent.resourceName.indexOf("?");
-        const path = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
-        wsComponent.path = path && path !== "/" ? path : void 0;
+        const path2 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path2 && path2 !== "/" ? path2 : void 0;
         wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
         wsComponent.resourceName = void 0;
       }
@@ -23868,6 +24048,7 @@ var require_schemes2 = __commonJS({
 var require_fast_uri2 = __commonJS({
   "../../node_modules/.pnpm/fast-uri@4.2.3/node_modules/fast-uri/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { normalizeIPv6, removeDotSegments, removeDotSegmentsRelative, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, encodeHost, isIPv4, nonSimpleDomain } = require_utils2();
     var { SCHEMES, getSchemeHandler } = require_schemes2();
     var VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u;
@@ -24334,6 +24515,7 @@ var require_fast_uri2 = __commonJS({
 var require_default_ajv_options = __commonJS({
   "../../node_modules/.pnpm/@fastify+ajv-compiler@4.0.7/node_modules/@fastify/ajv-compiler/lib/default-ajv-options.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fastUri = require_fast_uri2();
     module.exports = Object.freeze({
       coerceTypes: "array",
@@ -24352,6 +24534,7 @@ var require_default_ajv_options = __commonJS({
 var require_formats = __commonJS({
   "../../node_modules/.pnpm/ajv-formats@3.0.1/node_modules/ajv-formats/dist/formats.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatNames = exports.fastFormats = exports.fullFormats = void 0;
     function fmtDef(validate2, compare2) {
@@ -24555,6 +24738,7 @@ var require_formats = __commonJS({
 var require_limit = __commonJS({
   "../../node_modules/.pnpm/ajv-formats@3.0.1/node_modules/ajv-formats/dist/limit.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.formatLimitDefinition = void 0;
     var ajv_1 = require_ajv();
@@ -24627,6 +24811,7 @@ var require_limit = __commonJS({
 var require_dist = __commonJS({
   "../../node_modules/.pnpm/ajv-formats@3.0.1/node_modules/ajv-formats/dist/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var formats_1 = require_formats();
     var limit_1 = require_limit();
@@ -24669,6 +24854,7 @@ var require_dist = __commonJS({
 var require_validator_compiler = __commonJS({
   "../../node_modules/.pnpm/@fastify+ajv-compiler@4.0.7/node_modules/@fastify/ajv-compiler/lib/validator-compiler.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Ajv = require_ajv().default;
     var AjvJTD = require_jtd2();
     var defaultAjvOptions = require_default_ajv_options();
@@ -24721,6 +24907,7 @@ var require_validator_compiler = __commonJS({
 var require_serializer_compiler = __commonJS({
   "../../node_modules/.pnpm/@fastify+ajv-compiler@4.0.7/node_modules/@fastify/ajv-compiler/lib/serializer-compiler.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var AjvJTD = require_jtd2();
     var defaultAjvOptions = require_default_ajv_options();
     var SerializerCompiler = class {
@@ -24742,6 +24929,7 @@ var require_serializer_compiler = __commonJS({
 var require_standalone = __commonJS({
   "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/standalone/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     var scope_1 = require_scope();
     var code_1 = require_code();
@@ -24829,6 +25017,7 @@ var require_standalone = __commonJS({
 var require_standalone2 = __commonJS({
   "../../node_modules/.pnpm/@fastify+ajv-compiler@4.0.7/node_modules/@fastify/ajv-compiler/standalone.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var ValidatorSelector = require_ajv_compiler();
     var standaloneCode = require_standalone().default;
     function StandaloneValidator(options = { readMode: true }) {
@@ -24867,6 +25056,7 @@ var require_standalone2 = __commonJS({
 var require_ajv_compiler = __commonJS({
   "../../node_modules/.pnpm/@fastify+ajv-compiler@4.0.7/node_modules/@fastify/ajv-compiler/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var AjvReference = /* @__PURE__ */ Symbol.for("fastify.ajv-compiler.reference");
     var ValidatorCompiler = require_validator_compiler();
     var SerializerCompiler = require_serializer_compiler();
@@ -24916,6 +25106,7 @@ var require_ajv_compiler = __commonJS({
 var require_dist2 = __commonJS({
   "../../node_modules/.pnpm/dequal@2.0.3/node_modules/dequal/dist/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     var has = Object.prototype.hasOwnProperty;
     function find(iter, tar, key) {
       for (key of iter.keys()) {
@@ -24998,6 +25189,7 @@ var require_dist2 = __commonJS({
 var require_json_schema_ref_resolver = __commonJS({
   "../../node_modules/.pnpm/json-schema-ref-resolver@3.0.1/node_modules/json-schema-ref-resolver/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { dequal: deepEqual } = require_dist2();
     var jsonSchemaRefSymbol = /* @__PURE__ */ Symbol.for("json-schema-ref");
     var RefResolver = class {
@@ -25238,6 +25430,7 @@ var require_json_schema_ref_resolver = __commonJS({
 var require_validator = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/lib/validator.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Ajv = require_ajv();
     var { _ } = Ajv;
     var fastUri = require_fast_uri2();
@@ -25335,6 +25528,7 @@ var require_validator = __commonJS({
 var require_location = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/lib/location.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Location = class _Location {
       constructor(schema, schemaId, jsonPointer = "#") {
         this.schema = schema;
@@ -25363,6 +25557,7 @@ var require_location = __commonJS({
 var require_schema_validator = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/lib/schema-validator.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = validate10;
     module.exports.default = validate10;
     var schema11 = { "$schema": "http://json-schema.org/draft-07/schema#", "$id": "http://json-schema.org/draft-07/schema#", "title": "Core schema meta-schema", "definitions": { "schemaArray": { "type": "array", "minItems": 1, "items": { "$ref": "#" } }, "nonNegativeInteger": { "type": "integer", "minimum": 0 }, "nonNegativeIntegerDefault0": { "allOf": [{ "$ref": "#/definitions/nonNegativeInteger" }, { "default": 0 }] }, "simpleTypes": { "enum": ["array", "boolean", "integer", "null", "number", "object", "string"] }, "stringArray": { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "default": [] } }, "type": ["object", "boolean"], "properties": { "$id": { "type": "string", "format": "uri-reference" }, "$schema": { "type": "string", "format": "uri" }, "$ref": { "type": "string", "format": "uri-reference" }, "$comment": { "type": "string" }, "title": { "type": "string" }, "description": { "type": "string" }, "default": true, "readOnly": { "type": "boolean", "default": false }, "examples": { "type": "array", "items": true }, "multipleOf": { "type": "number", "exclusiveMinimum": 0 }, "maximum": { "type": "number" }, "exclusiveMaximum": { "type": "number" }, "minimum": { "type": "number" }, "exclusiveMinimum": { "type": "number" }, "maxLength": { "$ref": "#/definitions/nonNegativeInteger" }, "minLength": { "$ref": "#/definitions/nonNegativeIntegerDefault0" }, "pattern": { "type": "string", "format": "regex" }, "additionalItems": { "$ref": "#" }, "items": { "anyOf": [{ "$ref": "#" }, { "$ref": "#/definitions/schemaArray" }], "default": true }, "maxItems": { "$ref": "#/definitions/nonNegativeInteger" }, "minItems": { "$ref": "#/definitions/nonNegativeIntegerDefault0" }, "uniqueItems": { "type": "boolean", "default": false }, "contains": { "$ref": "#" }, "maxProperties": { "$ref": "#/definitions/nonNegativeInteger" }, "minProperties": { "$ref": "#/definitions/nonNegativeIntegerDefault0" }, "required": { "$ref": "#/definitions/stringArray" }, "additionalProperties": { "$ref": "#" }, "definitions": { "type": "object", "additionalProperties": { "$ref": "#" }, "default": {} }, "properties": { "type": "object", "additionalProperties": { "$ref": "#" }, "default": {} }, "patternProperties": { "type": "object", "additionalProperties": { "$ref": "#" }, "propertyNames": { "format": "regex" }, "default": {} }, "dependencies": { "type": "object", "additionalProperties": { "anyOf": [{ "$ref": "#" }, { "$ref": "#/definitions/stringArray" }] } }, "propertyNames": { "$ref": "#" }, "const": true, "enum": { "type": "array", "items": true, "minItems": 1, "uniqueItems": true }, "type": { "anyOf": [{ "$ref": "#/definitions/simpleTypes" }, { "type": "array", "items": { "$ref": "#/definitions/simpleTypes" }, "minItems": 1, "uniqueItems": true }] }, "format": { "type": "string" }, "contentMediaType": { "type": "string" }, "contentEncoding": { "type": "string" }, "if": { "$ref": "#" }, "then": { "$ref": "#" }, "else": { "$ref": "#" }, "allOf": { "$ref": "#/definitions/schemaArray" }, "anyOf": { "$ref": "#/definitions/schemaArray" }, "oneOf": { "$ref": "#/definitions/schemaArray" }, "not": { "$ref": "#" } }, "default": true };
@@ -26414,6 +26609,7 @@ var require_schema_validator = __commonJS({
 var require_errors4 = __commonJS({
   "../../node_modules/.pnpm/@fastify+merge-json-schemas@0.2.2/node_modules/@fastify/merge-json-schemas/lib/errors.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var MergeError = class extends Error {
       constructor(keyword, schemas) {
         super();
@@ -26452,6 +26648,7 @@ var require_errors4 = __commonJS({
 var require_resolvers = __commonJS({
   "../../node_modules/.pnpm/@fastify+merge-json-schemas@0.2.2/node_modules/@fastify/merge-json-schemas/lib/resolvers.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { dequal: deepEqual } = require_dist2();
     var { MergeError } = require_errors4();
     function _arraysIntersection(arrays) {
@@ -26566,6 +26763,7 @@ var require_resolvers = __commonJS({
 var require_merge_json_schemas = __commonJS({
   "../../node_modules/.pnpm/@fastify+merge-json-schemas@0.2.2/node_modules/@fastify/merge-json-schemas/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { dequal: deepEqual } = require_dist2();
     var resolvers = require_resolvers();
     var errors = require_errors4();
@@ -26870,6 +27068,7 @@ var require_merge_json_schemas = __commonJS({
 var require_merge_schemas = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/lib/merge-schemas.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { mergeSchemas: _mergeSchemas } = require_merge_json_schemas();
     function mergeSchemas(schemas) {
       return _mergeSchemas(schemas, { onConflict: "skip" });
@@ -26882,6 +27081,7 @@ var require_merge_schemas = __commonJS({
 var require_standalone3 = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/lib/standalone.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function buildStandaloneCode(contextFunc, context, serializer, validator) {
       let ajvDependencyCode = "";
       if (context.validatorSchemasIds.size > 0) {
@@ -26935,6 +27135,7 @@ var require_standalone3 = __commonJS({
 var require_fast_json_stringify = __commonJS({
   "../../node_modules/.pnpm/fast-json-stringify@7.1.3/node_modules/fast-json-stringify/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { RefResolver } = require_json_schema_ref_resolver();
     var Serializer = require_serializer();
     var Validator = require_validator();
@@ -27006,7 +27207,7 @@ const asInteger = serializer.asInteger.bind(serializer)
     }
     function assertObjectDepth(schema, maxDepth, name) {
       const stack = [{ value: schema, depth: 0, exit: false }];
-      const path = /* @__PURE__ */ new WeakSet();
+      const path2 = /* @__PURE__ */ new WeakSet();
       let hasRef = false;
       while (stack.length > 0) {
         const entry = stack.pop();
@@ -27016,13 +27217,13 @@ const asInteger = serializer.asInteger.bind(serializer)
           throw schemaDepthError(maxDepth, name);
         }
         if (entry.exit) {
-          path.delete(value);
+          path2.delete(value);
           continue;
         }
-        if (path.has(value)) {
+        if (path2.has(value)) {
           throw new Error("schema contains a circular object reference; use $ref instead");
         }
-        path.add(value);
+        path2.add(value);
         stack.push({ value, depth: entry.depth, exit: true });
         for (const key in value) {
           const child = value[key];
@@ -28351,6 +28552,7 @@ ${contextFunctionCode}`,
 var require_standalone4 = __commonJS({
   "../../node_modules/.pnpm/@fastify+fast-json-stringify-compiler@5.1.1/node_modules/@fastify/fast-json-stringify-compiler/standalone.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fastJsonStringify = require_fast_json_stringify();
     function SerializerSelector() {
       return function buildSerializerFactory(externalSchemas, serializerOpts) {
@@ -28403,6 +28605,7 @@ var require_standalone4 = __commonJS({
 var require_fast_json_stringify_compiler = __commonJS({
   "../../node_modules/.pnpm/@fastify+fast-json-stringify-compiler@5.1.1/node_modules/@fastify/fast-json-stringify-compiler/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { SerializerSelector, StandaloneSerializer } = require_standalone4();
     module.exports = SerializerSelector;
     module.exports.default = SerializerSelector;
@@ -28415,6 +28618,7 @@ var require_fast_json_stringify_compiler = __commonJS({
 var require_schema_controller = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/schema-controller.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { buildSchemas } = require_schemas();
     function buildSchemaController(parentSchemaCtrl, opts) {
       if (parentSchemaCtrl) {
@@ -28533,6 +28737,7 @@ var require_schema_controller = __commonJS({
 var require_constants2 = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/internal/constants.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SEMVER_SPEC_VERSION = "2.0.0";
     var MAX_LENGTH = 256;
     var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || /* istanbul ignore next */
@@ -28565,6 +28770,7 @@ var require_constants2 = __commonJS({
 var require_debug2 = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/internal/debug.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var debug = typeof process === "object" && process.env && process.env.NODE_DEBUG && /\bsemver\b/i.test(process.env.NODE_DEBUG) ? (...args) => console.error("SEMVER", ...args) : () => {
     };
     module.exports = debug;
@@ -28575,6 +28781,7 @@ var require_debug2 = __commonJS({
 var require_re = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/internal/re.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       MAX_SAFE_COMPONENT_LENGTH,
       MAX_SAFE_BUILD_LENGTH,
@@ -28663,6 +28870,7 @@ var require_re = __commonJS({
 var require_parse_options = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/internal/parse-options.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var looseOption = Object.freeze({ loose: true });
     var emptyOpts = Object.freeze({});
     var parseOptions = (options) => {
@@ -28682,6 +28890,7 @@ var require_parse_options = __commonJS({
 var require_identifiers = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/internal/identifiers.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var numeric2 = /^[0-9]+$/;
     var compareIdentifiers = (a, b) => {
       if (typeof a === "number" && typeof b === "number") {
@@ -28707,6 +28916,7 @@ var require_identifiers = __commonJS({
 var require_semver = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/classes/semver.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var debug = require_debug2();
     var { MAX_LENGTH, MAX_SAFE_INTEGER } = require_constants2();
     var { safeRe: re, t } = require_re();
@@ -28999,6 +29209,7 @@ var require_semver = __commonJS({
 var require_parse2 = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/parse.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var parse3 = (version3, options, throwErrors = false) => {
       if (version3 instanceof SemVer) {
@@ -29021,6 +29232,7 @@ var require_parse2 = __commonJS({
 var require_valid = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/valid.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_parse2();
     var valid = (version3, options) => {
       const v = parse3(version3, options);
@@ -29034,6 +29246,7 @@ var require_valid = __commonJS({
 var require_clean = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/clean.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_parse2();
     var clean = (version3, options) => {
       const s = parse3(version3.trim().replace(/^[=v]+/, ""), options);
@@ -29047,6 +29260,7 @@ var require_clean = __commonJS({
 var require_inc = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/inc.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var inc = (version3, release, options, identifier, identifierBase) => {
       if (typeof options === "string") {
@@ -29071,6 +29285,7 @@ var require_inc = __commonJS({
 var require_diff = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/diff.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_parse2();
     var diff = (version1, version22) => {
       const v1 = parse3(version1, null, true);
@@ -29115,6 +29330,7 @@ var require_diff = __commonJS({
 var require_major = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/major.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var major = (a, loose) => new SemVer(a, loose).major;
     module.exports = major;
@@ -29125,6 +29341,7 @@ var require_major = __commonJS({
 var require_minor = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/minor.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var minor = (a, loose) => new SemVer(a, loose).minor;
     module.exports = minor;
@@ -29135,6 +29352,7 @@ var require_minor = __commonJS({
 var require_patch = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/patch.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var patch = (a, loose) => new SemVer(a, loose).patch;
     module.exports = patch;
@@ -29145,6 +29363,7 @@ var require_patch = __commonJS({
 var require_prerelease = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/prerelease.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_parse2();
     var prerelease = (version3, options) => {
       const parsed = parse3(version3, options);
@@ -29158,6 +29377,7 @@ var require_prerelease = __commonJS({
 var require_compare = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/compare.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var compare2 = (a, b, loose) => new SemVer(a, loose).compare(new SemVer(b, loose));
     module.exports = compare2;
@@ -29168,6 +29388,7 @@ var require_compare = __commonJS({
 var require_rcompare = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/rcompare.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var rcompare = (a, b, loose) => compare2(b, a, loose);
     module.exports = rcompare;
@@ -29178,6 +29399,7 @@ var require_rcompare = __commonJS({
 var require_compare_loose = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/compare-loose.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var compareLoose = (a, b) => compare2(a, b, true);
     module.exports = compareLoose;
@@ -29188,6 +29410,7 @@ var require_compare_loose = __commonJS({
 var require_compare_build = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/compare-build.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var compareBuild = (a, b, loose) => {
       const versionA = new SemVer(a, loose);
@@ -29202,6 +29425,7 @@ var require_compare_build = __commonJS({
 var require_sort = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/sort.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compareBuild = require_compare_build();
     var sort = (list, loose) => list.sort((a, b) => compareBuild(a, b, loose));
     module.exports = sort;
@@ -29212,6 +29436,7 @@ var require_sort = __commonJS({
 var require_rsort = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/rsort.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compareBuild = require_compare_build();
     var rsort = (list, loose) => list.sort((a, b) => compareBuild(b, a, loose));
     module.exports = rsort;
@@ -29222,6 +29447,7 @@ var require_rsort = __commonJS({
 var require_gt = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/gt.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var gt2 = (a, b, loose) => compare2(a, b, loose) > 0;
     module.exports = gt2;
@@ -29232,6 +29458,7 @@ var require_gt = __commonJS({
 var require_lt = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/lt.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var lt2 = (a, b, loose) => compare2(a, b, loose) < 0;
     module.exports = lt2;
@@ -29242,6 +29469,7 @@ var require_lt = __commonJS({
 var require_eq = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/eq.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var eq2 = (a, b, loose) => compare2(a, b, loose) === 0;
     module.exports = eq2;
@@ -29252,6 +29480,7 @@ var require_eq = __commonJS({
 var require_neq = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/neq.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var neq = (a, b, loose) => compare2(a, b, loose) !== 0;
     module.exports = neq;
@@ -29262,6 +29491,7 @@ var require_neq = __commonJS({
 var require_gte = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/gte.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var gte2 = (a, b, loose) => compare2(a, b, loose) >= 0;
     module.exports = gte2;
@@ -29272,6 +29502,7 @@ var require_gte = __commonJS({
 var require_lte = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/lte.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var compare2 = require_compare();
     var lte2 = (a, b, loose) => compare2(a, b, loose) <= 0;
     module.exports = lte2;
@@ -29282,6 +29513,7 @@ var require_lte = __commonJS({
 var require_cmp = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/cmp.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var eq2 = require_eq();
     var neq = require_neq();
     var gt2 = require_gt();
@@ -29332,6 +29564,7 @@ var require_cmp = __commonJS({
 var require_coerce = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/coerce.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var parse3 = require_parse2();
     var { safeRe: re, t } = require_re();
@@ -29378,6 +29611,7 @@ var require_coerce = __commonJS({
 var require_truncate = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/truncate.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_parse2();
     var constants = require_constants2();
     var SemVer = require_semver();
@@ -29419,6 +29653,7 @@ var require_truncate = __commonJS({
 var require_lrucache = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/internal/lrucache.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var LRUCache = class {
       constructor() {
         this.max = 1e3;
@@ -29457,6 +29692,7 @@ var require_lrucache = __commonJS({
 var require_range = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/classes/range.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SPACE_CHARACTERS = /\s+/g;
     var Range = class _Range {
       constructor(range, options) {
@@ -29842,6 +30078,7 @@ var require_range = __commonJS({
 var require_comparator = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/classes/comparator.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var ANY = /* @__PURE__ */ Symbol("SemVer ANY");
     var Comparator = class _Comparator {
       static get ANY() {
@@ -29955,6 +30192,7 @@ var require_comparator = __commonJS({
 var require_satisfies = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/functions/satisfies.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Range = require_range();
     var satisfies = (version3, range, options) => {
       try {
@@ -29972,6 +30210,7 @@ var require_satisfies = __commonJS({
 var require_to_comparators = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/to-comparators.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Range = require_range();
     var toComparators = (range, options) => new Range(range, options).set.map((comp) => comp.map((c) => c.value).join(" ").trim().split(" "));
     module.exports = toComparators;
@@ -29982,6 +30221,7 @@ var require_to_comparators = __commonJS({
 var require_max_satisfying = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/max-satisfying.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var Range = require_range();
     var maxSatisfying = (versions, range, options) => {
@@ -30011,6 +30251,7 @@ var require_max_satisfying = __commonJS({
 var require_min_satisfying = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/min-satisfying.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var Range = require_range();
     var minSatisfying = (versions, range, options) => {
@@ -30040,6 +30281,7 @@ var require_min_satisfying = __commonJS({
 var require_min_version = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/min-version.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var Range = require_range();
     var gt2 = require_gt();
@@ -30099,6 +30341,7 @@ var require_min_version = __commonJS({
 var require_valid2 = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/valid.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Range = require_range();
     var validRange = (range, options) => {
       try {
@@ -30115,6 +30358,7 @@ var require_valid2 = __commonJS({
 var require_outside = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/outside.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var SemVer = require_semver();
     var Comparator = require_comparator();
     var { ANY } = Comparator;
@@ -30184,6 +30428,7 @@ var require_outside = __commonJS({
 var require_gtr = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/gtr.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var outside = require_outside();
     var gtr = (version3, range, options) => outside(version3, range, ">", options);
     module.exports = gtr;
@@ -30194,6 +30439,7 @@ var require_gtr = __commonJS({
 var require_ltr = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/ltr.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var outside = require_outside();
     var ltr = (version3, range, options) => outside(version3, range, "<", options);
     module.exports = ltr;
@@ -30204,6 +30450,7 @@ var require_ltr = __commonJS({
 var require_intersects = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/intersects.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Range = require_range();
     var intersects = (r1, r2, options) => {
       r1 = new Range(r1, options);
@@ -30218,6 +30465,7 @@ var require_intersects = __commonJS({
 var require_simplify = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/simplify.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var satisfies = require_satisfies();
     var compare2 = require_compare();
     module.exports = (versions, range, options) => {
@@ -30268,6 +30516,7 @@ var require_simplify = __commonJS({
 var require_subset = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/ranges/subset.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Range = require_range();
     var Comparator = require_comparator();
     var { ANY } = Comparator;
@@ -30430,6 +30679,7 @@ var require_subset = __commonJS({
 var require_semver2 = __commonJS({
   "../../node_modules/.pnpm/semver@7.8.5/node_modules/semver/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var internalRe = require_re();
     var constants = require_constants2();
     var SemVer = require_semver();
@@ -30527,6 +30777,7 @@ var require_semver2 = __commonJS({
 var require_plugin_utils = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/plugin-utils.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var semver = require_semver2();
     var assert2 = __require("assert");
     var kRegisteredPlugins = /* @__PURE__ */ Symbol.for("registered-plugin");
@@ -30661,6 +30912,7 @@ var require_plugin_utils = __commonJS({
 var require_req_id_gen_factory = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/req-id-gen-factory.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { kGenReqId } = require_symbols2();
     function reqIdGenFactory(requestIdHeader, optGenReqId) {
       const genReqId = optGenReqId || buildDefaultGenReqId();
@@ -30696,6 +30948,7 @@ var require_req_id_gen_factory = __commonJS({
 var require_fast_decode_uri_component = __commonJS({
   "../../node_modules/.pnpm/fast-decode-uri-component@1.0.1/node_modules/fast-decode-uri-component/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var UTF8_ACCEPT = 12;
     var UTF8_REJECT = 0;
     var UTF8_DATA = [
@@ -31152,6 +31405,7 @@ var require_fast_decode_uri_component = __commonJS({
 var require_parse3 = __commonJS({
   "../../node_modules/.pnpm/fast-querystring@1.1.2/node_modules/fast-querystring/lib/parse.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fastDecode = require_fast_decode_uri_component();
     var plusRegex = /\+/g;
     var Empty = function() {
@@ -31245,6 +31499,7 @@ var require_parse3 = __commonJS({
 var require_querystring = __commonJS({
   "../../node_modules/.pnpm/fast-querystring@1.1.2/node_modules/fast-querystring/lib/internals/querystring.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var hexTable = Array.from(
       { length: 256 },
       (_, i) => "%" + ((i < 16 ? "0" : "") + i.toString(16)).toUpperCase()
@@ -31436,6 +31691,7 @@ var require_querystring = __commonJS({
 var require_stringify = __commonJS({
   "../../node_modules/.pnpm/fast-querystring@1.1.2/node_modules/fast-querystring/lib/stringify.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { encodeString } = require_querystring();
     function getAsPrimitive(value) {
       const type = typeof value;
@@ -31490,6 +31746,7 @@ var require_stringify = __commonJS({
 var require_lib = __commonJS({
   "../../node_modules/.pnpm/fast-querystring@1.1.2/node_modules/fast-querystring/lib/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_parse3();
     var stringify = require_stringify();
     var fastQuerystring = {
@@ -31507,6 +31764,7 @@ var require_lib = __commonJS({
 var require_tokens = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/types/tokens.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
   }
 });
@@ -31515,6 +31773,7 @@ var require_tokens = __commonJS({
 var require_types3 = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/types/types.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.types = void 0;
     var types3;
@@ -31535,6 +31794,7 @@ var require_types3 = __commonJS({
 var require_set_lookup = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/types/set-lookup.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
   }
 });
@@ -31543,6 +31803,7 @@ var require_set_lookup = __commonJS({
 var require_types4 = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/types/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc2 = Object.getOwnPropertyDescriptor(m, k);
@@ -31570,6 +31831,7 @@ var require_types4 = __commonJS({
 var require_sets = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/sets.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.anyChar = exports.notWhitespace = exports.whitespace = exports.notInts = exports.ints = exports.notWords = exports.words = void 0;
     var types_1 = require_types4();
@@ -31624,6 +31886,7 @@ var require_sets = __commonJS({
 var require_util2 = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/util.js"(exports) {
     "use strict";
+    init_esm_shims();
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc2 = Object.getOwnPropertyDescriptor(m, k);
@@ -31711,6 +31974,7 @@ var require_util2 = __commonJS({
 var require_tokenizer = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/tokenizer.js"(exports) {
     "use strict";
+    init_esm_shims();
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc2 = Object.getOwnPropertyDescriptor(m, k);
@@ -32024,6 +32288,7 @@ var require_tokenizer = __commonJS({
 var require_sets_lookup = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/sets-lookup.js"(exports) {
     "use strict";
+    init_esm_shims();
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc2 = Object.getOwnPropertyDescriptor(m, k);
@@ -32093,6 +32358,7 @@ var require_sets_lookup = __commonJS({
 var require_write_set_tokens = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/write-set-tokens.js"(exports) {
     "use strict";
+    init_esm_shims();
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc2 = Object.getOwnPropertyDescriptor(m, k);
@@ -32192,6 +32458,7 @@ var require_write_set_tokens = __commonJS({
 var require_reconstruct = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/reconstruct.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.reconstruct = void 0;
     var types_1 = require_types4();
@@ -32260,6 +32527,7 @@ var require_reconstruct = __commonJS({
 var require_dist3 = __commonJS({
   "../../node_modules/.pnpm/ret@0.5.1/node_modules/ret/dist/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc2 = Object.getOwnPropertyDescriptor(m, k);
@@ -32298,6 +32566,7 @@ var require_dist3 = __commonJS({
 var require_safe_regex2 = __commonJS({
   "../../node_modules/.pnpm/safe-regex2@5.1.2/node_modules/safe-regex2/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parse3 = require_dist3();
     var { types: types3 } = require_dist3();
     function walk(node2, opts, starHeight) {
@@ -32351,6 +32620,7 @@ var require_safe_regex2 = __commonJS({
 var require_http_method = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/strategies/http-method.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = {
       name: "__fmw_internal_strategy_merged_tree_http_method__",
       storage: function() {
@@ -32375,6 +32645,7 @@ var require_http_method = __commonJS({
 var require_pretty_print = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/pretty-print.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var deepEqual = require_fast_deep_equal();
     var httpMethodStrategy = require_http_method();
     var treeDataSymbol = /* @__PURE__ */ Symbol("treeData");
@@ -32519,6 +32790,7 @@ ${prefix}`);
 var require_null_object = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/null-object.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var NullObject2 = function() {
     };
     NullObject2.prototype = /* @__PURE__ */ Object.create(null);
@@ -32532,6 +32804,7 @@ var require_null_object = __commonJS({
 var require_handler_storage = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/handler-storage.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { NullObject: NullObject2 } = require_null_object();
     var httpMethodStrategy = require_http_method();
     var HandlerStorage = class {
@@ -32677,6 +32950,7 @@ var require_handler_storage = __commonJS({
 var require_node = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/node.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var HandlerStorage = require_handler_storage();
     var NODE_TYPES = {
       STATIC: 0,
@@ -32692,8 +32966,8 @@ var require_node = __commonJS({
         return matchSingleCharPrefix;
       }
       if (prefix.length >= LONG_PREFIX_MIN_LENGTH) {
-        return function matchLongPrefix(path, i) {
-          return path.indexOf(prefix, i) === i;
+        return function matchLongPrefix(path2, i) {
+          return path2.indexOf(prefix, i) === i;
         };
       }
       const lines = [];
@@ -32742,13 +33016,13 @@ return ${lines.join(" && ")}`);
           this.staticChildrenNodes[index2] = node2;
         }
       }
-      findStaticMatchingChild(path, pathIndex) {
-        const charCode = path.charCodeAt(pathIndex);
+      findStaticMatchingChild(path2, pathIndex) {
+        const charCode = path2.charCodeAt(pathIndex);
         const charCodes = this.staticChildrenCharCodes;
         for (let i = 0; i < charCodes.length; i++) {
           if (charCodes[i] === charCode) {
             const staticChild = this.staticChildrenNodes[i];
-            if (staticChild.matchPrefix(path, pathIndex)) {
+            if (staticChild.matchPrefix(path2, pathIndex)) {
               return staticChild;
             }
             return null;
@@ -32756,34 +33030,34 @@ return ${lines.join(" && ")}`);
         }
         return null;
       }
-      getStaticChild(path, pathIndex = 0) {
-        if (path.length === pathIndex) {
+      getStaticChild(path2, pathIndex = 0) {
+        if (path2.length === pathIndex) {
           return this;
         }
-        const staticChild = this.findStaticMatchingChild(path, pathIndex);
+        const staticChild = this.findStaticMatchingChild(path2, pathIndex);
         if (staticChild) {
-          return staticChild.getStaticChild(path, pathIndex + staticChild.prefix.length);
+          return staticChild.getStaticChild(path2, pathIndex + staticChild.prefix.length);
         }
         return null;
       }
-      createStaticChild(path) {
-        if (path.length === 0) {
+      createStaticChild(path2) {
+        if (path2.length === 0) {
           return this;
         }
-        const childIndex = this.staticChildrenCharCodes.indexOf(path.charCodeAt(0));
+        const childIndex = this.staticChildrenCharCodes.indexOf(path2.charCodeAt(0));
         let staticChild = childIndex === -1 ? void 0 : this.staticChildrenNodes[childIndex];
         if (staticChild) {
           let i = 1;
           for (; i < staticChild.prefix.length; i++) {
-            if (path.charCodeAt(i) !== staticChild.prefix.charCodeAt(i)) {
+            if (path2.charCodeAt(i) !== staticChild.prefix.charCodeAt(i)) {
               staticChild = staticChild.split(this, i);
               break;
             }
           }
-          return staticChild.createStaticChild(path.slice(i));
+          return staticChild.createStaticChild(path2.slice(i));
         }
-        const node2 = createStaticNode(path);
-        this.setStaticChild(path.charAt(0), node2);
+        const node2 = createStaticNode(path2);
+        this.setStaticChild(path2.charAt(0), node2);
         return node2;
       }
       getParametricChild(regex) {
@@ -32827,8 +33101,8 @@ return ${lines.join(" && ")}`);
       // static child, then the first parametric child, then the wildcard. Every
       // sibling that is skipped over is pushed on nodeStack as a flat triple
       // (node, pathIndex, paramsCount) so lookup can backtrack to it later.
-      getNextNode(path, pathIndex, nodeStack, paramsCount) {
-        let node2 = this.findStaticMatchingChild(path, pathIndex);
+      getNextNode(path2, pathIndex, nodeStack, paramsCount) {
+        let node2 = this.findStaticMatchingChild(path2, pathIndex);
         let parametricBrotherNodeIndex = 0;
         if (node2 === null) {
           if (this.parametricChildren.length === 0) {
@@ -32873,6 +33147,7 @@ return ${lines.join(" && ")}`);
 var require_url_sanitizer = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/url-sanitizer.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var DECODE_COMPONENT_TABLE = new Uint8Array(768);
     for (const [encoded, char2] of [
       ["%23", "#"],
@@ -32911,62 +33186,62 @@ var require_url_sanitizer = __commonJS({
       return String.fromCharCode(charCode);
     }
     var MIN_NATIVE_SCAN_LENGTH = 12;
-    function safeDecodeURI(path, useSemicolonDelimiter) {
-      if (path.length >= MIN_NATIVE_SCAN_LENGTH) {
-        return safeDecodeURINativeScan(path, useSemicolonDelimiter);
+    function safeDecodeURI(path2, useSemicolonDelimiter) {
+      if (path2.length >= MIN_NATIVE_SCAN_LENGTH) {
+        return safeDecodeURINativeScan(path2, useSemicolonDelimiter);
       }
-      return safeDecodeURICharScan(path, useSemicolonDelimiter, 1);
+      return safeDecodeURICharScan(path2, useSemicolonDelimiter, 1);
     }
-    function safeDecodeURINativeScan(path, useSemicolonDelimiter) {
-      const percentIndex = path.indexOf("%", 1);
-      let delimIndex = path.indexOf("?", 1);
-      const hashIndex = path.indexOf("#", 1);
+    function safeDecodeURINativeScan(path2, useSemicolonDelimiter) {
+      const percentIndex = path2.indexOf("%", 1);
+      let delimIndex = path2.indexOf("?", 1);
+      const hashIndex = path2.indexOf("#", 1);
       if (hashIndex !== -1 && (delimIndex === -1 || hashIndex < delimIndex)) {
         delimIndex = hashIndex;
       }
       if (useSemicolonDelimiter) {
-        const semicolonIndex = path.indexOf(";", 1);
+        const semicolonIndex = path2.indexOf(";", 1);
         if (semicolonIndex !== -1 && (delimIndex === -1 || semicolonIndex < delimIndex)) {
           delimIndex = semicolonIndex;
         }
       }
       if (percentIndex === -1 || delimIndex !== -1 && percentIndex > delimIndex) {
         if (delimIndex === -1) {
-          return { path, querystring: "", shouldDecodeParam: false };
+          return { path: path2, querystring: "", shouldDecodeParam: false };
         }
         return {
-          path: path.slice(0, delimIndex),
-          querystring: path.slice(delimIndex + 1),
+          path: path2.slice(0, delimIndex),
+          querystring: path2.slice(delimIndex + 1),
           shouldDecodeParam: false
         };
       }
-      return safeDecodeURIPercentScan(path, useSemicolonDelimiter, percentIndex);
+      return safeDecodeURIPercentScan(path2, useSemicolonDelimiter, percentIndex);
     }
-    function safeDecodeURICharScan(path, useSemicolonDelimiter, startIndex) {
-      for (let i = startIndex; i < path.length; i++) {
-        const charCode = path.charCodeAt(i);
+    function safeDecodeURICharScan(path2, useSemicolonDelimiter, startIndex) {
+      for (let i = startIndex; i < path2.length; i++) {
+        const charCode = path2.charCodeAt(i);
         if (charCode === 37) {
-          return safeDecodeURIPercentScan(path, useSemicolonDelimiter, i);
+          return safeDecodeURIPercentScan(path2, useSemicolonDelimiter, i);
         } else if (charCode === 63 || charCode === 35 || charCode === 59 && useSemicolonDelimiter) {
           return {
-            path: path.slice(0, i),
-            querystring: path.slice(i + 1),
+            path: path2.slice(0, i),
+            querystring: path2.slice(i + 1),
             shouldDecodeParam: false
           };
         }
       }
-      return { path, querystring: "", shouldDecodeParam: false };
+      return { path: path2, querystring: "", shouldDecodeParam: false };
     }
-    function safeDecodeURIPercentScan(path, useSemicolonDelimiter, startIndex) {
+    function safeDecodeURIPercentScan(path2, useSemicolonDelimiter, startIndex) {
       let shouldDecode = false;
       let shouldDecodeParam = false;
       let querystring = "";
       let percentIndexes = null;
       let pathEnd = -1;
-      for (let i = startIndex; i < path.length; i++) {
-        const charCode = path.charCodeAt(i);
+      for (let i = startIndex; i < path2.length; i++) {
+        const charCode = path2.charCodeAt(i);
         if (charCode === 37) {
-          const componentCharCode = decodeComponentCharCode(path.charCodeAt(i + 1), path.charCodeAt(i + 2));
+          const componentCharCode = decodeComponentCharCode(path2.charCodeAt(i + 1), path2.charCodeAt(i + 2));
           if (componentCharCode === 0) {
             shouldDecode = true;
           } else {
@@ -32979,22 +33254,22 @@ var require_url_sanitizer = __commonJS({
             i += 2;
           }
         } else if (charCode === 63 || charCode === 35 || charCode === 59 && useSemicolonDelimiter) {
-          querystring = path.slice(i + 1);
+          querystring = path2.slice(i + 1);
           pathEnd = i;
           break;
         }
       }
       let decodedPath;
       if (percentIndexes === null) {
-        decodedPath = pathEnd === -1 ? path : path.slice(0, pathEnd);
+        decodedPath = pathEnd === -1 ? path2 : path2.slice(0, pathEnd);
       } else {
         const parts = [];
         let last = 0;
         for (const index2 of percentIndexes) {
-          parts.push(path.slice(last, index2), "%2525");
+          parts.push(path2.slice(last, index2), "%2525");
           last = index2 + 3;
         }
-        parts.push(path.slice(last, pathEnd === -1 ? path.length : pathEnd));
+        parts.push(path2.slice(last, pathEnd === -1 ? path2.length : pathEnd));
         decodedPath = parts.join("");
       }
       if (shouldDecode) decodedPath = decodeURI(decodedPath);
@@ -33024,6 +33299,7 @@ var require_url_sanitizer = __commonJS({
 var require_compiler = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/compiler.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { NODE_TYPES } = require_node();
     var { NullObject: NullObject2 } = require_null_object();
     var { safeDecodeURIComponent } = require_url_sanitizer();
@@ -33503,14 +33779,14 @@ var require_compiler = __commonJS({
     }
     function compileTree(router, root) {
       const sanitized = new TreeCompiler(router, false).compile(root, null);
-      const slow = function findSanitized(path, derivedConstraints) {
-        return router._findSanitized(sanitized, path, derivedConstraints);
+      const slow = function findSanitized(path2, derivedConstraints) {
+        return router._findSanitized(sanitized, path2, derivedConstraints);
       };
       if (!supportsRawMatching(router, root)) {
         return {
           find: slow,
-          lookup: function lookupSanitized(path, derivedConstraints, req, res, ctx) {
-            return router.callHandler(slow(path, derivedConstraints), req, res, ctx);
+          lookup: function lookupSanitized(path2, derivedConstraints, req, res, ctx) {
+            return router.callHandler(slow(path2, derivedConstraints), req, res, ctx);
           }
         };
       }
@@ -33527,6 +33803,7 @@ var require_compiler = __commonJS({
 var require_accept_version = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/strategies/accept-version.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var assert2 = __require("assert");
     function SemVerStore() {
       if (!(this instanceof SemVerStore)) {
@@ -33585,6 +33862,7 @@ var require_accept_version = __commonJS({
 var require_accept_host = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/strategies/accept-host.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var assert2 = __require("assert");
     var REGEX_CACHE_MAX_SIZE = 1e3;
     var REGEX_CACHE_EVICTION_SIZE = REGEX_CACHE_MAX_SIZE / 2;
@@ -33643,6 +33921,7 @@ var require_accept_host = __commonJS({
 var require_constrainer = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/constrainer.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var acceptVersionStrategy = require_accept_version();
     var acceptHostStrategy = require_accept_host();
     var assert2 = __require("assert");
@@ -33792,6 +34071,7 @@ var require_constrainer = __commonJS({
 var require_http_methods = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/lib/http-methods.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var httpMethods = [
       "ACL",
       "BIND",
@@ -33837,6 +34117,7 @@ var require_http_methods = __commonJS({
 var require_find_my_way = __commonJS({
   "../../node_modules/.pnpm/find-my-way@9.10.0/node_modules/find-my-way/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var assert2 = __require("assert");
     var querystring = require_lib();
     var isRegexSafe = require_safe_regex2();
@@ -33910,7 +34191,7 @@ var require_find_my_way = __commonJS({
       const byPattern = router._routesByMethodAndPattern.get(method);
       return byPattern === void 0 ? void 0 : byPattern.get(pattern);
     }
-    Router.prototype.on = function on(method, path, opts, handler2, store) {
+    Router.prototype.on = function on(method, path2, opts, handler2, store) {
       if (typeof opts === "function") {
         if (handler2 !== void 0) {
           store = handler2;
@@ -33918,34 +34199,34 @@ var require_find_my_way = __commonJS({
         handler2 = opts;
         opts = {};
       }
-      assert2(typeof path === "string", "Path should be a string");
-      assert2(path.length > 0, "The path could not be empty");
-      assert2(path[0] === "/" || path[0] === "*", "The first character of a path should be `/` or `*`");
+      assert2(typeof path2 === "string", "Path should be a string");
+      assert2(path2.length > 0, "The path could not be empty");
+      assert2(path2[0] === "/" || path2[0] === "*", "The first character of a path should be `/` or `*`");
       assert2(typeof handler2 === "function", "Handler should be a function");
-      const optionalParamMatch = path.match(OPTIONAL_PARAM_REGEXP);
+      const optionalParamMatch = path2.match(OPTIONAL_PARAM_REGEXP);
       if (optionalParamMatch) {
-        assert2(path.length === optionalParamMatch.index + optionalParamMatch[0].length, "Optional Parameter needs to be the last parameter of the path");
-        const pathFull = path.replace(OPTIONAL_PARAM_REGEXP, "$1$2");
-        const pathOptional = path.replace(OPTIONAL_PARAM_REGEXP, "$2") || "/";
+        assert2(path2.length === optionalParamMatch.index + optionalParamMatch[0].length, "Optional Parameter needs to be the last parameter of the path");
+        const pathFull = path2.replace(OPTIONAL_PARAM_REGEXP, "$1$2");
+        const pathOptional = path2.replace(OPTIONAL_PARAM_REGEXP, "$2") || "/";
         this.on(method, pathFull, opts, handler2, store);
         this.on(method, pathOptional, opts, handler2, store);
         return;
       }
-      const route = path;
+      const route = path2;
       if (this.ignoreDuplicateSlashes) {
-        path = removeDuplicateSlashes(path);
+        path2 = removeDuplicateSlashes(path2);
       }
       if (this.ignoreTrailingSlash) {
-        path = trimLastSlash(path);
+        path2 = trimLastSlash(path2);
       }
       const methods = Array.isArray(method) ? method : [method];
       for (const method2 of methods) {
         assert2(typeof method2 === "string", "Method should be a string");
         assert2(httpMethods.includes(method2), `Method '${method2}' is not an http method.`);
-        this._on(method2, path, opts, handler2, store, route);
+        this._on(method2, path2, opts, handler2, store, route);
       }
     };
-    Router.prototype._on = function _on(method, path, opts, handler2, store) {
+    Router.prototype._on = function _on(method, path2, opts, handler2, store) {
       let constraints = {};
       if (opts.constraints !== void 0) {
         assert2(typeof opts.constraints === "object" && opts.constraints !== null, "Constraints should be an object");
@@ -33960,7 +34241,7 @@ var require_find_my_way = __commonJS({
       if (this.trees[method] === void 0) {
         this.trees[method] = createStaticNode("/");
       }
-      let pattern = path;
+      let pattern = path2;
       if (pattern === "*" && this.trees[method].prefix.length !== 0) {
         const currentRoot = this.trees[method];
         this.trees[method] = createStaticNode("");
@@ -34071,7 +34352,7 @@ var require_find_my_way = __commonJS({
           }
         }
       }
-      const route = { method, path, pattern, params, opts, handler: handler2, store };
+      const route = { method, path: path2, pattern, params, opts, handler: handler2, store };
       this.routes.push(route);
       if (sameRoutes !== void 0) {
         sameRoutes.push(route);
@@ -34085,15 +34366,15 @@ var require_find_my_way = __commonJS({
       }
       currentNode.addRoute(route, this.constrainer);
     };
-    Router.prototype.hasRoute = function hasRoute(method, path, constraints) {
-      const route = this.findRoute(method, path, constraints);
+    Router.prototype.hasRoute = function hasRoute(method, path2, constraints) {
+      const route = this.findRoute(method, path2, constraints);
       return route !== null;
     };
-    Router.prototype.findRoute = function findNode(method, path, constraints = {}) {
+    Router.prototype.findRoute = function findNode(method, path2, constraints = {}) {
       if (this.trees[method] === void 0) {
         return null;
       }
-      let pattern = path;
+      let pattern = path2;
       let currentNode = this.trees[method];
       let parentNodePathIndex = currentNode.prefix.length;
       const params = [];
@@ -34221,39 +34502,39 @@ var require_find_my_way = __commonJS({
       this.routes = [];
       this._routesByMethodAndPattern = /* @__PURE__ */ new Map();
     };
-    Router.prototype.off = function off(method, path, constraints) {
-      assert2(typeof path === "string", "Path should be a string");
-      assert2(path.length > 0, "The path could not be empty");
-      assert2(path[0] === "/" || path[0] === "*", "The first character of a path should be `/` or `*`");
+    Router.prototype.off = function off(method, path2, constraints) {
+      assert2(typeof path2 === "string", "Path should be a string");
+      assert2(path2.length > 0, "The path could not be empty");
+      assert2(path2[0] === "/" || path2[0] === "*", "The first character of a path should be `/` or `*`");
       assert2(
         typeof constraints === "undefined" || typeof constraints === "object" && !Array.isArray(constraints) && constraints !== null,
         "Constraints should be an object or undefined."
       );
-      const optionalParamMatch = path.match(OPTIONAL_PARAM_REGEXP);
+      const optionalParamMatch = path2.match(OPTIONAL_PARAM_REGEXP);
       if (optionalParamMatch) {
-        assert2(path.length === optionalParamMatch.index + optionalParamMatch[0].length, "Optional Parameter needs to be the last parameter of the path");
-        const pathFull = path.replace(OPTIONAL_PARAM_REGEXP, "$1$2");
-        const pathOptional = path.replace(OPTIONAL_PARAM_REGEXP, "$2") || "/";
+        assert2(path2.length === optionalParamMatch.index + optionalParamMatch[0].length, "Optional Parameter needs to be the last parameter of the path");
+        const pathFull = path2.replace(OPTIONAL_PARAM_REGEXP, "$1$2");
+        const pathOptional = path2.replace(OPTIONAL_PARAM_REGEXP, "$2") || "/";
         this.off(method, pathFull, constraints);
         this.off(method, pathOptional, constraints);
         return;
       }
       if (this.ignoreDuplicateSlashes) {
-        path = removeDuplicateSlashes(path);
+        path2 = removeDuplicateSlashes(path2);
       }
       if (this.ignoreTrailingSlash) {
-        path = trimLastSlash(path);
+        path2 = trimLastSlash(path2);
       }
       const methods = Array.isArray(method) ? method : [method];
       for (const method2 of methods) {
-        this._off(method2, path, constraints);
+        this._off(method2, path2, constraints);
       }
     };
-    Router.prototype._off = function _off(method, path, constraints) {
+    Router.prototype._off = function _off(method, path2, constraints) {
       assert2(typeof method === "string", "Method should be a string");
       assert2(httpMethods.includes(method), `Method '${method}' is not an http method.`);
       function matcherWithoutConstraints(route) {
-        return method !== route.method || path !== route.path;
+        return method !== route.method || path2 !== route.path;
       }
       function matcherWithConstraints(route) {
         return matcherWithoutConstraints(route) || !deepEqual(constraints, route.opts.constraints || {});
@@ -34290,40 +34571,40 @@ var require_find_my_way = __commonJS({
       if (handle === null) return this._defaultRoute(req, res, ctx);
       return ctx === void 0 ? handle.handler(req, res, handle.params, handle.store, handle.searchParams) : handle.handler.call(ctx, req, res, handle.params, handle.store, handle.searchParams);
     };
-    Router.prototype.find = function find(method, path, derivedConstraints) {
+    Router.prototype.find = function find(method, path2, derivedConstraints) {
       let currentNode = method === "GET" ? this._treeGET : this.trees[method];
       if (currentNode == null) return null;
-      if (path.charCodeAt(0) !== 47) {
-        const absolutePath = getPathFromAbsoluteUrl(path);
+      if (path2.charCodeAt(0) !== 47) {
+        const absolutePath = getPathFromAbsoluteUrl(path2);
         if (absolutePath === null) {
-          return this._onBadUrl(path);
+          return this._onBadUrl(path2);
         }
-        path = absolutePath;
+        path2 = absolutePath;
       }
       let sanitizedUrl;
       let querystring2;
       let shouldDecodeParam;
       try {
-        sanitizedUrl = path.length >= MIN_NATIVE_SCAN_LENGTH ? safeDecodeURINativeScan(path, this.useSemicolonDelimiter) : safeDecodeURICharScan(path, this.useSemicolonDelimiter, 1);
-        path = sanitizedUrl.path;
+        sanitizedUrl = path2.length >= MIN_NATIVE_SCAN_LENGTH ? safeDecodeURINativeScan(path2, this.useSemicolonDelimiter) : safeDecodeURICharScan(path2, this.useSemicolonDelimiter, 1);
+        path2 = sanitizedUrl.path;
         querystring2 = sanitizedUrl.querystring;
         shouldDecodeParam = sanitizedUrl.shouldDecodeParam;
       } catch (error62) {
-        return this._onBadUrl(path);
+        return this._onBadUrl(path2);
       }
       if (this.ignoreDuplicateSlashes) {
-        path = removeDuplicateSlashes(path);
+        path2 = removeDuplicateSlashes(path2);
       }
       if (this.ignoreTrailingSlash) {
-        path = trimLastSlash(path);
+        path2 = trimLastSlash(path2);
       }
-      const originPath = path;
+      const originPath = path2;
       if (this.caseSensitive === false) {
-        path = path.toLowerCase();
+        path2 = path2.toLowerCase();
       }
       const maxParamLength = this.maxParamLength;
       let pathIndex = currentNode.prefix.length;
-      const pathLen = path.length;
+      const pathLen = path2.length;
       let paramsCount = 0;
       let param0, param1, param2, param3;
       let extraParams = null;
@@ -34341,7 +34622,7 @@ var require_find_my_way = __commonJS({
             };
           }
         }
-        let node2 = currentNode.getNextNode(path, pathIndex, brothersNodesStack, paramsCount);
+        let node2 = currentNode.getNextNode(path2, pathIndex, brothersNodesStack, paramsCount);
         if (node2 === null) {
           if (brothersNodesStack.length === 0) {
             if (maxParamLengthExceeded && this.onMaxParamLength) {
@@ -34453,13 +34734,13 @@ var require_find_my_way = __commonJS({
       }
       return compiled;
     };
-    Router.prototype._findCompiled = function _findCompiled(method, path, derivedConstraints) {
+    Router.prototype._findCompiled = function _findCompiled(method, path2, derivedConstraints) {
       let compiled = method === "GET" ? this._compiledGET : this._compiledTrees[method];
       if (compiled == null) {
         compiled = this._compileTree(method);
         if (compiled === null) return null;
       }
-      return compiled.find(path, derivedConstraints);
+      return compiled.find(path2, derivedConstraints);
     };
     Router.prototype._lookupCompiled = function _lookupCompiled(req, res, ctx, done) {
       if (typeof ctx === "function" || done !== void 0) {
@@ -34474,42 +34755,42 @@ var require_find_my_way = __commonJS({
       }
       return compiled.lookup(req.url, derivedConstraints, req, res, ctx);
     };
-    Router.prototype._findSanitized = function _findSanitized(matcher, path, derivedConstraints) {
-      if (path.charCodeAt(0) !== 47) {
-        const absolutePath = getPathFromAbsoluteUrl(path);
+    Router.prototype._findSanitized = function _findSanitized(matcher, path2, derivedConstraints) {
+      if (path2.charCodeAt(0) !== 47) {
+        const absolutePath = getPathFromAbsoluteUrl(path2);
         if (absolutePath === null) {
-          return this._onBadUrl(path);
+          return this._onBadUrl(path2);
         }
-        path = absolutePath;
+        path2 = absolutePath;
       }
       let sanitizedUrl;
       let querystring2;
       let shouldDecodeParam;
       try {
-        sanitizedUrl = path.length >= MIN_NATIVE_SCAN_LENGTH ? safeDecodeURINativeScan(path, this.useSemicolonDelimiter) : safeDecodeURICharScan(path, this.useSemicolonDelimiter, 1);
-        path = sanitizedUrl.path;
+        sanitizedUrl = path2.length >= MIN_NATIVE_SCAN_LENGTH ? safeDecodeURINativeScan(path2, this.useSemicolonDelimiter) : safeDecodeURICharScan(path2, this.useSemicolonDelimiter, 1);
+        path2 = sanitizedUrl.path;
         querystring2 = sanitizedUrl.querystring;
         shouldDecodeParam = sanitizedUrl.shouldDecodeParam;
       } catch (error62) {
-        return this._onBadUrl(path);
+        return this._onBadUrl(path2);
       }
       if (this.ignoreDuplicateSlashes) {
-        path = removeDuplicateSlashes(path);
+        path2 = removeDuplicateSlashes(path2);
       }
       if (this.ignoreTrailingSlash) {
-        path = trimLastSlash(path);
+        path2 = trimLastSlash(path2);
       }
-      const originPath = path;
+      const originPath = path2;
       if (this.caseSensitive === false) {
-        path = path.toLowerCase();
+        path2 = path2.toLowerCase();
       }
-      return matcher(path, originPath, shouldDecodeParam, derivedConstraints, querystring2);
+      return matcher(path2, originPath, shouldDecodeParam, derivedConstraints, querystring2);
     };
     Router.prototype._rebuild = function(routes) {
       this.reset();
       for (const route of routes) {
-        const { method, path, opts, handler: handler2, store } = route;
-        this._on(method, path, opts, handler2, store);
+        const { method, path: path2, opts, handler: handler2, store } = route;
+        this._on(method, path2, opts, handler2, store);
       }
     };
     Router.prototype._defaultRoute = function(req, res, ctx) {
@@ -34520,24 +34801,24 @@ var require_find_my_way = __commonJS({
         res.end();
       }
     };
-    Router.prototype._onBadUrl = function(path) {
+    Router.prototype._onBadUrl = function(path2) {
       if (this.onBadUrl === null) {
         return null;
       }
       const onBadUrl = this.onBadUrl;
       return {
-        handler: (req, res, ctx) => onBadUrl(path, req, res),
+        handler: (req, res, ctx) => onBadUrl(path2, req, res),
         params: {},
         store: null
       };
     };
-    Router.prototype._onMaxParamLength = function(path) {
+    Router.prototype._onMaxParamLength = function(path2) {
       if (this.onMaxParamLength === null) {
         return null;
       }
       const onMaxParamLength = this.onMaxParamLength;
       return {
-        handler: (req, res, ctx) => onMaxParamLength(path, req, res),
+        handler: (req, res, ctx) => onMaxParamLength(path2, req, res),
         params: {},
         store: null
       };
@@ -34569,12 +34850,12 @@ var require_find_my_way = __commonJS({
       if (!httpMethods.hasOwnProperty(i)) continue;
       const m = httpMethods[i];
       const methodName = m.toLowerCase();
-      Router.prototype[methodName] = function(path, handler2, store) {
-        return this.on(m, path, handler2, store);
+      Router.prototype[methodName] = function(path2, handler2, store) {
+        return this.on(m, path2, handler2, store);
       };
     }
-    Router.prototype.all = function(path, handler2, store) {
-      this.on(httpMethods, path, handler2, store);
+    Router.prototype.all = function(path2, handler2, store) {
+      this.on(httpMethods, path2, handler2, store);
     };
     Router.sanitizeUrlPath = function sanitizeUrlPath(url2, useSemicolonDelimiter) {
       const decoded = safeDecodeURI(url2, useSemicolonDelimiter);
@@ -34623,14 +34904,14 @@ var require_find_my_way = __commonJS({
       }
       return url2.slice(pathStart);
     }
-    function removeDuplicateSlashes(path) {
-      return path.indexOf("//") !== -1 ? path.replace(REMOVE_DUPLICATE_SLASHES_REGEXP, "/") : path;
+    function removeDuplicateSlashes(path2) {
+      return path2.indexOf("//") !== -1 ? path2.replace(REMOVE_DUPLICATE_SLASHES_REGEXP, "/") : path2;
     }
-    function trimLastSlash(path) {
-      if (path.length > 1 && path.charCodeAt(path.length - 1) === 47) {
-        return path.slice(0, -1);
+    function trimLastSlash(path2) {
+      if (path2.length > 1 && path2.charCodeAt(path2.length - 1) === 47) {
+        return path2.slice(0, -1);
       }
-      return path;
+      return path2;
     }
     function trimRegExpStartAndEnd(regexString) {
       if (regexString.charCodeAt(1) === 94) {
@@ -34641,22 +34922,22 @@ var require_find_my_way = __commonJS({
       }
       return regexString;
     }
-    function getClosingParenthensePosition(path, idx) {
+    function getClosingParenthensePosition(path2, idx) {
       let parentheses = 1;
-      while (idx < path.length) {
+      while (idx < path2.length) {
         idx++;
-        if (path.charCodeAt(idx) === 92) {
+        if (path2.charCodeAt(idx) === 92) {
           idx++;
           continue;
         }
-        if (path.charCodeAt(idx) === 41) {
+        if (path2.charCodeAt(idx) === 41) {
           parentheses--;
-        } else if (path.charCodeAt(idx) === 40) {
+        } else if (path2.charCodeAt(idx) === 40) {
           parentheses++;
         }
         if (!parentheses) return idx;
       }
-      throw new TypeError('Invalid regexp expression in "' + path + '"');
+      throw new TypeError('Invalid regexp expression in "' + path2 + '"');
     }
     function defaultBuildPrettyMeta(route) {
       if (!route) return {};
@@ -34670,6 +34951,7 @@ var require_find_my_way = __commonJS({
 var require_head_route = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/head-route.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function headRouteOnSendHandler(req, reply, payload, done) {
       if (payload === void 0) {
         reply.header("content-length", "0");
@@ -34709,6 +34991,7 @@ var require_head_route = __commonJS({
 var require_route = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/route.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var FindMyWay = require_find_my_way();
     var Context = require_context();
     var handleRequest = require_handle_request();
@@ -34889,12 +35172,12 @@ var require_route = __commonJS({
       function route({ options: options2, isFastify }) {
         throwIfAlreadyStarted("Cannot add route!");
         const opts = { ...options2 };
-        const path = opts.url || opts.path || "";
+        const path2 = opts.url || opts.path || "";
         if (!opts.handler) {
-          throw new FST_ERR_ROUTE_MISSING_HANDLER(opts.method, path);
+          throw new FST_ERR_ROUTE_MISSING_HANDLER(opts.method, path2);
         }
         if (opts.errorHandler !== void 0 && typeof opts.errorHandler !== "function") {
-          throw new FST_ERR_ROUTE_HANDLER_NOT_FN(opts.method, path);
+          throw new FST_ERR_ROUTE_HANDLER_NOT_FN(opts.method, path2);
         }
         validateBodyLimitOption(opts.bodyLimit);
         validateHandlerTimeoutOption(opts.handlerTimeout);
@@ -34904,22 +35187,22 @@ var require_route = __commonJS({
         if (Array.isArray(opts.method)) {
           for (let i = 0; i < opts.method.length; ++i) {
             opts.method[i] = normalizeAndValidateMethod.call(this, opts.method[i]);
-            validateSchemaBodyOption.call(this, opts.method[i], path, opts.schema);
+            validateSchemaBodyOption.call(this, opts.method[i], path2, opts.schema);
             isGetRoute = opts.method.includes("GET");
             isHeadRoute = opts.method.includes("HEAD");
           }
         } else {
           opts.method = normalizeAndValidateMethod.call(this, opts.method);
-          validateSchemaBodyOption.call(this, opts.method, path, opts.schema);
+          validateSchemaBodyOption.call(this, opts.method, path2, opts.schema);
           isGetRoute = opts.method === "GET";
           isHeadRoute = opts.method === "HEAD";
         }
         const headOpts = shouldExposeHead && isGetRoute ? { ...options2 } : null;
         const prefix = this[kRoutePrefix];
-        if (path === "/" && prefix.length > 0 && opts.method !== "HEAD") {
+        if (path2 === "/" && prefix.length > 0 && opts.method !== "HEAD") {
           switch (opts.prefixTrailingSlash) {
             case "slash":
-              addNewRoute.call(this, { path, isFastify });
+              addNewRoute.call(this, { path: path2, isFastify });
               break;
             case "no-slash":
               addNewRoute.call(this, { path: "", isFastify });
@@ -34928,20 +35211,20 @@ var require_route = __commonJS({
             default:
               addNewRoute.call(this, { path: "", isFastify });
               if (ignoreTrailingSlash !== true && (ignoreDuplicateSlashes !== true || !prefix.endsWith("/"))) {
-                addNewRoute.call(this, { path, prefixing: true, isFastify });
+                addNewRoute.call(this, { path: path2, prefixing: true, isFastify });
               }
           }
-        } else if (path[0] === "/" && prefix.endsWith("/")) {
-          addNewRoute.call(this, { path: path.slice(1), isFastify });
+        } else if (path2[0] === "/" && prefix.endsWith("/")) {
+          addNewRoute.call(this, { path: path2.slice(1), isFastify });
         } else {
-          addNewRoute.call(this, { path, isFastify });
+          addNewRoute.call(this, { path: path2, isFastify });
         }
         return this;
-        function addNewRoute({ path: path2, prefixing = false, isFastify: isFastify2 = false }) {
-          const url2 = prefix + path2;
+        function addNewRoute({ path: path3, prefixing = false, isFastify: isFastify2 = false }) {
+          const url2 = prefix + path3;
           opts.url = url2;
           opts.path = url2;
-          opts.routePath = path2;
+          opts.routePath = path3;
           opts.prefix = prefix;
           opts.logLevel = opts.logLevel || this[kLogLevel];
           validateLogLevelOption(opts.logLevel, opts.method, opts.url, logger);
@@ -35074,7 +35357,7 @@ var require_route = __commonJS({
           });
           if (shouldExposeHead && isGetRoute && !isHeadRoute && !hasHEADHandler) {
             const onSendHandlers = parseHeadOnSendHandlers(headOpts.onSend);
-            prepareRoute.call(this, { method: "HEAD", url: path2, options: { ...headOpts, onSend: onSendHandlers }, isFastify: true });
+            prepareRoute.call(this, { method: "HEAD", url: path3, options: { ...headOpts, onSend: onSendHandlers }, isFastify: true });
           }
         }
       }
@@ -35199,9 +35482,9 @@ var require_route = __commonJS({
       }
       return method;
     }
-    function validateSchemaBodyOption(method, path, schema) {
+    function validateSchemaBodyOption(method, path2, schema) {
       if (this[kSupportedHTTPMethods].bodyless.has(method) && schema?.body) {
-        throw new FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED(method, path);
+        throw new FST_ERR_ROUTE_BODY_VALIDATION_SCHEMA_NOT_SUPPORTED(method, path2);
       }
     }
     function validateBodyLimitOption(bodyLimit) {
@@ -35216,11 +35499,11 @@ var require_route = __commonJS({
         throw new FST_ERR_ROUTE_HANDLER_TIMEOUT_OPTION_NOT_INT(handlerTimeout);
       }
     }
-    function validateLogLevelOption(logLevel, method, path, logger) {
+    function validateLogLevelOption(logLevel, method, path2, logger) {
       if (logLevel == null || logLevel === "") return;
       if (logger?.levels?.values == null) return;
       if (typeof logLevel !== "string" || logger.levels.values[logLevel] === void 0) {
-        throw new FST_ERR_ROUTE_LOG_LEVEL_INVALID(method, path, logLevel);
+        throw new FST_ERR_ROUTE_LOG_LEVEL_INVALID(method, path2, logLevel);
       }
     }
     function runPreParsing(err, request, reply) {
@@ -35263,6 +35546,7 @@ var require_route = __commonJS({
 var require_four_oh_four = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/four-oh-four.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var FindMyWay = require_find_my_way();
     var Reply = require_reply();
     var Request = require_request();
@@ -35397,6 +35681,7 @@ var require_four_oh_four = __commonJS({
 var require_plugin_override = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/lib/plugin-override.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var {
       kAvvioBoot,
       kChildren,
@@ -35468,6 +35753,7 @@ var require_plugin_override = __commonJS({
 var require_deepmerge = __commonJS({
   "../../node_modules/.pnpm/@fastify+deepmerge@3.2.4/node_modules/@fastify/deepmerge/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var JSON_PROTO = Object.getPrototypeOf({});
     function defaultIsMergeableObjectFactory() {
       return function defaultIsMergeableObject(value) {
@@ -35843,6 +36129,7 @@ var cookieNameRegExp, cookieValueRegExp, domainValueRegExp, pathValueRegExp, max
 var init_dist = __esm({
   "../../node_modules/.pnpm/cookie@2.0.1/node_modules/cookie/dist/index.js"() {
     "use strict";
+    init_esm_shims();
     cookieNameRegExp = /^[\u0021-\u003A\u003C\u003E-\u007E]+$/;
     cookieValueRegExp = /^[\u0021-\u003A\u003C-\u007E]*$/;
     domainValueRegExp = /^([.]?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)([.][a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
@@ -35862,16 +36149,17 @@ var init_dist = __esm({
 var require_cookies = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/lib/cookies.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { stringifySetCookie: stringifySetCookie2 } = (init_dist(), __toCommonJS(dist_exports));
     function cookiePathMatches(cookiePath, requestPath) {
-      const path = cookiePath || "/";
-      if (requestPath === path) {
+      const path2 = cookiePath || "/";
+      if (requestPath === path2) {
         return true;
       }
-      if (!requestPath.startsWith(path)) {
+      if (!requestPath.startsWith(path2)) {
         return false;
       }
-      return path.endsWith("/") || requestPath.charAt(path.length) === "/";
+      return path2.endsWith("/") || requestPath.charAt(path2.length) === "/";
     }
     function listCookies(cookies) {
       if (Array.isArray(cookies)) {
@@ -35904,6 +36192,7 @@ var require_cookies = __commonJS({
 var require_parse_url = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/lib/parse-url.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { URL: URL2 } = __require("url");
     var BASE_URL = "http://localhost";
     module.exports = function parseURL(url2, query) {
@@ -35942,6 +36231,7 @@ var require_parse_url = __commonJS({
 var require_form_data = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/lib/form-data.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { randomUUID } = __require("crypto");
     var { Readable } = __require("stream");
     var textEncoder;
@@ -35997,6 +36287,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
 var require_request2 = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/lib/request.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { Readable, addAbortSignal } = __require("stream");
     var util = __require("util");
     var assert2 = __require("assert");
@@ -36242,6 +36533,7 @@ var require_request2 = __commonJS({
 var require_set_cookie = __commonJS({
   "../../node_modules/.pnpm/set-cookie-parser@3.2.1/node_modules/set-cookie-parser/dist/set-cookie.cjs"(exports, module) {
     "use strict";
+    init_esm_shims();
     var defaultParseOptions = {
       decodeValues: true,
       map: false,
@@ -36475,6 +36767,7 @@ var require_set_cookie = __commonJS({
 var require_response = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/lib/response.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var http = __require("http");
     var { Writable, Readable, addAbortSignal } = __require("stream");
     var util = __require("util");
@@ -36670,6 +36963,7 @@ var require_response = __commonJS({
 var require_config_validator2 = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/lib/config-validator.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = validate10;
     module.exports.default = validate10;
     var schema11 = { "type": "object", "properties": { "url": { "oneOf": [{ "type": "string" }, { "type": "object", "properties": { "protocol": { "type": "string" }, "hostname": { "type": "string" }, "pathname": { "type": "string" } }, "additionalProperties": true, "required": ["pathname"] }] }, "path": { "oneOf": [{ "type": "string" }, { "type": "object", "properties": { "protocol": { "type": "string" }, "hostname": { "type": "string" }, "pathname": { "type": "string" } }, "additionalProperties": true, "required": ["pathname"] }] }, "cookies": { "anyOf": [{ "type": "object", "additionalProperties": true }, { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "value": { "type": "string" } }, "required": ["name", "value"], "additionalProperties": true } }] }, "headers": { "type": "object", "additionalProperties": true }, "query": { "anyOf": [{ "type": "object", "additionalProperties": true }, { "type": "string" }] }, "simulate": { "type": "object", "properties": { "end": { "type": "boolean" }, "split": { "type": "boolean" }, "error": { "type": "boolean" }, "close": { "type": "boolean" } } }, "authority": { "type": "string" }, "remoteAddress": { "type": "string" }, "method": { "type": "string", "enum": ["ACL", "BIND", "CHECKOUT", "CONNECT", "COPY", "DELETE", "GET", "HEAD", "LINK", "LOCK", "M-SEARCH", "MERGE", "MKACTIVITY", "MKCALENDAR", "MKCOL", "MOVE", "NOTIFY", "OPTIONS", "PATCH", "POST", "PROPFIND", "PROPPATCH", "PURGE", "PUT", "QUERY", "REBIND", "REPORT", "SEARCH", "SOURCE", "SUBSCRIBE", "TRACE", "UNBIND", "UNLINK", "UNLOCK", "UNSUBSCRIBE", "acl", "bind", "checkout", "connect", "copy", "delete", "get", "head", "link", "lock", "m-search", "merge", "mkactivity", "mkcalendar", "mkcol", "move", "notify", "options", "patch", "post", "propfind", "proppatch", "purge", "put", "query", "rebind", "report", "search", "source", "subscribe", "trace", "unbind", "unlink", "unlock", "unsubscribe"] }, "validate": { "type": "boolean" } }, "additionalProperties": true, "oneOf": [{ "required": ["url"] }, { "required": ["path"] }] };
@@ -37645,6 +37939,7 @@ var require_config_validator2 = __commonJS({
 var require_light_my_request = __commonJS({
   "../../node_modules/.pnpm/light-my-request@6.8.0/node_modules/light-my-request/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var assert2 = __require("assert");
     var deepMerge = require_deepmerge()();
     var Request = require_request2();
@@ -37815,6 +38110,7 @@ var require_light_my_request = __commonJS({
 var require_fastify = __commonJS({
   "../../node_modules/.pnpm/fastify@5.12.7/node_modules/fastify/fastify.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var VERSION = "5.12.7";
     var Avvio = require_avvio();
     var http = __require("http");
@@ -38357,19 +38653,19 @@ var require_fastify = __commonJS({
         }
         fourOhFour.router.lookup(req, res);
       }
-      function onBadUrl(path, req, res) {
+      function onBadUrl(path2, req, res) {
         if (options.frameworkErrors) {
           const id = getGenReqId(routeEventContext.server, req);
           const childLogger = createChildLogger(routeEventContext, options.logger, req, id);
           const request = new Request(id, null, req, null, childLogger, routeEventContext);
           const reply = new Reply(res, request, childLogger);
           routeEventContext.server[kLogController].incomingRequest(request, reply);
-          return options.frameworkErrors(new FST_ERR_BAD_URL(path), request, reply);
+          return options.frameworkErrors(new FST_ERR_BAD_URL(path2), request, reply);
         }
         const body = JSON.stringify({
           error: "Bad Request",
           code: "FST_ERR_BAD_URL",
-          message: `'${path}' is not a valid url component`,
+          message: `'${path2}' is not a valid url component`,
           statusCode: 400
         });
         res.writeHead(400, {
@@ -38378,19 +38674,19 @@ var require_fastify = __commonJS({
         });
         res.end(body);
       }
-      function onMaxParamLength(path, req, res) {
+      function onMaxParamLength(path2, req, res) {
         if (options.frameworkErrors) {
           const id = getGenReqId(routeEventContext.server, req);
           const childLogger = createChildLogger(routeEventContext, options.logger, req, id);
           const request = new Request(id, null, req, null, childLogger, routeEventContext);
           const reply = new Reply(res, request, childLogger);
           routeEventContext.server[kLogController].incomingRequest(request, reply);
-          return options.frameworkErrors(new FST_ERR_MAX_PARAM_LENGTH(path), request, reply);
+          return options.frameworkErrors(new FST_ERR_MAX_PARAM_LENGTH(path2), request, reply);
         }
         const body = JSON.stringify({
           error: "Bad Request",
           code: "FST_ERR_MAX_PARAM_LENGTH",
-          message: `'${path}' is exceeding the max param length`,
+          message: `'${path2}' is exceeding the max param length`,
           statusCode: 414
         });
         res.writeHead(414, {
@@ -38650,6 +38946,7 @@ ${body}`);
 var require_getPluginName = __commonJS({
   "../../node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/lib/getPluginName.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fpStackTracePattern = /at\s(?:.*\.)?plugin\s.*\n\s*(.*)/;
     var fileNamePattern = /(\w*(\.\w*)*)\..*/;
     module.exports = function getPluginName(fn) {
@@ -38675,6 +38972,7 @@ var require_getPluginName = __commonJS({
 var require_toCamelCase = __commonJS({
   "../../node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/lib/toCamelCase.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = function toCamelCase2(name) {
       if (name[0] === "@") {
         name = name.slice(1).replace("/", "-");
@@ -38690,6 +38988,7 @@ var require_toCamelCase = __commonJS({
 var require_plugin2 = __commonJS({
   "../../node_modules/.pnpm/fastify-plugin@5.1.0/node_modules/fastify-plugin/plugin.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var getPluginName = require_getPluginName();
     var toCamelCase2 = require_toCamelCase();
     var count = 0;
@@ -38740,6 +39039,7 @@ var require_plugin2 = __commonJS({
 var require_dist4 = __commonJS({
   "../../node_modules/.pnpm/@lukeed+ms@2.0.2/node_modules/@lukeed/ms/dist/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     var RGX = /^(-?(?:\d+)?\.?\d+) *(m(?:illiseconds?|s(?:ecs?)?))?(s(?:ec(?:onds?|s)?)?)?(m(?:in(?:utes?|s)?)?)?(h(?:ours?|rs?)?)?(d(?:ays?)?)?(w(?:eeks?|ks?)?)?(y(?:ears?|rs?)?)?$/;
     var SEC = 1e3;
     var MIN = SEC * 60;
@@ -38780,6 +39080,7 @@ var require_dist4 = __commonJS({
 var require_LocalStore = __commonJS({
   "../../node_modules/.pnpm/@fastify+rate-limit@10.3.0/node_modules/@fastify/rate-limit/store/LocalStore.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { LruMap: Lru } = require_toad_cache();
     function LocalStore(continueExceeding, exponentialBackoff, cache = 5e3) {
       this.continueExceeding = continueExceeding;
@@ -38823,6 +39124,7 @@ var require_LocalStore = __commonJS({
 var require_RedisStore = __commonJS({
   "../../node_modules/.pnpm/@fastify+rate-limit@10.3.0/node_modules/@fastify/rate-limit/store/RedisStore.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var lua = `
   -- Key to operate on
   local key = KEYS[1]
@@ -38881,6 +39183,7 @@ var require_RedisStore = __commonJS({
 var require_rate_limit = __commonJS({
   "../../node_modules/.pnpm/@fastify+rate-limit@10.3.0/node_modules/@fastify/rate-limit/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fp = require_plugin2();
     var { parse: parse3, format } = require_dist4();
     var LocalStore = require_LocalStore();
@@ -39176,6 +39479,7 @@ var require_rate_limit = __commonJS({
 var require_postgres_array = __commonJS({
   "../../node_modules/.pnpm/postgres-array@2.0.0/node_modules/postgres-array/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     exports.parse = function(source, transform2) {
       return new ArrayParser(source, transform2).parse();
     };
@@ -39270,6 +39574,7 @@ var require_postgres_array = __commonJS({
 var require_arrayParser = __commonJS({
   "../../node_modules/.pnpm/pg-types@2.2.0/node_modules/pg-types/lib/arrayParser.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var array2 = require_postgres_array();
     module.exports = {
       create: function(source, transform2) {
@@ -39287,6 +39592,7 @@ var require_arrayParser = __commonJS({
 var require_postgres_date = __commonJS({
   "../../node_modules/.pnpm/postgres-date@1.0.7/node_modules/postgres-date/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var DATE_TIME = /(\d{1,})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})(\.\d{1,})?.*?( BC)?$/;
     var DATE = /^(\d{1,})-(\d{2})-(\d{2})( BC)?$/;
     var TIME_ZONE = /([Z+-])(\d{2})?:?(\d{2})?:?(\d{2})?/;
@@ -39374,6 +39680,7 @@ var require_postgres_date = __commonJS({
 var require_mutable = __commonJS({
   "../../node_modules/.pnpm/xtend@4.0.2/node_modules/xtend/mutable.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = extend2;
     var hasOwnProperty = Object.prototype.hasOwnProperty;
     function extend2(target) {
@@ -39394,6 +39701,7 @@ var require_mutable = __commonJS({
 var require_postgres_interval = __commonJS({
   "../../node_modules/.pnpm/postgres-interval@1.2.0/node_modules/postgres-interval/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var extend2 = require_mutable();
     module.exports = PostgresInterval;
     function PostgresInterval(raw) {
@@ -39485,6 +39793,7 @@ var require_postgres_interval = __commonJS({
 var require_postgres_bytea = __commonJS({
   "../../node_modules/.pnpm/postgres-bytea@1.0.1/node_modules/postgres-bytea/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var bufferFrom = Buffer.from || Buffer;
     module.exports = function parseBytea(input2) {
       if (/^\\x/.test(input2)) {
@@ -39521,6 +39830,7 @@ var require_postgres_bytea = __commonJS({
 var require_textParsers = __commonJS({
   "../../node_modules/.pnpm/pg-types@2.2.0/node_modules/pg-types/lib/textParsers.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var array2 = require_postgres_array();
     var arrayParser = require_arrayParser();
     var parseDate = require_postgres_date();
@@ -39722,6 +40032,7 @@ var require_textParsers = __commonJS({
 var require_pg_int8 = __commonJS({
   "../../node_modules/.pnpm/pg-int8@1.0.1/node_modules/pg-int8/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var BASE = 1e6;
     function readInt8(buffer) {
       var high = buffer.readInt32BE(0);
@@ -39802,6 +40113,7 @@ var require_pg_int8 = __commonJS({
 var require_binaryParsers = __commonJS({
   "../../node_modules/.pnpm/pg-types@2.2.0/node_modules/pg-types/lib/binaryParsers.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var parseInt64 = require_pg_int8();
     var parseBits = function(data, bits, offset, invert, callback) {
       offset = offset || 0;
@@ -40003,6 +40315,7 @@ var require_binaryParsers = __commonJS({
 var require_builtins = __commonJS({
   "../../node_modules/.pnpm/pg-types@2.2.0/node_modules/pg-types/lib/builtins.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = {
       BOOL: 16,
       BYTEA: 17,
@@ -40072,6 +40385,7 @@ var require_builtins = __commonJS({
 var require_pg_types = __commonJS({
   "../../node_modules/.pnpm/pg-types@2.2.0/node_modules/pg-types/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     var textParsers = require_textParsers();
     var binaryParsers = require_binaryParsers();
     var arrayParser = require_arrayParser();
@@ -40114,6 +40428,7 @@ var require_pg_types = __commonJS({
 var require_defaults2 = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/defaults.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var user;
     try {
       user = process.platform === "win32" ? process.env.USERNAME : process.env.USER;
@@ -40183,6 +40498,7 @@ var require_defaults2 = __commonJS({
 var require_utils3 = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/utils.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var defaults2 = require_defaults2();
     var nodeUtils = __require("util");
     var { isDate } = __require("util/types");
@@ -40347,6 +40663,7 @@ var require_utils3 = __commonJS({
 var require_utils4 = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/crypto/utils.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var nodeCrypto2 = __require("crypto");
     module.exports = {
       postgresMd5PasswordHash,
@@ -40399,6 +40716,7 @@ var require_utils4 = __commonJS({
 var require_cert_signatures = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/crypto/cert-signatures.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function x509Error(msg, cert) {
       return new Error("SASL channel binding: " + msg + " when parsing public certificate " + cert.toString("base64"));
     }
@@ -40513,6 +40831,7 @@ var require_cert_signatures = __commonJS({
 var require_sasl = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/crypto/sasl.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var crypto4 = require_utils4();
     var { signatureAlgorithmHashFromCertificate } = require_cert_signatures();
     function saslprep(password) {
@@ -40698,6 +41017,7 @@ var require_sasl = __commonJS({
 var require_type_overrides = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/type-overrides.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var types3 = require_pg_types();
     function TypeOverrides2(userTypes) {
       this._types = userTypes || types3;
@@ -40733,6 +41053,7 @@ var require_type_overrides = __commonJS({
 var require_pg_connection_string = __commonJS({
   "../../node_modules/.pnpm/pg-connection-string@2.14.1/node_modules/pg-connection-string/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function parse3(str, options = {}) {
       if (str.charAt(0) === "/") {
         const config3 = str.split(" ");
@@ -40921,6 +41242,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
 var require_connection_parameters = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/connection-parameters.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var dns = __require("dns");
     var defaults2 = require_defaults2();
     var parse3 = require_pg_connection_string().parse;
@@ -41072,6 +41394,7 @@ var require_connection_parameters = __commonJS({
 var require_result = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/result.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var types3 = require_pg_types();
     var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/;
     var Result2 = class {
@@ -41163,6 +41486,7 @@ var require_result = __commonJS({
 var require_query = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/query.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { EventEmitter } = __require("events");
     var Result2 = require_result();
     var utils = require_utils3();
@@ -41365,6 +41689,7 @@ var require_query = __commonJS({
 var require_messages = __commonJS({
   "../../node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/messages.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NoticeMessage = exports.DataRowMessage = exports.CommandCompleteMessage = exports.ReadyForQueryMessage = exports.NotificationResponseMessage = exports.BackendKeyDataMessage = exports.AuthenticationMD5Password = exports.ParameterStatusMessage = exports.ParameterDescriptionMessage = exports.RowDescriptionMessage = exports.Field = exports.CopyResponse = exports.CopyDataMessage = exports.DatabaseError = exports.copyDone = exports.emptyQuery = exports.replicationStart = exports.portalSuspended = exports.noData = exports.closeComplete = exports.bindComplete = exports.parseComplete = void 0;
     exports.parseComplete = {
@@ -41530,6 +41855,7 @@ var require_messages = __commonJS({
 var require_buffer_writer = __commonJS({
   "../../node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/buffer-writer.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Writer = void 0;
     var Writer = class {
@@ -41643,6 +41969,7 @@ var require_buffer_writer = __commonJS({
 var require_serializer2 = __commonJS({
   "../../node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/serializer.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.serialize = void 0;
     var buffer_writer_1 = require_buffer_writer();
@@ -41857,6 +42184,7 @@ var require_serializer2 = __commonJS({
 var require_buffer_reader = __commonJS({
   "../../node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/buffer-reader.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BufferReader = void 0;
     var BufferReader = class {
@@ -41916,6 +42244,7 @@ var require_buffer_reader = __commonJS({
 var require_parser = __commonJS({
   "../../node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/parser.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Parser = void 0;
     var messages_1 = require_messages();
@@ -42223,6 +42552,7 @@ var require_parser = __commonJS({
 var require_dist5 = __commonJS({
   "../../node_modules/.pnpm/pg-protocol@1.16.1/node_modules/pg-protocol/dist/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DatabaseError = exports.serialize = void 0;
     exports.parse = parse3;
@@ -42247,6 +42577,7 @@ var require_dist5 = __commonJS({
 var require_empty = __commonJS({
   "../../node_modules/.pnpm/pg-cloudflare@1.4.1/node_modules/pg-cloudflare/dist/empty.js"(exports) {
     "use strict";
+    init_esm_shims();
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = {};
   }
@@ -42256,6 +42587,7 @@ var require_empty = __commonJS({
 var require_stream = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/stream.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { getStream, getSecureStream } = getStreamFuncs();
     module.exports = {
       /**
@@ -42323,6 +42655,7 @@ var require_stream = __commonJS({
 var require_connection = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/connection.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var EventEmitter = __require("events").EventEmitter;
     var { parse: parse3, serialize } = require_dist5();
     var stream = require_stream();
@@ -42525,6 +42858,7 @@ var require_connection = __commonJS({
 var require_split2 = __commonJS({
   "../../node_modules/.pnpm/split2@4.2.0/node_modules/split2/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { Transform } = __require("stream");
     var { StringDecoder } = __require("string_decoder");
     var kLast = /* @__PURE__ */ Symbol("last");
@@ -42626,7 +42960,8 @@ var require_split2 = __commonJS({
 var require_helper = __commonJS({
   "../../node_modules/.pnpm/pgpass@1.0.5/node_modules/pgpass/lib/helper.js"(exports, module) {
     "use strict";
-    var path = __require("path");
+    init_esm_shims();
+    var path2 = __require("path");
     var Stream = __require("stream").Stream;
     var split = require_split2();
     var util = __require("util");
@@ -42665,7 +43000,7 @@ var require_helper = __commonJS({
     };
     module.exports.getFileName = function(rawEnv) {
       var env = rawEnv || process.env;
-      var file2 = env.PGPASSFILE || (isWin ? path.join(env.APPDATA || "./", "postgresql", "pgpass.conf") : path.join(env.HOME || "./", ".pgpass"));
+      var file2 = env.PGPASSFILE || (isWin ? path2.join(env.APPDATA || "./", "postgresql", "pgpass.conf") : path2.join(env.HOME || "./", ".pgpass"));
       return file2;
     };
     module.exports.usePgPass = function(stats, fname) {
@@ -42797,7 +43132,8 @@ var require_helper = __commonJS({
 var require_lib2 = __commonJS({
   "../../node_modules/.pnpm/pgpass@1.0.5/node_modules/pgpass/lib/index.js"(exports, module) {
     "use strict";
-    var path = __require("path");
+    init_esm_shims();
+    var path2 = __require("path");
     var fs = __require("fs");
     var helper = require_helper();
     module.exports = function(connInfo, cb) {
@@ -42818,6 +43154,7 @@ var require_lib2 = __commonJS({
 var require_client = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/client.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var EventEmitter = __require("events").EventEmitter;
     var utils = require_utils3();
     var nodeUtils = __require("util");
@@ -43516,6 +43853,7 @@ var require_client = __commonJS({
 var require_pg_pool = __commonJS({
   "../../node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var EventEmitter = __require("events").EventEmitter;
     var NOOP = function() {
     };
@@ -43942,6 +44280,7 @@ var require_pg_pool = __commonJS({
 var require_query2 = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/native/query.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var EventEmitter = __require("events").EventEmitter;
     var util = __require("util");
     var utils = require_utils3();
@@ -44085,6 +44424,7 @@ var require_query2 = __commonJS({
 var require_client2 = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/native/client.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var nodeUtils = __require("util");
     var Native;
     try {
@@ -44424,6 +44764,7 @@ var require_client2 = __commonJS({
 var require_native = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/native/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = require_client2();
   }
 });
@@ -44432,6 +44773,7 @@ var require_native = __commonJS({
 var require_lib3 = __commonJS({
   "../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/lib/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Client2 = require_client();
     var defaults2 = require_defaults2();
     var Connection2 = require_connection();
@@ -44566,8 +44908,9 @@ var require_package2 = __commonJS({
 var require_main = __commonJS({
   "../../node_modules/.pnpm/dotenv@16.6.1/node_modules/dotenv/lib/main.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fs = __require("fs");
-    var path = __require("path");
+    var path2 = __require("path");
     var os = __require("os");
     var crypto4 = __require("crypto");
     var packageJson = require_package2();
@@ -44683,7 +45026,7 @@ var require_main = __commonJS({
           possibleVaultPath = options.path.endsWith(".vault") ? options.path : `${options.path}.vault`;
         }
       } else {
-        possibleVaultPath = path.resolve(process.cwd(), ".env.vault");
+        possibleVaultPath = path2.resolve(process.cwd(), ".env.vault");
       }
       if (fs.existsSync(possibleVaultPath)) {
         return possibleVaultPath;
@@ -44691,7 +45034,7 @@ var require_main = __commonJS({
       return null;
     }
     function _resolveHome(envPath) {
-      return envPath[0] === "~" ? path.join(os.homedir(), envPath.slice(1)) : envPath;
+      return envPath[0] === "~" ? path2.join(os.homedir(), envPath.slice(1)) : envPath;
     }
     function _configVault(options) {
       const debug = Boolean(options && options.debug);
@@ -44708,7 +45051,7 @@ var require_main = __commonJS({
       return { parsed };
     }
     function configDotenv(options) {
-      const dotenvPath = path.resolve(process.cwd(), ".env");
+      const dotenvPath = path2.resolve(process.cwd(), ".env");
       let encoding = "utf8";
       const debug = Boolean(options && options.debug);
       const quiet = options && "quiet" in options ? options.quiet : true;
@@ -44732,13 +45075,13 @@ var require_main = __commonJS({
       }
       let lastError;
       const parsedAll = {};
-      for (const path2 of optionPaths) {
+      for (const path3 of optionPaths) {
         try {
-          const parsed = DotenvModule.parse(fs.readFileSync(path2, { encoding }));
+          const parsed = DotenvModule.parse(fs.readFileSync(path3, { encoding }));
           DotenvModule.populate(parsedAll, parsed, options);
         } catch (e) {
           if (debug) {
-            _debug(`Failed to load ${path2} ${e.message}`);
+            _debug(`Failed to load ${path3} ${e.message}`);
           }
           lastError = e;
         }
@@ -44753,7 +45096,7 @@ var require_main = __commonJS({
         const shortPaths = [];
         for (const filePath of optionPaths) {
           try {
-            const relative = path.relative(process.cwd(), filePath);
+            const relative = path2.relative(process.cwd(), filePath);
             shortPaths.push(relative);
           } catch (e) {
             if (debug) {
@@ -44857,6 +45200,7 @@ var require_main = __commonJS({
 var require_getPluginName2 = __commonJS({
   "../../node_modules/.pnpm/fastify-plugin@6.0.1/node_modules/fastify-plugin/lib/getPluginName.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { basename, extname } = __require("path");
     var FP_STACK_TRACE_REG = /at\s(?:.*\.)?plugin\s.*\n\s*(.*)/;
     var LOCATION_REG = /:\d+:\d+\)?$/;
@@ -44885,6 +45229,7 @@ var require_getPluginName2 = __commonJS({
 var require_toCamelCase2 = __commonJS({
   "../../node_modules/.pnpm/fastify-plugin@6.0.1/node_modules/fastify-plugin/lib/toCamelCase.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var KEBAB_REG = /-(.)/g;
     function upperFirst(_match, char2) {
       return char2.toUpperCase();
@@ -44902,6 +45247,7 @@ var require_toCamelCase2 = __commonJS({
 var require_fastify_plugin = __commonJS({
   "../../node_modules/.pnpm/fastify-plugin@6.0.1/node_modules/fastify-plugin/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var getPluginName = require_getPluginName2();
     var toCamelCase2 = require_toCamelCase2();
     var kSkipOverride = /* @__PURE__ */ Symbol.for("skip-override");
@@ -44960,6 +45306,7 @@ var require_fastify_plugin = __commonJS({
 var require_vary = __commonJS({
   "../../node_modules/.pnpm/@fastify+cors@11.3.1/node_modules/@fastify/cors/vary.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var { FifoMap: FifoCache } = require_toad_cache();
     var validFieldnameRE = /^[!#$%&'*+\-.^\w`|~]+$/u;
     function validateFieldname(fieldname) {
@@ -45041,6 +45388,7 @@ var require_vary = __commonJS({
 var require_cors = __commonJS({
   "../../node_modules/.pnpm/@fastify+cors@11.3.1/node_modules/@fastify/cors/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var fp = require_fastify_plugin();
     var {
       addAccessControlRequestHeadersToVaryHeader,
@@ -45287,6 +45635,7 @@ var require_cors = __commonJS({
 var require_safe_buffer = __commonJS({
   "../../node_modules/.pnpm/safe-buffer@5.1.2/node_modules/safe-buffer/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var buffer = __require("buffer");
     var Buffer2 = buffer.Buffer;
     function copyProps(src, dst) {
@@ -45345,6 +45694,7 @@ var require_safe_buffer = __commonJS({
 var require_data_stream = __commonJS({
   "../../node_modules/.pnpm/jws@4.0.1/node_modules/jws/lib/data-stream.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = require_safe_buffer().Buffer;
     var Stream = __require("stream");
     var util = __require("util");
@@ -45394,6 +45744,7 @@ var require_data_stream = __commonJS({
 var require_param_bytes_for_alg = __commonJS({
   "../../node_modules/.pnpm/ecdsa-sig-formatter@1.0.11/node_modules/ecdsa-sig-formatter/src/param-bytes-for-alg.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     function getParamSize(keySize) {
       var result = (keySize / 8 | 0) + (keySize % 8 === 0 ? 0 : 1);
       return result;
@@ -45418,6 +45769,7 @@ var require_param_bytes_for_alg = __commonJS({
 var require_ecdsa_sig_formatter = __commonJS({
   "../../node_modules/.pnpm/ecdsa-sig-formatter@1.0.11/node_modules/ecdsa-sig-formatter/src/ecdsa-sig-formatter.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = require_safe_buffer().Buffer;
     var getParamBytesForAlg = require_param_bytes_for_alg();
     var MAX_OCTET = 128;
@@ -45558,6 +45910,7 @@ var require_ecdsa_sig_formatter = __commonJS({
 var require_buffer_equal_constant_time = __commonJS({
   "../../node_modules/.pnpm/buffer-equal-constant-time@1.0.1/node_modules/buffer-equal-constant-time/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = __require("buffer").Buffer;
     var SlowBuffer = __require("buffer").SlowBuffer;
     module.exports = bufferEq;
@@ -45592,6 +45945,7 @@ var require_buffer_equal_constant_time = __commonJS({
 var require_jwa = __commonJS({
   "../../node_modules/.pnpm/jwa@2.0.1/node_modules/jwa/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = require_safe_buffer().Buffer;
     var crypto4 = __require("crypto");
     var formatEcdsa = require_ecdsa_sig_formatter();
@@ -45817,6 +46171,7 @@ var require_jwa = __commonJS({
 var require_tostring = __commonJS({
   "../../node_modules/.pnpm/jws@4.0.1/node_modules/jws/lib/tostring.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = __require("buffer").Buffer;
     module.exports = function toString(obj) {
       if (typeof obj === "string")
@@ -45832,6 +46187,7 @@ var require_tostring = __commonJS({
 var require_sign_stream = __commonJS({
   "../../node_modules/.pnpm/jws@4.0.1/node_modules/jws/lib/sign-stream.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = require_safe_buffer().Buffer;
     var DataStream = require_data_stream();
     var jwa = require_jwa();
@@ -45908,6 +46264,7 @@ var require_sign_stream = __commonJS({
 var require_verify_stream = __commonJS({
   "../../node_modules/.pnpm/jws@4.0.1/node_modules/jws/lib/verify-stream.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var Buffer2 = require_safe_buffer().Buffer;
     var DataStream = require_data_stream();
     var jwa = require_jwa();
@@ -46024,6 +46381,7 @@ var require_verify_stream = __commonJS({
 var require_jws = __commonJS({
   "../../node_modules/.pnpm/jws@4.0.1/node_modules/jws/index.js"(exports) {
     "use strict";
+    init_esm_shims();
     var SignStream = require_sign_stream();
     var VerifyStream = require_verify_stream();
     var ALGORITHMS = [
@@ -46058,6 +46416,7 @@ var require_jws = __commonJS({
 var require_decode = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/decode.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var jws = require_jws();
     module.exports = function(jwt3, options) {
       options = options || {};
@@ -46091,6 +46450,7 @@ var require_decode = __commonJS({
 var require_JsonWebTokenError = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/JsonWebTokenError.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var JsonWebTokenError = function(message, error62) {
       Error.call(this, message);
       if (Error.captureStackTrace) {
@@ -46110,6 +46470,7 @@ var require_JsonWebTokenError = __commonJS({
 var require_NotBeforeError = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/NotBeforeError.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var JsonWebTokenError = require_JsonWebTokenError();
     var NotBeforeError = function(message, date6) {
       JsonWebTokenError.call(this, message);
@@ -46126,6 +46487,7 @@ var require_NotBeforeError = __commonJS({
 var require_TokenExpiredError = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/TokenExpiredError.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var JsonWebTokenError = require_JsonWebTokenError();
     var TokenExpiredError = function(message, expiredAt) {
       JsonWebTokenError.call(this, message);
@@ -46142,6 +46504,7 @@ var require_TokenExpiredError = __commonJS({
 var require_ms = __commonJS({
   "../../node_modules/.pnpm/ms@2.1.3/node_modules/ms/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var s = 1e3;
     var m = s * 60;
     var h = m * 60;
@@ -46259,6 +46622,7 @@ var require_ms = __commonJS({
 var require_timespan = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/timespan.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var ms = require_ms();
     module.exports = function(time4, iat) {
       var timestamp2 = iat || Math.floor(Date.now() / 1e3);
@@ -46281,6 +46645,7 @@ var require_timespan = __commonJS({
 var require_asymmetricKeyDetailsSupported = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/asymmetricKeyDetailsSupported.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var semver = require_semver2();
     module.exports = semver.satisfies(process.version, ">=15.7.0");
   }
@@ -46290,6 +46655,7 @@ var require_asymmetricKeyDetailsSupported = __commonJS({
 var require_rsaPssKeyDetailsSupported = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/rsaPssKeyDetailsSupported.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var semver = require_semver2();
     module.exports = semver.satisfies(process.version, ">=16.9.0");
   }
@@ -46299,6 +46665,7 @@ var require_rsaPssKeyDetailsSupported = __commonJS({
 var require_validateAsymmetricKey = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/validateAsymmetricKey.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var ASYMMETRIC_KEY_DETAILS_SUPPORTED = require_asymmetricKeyDetailsSupported();
     var RSA_PSS_KEY_DETAILS_SUPPORTED = require_rsaPssKeyDetailsSupported();
     var allowedAlgorithmsForKeys = {
@@ -46353,6 +46720,7 @@ var require_validateAsymmetricKey = __commonJS({
 var require_psSupported = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/lib/psSupported.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var semver = require_semver2();
     module.exports = semver.satisfies(process.version, "^6.12.0 || >=8.0.0");
   }
@@ -46362,6 +46730,7 @@ var require_psSupported = __commonJS({
 var require_verify = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/verify.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var JsonWebTokenError = require_JsonWebTokenError();
     var NotBeforeError = require_NotBeforeError();
     var TokenExpiredError = require_TokenExpiredError();
@@ -46578,6 +46947,7 @@ var require_verify = __commonJS({
 var require_lodash = __commonJS({
   "../../node_modules/.pnpm/lodash.includes@4.3.0/node_modules/lodash.includes/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var INFINITY = 1 / 0;
     var MAX_SAFE_INTEGER = 9007199254740991;
     var MAX_INTEGER = 17976931348623157e292;
@@ -46763,6 +47133,7 @@ var require_lodash = __commonJS({
 var require_lodash2 = __commonJS({
   "../../node_modules/.pnpm/lodash.isboolean@3.0.3/node_modules/lodash.isboolean/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var boolTag = "[object Boolean]";
     var objectProto = Object.prototype;
     var objectToString = objectProto.toString;
@@ -46780,6 +47151,7 @@ var require_lodash2 = __commonJS({
 var require_lodash3 = __commonJS({
   "../../node_modules/.pnpm/lodash.isinteger@4.0.4/node_modules/lodash.isinteger/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
     var NAN = 0 / 0;
@@ -46845,6 +47217,7 @@ var require_lodash3 = __commonJS({
 var require_lodash4 = __commonJS({
   "../../node_modules/.pnpm/lodash.isnumber@3.0.3/node_modules/lodash.isnumber/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var numberTag = "[object Number]";
     var objectProto = Object.prototype;
     var objectToString = objectProto.toString;
@@ -46862,6 +47235,7 @@ var require_lodash4 = __commonJS({
 var require_lodash5 = __commonJS({
   "../../node_modules/.pnpm/lodash.isplainobject@4.0.6/node_modules/lodash.isplainobject/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var objectTag = "[object Object]";
     function isHostObject(value) {
       var result = false;
@@ -46907,6 +47281,7 @@ var require_lodash5 = __commonJS({
 var require_lodash6 = __commonJS({
   "../../node_modules/.pnpm/lodash.isstring@4.0.1/node_modules/lodash.isstring/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var stringTag = "[object String]";
     var objectProto = Object.prototype;
     var objectToString = objectProto.toString;
@@ -46925,6 +47300,7 @@ var require_lodash6 = __commonJS({
 var require_lodash7 = __commonJS({
   "../../node_modules/.pnpm/lodash.once@4.1.1/node_modules/lodash.once/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var FUNC_ERROR_TEXT = "Expected a function";
     var INFINITY = 1 / 0;
     var MAX_INTEGER = 17976931348623157e292;
@@ -47007,6 +47383,7 @@ var require_lodash7 = __commonJS({
 var require_sign = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/sign.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     var timespan = require_timespan();
     var PS_SUPPORTED = require_psSupported();
     var validateAsymmetricKey = require_validateAsymmetricKey();
@@ -47233,6 +47610,7 @@ var require_sign = __commonJS({
 var require_jsonwebtoken = __commonJS({
   "../../node_modules/.pnpm/jsonwebtoken@9.0.3/node_modules/jsonwebtoken/index.js"(exports, module) {
     "use strict";
+    init_esm_shims();
     module.exports = {
       decode: require_decode(),
       verify: require_verify(),
@@ -47244,11 +47622,22 @@ var require_jsonwebtoken = __commonJS({
   }
 });
 
+// src/serverless.ts
+init_esm_shims();
+
 // src/app.ts
+init_esm_shims();
 var import_fastify = __toESM(require_fastify(), 1);
 var import_rate_limit = __toESM(require_rate_limit(), 1);
 
+// ../../packages/shared/src/index.ts
+init_esm_shims();
+
+// ../../packages/shared/src/uuid.ts
+init_esm_shims();
+
 // ../../node_modules/.pnpm/uuidv7@1.2.1/node_modules/uuidv7/dist/index.js
+init_esm_shims();
 var DIGITS = "0123456789abcdef";
 var UUID = class _UUID {
   /** @param bytes - The 16-byte byte array representation. */
@@ -47649,6 +48038,7 @@ function isValidUuid(id) {
 }
 
 // ../../packages/shared/src/money.ts
+init_esm_shims();
 function assertIntegerPaisa(paisa, paramName = "amount") {
   if (typeof paisa !== "number" || isNaN(paisa) || !isFinite(paisa)) {
     throw new TypeError(`${paramName} must be a valid finite number, received: ${paisa}`);
@@ -47695,6 +48085,15 @@ function formatPKR(paisa, options = {}) {
   const sign = isNegative ? "-" : "";
   return showPrefix ? `${sign}Rs. ${formatted}` : `${sign}${formatted}`;
 }
+
+// ../../packages/shared/src/tax.ts
+init_esm_shims();
+
+// ../../packages/shared/src/schema/index.ts
+init_esm_shims();
+
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/index.js
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -47958,6 +48357,7 @@ __export(external_exports, {
   xid: () => xid2,
   xor: () => xor
 });
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/index.js
 var core_exports2 = {};
@@ -48275,6 +48675,10 @@ __export(core_exports2, {
   version: () => version,
   withParser: () => withParser
 });
+init_esm_shims();
+
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/core.js
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js
 var util_exports = {};
@@ -48356,6 +48760,7 @@ __export(util_exports, {
   uint8ArrayToHex: () => uint8ArrayToHex,
   unwrapMessage: () => unwrapMessage
 });
+init_esm_shims();
 function assertEqual(val) {
   return val;
 }
@@ -48513,10 +48918,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path) {
-  if (!path)
+function getElementAtPath(obj, path2) {
+  if (!path2)
     return obj;
-  return path.reduce((acc, key) => acc?.[key], obj);
+  return path2.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -48856,11 +49261,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path, issues) {
+function prefixIssues(path2, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path);
+    iss.path.unshift(path2);
     return iss;
   });
 }
@@ -49254,7 +49659,11 @@ function config(newConfig) {
   return globalConfig;
 }
 
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/parse.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/errors.js
+init_esm_shims();
 function _getMessage() {
   const internals = this._zod;
   internals.message ?? (internals.message = JSON.stringify(internals.def, jsonStringifyReplacer, 2));
@@ -49322,16 +49731,16 @@ function flattenError(error62, mapper = (issue2) => issue2.message) {
 }
 function formatError(error62, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error63, path = []) => {
+  const processError = (error63, path2 = []) => {
     for (const issue2 of error63.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path2, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
       } else {
-        const fullpath = [...path, ...issue2.path];
+        const fullpath = [...path2, ...issue2.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue2));
         } else {
@@ -49370,17 +49779,17 @@ function formatError(error62, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error62, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error63, path = []) => {
+  const processError = (error63, path2 = []) => {
     var _a3;
     for (const issue2 of error63.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path2, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path2, ...issue2.path]);
       } else {
-        const fullpath = [...path, ...issue2.path];
+        const fullpath = [...path2, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -49419,8 +49828,8 @@ function treeifyError(error62, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path) {
+  const path2 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path2) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -49606,6 +50015,12 @@ var _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
 
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/schemas.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/checks.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js
 var regexes_exports = {};
 __export(regexes_exports, {
@@ -49674,6 +50089,7 @@ __export(regexes_exports, {
   uuid7: () => uuid7,
   xid: () => xid
 });
+init_esm_shims();
 var cuid = /^[cC][0-9a-z]{6,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-7][0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{25}$/;
@@ -50255,6 +50671,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
 });
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/doc.js
+init_esm_shims();
 var Doc = class {
   constructor(args = [], closed = {}) {
     this.content = [];
@@ -50296,6 +50713,7 @@ ${content.join("\n")}
 };
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/versions.js
+init_esm_shims();
 var version = {
   major: 4,
   minor: 6,
@@ -52745,6 +53163,7 @@ function handleRefineResult(result, payload, input2, inst) {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/memoizer.js
+init_esm_shims();
 var $ZodCyclicError = class extends Error {
   constructor() {
     super(`Cannot parse a reference cycle that closes through a transform`);
@@ -53088,8 +53507,10 @@ __export(locales_exports, {
   zhCN: () => zh_CN_default,
   zhTW: () => zh_TW_default
 });
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ar.js
+init_esm_shims();
 var error = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0641", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
@@ -53202,6 +53623,7 @@ function ar_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/az.js
+init_esm_shims();
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmal\u0131d\u0131r" },
@@ -53313,6 +53735,7 @@ function az_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/be.js
+init_esm_shims();
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -53482,6 +53905,7 @@ function be_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/bg.js
+init_esm_shims();
 var error4 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
@@ -53608,6 +54032,7 @@ function bg_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/bn.js
+init_esm_shims();
 var error5 = () => {
   const Sizable = {
     string: { unit: "\u0985\u0995\u09CD\u09B7\u09B0", verb: "\u09A5\u09BE\u0995\u09A4\u09C7 \u09B9\u09AC\u09C7" },
@@ -53722,6 +54147,7 @@ function bn_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ca.js
+init_esm_shims();
 var error6 = () => {
   const Sizable = {
     string: { unit: "car\xE0cters", verb: "contenir" },
@@ -53836,6 +54262,7 @@ function ca_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ckb.js
+init_esm_shims();
 var error7 = () => {
   const Sizable = {
     string: { unit: "\u067E\u06CC\u062A", verb: "\u0628\u06CE\u062A" },
@@ -53969,6 +54396,7 @@ function ckb_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/cs.js
+init_esm_shims();
 var error8 = () => {
   const Sizable = {
     string: { unit: "znak\u016F", verb: "m\xEDt" },
@@ -54086,6 +54514,7 @@ function cs_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/da.js
+init_esm_shims();
 var error9 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -54207,6 +54636,7 @@ function da_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/de.js
+init_esm_shims();
 var error10 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -54321,6 +54751,7 @@ function de_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/el.js
+init_esm_shims();
 var error11 = () => {
   const Sizable = {
     string: { unit: "\u03C7\u03B1\u03C1\u03B1\u03BA\u03C4\u03AE\u03C1\u03B5\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
@@ -54434,6 +54865,7 @@ function el_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/en.js
+init_esm_shims();
 var error12 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -54559,6 +54991,7 @@ function en_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/eo.js
+init_esm_shims();
 var error13 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -54674,6 +55107,7 @@ function eo_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/es.js
+init_esm_shims();
 var error14 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -54811,6 +55245,7 @@ function es_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/fa.js
+init_esm_shims();
 var error15 = () => {
   const Sizable = {
     string: { unit: "\u06A9\u0627\u0631\u0627\u06A9\u062A\u0631", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
@@ -54931,6 +55366,7 @@ function fa_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/fi.js
+init_esm_shims();
 var error16 = () => {
   const Sizable = {
     string: { unit: "merkki\xE4", subject: "merkkijonon" },
@@ -55049,6 +55485,7 @@ function fi_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/fr.js
+init_esm_shims();
 var error17 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -55179,6 +55616,7 @@ function fr_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/fr-CA.js
+init_esm_shims();
 var error18 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -55292,6 +55730,7 @@ function fr_CA_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/gu.js
+init_esm_shims();
 var error19 = () => {
   const Sizable = {
     string: { unit: "\u0A85\u0A95\u0ACD\u0AB7\u0AB0", verb: "\u0AB9\u0ACB\u0AB5\u0ABE \u0A9C\u0ACB\u0A88\u0A8F" },
@@ -55406,6 +55845,7 @@ function gu_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/he.js
+init_esm_shims();
 var error20 = () => {
   const TypeNames = {
     string: { label: "\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA", gender: "f" },
@@ -55608,6 +56048,7 @@ function he_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/hi.js
+init_esm_shims();
 var error21 = () => {
   const Sizable = {
     string: { unit: "\u0905\u0915\u094D\u0937\u0930", verb: "\u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F" },
@@ -55720,6 +56161,7 @@ function hi_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/hr.js
+init_esm_shims();
 var error22 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -55847,6 +56289,7 @@ function hr_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/hu.js
+init_esm_shims();
 var error23 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -55961,6 +56404,7 @@ function hu_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/hy.js
+init_esm_shims();
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -56120,6 +56564,7 @@ function hy_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/id.js
+init_esm_shims();
 var error25 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -56232,6 +56677,7 @@ function id_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/is.js
+init_esm_shims();
 var error26 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "a\xF0 hafa" },
@@ -56347,6 +56793,7 @@ function is_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/it.js
+init_esm_shims();
 var error27 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -56461,6 +56908,7 @@ function it_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ja.js
+init_esm_shims();
 var error28 = () => {
   const Sizable = {
     string: { unit: "\u6587\u5B57", verb: "\u3067\u3042\u308B" },
@@ -56574,6 +57022,7 @@ function ja_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ka.js
+init_esm_shims();
 var error29 = () => {
   const Sizable = {
     string: { unit: "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
@@ -56691,7 +57140,11 @@ function ka_default() {
   };
 }
 
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/kh.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/km.js
+init_esm_shims();
 var error30 = () => {
   const Sizable = {
     string: { unit: "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
@@ -56813,6 +57266,7 @@ function kh_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/kn.js
+init_esm_shims();
 var error31 = () => {
   const Sizable = {
     string: { unit: "\u0C85\u0C95\u0CCD\u0CB7\u0CB0\u0C97\u0CB3\u0CC1", verb: "\u0CB9\u0CCA\u0C82\u0CA6\u0CB2\u0CC1" },
@@ -56929,6 +57383,7 @@ function kn_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ko.js
+init_esm_shims();
 var error32 = () => {
   const Sizable = {
     string: { unit: "\uBB38\uC790", verb: "to have" },
@@ -57046,6 +57501,7 @@ function ko_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/lt.js
+init_esm_shims();
 var capitalizeFirstCharacter = (text2) => {
   return text2.charAt(0).toUpperCase() + text2.slice(1);
 };
@@ -57254,6 +57710,7 @@ function lt_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/mk.js
+init_esm_shims();
 var error34 = () => {
   const Sizable = {
     string: { unit: "\u0437\u043D\u0430\u0446\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
@@ -57369,6 +57826,7 @@ function mk_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ms.js
+init_esm_shims();
 var error35 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -57482,6 +57940,7 @@ function ms_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ne.js
+init_esm_shims();
 var error36 = () => {
   const Sizable = {
     string: { unit: "\u0905\u0915\u094D\u0937\u0930", verb: "\u0939\u0941\u0928\u0941\u092A\u0930\u094D\u091B" },
@@ -57594,6 +58053,7 @@ function ne_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/nl.js
+init_esm_shims();
 var error37 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -57710,6 +58170,7 @@ function nl_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/nn.js
+init_esm_shims();
 var error38 = () => {
   const Sizable = {
     string: { unit: "teikn", verb: "\xE5 ha" },
@@ -57824,6 +58285,7 @@ function nn_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/no.js
+init_esm_shims();
 var error39 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "\xE5 ha" },
@@ -57938,6 +58400,7 @@ function no_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ota.js
+init_esm_shims();
 var error40 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmal\u0131d\u0131r" },
@@ -58053,6 +58516,7 @@ function ota_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ps.js
+init_esm_shims();
 var error41 = () => {
   const Sizable = {
     string: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
@@ -58173,6 +58637,7 @@ function ps_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/pl.js
+init_esm_shims();
 var error42 = () => {
   const Sizable = {
     string: { unit: "znak\xF3w", verb: "mie\u0107" },
@@ -58288,6 +58753,7 @@ function pl_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/pt.js
+init_esm_shims();
 var error43 = () => {
   const Sizable = {
     string: { unit: "caracteres" },
@@ -58432,6 +58898,7 @@ function pt_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/pt-BR.js
+init_esm_shims();
 var error44 = () => {
   const Sizable = {
     string: { unit: "caracteres" },
@@ -58577,6 +59044,7 @@ function pt_BR_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ro.js
+init_esm_shims();
 var error45 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "s\u0103 aib\u0103" },
@@ -58700,6 +59168,7 @@ function ro_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ru.js
+init_esm_shims();
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -58869,6 +59338,7 @@ function ru_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/sk.js
+init_esm_shims();
 var error47 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "ma\u0165" },
@@ -58986,6 +59456,7 @@ function sk_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/sl.js
+init_esm_shims();
 var error48 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -59101,6 +59572,7 @@ function sl_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/sv.js
+init_esm_shims();
 var error49 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -59217,6 +59689,7 @@ function sv_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ta.js
+init_esm_shims();
 var error50 = () => {
   const Sizable = {
     string: { unit: "\u0B8E\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1\u0B95\u0BCD\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
@@ -59333,6 +59806,7 @@ function ta_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/tg.js
+init_esm_shims();
 var error51 = () => {
   const Sizable = {
     string: { unit: "\u0430\u043B\u043E\u043C\u0430\u0442", verb: "\u0434\u043E\u0448\u0442\u0430 \u0431\u043E\u0448\u0430\u0434" },
@@ -59450,6 +59924,7 @@ function tg_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/th.js
+init_esm_shims();
 var error52 = () => {
   const Sizable = {
     string: { unit: "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
@@ -59566,6 +60041,7 @@ function th_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/tk.js
+init_esm_shims();
 var error53 = () => {
   const Sizable = {
     string: { unit: "simwol", verb: "bolmaly" },
@@ -59674,6 +60150,7 @@ function tk_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/tr.js
+init_esm_shims();
 var error54 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmal\u0131" },
@@ -59784,7 +60261,11 @@ function tr_default() {
   };
 }
 
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ua.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/uk.js
+init_esm_shims();
 var error55 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
@@ -59904,6 +60385,7 @@ function ua_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/ur.js
+init_esm_shims();
 var error56 = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0648\u0641", verb: "\u06C1\u0648\u0646\u0627" },
@@ -60020,6 +60502,7 @@ function ur_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/uz.js
+init_esm_shims();
 var error57 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo\u2018lishi kerak" },
@@ -60134,6 +60617,7 @@ function uz_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/vi.js
+init_esm_shims();
 var error58 = () => {
   const Sizable = {
     string: { unit: "k\xFD t\u1EF1", verb: "c\xF3" },
@@ -60248,6 +60732,7 @@ function vi_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/zh-CN.js
+init_esm_shims();
 var error59 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u7B26", verb: "\u5305\u542B" },
@@ -60363,6 +60848,7 @@ function zh_CN_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/zh-TW.js
+init_esm_shims();
 var error60 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u5143", verb: "\u64C1\u6709" },
@@ -60476,6 +60962,7 @@ function zh_TW_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/locales/yo.js
+init_esm_shims();
 var error61 = () => {
   const Sizable = {
     string: { unit: "\xE0mi", verb: "n\xED" },
@@ -60589,6 +61076,7 @@ function yo_default() {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/registries.js
+init_esm_shims();
 var _a2;
 var $output = /* @__PURE__ */ Symbol("ZodOutput");
 var $input = /* @__PURE__ */ Symbol("ZodInput");
@@ -60639,6 +61127,7 @@ function registry() {
 var globalRegistry = globalThis.__zod_globalRegistry;
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/compile.js
+init_esm_shims();
 var INVALID = /* @__PURE__ */ Symbol.for("zod.compile.invalid");
 var FALLBACK_FLAG = /* @__PURE__ */ Symbol.for("zod.compile.fallback");
 var ZodCompileAsyncError = class extends Error {
@@ -62249,6 +62738,7 @@ function generateTransformCheck(doc, ctx, schema, accessor) {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/api.js
+init_esm_shims();
 function snapshotChecks(def) {
   if (def.checks)
     def.checks = [...def.checks];
@@ -63308,6 +63798,7 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/to-json-schema.js
+init_esm_shims();
 function assignProps(target, ...sources) {
   for (const source of sources) {
     for (const key of Reflect.ownKeys(source)) {
@@ -63838,6 +64329,7 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
 };
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/json-schema-processors.js
+init_esm_shims();
 var narrowMin = (agg, key, value) => {
   if (agg[key] === void 0 || value > agg[key])
     agg[key] = value;
@@ -64586,6 +65078,7 @@ function toJSONSchema(input2, params) {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/json-schema-generator.js
+init_esm_shims();
 var JSONSchemaGenerator = class {
   /** @deprecated Access via ctx instead */
   get metadataRegistry() {
@@ -64665,6 +65158,7 @@ var JSONSchemaGenerator = class {
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/json-schema.js
 var json_schema_exports = {};
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/schemas.js
 var schemas_exports2 = {};
@@ -64846,6 +65340,7 @@ __export(schemas_exports2, {
   xid: () => xid2,
   xor: () => xor
 });
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/checks.js
 var checks_exports2 = {};
@@ -64881,8 +65376,13 @@ __export(checks_exports2, {
   trim: () => _trim,
   uppercase: () => _uppercase
 });
+init_esm_shims();
+
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/parse.js
+init_esm_shims();
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/errors.js
+init_esm_shims();
 var _installedErrorProtos = /* @__PURE__ */ new WeakSet([Object.prototype, Error.prototype]);
 function _lazyMethod(proto, key, make) {
   Object.defineProperty(proto, key, {
@@ -66408,6 +66908,7 @@ function preprocess(fn, schema) {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/compat.js
+init_esm_shims();
 var ZodIssueCode = {
   invalid_type: "invalid_type",
   too_big: "too_big",
@@ -66433,6 +66934,9 @@ var ZodFirstPartyTypeKind;
 /* @__PURE__ */ (function(ZodFirstPartyTypeKind2) {
 })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
 
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/from-json-schema.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
@@ -66445,6 +66949,7 @@ __export(iso_exports, {
   duration: () => duration2,
   time: () => time2
 });
+init_esm_shims();
 function datetime2(params) {
   return _isoDateTime(ZodISODateTime, params);
 }
@@ -66558,13 +67063,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path = ref.slice(1).split("/").filter(Boolean);
-  if (path.length === 0) {
+  const path2 = ref.slice(1).split("/").filter(Boolean);
+  if (path2.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path[0] === defsKey) {
-    const key = path[1] === void 0 ? void 0 : decodeJSONPointerSegment(path[1]);
+  if (path2[0] === defsKey) {
+    const key = path2[1] === void 0 ? void 0 : decodeJSONPointerSegment(path2[1]);
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -67191,7 +67696,11 @@ function fromJSONSchema(schema, params) {
   return convertSchema(normalized, ctx);
 }
 
+// ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/deep-partial.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/visit.js
+init_esm_shims();
 var RESOLVING = /* @__PURE__ */ Symbol("z.visit/resolving");
 function visit(schema, fnOrHandlers) {
   const fn = typeof fnOrHandlers === "function" ? fnOrHandlers : (node2, rewritten) => {
@@ -67359,6 +67868,7 @@ function deepPartial(schema) {
 }
 
 // ../../node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/classic/in-out.js
+init_esm_shims();
 function withChecks(side, checks) {
   if (!checks?.length)
     return side;
@@ -67397,6 +67907,7 @@ __export(coerce_exports, {
   number: () => number3,
   string: () => string3
 });
+init_esm_shims();
 function string3(params) {
   return _coercedString(ZodString, params);
 }
@@ -67414,6 +67925,7 @@ function date4(params) {
 }
 
 // ../../packages/shared/src/schema/auth.ts
+init_esm_shims();
 var UserRoleSchema = external_exports.enum(["owner", "manager", "accountant", "pharmacist", "cashier"]);
 function isTrivialPin(pin) {
   const trimmed = pin.trim();
@@ -67772,7 +68284,11 @@ function hasPermission(role, permission) {
   return false;
 }
 
+// ../../packages/shared/src/schema/purchasing.ts
+init_esm_shims();
+
 // ../../packages/shared/src/time.ts
+init_esm_shims();
 var karachiDateFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Karachi",
   year: "numeric",
@@ -67962,6 +68478,7 @@ var StockFilterParamsSchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/invoice.ts
+init_esm_shims();
 var InvoicePaymentMethodSchema = external_exports.enum(["cash", "card", "bank", "other"]);
 var InvoiceStatusSchema = external_exports.enum(["finalized", "cancelled", "refunded"]);
 var FiscalStatusSchema = external_exports.enum(["not_required", "pending", "submitted", "failed"]);
@@ -68077,6 +68594,7 @@ var InvoiceSearchParamsSchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/shift.ts
+init_esm_shims();
 var ShiftStatusSchema = external_exports.enum(["open", "closed"]);
 var OpenShiftInputSchema = external_exports.object({
   openingCashPaisa: external_exports.number().int("Opening cash must be integer paisa").min(0, "Opening cash cannot be negative"),
@@ -68114,6 +68632,7 @@ var ShiftRecordSchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/creditNote.ts
+init_esm_shims();
 var ReturnReasonSchema = external_exports.enum([
   "defective_damaged",
   "expired",
@@ -68267,6 +68786,7 @@ var BatchStockSchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/product.ts
+init_esm_shims();
 var CreateProductInputSchema = external_exports.object({
   brandName: external_exports.string().min(1, "Brand name is required"),
   genericName: external_exports.string().min(1, "Generic name is required"),
@@ -68296,7 +68816,17 @@ var ProductSearchParamsSchema = external_exports.object({
   isActive: external_exports.boolean().optional()
 });
 
+// ../../packages/shared/src/csv/parser.ts
+init_esm_shims();
+
+// ../../packages/shared/src/csv/validator.ts
+init_esm_shims();
+
+// ../../packages/shared/src/fefo.ts
+init_esm_shims();
+
 // ../../packages/shared/src/phone.ts
+init_esm_shims();
 function normalizePhone(raw) {
   if (!raw) return null;
   const digits = raw.replace(/\D/g, "");
@@ -68314,6 +68844,7 @@ function normalizePhone(raw) {
 }
 
 // ../../packages/shared/src/schema/prescription.ts
+init_esm_shims();
 var PrescriptionItemInputSchema = external_exports.object({
   id: external_exports.string().uuid().optional(),
   productId: external_exports.string().uuid("Product ID must be a valid UUID"),
@@ -68366,6 +68897,7 @@ var RefillReminderQuerySchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/hr.ts
+init_esm_shims();
 var DateStringSchema = external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be formatted as YYYY-MM-DD");
 var MonthStringSchema = external_exports.string().regex(/^\d{4}-\d{2}$/, "Month must be formatted as YYYY-MM");
 var CreateEmployeeSchema = external_exports.object({
@@ -68455,6 +68987,7 @@ function calculateUnpaidLeaveDeduction(baseSalaryPaisa, unpaidLeaveDays, working
 }
 
 // ../../packages/shared/src/schema/payroll.ts
+init_esm_shims();
 var CreateStatutoryComponentSchema = external_exports.object({
   code: external_exports.string().trim().min(1, "Code is required").toUpperCase(),
   name: external_exports.string().trim().min(1, "Name is required"),
@@ -68551,6 +69084,7 @@ function computePayrollItemTotals(params) {
 }
 
 // ../../packages/shared/src/schema/sync.ts
+init_esm_shims();
 var SyncEventTypeSchema = external_exports.enum([
   "purchase.received",
   "invoice.created",
@@ -68886,6 +69420,7 @@ var SyncPullResponseSchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/dashboard.ts
+init_esm_shims();
 var SalesMetricItemSchema = external_exports.object({
   salesPaisa: external_exports.number().int(),
   invoiceCount: external_exports.number().int(),
@@ -69082,6 +69617,7 @@ var PharmacistDashboardDataSchema = external_exports.object({
 });
 
 // ../../packages/shared/src/schema/notifications.ts
+init_esm_shims();
 var NotificationTypeSchema = external_exports.enum([
   "expiring_stock",
   "low_stock",
@@ -69172,7 +69708,11 @@ function getSharedInfo() {
   };
 }
 
+// src/db/index.ts
+init_esm_shims();
+
 // ../../node_modules/.pnpm/pg@8.23.1/node_modules/pg/esm/index.mjs
+init_esm_shims();
 var import_lib = __toESM(require_lib3(), 1);
 var Client = import_lib.default.Client;
 var Pool = import_lib.default.Pool;
@@ -69187,7 +69727,11 @@ var TypeOverrides = import_lib.default.TypeOverrides;
 var defaults = import_lib.default.defaults;
 var esm_default = import_lib.default;
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/node-postgres/driver.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/entity.js
+init_esm_shims();
 var entityKind = /* @__PURE__ */ Symbol.for("drizzle:entityKind");
 function is(value, type) {
   if (!value || typeof value !== "object") {
@@ -69214,6 +69758,7 @@ function is(value, type) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/logger.js
+init_esm_shims();
 var ConsoleLogWriter = class {
   static [entityKind] = "ConsoleLogWriter";
   write(message) {
@@ -69244,7 +69789,14 @@ var NoopLogger = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/db.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/delete.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/query-promise.js
+init_esm_shims();
 var QueryPromise = class {
   static [entityKind] = "QueryPromise";
   [Symbol.toStringTag] = "QueryPromise";
@@ -69268,7 +69820,14 @@ var QueryPromise = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/selection-proxy.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/alias.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/column.js
+init_esm_shims();
 var Column = class {
   constructor(table, config2) {
     this.table = table;
@@ -69319,7 +69878,17 @@ var Column = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/sql/sql.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/enum.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/common.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/column-builder.js
+init_esm_shims();
 var ColumnBuilder = class {
   static [entityKind] = "ColumnBuilder";
   config;
@@ -69422,7 +69991,11 @@ var ColumnBuilder = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/foreign-keys.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/table.utils.js
+init_esm_shims();
 var TableName = /* @__PURE__ */ Symbol.for("drizzle:Name");
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/foreign-keys.js
@@ -69483,11 +70056,13 @@ var ForeignKey = class {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/tracing-utils.js
+init_esm_shims();
 function iife(fn, ...args) {
   return fn(...args);
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/unique-constraint.js
+init_esm_shims();
 function unique(name) {
   return new UniqueOnConstraintBuilder(name);
 }
@@ -69541,6 +70116,7 @@ var UniqueConstraint = class {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/utils/array.js
+init_esm_shims();
 function parsePgArrayValue(arrayString, startFrom, inQuotes) {
   for (let i = startFrom; i < arrayString.length; i++) {
     const char2 = arrayString[i];
@@ -69859,6 +70435,7 @@ var PgEnumColumn = class extends PgColumn {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/subquery.js
+init_esm_shims();
 var Subquery = class {
   static [entityKind] = "Subquery";
   constructor(sql2, fields, alias, isWith = false, usedTables = []) {
@@ -69879,7 +70456,11 @@ var WithSubquery = class extends Subquery {
   static [entityKind] = "WithSubquery";
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/tracing.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/version.js
+init_esm_shims();
 var version2 = "0.45.4";
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/tracing.js
@@ -69918,9 +70499,11 @@ var tracer = {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/view-common.js
+init_esm_shims();
 var ViewBaseConfig = /* @__PURE__ */ Symbol.for("drizzle:ViewBaseConfig");
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/table.js
+init_esm_shims();
 var Schema = /* @__PURE__ */ Symbol.for("drizzle:Schema");
 var Columns = /* @__PURE__ */ Symbol.for("drizzle:Columns");
 var ExtraConfigColumns = /* @__PURE__ */ Symbol.for("drizzle:ExtraConfigColumns");
@@ -70541,10 +71124,11 @@ var SelectionProxyHandler = class _SelectionProxyHandler {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/utils.js
+init_esm_shims();
 function mapResultRow(columns, row, joinsNotNullableMap) {
   const nullifyMap = {};
   const result = columns.reduce(
-    (result2, { path, field }, columnIndex) => {
+    (result2, { path: path2, field }, columnIndex) => {
       let decoder;
       if (is(field, Column)) {
         decoder = field;
@@ -70556,8 +71140,8 @@ function mapResultRow(columns, row, joinsNotNullableMap) {
         decoder = field.sql.decoder;
       }
       let node2 = result2;
-      for (const [pathChunkIndex, pathChunk] of path.entries()) {
-        if (pathChunkIndex < path.length - 1) {
+      for (const [pathChunkIndex, pathChunk] of path2.entries()) {
+        if (pathChunkIndex < path2.length - 1) {
           if (!(pathChunk in node2)) {
             node2[pathChunk] = {};
           }
@@ -70565,8 +71149,8 @@ function mapResultRow(columns, row, joinsNotNullableMap) {
         } else {
           const rawValue = row[columnIndex];
           const value = node2[pathChunk] = rawValue === null ? null : decoder.mapFromDriverValue(rawValue);
-          if (joinsNotNullableMap && is(field, Column) && path.length === 2) {
-            const objectName = path[0];
+          if (joinsNotNullableMap && is(field, Column) && path2.length === 2) {
+            const objectName = path2[0];
             if (!(objectName in nullifyMap)) {
               nullifyMap[objectName] = value === null ? getTableName(field.table) : false;
             } else if (typeof nullifyMap[objectName] === "string" && nullifyMap[objectName] !== getTableName(field.table)) {
@@ -70691,7 +71275,20 @@ function isConfig(data) {
 }
 var textDecoder = typeof TextDecoder === "undefined" ? null : new TextDecoder();
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/utils.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/table.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/all.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/bigint.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/int.common.js
+init_esm_shims();
 var PgIntColumnBaseBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgIntColumnBaseBuilder";
   generatedAlwaysAsIdentity(sequence) {
@@ -70785,6 +71382,7 @@ function bigint4(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/bigserial.js
+init_esm_shims();
 var PgBigSerial53Builder = class extends PgColumnBuilder {
   static [entityKind] = "PgBigSerial53Builder";
   constructor(name) {
@@ -70845,6 +71443,7 @@ function bigserial(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/boolean.js
+init_esm_shims();
 var PgBooleanBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgBooleanBuilder";
   constructor(name) {
@@ -70866,6 +71465,7 @@ function boolean4(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/char.js
+init_esm_shims();
 var PgCharBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgCharBuilder";
   constructor(name, config2) {
@@ -70895,6 +71495,7 @@ function char(a, b = {}) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/cidr.js
+init_esm_shims();
 var PgCidrBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgCidrBuilder";
   constructor(name) {
@@ -70916,6 +71517,7 @@ function cidr(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/custom.js
+init_esm_shims();
 var PgCustomColumnBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgCustomColumnBuilder";
   constructor(name, fieldConfig, customTypeParams) {
@@ -70959,7 +71561,11 @@ function customType(customTypeParams) {
   };
 }
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/date.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/date.common.js
+init_esm_shims();
 var PgDateColumnBaseBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgDateColumnBaseBuilder";
   defaultNow() {
@@ -71023,6 +71629,7 @@ function date5(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/double-precision.js
+init_esm_shims();
 var PgDoublePrecisionBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgDoublePrecisionBuilder";
   constructor(name) {
@@ -71053,6 +71660,7 @@ function doublePrecision(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/inet.js
+init_esm_shims();
 var PgInetBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgInetBuilder";
   constructor(name) {
@@ -71074,6 +71682,7 @@ function inet(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/integer.js
+init_esm_shims();
 var PgIntegerBuilder = class extends PgIntColumnBaseBuilder {
   static [entityKind] = "PgIntegerBuilder";
   constructor(name) {
@@ -71101,6 +71710,7 @@ function integer2(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/interval.js
+init_esm_shims();
 var PgIntervalBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgIntervalBuilder";
   constructor(name, intervalConfig) {
@@ -71128,6 +71738,7 @@ function interval(a, b = {}) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/json.js
+init_esm_shims();
 var PgJsonBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgJsonBuilder";
   constructor(name) {
@@ -71165,6 +71776,7 @@ function json2(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/jsonb.js
+init_esm_shims();
 var PgJsonbBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgJsonbBuilder";
   constructor(name) {
@@ -71202,6 +71814,7 @@ function jsonb(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/line.js
+init_esm_shims();
 var PgLineBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgLineBuilder";
   constructor(name) {
@@ -71263,6 +71876,7 @@ function line(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/macaddr.js
+init_esm_shims();
 var PgMacaddrBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgMacaddrBuilder";
   constructor(name) {
@@ -71284,6 +71898,7 @@ function macaddr(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/macaddr8.js
+init_esm_shims();
 var PgMacaddr8Builder = class extends PgColumnBuilder {
   static [entityKind] = "PgMacaddr8Builder";
   constructor(name) {
@@ -71305,6 +71920,7 @@ function macaddr8(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/numeric.js
+init_esm_shims();
 var PgNumericBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgNumericBuilder";
   constructor(name, precision, scale) {
@@ -71422,6 +72038,7 @@ function numeric(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/point.js
+init_esm_shims();
 var PgPointTupleBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgPointTupleBuilder";
   constructor(name) {
@@ -71488,7 +72105,11 @@ function point(a, b) {
   return new PgPointObjectBuilder(name);
 }
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/postgis_extension/geometry.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/postgis_extension/utils.js
+init_esm_shims();
 function hexToBytes(hex3) {
   const bytes = [];
   for (let c = 0; c < hex3.length; c += 2) {
@@ -71588,6 +72209,7 @@ function geometry(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/real.js
+init_esm_shims();
 var PgRealBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgRealBuilder";
   constructor(name, length) {
@@ -71619,6 +72241,7 @@ function real(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/serial.js
+init_esm_shims();
 var PgSerialBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgSerialBuilder";
   constructor(name) {
@@ -71642,6 +72265,7 @@ function serial(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/smallint.js
+init_esm_shims();
 var PgSmallIntBuilder = class extends PgIntColumnBaseBuilder {
   static [entityKind] = "PgSmallIntBuilder";
   constructor(name) {
@@ -71669,6 +72293,7 @@ function smallint(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/smallserial.js
+init_esm_shims();
 var PgSmallSerialBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgSmallSerialBuilder";
   constructor(name) {
@@ -71695,6 +72320,7 @@ function smallserial(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/text.js
+init_esm_shims();
 var PgTextBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgTextBuilder";
   constructor(name, config2) {
@@ -71719,6 +72345,7 @@ function text(a, b = {}) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/time.js
+init_esm_shims();
 var PgTimeBuilder = class extends PgDateColumnBaseBuilder {
   constructor(name, withTimezone, precision) {
     super(name, "string", "PgTime");
@@ -71753,6 +72380,7 @@ function time3(a, b = {}) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/timestamp.js
+init_esm_shims();
 var PgTimestampBuilder = class extends PgDateColumnBaseBuilder {
   static [entityKind] = "PgTimestampBuilder";
   constructor(name, withTimezone, precision) {
@@ -71834,6 +72462,7 @@ function timestamp(a, b = {}) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/uuid.js
+init_esm_shims();
 var PgUUIDBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgUUIDBuilder";
   constructor(name) {
@@ -71861,6 +72490,7 @@ function uuid3(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/varchar.js
+init_esm_shims();
 var PgVarcharBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgVarcharBuilder";
   constructor(name, config2) {
@@ -71890,6 +72520,7 @@ function varchar(a, b = {}) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/vector_extension/bit.js
+init_esm_shims();
 var PgBinaryVectorBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgBinaryVectorBuilder";
   constructor(name, config2) {
@@ -71917,6 +72548,7 @@ function bit(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/vector_extension/halfvec.js
+init_esm_shims();
 var PgHalfVectorBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgHalfVectorBuilder";
   constructor(name, config2) {
@@ -71950,6 +72582,7 @@ function halfvec(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/vector_extension/sparsevec.js
+init_esm_shims();
 var PgSparseVectorBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgSparseVectorBuilder";
   constructor(name, config2) {
@@ -71977,6 +72610,7 @@ function sparsevec(a, b) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/columns/vector_extension/vector.js
+init_esm_shims();
 var PgVectorBuilder = class extends PgColumnBuilder {
   static [entityKind] = "PgVectorBuilder";
   constructor(name, config2) {
@@ -72104,6 +72738,7 @@ var pgTable = (name, columns, extraConfig) => {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/checks.js
+init_esm_shims();
 var CheckBuilder = class {
   constructor(name, value) {
     this.name = name;
@@ -72131,6 +72766,7 @@ function check2(name, value) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/indexes.js
+init_esm_shims();
 var IndexBuilderOn = class {
   constructor(unique2, name) {
     this.unique = unique2;
@@ -72240,6 +72876,7 @@ function index(name) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/primary-keys.js
+init_esm_shims();
 function primaryKey(...config2) {
   if (config2[0].columns) {
     return new PrimaryKeyBuilder(config2[0].columns, config2[0].name);
@@ -72275,7 +72912,14 @@ var PrimaryKey = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/query-builder.js
+init_esm_shims();
+
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/dialect.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/casing.js
+init_esm_shims();
 function toSnakeCase(input2) {
   const words = input2.replace(/['\u2019]/g, "").match(/[\da-z]+|[A-Z]+(?![a-z])|[A-Z][\da-z]+/g) ?? [];
   return words.map((word) => word.toLowerCase()).join("_");
@@ -72328,6 +72972,7 @@ var CasingCache = class {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/errors.js
+init_esm_shims();
 var DrizzleError = class extends Error {
   static [entityKind] = "DrizzleError";
   constructor({ message, cause }) {
@@ -72354,7 +72999,11 @@ var TransactionRollbackError = class extends DrizzleError {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/relations.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/sql/expressions/conditions.js
+init_esm_shims();
 function bindIfParam(value, column) {
   if (isDriverValueEncoder(column) && !isSQLWrapper(value) && !is(value, Param) && !is(value, Placeholder) && !is(value, Column) && !is(value, Table) && !is(value, View)) {
     return new Param(value, column);
@@ -72470,6 +73119,7 @@ function notIlike(column, value) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/sql/expressions/select.js
+init_esm_shims();
 function asc(column) {
   return sql`${column} asc`;
 }
@@ -72739,6 +73389,7 @@ function mapRelationalRow(tablesConfig, tableConfig, row, buildQueryResultSelect
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/view-base.js
+init_esm_shims();
 var PgViewBase = class extends View {
   static [entityKind] = "PgViewBase";
 };
@@ -73848,7 +74499,11 @@ var PgDialect = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/select.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/query-builders/query-builder.js
+init_esm_shims();
 var TypedQueryBuilder = class {
   static [entityKind] = "TypedQueryBuilder";
   /** @internal */
@@ -74871,6 +75526,7 @@ var PgDeleteBase = class extends QueryPromise {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/insert.js
+init_esm_shims();
 var PgInsertBuilder = class {
   constructor(table, session, dialect, withList, overridingSystemValue_) {
     this.table = table;
@@ -75064,6 +75720,7 @@ var PgInsertBase = class extends QueryPromise {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/refresh-materialized-view.js
+init_esm_shims();
 var PgRefreshMaterializedView = class extends QueryPromise {
   constructor(view, session, dialect) {
     super();
@@ -75118,6 +75775,7 @@ var PgRefreshMaterializedView = class extends QueryPromise {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/update.js
+init_esm_shims();
 var PgUpdateBuilder = class {
   constructor(table, session, dialect, withList) {
     this.table = table;
@@ -75330,6 +75988,7 @@ var PgUpdateBase = class extends QueryPromise {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/count.js
+init_esm_shims();
 var PgCountBuilder = class _PgCountBuilder extends SQL {
   constructor(params) {
     super(_PgCountBuilder.buildEmbeddedCount(params.source, params.filters).queryChunks);
@@ -75381,6 +76040,7 @@ var PgCountBuilder = class _PgCountBuilder extends SQL {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/query.js
+init_esm_shims();
 var RelationalQueryBuilder = class {
   constructor(fullSchema, schema, tableNamesMap, table, tableConfig, dialect, session) {
     this.fullSchema = fullSchema;
@@ -75494,6 +76154,7 @@ var PgRelationalQuery = class extends QueryPromise {
 };
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/query-builders/raw.js
+init_esm_shims();
 var PgRaw = class extends QueryPromise {
   constructor(execute, sql2, query, mapBatchResult) {
     super();
@@ -75801,7 +76462,11 @@ var PgDatabase = class {
   }
 };
 
+// ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/node-postgres/session.js
+init_esm_shims();
+
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/cache/core/cache.js
+init_esm_shims();
 var Cache = class {
   static [entityKind] = "Cache";
 };
@@ -75829,6 +76494,7 @@ async function hashQuery(sql2, params) {
 }
 
 // ../../node_modules/.pnpm/drizzle-orm@0.45.4_@types+b_54a6c5bd1c747920961f417d02a77338/node_modules/drizzle-orm/pg-core/session.js
+init_esm_shims();
 var PgPreparedQuery = class {
   constructor(query, cache, queryMetadata, cacheConfig) {
     this.query = query;
@@ -76344,6 +77010,7 @@ __export(schema_exports, {
   userNotifications: () => userNotifications,
   users: () => users
 });
+init_esm_shims();
 var pharmacies = pgTable("pharmacies", {
   id: uuid3("id").primaryKey(),
   name: text("name").notNull(),
@@ -77933,7 +78600,11 @@ function getDb(poolOrUrl) {
 // src/app.ts
 var import_cors = __toESM(require_cors(), 1);
 
+// src/routes/devices.ts
+init_esm_shims();
+
 // src/auth/jwt.ts
+init_esm_shims();
 var import_jsonwebtoken = __toESM(require_jsonwebtoken(), 1);
 import crypto2 from "crypto";
 var revokedUserTokenJtis = /* @__PURE__ */ new Map();
@@ -78076,6 +78747,7 @@ function verifyUserToken(token, options) {
 }
 
 // src/auth/device-auth.ts
+init_esm_shims();
 async function requireDeviceAuth(request, reply) {
   const authHeader = request.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -78265,7 +78937,14 @@ var deviceRoutes = async (fastify, options) => {
   );
 };
 
+// src/routes/sync.ts
+init_esm_shims();
+
+// src/sync/service.ts
+init_esm_shims();
+
 // src/sync/errors.ts
+init_esm_shims();
 var SyncRetryLaterError = class _SyncRetryLaterError extends Error {
   code;
   constructor(code, message) {
@@ -78285,7 +78964,11 @@ var SyncRejectedError = class _SyncRejectedError extends Error {
   }
 };
 
+// src/sync/appliers/purchase.ts
+init_esm_shims();
+
 // src/sync/appliers/common.ts
+init_esm_shims();
 async function verifyTenantEntity(tx, table, id, ctxPharmacyId, notFoundCode, entityName) {
   return verifyTenantEntities(tx, table, [id], ctxPharmacyId, notFoundCode, entityName);
 }
@@ -78313,6 +78996,7 @@ async function verifyTenantEntities(tx, table, ids, ctxPharmacyId, notFoundCode,
 }
 
 // src/sync/change-log.ts
+init_esm_shims();
 var BRANCH_SCOPED_ENTITIES = /* @__PURE__ */ new Set([
   "stock_movement",
   "counter",
@@ -78348,7 +79032,11 @@ async function insertChangeLog(db, params) {
   return entry?.seq ?? 0;
 }
 
+// src/ledger/posting-engine.ts
+init_esm_shims();
+
 // src/ledger/coa-seed.ts
+init_esm_shims();
 var ALL_ACCOUNT_ROLES = [
   "sales",
   "sales_returns",
@@ -78512,6 +79200,7 @@ async function setPharmacyAccountMapping(tx, pharmacyId, role, accountId) {
 }
 
 // src/ledger/service.ts
+init_esm_shims();
 var ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function assertValidKarachiDate(dateStr, fieldName) {
   if (!ISO_DATE_REGEX.test(dateStr)) {
@@ -79835,6 +80524,7 @@ async function applyPurchaseReceived(tx, ctx, rawPayload) {
 }
 
 // src/sync/appliers/invoice.ts
+init_esm_shims();
 async function applyInvoiceCreated(tx, ctx, rawPayload) {
   const parseResult = InvoiceCreatedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -80217,6 +80907,7 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
 }
 
 // src/sync/appliers/credit-note.ts
+init_esm_shims();
 async function applyCreditNoteCreated(tx, ctx, rawPayload) {
   const parseResult = CreditNoteCreatedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -80409,6 +81100,7 @@ async function applyCreditNoteCreated(tx, ctx, rawPayload) {
 }
 
 // src/sync/appliers/stock-adjustment.ts
+init_esm_shims();
 async function applyStockAdjustmentCreated(tx, ctx, rawPayload, envelopeEntityId) {
   const parseResult = StockAdjustmentCreatedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -80511,6 +81203,7 @@ async function applyStockAdjustmentCreated(tx, ctx, rawPayload, envelopeEntityId
 }
 
 // src/sync/appliers/stock-transfer.ts
+init_esm_shims();
 async function applyStockTransferDispatched(tx, ctx, rawPayload) {
   const parseResult = StockTransferDispatchedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -80828,6 +81521,7 @@ async function applyStockTransferReceived(tx, ctx, rawPayload) {
 }
 
 // src/sync/appliers/shift.ts
+init_esm_shims();
 async function verifyShiftCounterAndCashier(tx, ctx, counterId, cashierUserId, explicitBranchId) {
   if (ctx.counterId && counterId !== ctx.counterId) {
     throw new SyncRejectedError(
@@ -80949,6 +81643,7 @@ async function applyShiftClosed(tx, ctx, rawPayload) {
 }
 
 // src/sync/appliers/customer.ts
+init_esm_shims();
 async function applyCustomerCreated(tx, ctx, rawPayload, entityId) {
   const parseResult = CustomerCreatedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -81055,6 +81750,7 @@ async function applyCustomerCreated(tx, ctx, rawPayload, entityId) {
 }
 
 // src/sync/appliers/customer-receipt.ts
+init_esm_shims();
 async function applyCustomerReceiptCreated(tx, ctx, rawPayload, entityId) {
   const parseResult = CustomerReceiptCreatedPayloadSchema.safeParse(rawPayload);
   if (!parseResult.success) {
@@ -81339,6 +82035,7 @@ async function processSyncPushEvents(db, ctx, events) {
 }
 
 // src/sync/pull-service.ts
+init_esm_shims();
 async function pullChangeLog(db, ctx, params) {
   const { cursor, limit, overlap = 0 } = params;
   const effectiveCursor = Math.max(0, cursor - overlap);
@@ -81432,7 +82129,11 @@ var syncRoutes = async (fastify) => {
   );
 };
 
+// src/routes/auth.ts
+init_esm_shims();
+
 // ../../node_modules/.pnpm/bcryptjs@3.0.3/node_modules/bcryptjs/index.js
+init_esm_shims();
 import nodeCrypto from "crypto";
 var randomFallback = null;
 function randomBytes(len) {
@@ -83156,6 +83857,7 @@ var bcryptjs_default = {
 };
 
 // src/auth/user-auth.ts
+init_esm_shims();
 function requirePermission(permission) {
   const handler2 = async function(request, reply) {
     const authHeader = request.headers.authorization;
@@ -83257,6 +83959,7 @@ function requirePermission(permission) {
 }
 
 // src/services/audit-service.ts
+init_esm_shims();
 async function logAuditEvent(db, params) {
   const id = generateUuidV7();
   const now = (/* @__PURE__ */ new Date()).toISOString();
@@ -83584,7 +84287,11 @@ var authRoutes = async (fastify, opts) => {
   );
 };
 
+// src/routes/dashboard.ts
+init_esm_shims();
+
 // src/reports/queries.ts
+init_esm_shims();
 async function getDashboardOverview(db, pharmacyId, todayIsoDate) {
   const startOfDay = getKarachiDayStartUtc(todayIsoDate);
   const nextDayStart = getKarachiNextDayStartUtc(todayIsoDate);
@@ -83915,6 +84622,7 @@ var dashboardRoutes = async (fastify) => {
 };
 
 // src/routes/reports.ts
+init_esm_shims();
 var SalesQuerySchema = external_exports.object({
   startDate: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}/, "Invalid startDate format").optional(),
   endDate: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}/, "Invalid endDate format").optional(),
@@ -84071,6 +84779,7 @@ var reportRoutes = async (fastify) => {
 };
 
 // src/routes/admin.ts
+init_esm_shims();
 var IdParamSchema = external_exports.object({
   id: external_exports.string().uuid("Invalid ID format")
 });
@@ -84707,7 +85416,11 @@ var adminRoutes = async (fastify) => {
   );
 };
 
+// src/routes/finance.ts
+init_esm_shims();
+
 // src/ledger/period-close.ts
+init_esm_shims();
 import crypto3 from "crypto";
 async function getMonthEndChecklist(db, pharmacyId, year, month) {
   const paddedMonth = String(month).padStart(2, "0");
@@ -84998,6 +85711,7 @@ async function executeYearEndClosing(db, input2) {
 }
 
 // src/ledger/queries.ts
+init_esm_shims();
 async function accountLedger(db, accountId, from, to, pharmacyId) {
   const accountConds = [eq(accounts.id, accountId)];
   if (pharmacyId) {
@@ -85096,6 +85810,7 @@ async function accountLedger(db, accountId, from, to, pharmacyId) {
 }
 
 // src/ledger/reconciliation.ts
+init_esm_shims();
 async function reconcileLedger(db, pharmacyId, from, to) {
   const accountMap = await getPharmacyAccountMap(db, pharmacyId);
   const allInvoices = await db.select({
@@ -85952,6 +86667,7 @@ var financeRoutes = async (fastify) => {
 };
 
 // src/routes/payments.ts
+init_esm_shims();
 var PaymentAllocationInputSchema = external_exports.object({
   documentType: external_exports.enum(["invoice", "purchase"]),
   documentId: external_exports.string().uuid(),
@@ -86777,6 +87493,7 @@ var paymentRoutes = async (fastify) => {
 };
 
 // src/routes/expenses.ts
+init_esm_shims();
 var CreateExpenseCategorySchema = external_exports.object({
   name: external_exports.string().min(1),
   accountId: external_exports.string().uuid(),
@@ -87602,6 +88319,7 @@ var expenseRoutes = async (fastify) => {
 };
 
 // src/routes/ar.ts
+init_esm_shims();
 var ReminderSchema = external_exports.object({
   partyType: external_exports.literal("customer"),
   partyId: external_exports.string().uuid(),
@@ -88149,6 +88867,7 @@ var arRoutes = async (fastify) => {
 };
 
 // src/routes/ap.ts
+init_esm_shims();
 var ReminderSchema2 = external_exports.object({
   partyType: external_exports.literal("supplier"),
   partyId: external_exports.string().uuid(),
@@ -88704,6 +89423,7 @@ var apRoutes = async (fastify) => {
 };
 
 // src/routes/cash-bank.ts
+init_esm_shims();
 var CreateAccountSchema = external_exports.object({
   name: external_exports.string().min(1).max(200),
   type: external_exports.enum(["cash", "bank", "wallet"]),
@@ -89387,6 +90107,7 @@ var cashBankRoutes = async (fastify) => {
 };
 
 // src/routes/sales-ledger.ts
+init_esm_shims();
 var salesLedgerRoutes = async (fastify) => {
   fastify.get(
     "/",
@@ -89600,7 +90321,11 @@ var salesLedgerRoutes = async (fastify) => {
   );
 };
 
+// src/routes/financial-reports.ts
+init_esm_shims();
+
 // src/ledger/financial-reports.ts
+init_esm_shims();
 function computePreviousPeriod(startDate, endDate) {
   const start = /* @__PURE__ */ new Date(`${startDate}T00:00:00Z`);
   const end = /* @__PURE__ */ new Date(`${endDate}T00:00:00Z`);
@@ -90401,7 +91126,11 @@ var financialReportsRoutes = async (fastify) => {
   );
 };
 
+// src/routes/budgets.ts
+init_esm_shims();
+
 // src/ledger/budget-service.ts
+init_esm_shims();
 async function getBudgets(db, pharmacyId, filter) {
   const conditions = [
     eq(budgets.pharmacyId, pharmacyId),
@@ -90921,6 +91650,7 @@ var budgetRoutes = async (fastify) => {
 };
 
 // src/routes/suppliers.ts
+init_esm_shims();
 var CreateSupplierSchema = external_exports.object({
   name: external_exports.string().trim().min(1, "Supplier name is required"),
   contactPerson: external_exports.string().trim().optional().nullable(),
@@ -91516,6 +92246,7 @@ var supplierRoutes = async (app) => {
 };
 
 // src/routes/purchase-orders.ts
+init_esm_shims();
 var CreatePOLineSchema = external_exports.object({
   productId: external_exports.string().uuid(),
   quantityOrdered: external_exports.number().int().min(1, "Quantity must be at least 1"),
@@ -92172,6 +92903,7 @@ var purchaseOrderRoutes = async (app) => {
 };
 
 // src/routes/stock-locations.ts
+init_esm_shims();
 var CreateLocationSchema = external_exports.object({
   branchId: external_exports.string().uuid(),
   name: external_exports.string().trim().min(1, "Location name is required"),
@@ -92347,6 +93079,7 @@ var stockLocationRoutes = async (app) => {
 };
 
 // src/routes/stock-transfers.ts
+init_esm_shims();
 var CreateTransferLineSchema = external_exports.object({
   productId: external_exports.string().uuid(),
   batchId: external_exports.string().uuid(),
@@ -93011,6 +93744,7 @@ var stockTransferRoutes = async (app) => {
 };
 
 // src/routes/stock-counts.ts
+init_esm_shims();
 var CreateStockCountSchema = external_exports.object({
   branchId: external_exports.string().uuid(),
   locationId: external_exports.string().uuid().optional().nullable(),
@@ -93459,6 +94193,7 @@ var stockCountRoutes = async (app) => {
 };
 
 // src/routes/supplier-returns.ts
+init_esm_shims();
 var CreateReturnLineSchema = external_exports.object({
   productId: external_exports.string().uuid(),
   batchId: external_exports.string().uuid(),
@@ -93751,6 +94486,7 @@ var supplierReturnRoutes = async (app) => {
 };
 
 // src/routes/stock.ts
+init_esm_shims();
 var StockQuerySchema2 = external_exports.object({
   view: external_exports.enum(["product", "batch"]).default("product"),
   branchId: external_exports.string().uuid().optional(),
@@ -94497,6 +95233,7 @@ var stockRoutes = async (fastify) => {
 };
 
 // src/routes/customers.ts
+init_esm_shims();
 var CreateCustomerSchema = external_exports.object({
   name: external_exports.string().min(1, "Name is required").max(255),
   phone: external_exports.string().nullable().optional(),
@@ -95054,6 +95791,7 @@ var customerRoutes = async (app) => {
 };
 
 // src/routes/prescriptions.ts
+init_esm_shims();
 function addDaysToDate(dateStr, days) {
   const [y, m, d] = dateStr.split("-").map(Number);
   const date6 = new Date(Date.UTC(y, m - 1, d));
@@ -95659,6 +96397,7 @@ ${notes}`.trim() : existing.notes,
 };
 
 // src/routes/hr-leave.ts
+init_esm_shims();
 var hrLeaveRoutes = async (fastify) => {
   fastify.get(
     "/employees",
@@ -96425,7 +97164,11 @@ var hrLeaveRoutes = async (fastify) => {
   );
 };
 
+// src/routes/payroll.ts
+init_esm_shims();
+
 // src/ledger/payroll-posting.ts
+init_esm_shims();
 async function postPayrollRunToLedger(db, pharmacyId, payrollRunId, userId) {
   return await db.transaction(async (tx) => {
     const [run] = await tx.select().from(payrollRuns).where(and(eq(payrollRuns.id, payrollRunId), eq(payrollRuns.pharmacyId, pharmacyId)));
@@ -97462,7 +98205,11 @@ var payrollRoutes = async (fastify) => {
   );
 };
 
+// src/routes/notifications.ts
+init_esm_shims();
+
 // src/services/notification-service.ts
+init_esm_shims();
 async function getUserNotifications(db, pharmacyId, userId) {
   const rows = await db.select().from(userNotifications).where(and(eq(userNotifications.pharmacyId, pharmacyId), eq(userNotifications.userId, userId))).orderBy(userNotifications.isRead, desc(userNotifications.createdAt)).limit(50);
   const [countRow] = await db.select({
@@ -97703,6 +98450,7 @@ var notificationRoutes = async (fastify) => {
 };
 
 // src/routes/search.ts
+init_esm_shims();
 var searchRoutes = async (fastify) => {
   fastify.get(
     "/",
@@ -98062,7 +98810,10 @@ async function handler(req, res) {
     await app.ready();
     const rawUrl = req.url || "/";
     let targetUrl = rawUrl;
-    if (targetUrl === "/api" || targetUrl === "/api/index" || targetUrl === "/api/") {
+    const matchedPath = req.headers["x-matched-path"];
+    if (typeof matchedPath === "string" && matchedPath.startsWith("/")) {
+      targetUrl = matchedPath;
+    } else if (targetUrl === "/api" || targetUrl === "/api/index" || targetUrl === "/api/") {
       const forwarded = req.headers["x-forwarded-uri"] || req.headers["x-now-route-matches"];
       if (typeof forwarded === "string" && forwarded.startsWith("/")) {
         targetUrl = forwarded;

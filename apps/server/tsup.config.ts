@@ -7,6 +7,7 @@ export default defineConfig({
   noExternal: [/.*/],
   clean: false,
   dts: false,
+  shims: true,
   outDir: 'api',
   outExtension() {
     return {

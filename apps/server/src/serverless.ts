@@ -39,7 +39,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
     const rawUrl = req.url || '/';
     let targetUrl = rawUrl;
-    if (targetUrl === '/api' || targetUrl === '/api/index' || targetUrl === '/api/') {
+    const matchedPath = req.headers['x-matched-path'];
+    if (typeof matchedPath === 'string' && matchedPath.startsWith('/')) {
+      targetUrl = matchedPath;
+    } else if (targetUrl === '/api' || targetUrl === '/api/index' || targetUrl === '/api/') {
       const forwarded = req.headers['x-forwarded-uri'] || req.headers['x-now-route-matches'];
       if (typeof forwarded === 'string' && forwarded.startsWith('/')) {
         targetUrl = forwarded;
