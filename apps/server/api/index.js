@@ -98062,57 +98062,11 @@ async function handler(req, res) {
   try {
     const app = await getFastifyApp();
     await app.ready();
-    const rawUrl = req.url || "/";
-    let targetUrl = rawUrl;
     const matchedPath = req.headers["x-matched-path"];
     if (typeof matchedPath === "string" && matchedPath.startsWith("/")) {
-      targetUrl = matchedPath;
-    } else if (targetUrl === "/api" || targetUrl === "/api/index" || targetUrl === "/api/") {
-      const forwarded = req.headers["x-forwarded-uri"] || req.headers["x-now-route-matches"];
-      if (typeof forwarded === "string" && forwarded.startsWith("/")) {
-        targetUrl = forwarded;
-      } else {
-        targetUrl = "/";
-      }
+      req.url = matchedPath;
     }
-    let payload = void 0;
-    const body = req.body;
-    if (body !== void 0 && body !== null) {
-      payload = typeof body === "string" || Buffer.isBuffer(body) ? body : JSON.stringify(body);
-    } else if (req.method !== "GET" && req.method !== "HEAD") {
-      const chunks = [];
-      for await (const chunk of req) {
-        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-      }
-      if (chunks.length > 0) {
-        payload = Buffer.concat(chunks);
-      }
-    }
-    const injectOpts = {
-      method: req.method || "GET",
-      url: targetUrl,
-      headers: req.headers,
-      payload
-    };
-    const response = await app.inject(injectOpts);
-    res.statusCode = response.statusCode;
-    for (const [key, val] of Object.entries(response.headers)) {
-      if (val !== void 0) {
-        res.setHeader(key, val);
-      }
-    }
-    try {
-      if (typeof res.getHeader === "function") {
-        if (!res.getHeader("Access-Control-Allow-Origin")) {
-          res.setHeader("Access-Control-Allow-Origin", origin);
-        }
-      } else {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-      }
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-    } catch {
-    }
-    res.end(response.body);
+    app.server.emit("request", req, res);
   } catch (err) {
     const message = err instanceof Error ? err.stack || err.message : String(err);
     res.statusCode = 500;
