@@ -72,7 +72,7 @@ export const OverviewPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner & Refresh */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-slate-900 tracking-tight">
             Today's Financial &amp; Stock Snapshot
@@ -85,7 +85,7 @@ export const OverviewPage: React.FC = () => {
           onClick={fetchOverview}
           variant="default"
           size="sm"
-          className="gap-2 text-xs"
+          className="gap-2 text-xs self-start sm:self-auto"
           disabled={isLoading}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -94,7 +94,7 @@ export const OverviewPage: React.FC = () => {
       </div>
 
       {/* KPI Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           title="Today's Net Sales"
           value={formatPaisa(data?.todaySalesPaisa || 0)}

@@ -15,6 +15,9 @@ import {
   Clock,
   Building2,
   ChevronRight,
+  ChevronDown,
+  Menu,
+  X,
   BookOpen,
   Scale,
   Warehouse,
@@ -32,9 +35,9 @@ import {
   HeartPulse,
   CalendarDays,
   Banknote,
+  Search,
 } from 'lucide-react';
 import { Badge } from '@pos/ui';
-import { Search } from 'lucide-react';
 import { CommandPalette } from '../components/CommandPalette';
 import { NotificationBell } from '../components/NotificationBell';
 
@@ -133,48 +136,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const { user, logout, can } = useAuth();
   const [karachiTime, setKarachiTime] = useState<string>('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
-
-  const handleNavigate = (link: string) => {
-    // Extract base tab and query params from link like "/customers?customerId=123"
-    const [path, queryString] = link.replace(/^\//, '').split('?');
-    if (queryString && typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.search = `?${queryString}`;
-      window.history.pushState({}, '', url.toString());
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }
-    const clean = path || 'overview';
-    onTabChange(clean as NavItem);
-  };
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const formatted = new Intl.DateTimeFormat('en-PK', {
-        timeZone: 'Asia/Karachi',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      }).format(now);
-      setKarachiTime(formatted);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navSections: NavSection[] = [
     {
@@ -406,11 +368,232 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
   ];
 
+  // Collapsible category state: default Main and currentTab's parent section open
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = { Main: true };
+    for (const sec of navSections) {
+      if (sec.items.some((item) => item.id === currentTab)) {
+        initial[sec.title] = true;
+      }
+    }
+    return initial;
+  });
+
+  // Automatically expand category if active tab is inside it
+  useEffect(() => {
+    const parent = navSections.find((sec) => sec.items.some((item) => item.id === currentTab));
+    if (parent && !openSections[parent.title]) {
+      setOpenSections((prev) => ({ ...prev, [parent.title]: true }));
+    }
+  }, [currentTab]);
+
+  const toggleSection = (title: string) => {
+    setOpenSections((prev) => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  const handleNavigate = (link: string) => {
+    const [path, queryString] = link.replace(/^\//, '').split('?');
+    if (queryString && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.search = `?${queryString}`;
+      window.history.pushState({}, '', url.toString());
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+    const clean = path || 'overview';
+    onTabChange(clean as NavItem);
+    setIsMobileMenuOpen(false);
+  };
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const formatted = new Intl.DateTimeFormat('en-PK', {
+        timeZone: 'Asia/Karachi',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      }).format(now);
+      setKarachiTime(formatted);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleItemClick = (id: NavItem) => {
+    onTabChange(id);
+    setIsMobileMenuOpen(false);
+  };
+
+  // Render navigation links and collapsible categories
+  const renderNavList = () => (
+    <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
+      {navSections.map((sec) => {
+        const visibleItems = sec.items.filter((item) => can(item.permission));
+        if (visibleItems.length === 0) return null;
+
+        const isOpen = openSections[sec.title] ?? false;
+        const hasActiveChild = visibleItems.some((item) => item.id === currentTab);
+
+        return (
+          <div key={sec.title} className="rounded-lg bg-slate-50/50 p-1">
+            {/* Category Accordion Header */}
+            <button
+              type="button"
+              onClick={() => toggleSection(sec.title)}
+              className="w-full flex items-center justify-between px-2.5 py-2 text-[11px] font-bold tracking-wider uppercase text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors group cursor-pointer"
+              aria-expanded={isOpen}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="truncate">{sec.title}</span>
+                {hasActiveChild && !isOpen && (
+                  <span
+                    className="w-2 h-2 rounded-full bg-[#2F64D8] shrink-0 animate-pulse"
+                    title="Active page inside"
+                  />
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-slate-600 shrink-0">
+                <span className="text-[10px] font-semibold text-slate-400 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded shadow-2xs">
+                  {visibleItems.length}
+                </span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    isOpen ? 'rotate-0 text-slate-600' : '-rotate-90 text-slate-400'
+                  }`}
+                />
+              </div>
+            </button>
+
+            {/* Dropdown Items */}
+            {isOpen && (
+              <div className="space-y-0.5 mt-1 pt-1 border-t border-slate-200/40">
+                {visibleItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleItemClick(item.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all duration-150 touch-manipulation ${
+                        isActive
+                          ? 'bg-[#EEF4FF] text-[#2F64D8] font-bold border-l-4 border-[#2F64D8] rounded-r-md rounded-l-none shadow-2xs'
+                          : 'text-slate-600 hover:bg-white hover:text-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <Icon
+                          className={`w-4 h-4 shrink-0 ${
+                            isActive ? 'text-[#2F64D8]' : 'text-slate-400'
+                          }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#2F64D8] shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+
+  // Render bottom user profile and sign out
+  const renderUserCard = () => (
+    <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-[#F7F8FC]/80 flex-shrink-0">
+      <div className="flex items-center justify-between">
+        <div className="overflow-hidden mr-2">
+          <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
+          <div className="mt-0.5">
+            <Badge
+              variant={
+                user?.role === 'owner'
+                  ? 'default'
+                  : user?.role === 'pharmacist'
+                    ? 'secondary'
+                    : 'outline'
+              }
+              className={`text-[10px] uppercase font-bold py-0 px-1.5 ${
+                user?.role === 'owner' ? 'bg-[#2F64D8] text-white hover:bg-[#2452B6]' : ''
+              }`}
+            >
+              {user?.role}
+            </Badge>
+          </div>
+        </div>
+        <button
+          onClick={logout}
+          title="Sign Out"
+          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex h-screen w-full bg-[#F7F8FC] text-slate-800 overflow-hidden font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white text-slate-800 flex flex-col flex-shrink-0 border-r border-slate-200/90 shadow-2xs">
-        {/* Pharmacy Brand */}
+      {/* Mobile Drawer Backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 md:hidden transition-opacity duration-200"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Drawer (Slide-Over for iOS / Android) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-white text-slate-800 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#2F64D8] flex items-center justify-center shadow-md shadow-[#2F64D8]/25 text-white">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div className="overflow-hidden">
+              <h1 className="font-bold text-sm tracking-tight truncate text-slate-900">
+                {user?.pharmacyName || 'HexaPharm'}
+              </h1>
+              <p className="text-[11px] text-slate-500 font-medium">Management Portal</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-lg transition-colors cursor-pointer"
+            aria-label="Close navigation menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {renderNavList()}
+        {renderUserCard()}
+      </aside>
+
+      {/* Desktop Sidebar (Permanent) */}
+      <aside className="hidden md:flex md:w-64 bg-white text-slate-800 flex-col flex-shrink-0 border-r border-slate-200/90 shadow-2xs">
         <div className="p-5 border-b border-slate-100 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#2F64D8] flex items-center justify-center shadow-md shadow-[#2F64D8]/25 text-white">
             <Building2 className="w-5 h-5 text-white" />
@@ -423,126 +606,88 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
         </div>
 
-        {/* Navigation List */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-          {navSections.map((sec) => {
-            const visibleItems = sec.items.filter((item) => can(item.permission));
-            if (visibleItems.length === 0) return null;
-
-            return (
-              <div key={sec.title} className="space-y-1">
-                <p className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  {sec.title}
-                </p>
-                {visibleItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = currentTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => onTabChange(item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
-                        isActive
-                          ? 'bg-[#EEF4FF] text-[#2F64D8] font-bold border-l-4 border-[#2F64D8] rounded-r-lg rounded-l-none shadow-2xs'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 truncate">
-                        <Icon
-                          className={`w-4 h-4 ${isActive ? 'text-[#2F64D8]' : 'text-slate-400'}`}
-                        />
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                      {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#2F64D8]" />}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* User Card & Logout */}
-        <div className="p-4 border-t border-slate-100 bg-[#F7F8FC]/80">
-          <div className="flex items-center justify-between">
-            <div className="overflow-hidden mr-2">
-              <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
-              <div className="mt-0.5">
-                <Badge
-                  variant={
-                    user?.role === 'owner'
-                      ? 'default'
-                      : user?.role === 'pharmacist'
-                        ? 'secondary'
-                        : 'outline'
-                  }
-                  className={`text-[10px] uppercase font-bold py-0 px-1.5 ${
-                    user?.role === 'owner' ? 'bg-[#2F64D8] text-white hover:bg-[#2452B6]' : ''
-                  }`}
-                >
-                  {user?.role}
-                </Badge>
-              </div>
-            </div>
-            <button
-              onClick={logout}
-              title="Sign Out"
-              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        {renderNavList()}
+        {renderUserCard()}
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main View Area */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200/80 px-8 flex items-center justify-between flex-shrink-0 shadow-2xs">
-          <div className="flex items-center gap-6">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight capitalize">
+        <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 shadow-2xs">
+          <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+            {/* Mobile Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg md:hidden transition-colors cursor-pointer"
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Current View Title */}
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight capitalize truncate">
                 {currentTab.replace('-', ' ')}
               </h2>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate hidden sm:block">
                 Live enterprise sync &amp; multi-branch ledger
               </p>
             </div>
 
-            {/* Quick Global Search Trigger */}
+            {/* Global Search Button (Desktop) */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50/70 text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-100/80 text-xs transition-all shadow-2xs"
+              className="hidden lg:flex items-center gap-3 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50/70 text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-100/80 text-xs transition-all shadow-2xs cursor-pointer"
             >
               <Search className="w-3.5 h-3.5 text-slate-400" />
-              <span>Search invoices, medicines, customers...</span>
+              <span>Search invoices, medicines...</span>
               <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-mono font-semibold text-slate-500 shadow-2xs">
                 Ctrl+K
               </kbd>
             </button>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Notification Bell with per-user read state */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            {/* Quick search icon for tablet/mobile */}
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg lg:hidden cursor-pointer"
+              title="Search"
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
+            {/* Notification Bell */}
             <NotificationBell onNavigate={handleNavigate} />
 
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
             {/* Asia/Karachi Live Time */}
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F7F8FC] rounded-lg border border-slate-200 text-slate-700 text-xs font-medium">
+            <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[#F7F8FC] rounded-lg border border-slate-200 text-slate-700 text-xs font-medium">
               <Clock className="w-3.5 h-3.5 text-[#2F64D8]" />
-              <span className="text-slate-500 font-medium">PKT:</span>
-              <span className="font-mono font-semibold text-slate-900">
+              <span className="text-slate-500 font-medium hidden md:inline">PKT:</span>
+              <span className="font-mono font-semibold text-slate-900 text-[11px] sm:text-xs">
                 {karachiTime || 'Loading...'}
               </span>
             </div>
 
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="h-5 w-px bg-slate-200" />
 
+            {/* User Profile Avatar / Name */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">Signed in as:</span>
-              <span className="text-xs font-bold text-slate-800">{user?.name}</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 text-[#2F64D8] flex items-center justify-center font-bold text-xs uppercase shadow-2xs">
+                {user?.name ? user.name.charAt(0) : 'U'}
+              </div>
+              <div className="hidden md:block text-left">
+                <span className="text-[10px] text-slate-400 block leading-tight">Signed in</span>
+                <span className="text-xs font-bold text-slate-800 block leading-tight truncate max-w-[120px]">
+                  {user?.name}
+                </span>
+              </div>
             </div>
           </div>
         </header>
@@ -554,9 +699,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           onNavigate={handleNavigate}
         />
 
-        {/* Scrollable Viewport */}
-        <main className="flex-1 overflow-y-auto p-8 bg-slate-50/60">
-          <div className="max-w-7xl mx-auto space-y-6">{children}</div>
+        {/* Scrollable Viewport with responsive padding */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-8 bg-slate-50/60">
+          <div className="max-w-7xl mx-auto space-y-5 sm:space-y-6">{children}</div>
         </main>
       </div>
     </div>
