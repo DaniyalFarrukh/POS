@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
 import type { Database as DatabaseInstance } from 'better-sqlite3';
+import { DEFAULT_PRODUCTION_API_URL } from '@pos/shared';
 import { nextDelayMs } from './backoff';
 import { computeOfflineLevel } from './offlineLevel';
 import { createOutboxRepo, type OutboxRepository } from './outboxRepo';
@@ -60,7 +61,7 @@ export class SyncWorker extends EventEmitter {
     // Initial config resolution with defaults
     this.config = {
       serverUrl:
-        deps.config?.serverUrl || this.readStateKey('server_url') || 'http://127.0.0.1:3000',
+        deps.config?.serverUrl || this.readStateKey('server_url') || DEFAULT_PRODUCTION_API_URL,
       maxOfflineHours: deps.config?.maxOfflineHours ?? 72,
       syncIntervalMs: deps.config?.syncIntervalMs ?? 30_000,
       requestTimeoutMs: deps.config?.requestTimeoutMs ?? 15_000,

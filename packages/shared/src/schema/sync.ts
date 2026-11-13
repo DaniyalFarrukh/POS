@@ -19,6 +19,11 @@ export const SyncResultStatusSchema = z.enum(['accepted', 'duplicate', 'retry_la
 export type SyncResultStatus = z.infer<typeof SyncResultStatusSchema>;
 
 /**
+ * Production cloud backend API URL for device registration and bi-directional sync
+ */
+export const DEFAULT_PRODUCTION_API_URL = 'https://api.hexalogictechandsolutions.com';
+
+/**
  * Event envelope defined in docs/SYNC.md:
  * { eventId: UUIDv7, deviceSeq: integer (monotonic per device), type: string, entityId: UUIDv7, occurredAt: UTC ISO, schemaVersion: 1, payload: object }
  */

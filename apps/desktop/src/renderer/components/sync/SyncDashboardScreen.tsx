@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import type { AuthSession } from '@pos/shared';
+import { DEFAULT_PRODUCTION_API_URL, type AuthSession } from '@pos/shared';
 import type { SyncStatus } from './types';
 import { getSyncStateStyle, formatKarachiDateTime } from './types';
 import { SyncExceptionsView } from './SyncExceptionsView';
@@ -15,7 +15,7 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
   const [actionMsg, setActionMsg] = useState<{ text: string; isError?: boolean } | null>(null);
   const [showPairForm, setShowPairForm] = useState<boolean>(false);
   const [regCode, setRegCode] = useState<string>('');
-  const [regServerUrl, setRegServerUrl] = useState<string>('http://localhost:3000');
+  const [regServerUrl, setRegServerUrl] = useState<string>(DEFAULT_PRODUCTION_API_URL);
   const [regLoading, setRegLoading] = useState<boolean>(false);
 
   const canManageExceptions = session.user.role === 'owner' || session.user.role === 'pharmacist';
@@ -381,7 +381,7 @@ export const SyncDashboardScreen: React.FC<SyncDashboardScreenProps> = ({ sessio
                     type="text"
                     value={regServerUrl}
                     onChange={(e) => setRegServerUrl(e.target.value)}
-                    placeholder="http://localhost:3000"
+                    placeholder={DEFAULT_PRODUCTION_API_URL}
                     style={{
                       width: '100%',
                       padding: '8px 12px',

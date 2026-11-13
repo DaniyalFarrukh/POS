@@ -240,8 +240,9 @@ export async function login(
     try {
       const rawToken = tokenRow.value.replace(/^plain:/, '');
       const parts = rawToken.split('.');
-      if (parts.length >= 2) {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as {
+      const payloadPart = parts[1];
+      if (payloadPart) {
+        const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf8')) as {
           branchId?: string;
         };
         if (payload.branchId) {
