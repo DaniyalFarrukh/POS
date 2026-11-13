@@ -32,7 +32,7 @@ jobs:
         id: has
         run: |
           if [ -f package.json ]; then echo "found=true" >> "$GITHUB_OUTPUT"; fi
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v6
         if: steps.has.outputs.found == 'true'
         with:
           version: 12.15.0
