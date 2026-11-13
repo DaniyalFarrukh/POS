@@ -201,6 +201,7 @@ export interface SystemApi {
   getPrinters: () => Promise<Array<{ name: string; displayName: string; isDefault: boolean }>>;
   exportDiagnostics: () => Promise<{ success: boolean; zipPath?: string; error?: string }>;
   getIntegrityStatus: () => Promise<{ ok: boolean; message: string; dbPath: string }>;
+  factoryReset: () => Promise<{ ok: boolean; error?: string }>;
 }
 
 export interface BackupRecord {

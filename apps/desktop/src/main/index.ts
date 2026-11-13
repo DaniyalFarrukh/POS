@@ -1,8 +1,8 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
-import { initDatabase, getDatabase, getDbMetadata, type DbMetadata } from './db';
+import { initDatabase, getDatabase, getDbMetadata, getDbPath, closeDatabase, type DbMetadata } from './db';
 import { createTokenStore } from './sync/adapters/tokenStore';
 import { createSyncWorker, type SyncWorker } from './sync/core/syncWorker';
 import { registerSyncIpc } from './sync/adapters/syncIpc';
@@ -524,6 +524,22 @@ export function registerAllIpcHandlers(): void {
         dbPath: meta.database.dbPath,
       };
     },
+  });
+
+  ipcMain.handle('system:factory-reset', async () => {
+    try {
+      closeDatabase();
+      const dbPath = getDbPath();
+      if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
+      if (fs.existsSync(`${dbPath}-wal`)) fs.unlinkSync(`${dbPath}-wal`);
+      if (fs.existsSync(`${dbPath}-shm`)) fs.unlinkSync(`${dbPath}-shm`);
+      if (win && !win.isDestroyed()) {
+        win.webContents.reload();
+      }
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: String(err) };
+    }
   });
 
   // Database Backup & Restore Handlers (Destructive: requires Owner PIN)

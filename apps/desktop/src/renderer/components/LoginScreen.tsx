@@ -261,6 +261,37 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 );
               })}
             </div>
+
+            <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (window.confirm('Reset this terminal to factory initial setup? This will wipe the local database and launch the Initial Setup Wizard.')) {
+                    if (window.api?.system?.factoryReset) {
+                      await window.api.system.factoryReset();
+                      window.location.reload();
+                    }
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.backgroundColor = '#fef2f2'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#64748b'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                ⚙️ Reset Terminal &amp; Re-run Setup Wizard
+              </button>
+            </div>
           </div>
 
           {/* PIN Pad Column */}

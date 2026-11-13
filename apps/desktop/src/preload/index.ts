@@ -121,6 +121,7 @@ const api: DesktopApi = {
     getPrinters: () => ipcRenderer.invoke('system:get-printers'),
     exportDiagnostics: () => ipcRenderer.invoke('system:export-diagnostics'),
     getIntegrityStatus: () => ipcRenderer.invoke('system:get-integrity-status'),
+    factoryReset: () => ipcRenderer.invoke('system:factory-reset'),
   },
   backup: {
     create: () => ipcRenderer.invoke('backup:create'),

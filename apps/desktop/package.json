@@ -67,7 +67,7 @@
       "oneClick": true,
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": false,
+      "deleteAppDataOnUninstall": true,
       "shortcutName": "HexaPharm",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     }
