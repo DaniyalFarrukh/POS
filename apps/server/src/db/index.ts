@@ -30,8 +30,11 @@ export function getPool(connectionString?: string): pg.Pool {
       url.includes('sslmode=require') ||
       process.env.DB_SSL === 'true';
 
+    // Strip sslmode from query string so pg does not override rejectUnauthorized: false
+    const cleanUrl = url.replace(/[?&]sslmode=[^&]+/g, '');
+
     globalPool = new Pool({
-      connectionString: url,
+      connectionString: cleanUrl,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
@@ -49,8 +52,9 @@ export function getDb(poolOrUrl?: pg.Pool | string): NodePgDatabase<typeof schem
         poolOrUrl.includes('pooler.supabase.com') ||
         poolOrUrl.includes('sslmode=require') ||
         process.env.DB_SSL === 'true';
+      const cleanUrl = poolOrUrl.replace(/[?&]sslmode=[^&]+/g, '');
       const pool = new Pool({
-        connectionString: poolOrUrl,
+        connectionString: cleanUrl,
         ...(isRemote ? { ssl: { rejectUnauthorized: false } } : {}),
       });
       return drizzle(pool, { schema });

@@ -77903,8 +77903,9 @@ function getPool(connectionString) {
       });
     }
     const isRemote = url2.includes("supabase.co") || url2.includes("pooler.supabase.com") || url2.includes("sslmode=require") || process.env.DB_SSL === "true";
+    const cleanUrl = url2.replace(/[?&]sslmode=[^&]+/g, "");
     globalPool = new Pool3({
-      connectionString: url2,
+      connectionString: cleanUrl,
       max: 10,
       idleTimeoutMillis: 3e4,
       connectionTimeoutMillis: 1e4,
@@ -77917,8 +77918,9 @@ function getDb(poolOrUrl) {
   if (poolOrUrl) {
     if (typeof poolOrUrl === "string") {
       const isRemote = poolOrUrl.includes("supabase.co") || poolOrUrl.includes("pooler.supabase.com") || poolOrUrl.includes("sslmode=require") || process.env.DB_SSL === "true";
+      const cleanUrl = poolOrUrl.replace(/[?&]sslmode=[^&]+/g, "");
       const pool = new Pool3({
-        connectionString: poolOrUrl,
+        connectionString: cleanUrl,
         ...isRemote ? { ssl: { rejectUnauthorized: false } } : {}
       });
       return drizzle(pool, { schema: schema_exports });
