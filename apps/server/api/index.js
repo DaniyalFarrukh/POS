@@ -97920,12 +97920,14 @@ function buildApp(options = {}) {
       });
     }
     request.log.error(error62);
-    const causeMsg = errObj.cause?.message;
+    const allProps = {};
+    for (const key of Object.getOwnPropertyNames(error62)) {
+      allProps[key] = error62[key];
+    }
     return reply.status(500).send({
       statusCode: 500,
       error: "Internal Server Error",
-      message: `${errObj.message || "Internal server error"}${causeMsg ? ` | Cause: ${causeMsg}` : ""}`,
-      debugCode: errObj.code
+      diagnostic: allProps
     });
   });
   const defaultAllowedOrigins = [

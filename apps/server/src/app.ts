@@ -175,12 +175,14 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     }
 
     request.log.error(error);
-    const causeMsg = (errObj.cause as { message?: string } | undefined)?.message;
+    const allProps: Record<string, unknown> = {};
+    for (const key of Object.getOwnPropertyNames(error)) {
+      allProps[key] = (error as Record<string, unknown>)[key];
+    }
     return reply.status(500).send({
       statusCode: 500,
       error: 'Internal Server Error',
-      message: `${errObj.message || 'Internal server error'}${causeMsg ? ` | Cause: ${causeMsg}` : ''}`,
-      debugCode: errObj.code,
+      diagnostic: allProps,
     });
   });
 
