@@ -52,11 +52,12 @@ export async function requireDeviceAuth(
   let payload;
   try {
     payload = verifyDeviceToken(token);
-  } catch {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     reply.status(401).send({
       statusCode: 401,
       error: 'Unauthorized',
-      message: 'Invalid or expired token',
+      message: `Invalid or expired token: ${msg}`,
     });
     return;
   }
