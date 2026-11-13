@@ -270,18 +270,18 @@ export const ChartOfAccountsPage: React.FC = () => {
       return (
         <React.Fragment key={account.id}>
           <TableRow className={!account.isActive ? 'opacity-60 bg-slate-50/50' : undefined}>
-            <TableCell className="py-2.5">
-              <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
-                {depth > 0 && <span className="text-slate-400 font-mono text-xs">└─</span>}
-                <span className="font-mono font-bold text-slate-900">{account.code}</span>
+            <TableCell className="py-2 sm:py-2.5">
+              <div className="flex items-center gap-1 sm:gap-2" style={{ paddingLeft: `${Math.min(depth * 10, 24)}px` }}>
+                {depth > 0 && <span className="text-slate-400 font-mono text-[10px] sm:text-xs">└─</span>}
+                <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">{account.code}</span>
               </div>
             </TableCell>
-            <TableCell className="py-2.5">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900">{account.name}</span>
+            <TableCell className="py-2 sm:py-2.5">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-semibold text-xs sm:text-sm text-slate-900">{account.name}</span>
                 {account.isSystem && (
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/20"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EEF4FF] text-[#2F64D8] border border-[#2F64D8]/20 shrink-0"
                     title="Protected system account"
                   >
                     <Lock className="w-2.5 h-2.5" />
@@ -290,36 +290,36 @@ export const ChartOfAccountsPage: React.FC = () => {
                 )}
               </div>
             </TableCell>
-            <TableCell className="py-2.5 text-center">
+            <TableCell className="py-2 sm:py-2.5 text-center hidden md:table-cell">
               <Badge variant={TYPE_CONFIG[account.type].badgeVariant}>
                 {TYPE_CONFIG[account.type].label}
               </Badge>
             </TableCell>
-            <TableCell className="py-2.5 text-center">
-              <Badge variant={account.isActive ? 'success' : 'default'}>
+            <TableCell className="py-2 sm:py-2.5 text-center">
+              <Badge variant={account.isActive ? 'success' : 'default'} className="text-[10px] px-1.5 py-0.5">
                 {account.isActive ? 'Active' : 'Inactive'}
               </Badge>
             </TableCell>
-            <TableCell className="py-2.5 text-right">
+            <TableCell className="py-2 sm:py-2.5 text-right">
               {canManage && (
                 <div>
                   {account.isSystem ? (
                     <span
-                      className="inline-flex items-center text-xs text-slate-400 gap-1 cursor-not-allowed select-none"
+                      className="inline-flex items-center text-[11px] text-slate-400 gap-1 cursor-not-allowed select-none"
                       title="System accounts cannot be deactivated"
                     >
-                      <Lock className="w-3.5 h-3.5" /> Protected
+                      <Lock className="w-3 h-3" /> Protected
                     </span>
                   ) : (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleActive(account)}
-                      className={
+                      className={`text-xs px-2 py-1 h-auto ${
                         account.isActive
                           ? 'text-amber-600 hover:text-amber-700'
                           : 'text-emerald-600 hover:text-emerald-700'
-                      }
+                      }`}
                     >
                       {account.isActive ? 'Deactivate' : 'Reactivate'}
                     </Button>
@@ -339,22 +339,21 @@ export const ChartOfAccountsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-[#2F64D8]" />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-[#2F64D8]" />
             Chart of Accounts
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            General ledger accounts structure, classification, and operational document posting
-            mappings
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            General ledger accounts structure, classification, and operational document posting mappings
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {canManage && activeTab === 'coa' && (
-            <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
+            <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 text-xs sm:text-sm">
               <Plus className="w-4 h-4" />
               Add Custom Account
             </Button>
@@ -363,10 +362,10 @@ export const ChartOfAccountsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex border-b border-slate-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('coa')}
-          className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-2 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'coa'
               ? 'border-[#2F64D8] text-[#2F64D8] font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -377,7 +376,7 @@ export const ChartOfAccountsPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('mappings')}
-          className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-2 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === 'mappings'
               ? 'border-[#2F64D8] text-[#2F64D8] font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -389,9 +388,9 @@ export const ChartOfAccountsPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg flex items-center gap-3">
+        <div className="p-3 sm:p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg flex items-center gap-3 text-xs sm:text-sm">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <span className="text-sm font-medium">{error}</span>
+          <span className="font-medium">{error}</span>
         </div>
       )}
 
@@ -399,15 +398,15 @@ export const ChartOfAccountsPage: React.FC = () => {
       {activeTab === 'coa' && (
         <div className="space-y-4">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative flex-1 max-w-md">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <Input
                     placeholder="Search accounts by code or title..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 text-xs sm:text-sm"
                   />
                 </div>
                 <Button
@@ -415,7 +414,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                   size="sm"
                   onClick={fetchAccounts}
                   disabled={isLoading}
-                  className="flex items-center gap-1.5"
+                  className="flex items-center justify-center gap-1.5 text-xs self-end sm:self-auto"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                   Refresh
@@ -440,7 +439,7 @@ export const ChartOfAccountsPage: React.FC = () => {
                   <Card key={type} className="overflow-hidden">
                     <div
                       onClick={() => toggleSection(type)}
-                      className="px-4 py-3 cursor-pointer flex items-center justify-between border-b border-slate-200 select-none bg-slate-50 hover:bg-slate-100/90 transition-colors"
+                      className="px-3 sm:px-4 py-2.5 sm:py-3 cursor-pointer flex items-center justify-between border-b border-slate-200 select-none bg-slate-50 hover:bg-slate-100/90 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
@@ -448,31 +447,33 @@ export const ChartOfAccountsPage: React.FC = () => {
                         ) : (
                           <ChevronDown className="w-4 h-4 text-slate-500" />
                         )}
-                        <span className="font-bold text-slate-900">{config.label}</span>
-                        <span className="text-xs text-slate-500 font-normal">
+                        <span className="font-bold text-xs sm:text-sm text-slate-900">{config.label}</span>
+                        <span className="text-[11px] sm:text-xs text-slate-500 font-normal">
                           ({typeNodes.reduce((acc, n) => acc + 1 + n.children.length, 0)} accounts)
                         </span>
                       </div>
-                      <Badge variant={config.badgeVariant}>{config.label}</Badge>
+                      <Badge variant={config.badgeVariant} className="text-[10px] sm:text-xs">
+                        {config.label}
+                      </Badge>
                     </div>
 
                     {!isCollapsed && (
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-48 text-slate-700 font-bold text-xs uppercase">
+                            <TableHead className="w-20 sm:w-28 text-slate-700 font-bold text-xs uppercase">
                               Code
                             </TableHead>
-                            <TableHead className="text-slate-700 font-bold text-xs uppercase">
+                            <TableHead className="text-slate-700 font-bold text-xs uppercase min-w-[130px]">
                               Account Name
                             </TableHead>
-                            <TableHead className="w-36 text-center text-slate-700 font-bold text-xs uppercase">
+                            <TableHead className="hidden md:table-cell w-32 text-center text-slate-700 font-bold text-xs uppercase">
                               Classification
                             </TableHead>
-                            <TableHead className="w-28 text-center text-slate-700 font-bold text-xs uppercase">
+                            <TableHead className="w-20 sm:w-28 text-center text-slate-700 font-bold text-xs uppercase">
                               Status
                             </TableHead>
-                            <TableHead className="w-32 text-right text-slate-700 font-bold text-xs uppercase">
+                            <TableHead className="w-20 sm:w-28 text-right text-slate-700 font-bold text-xs uppercase">
                               Actions
                             </TableHead>
                           </TableRow>

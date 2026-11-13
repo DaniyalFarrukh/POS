@@ -368,6 +368,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
   ];
 
+  const activeNavItem = navSections.flatMap((s) => s.items).find((i) => i.id === currentTab);
+  const activeTitle = activeNavItem ? activeNavItem.label : currentTab.replace(/-/g, ' ');
+
   // Collapsible category state: default Main and currentTab's parent section open
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = { Main: true };
@@ -627,8 +630,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
             {/* Current View Title */}
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight capitalize truncate">
-                {currentTab.replace('-', ' ')}
+              <h2 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 tracking-tight capitalize truncate max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:max-w-none">
+                {activeTitle}
               </h2>
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate hidden sm:block">
                 Live enterprise sync &amp; multi-branch ledger

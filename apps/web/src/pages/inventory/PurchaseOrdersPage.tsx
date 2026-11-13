@@ -280,7 +280,7 @@ export const PurchaseOrdersPage: React.FC = () => {
   const { totalQuantity, totalCostPaisa } = calculatePOTotals(formLines);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
