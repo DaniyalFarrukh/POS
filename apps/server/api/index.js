@@ -97920,10 +97920,11 @@ function buildApp(options = {}) {
       });
     }
     request.log.error(error62);
+    const causeMsg = errObj.cause?.message;
     return reply.status(500).send({
       statusCode: 500,
       error: "Internal Server Error",
-      message: errObj.message || "Internal server error",
+      message: `${errObj.message || "Internal server error"}${causeMsg ? ` | Cause: ${causeMsg}` : ""}`,
       debugCode: errObj.code
     });
   });
