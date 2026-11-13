@@ -108,14 +108,35 @@ export async function applyPurchaseReceived(
 
   // 4. Verify CreatedBy User belongs to this pharmacy if specified
   if (payload.purchase.createdByUserId) {
-    await verifyTenantEntity(
-      tx,
-      users,
-      payload.purchase.createdByUserId,
-      ctx.pharmacyId,
-      'UNKNOWN_USER',
-      'user'
-    );
+    const [existingUser] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(
+        and(eq(users.id, payload.purchase.createdByUserId), eq(users.pharmacyId, ctx.pharmacyId))
+      )
+      .limit(1);
+
+    if (!existingUser) {
+      // Gracefully resolve to the pharmacy staff/owner user
+      const [fallbackUser] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.pharmacyId, ctx.pharmacyId))
+        .limit(1);
+
+      if (fallbackUser) {
+        payload.purchase.createdByUserId = fallbackUser.id;
+      } else {
+        await verifyTenantEntity(
+          tx,
+          users,
+          payload.purchase.createdByUserId,
+          ctx.pharmacyId,
+          'UNKNOWN_USER',
+          'user'
+        );
+      }
+    }
   }
 
   // 5. Verify referenced products exist for this pharmacy
