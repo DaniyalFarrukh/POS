@@ -17,6 +17,7 @@
     "test:tz-utc": "node -e \"import('child_process').then(cp => process.exit(cp.spawnSync('vitest', ['run', ...process.argv.slice(1)], { stdio: 'inherit', shell: true, env: { ...process.env, TZ: 'UTC' } }).status ?? 1))\"",
     "test:tz-karachi": "node -e \"import('child_process').then(cp => process.exit(cp.spawnSync('vitest', ['run', ...process.argv.slice(1)], { stdio: 'inherit', shell: true, env: { ...process.env, TZ: 'Asia/Karachi' } }).status ?? 1))\"",
     "format": "prettier --write .",
+    "provision": "pnpm --filter @pos/server provision",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
