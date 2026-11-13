@@ -23,19 +23,14 @@ export async function applyPurchaseReceived(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Device alignment
-  if (ctx.branchId && payload.purchase.branchId !== ctx.branchId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device branchId (${ctx.branchId}) does not match purchase branchId (${payload.purchase.branchId})`
-    );
-  }
+  // 1. Device alignment & Branch resolution
+  const effectiveBranchId = ctx.branchId || payload.purchase.branchId;
 
   // 2. Verify Branch belongs to this pharmacy
   await verifyTenantEntity(
     tx,
     branches,
-    payload.purchase.branchId,
+    effectiveBranchId,
     ctx.pharmacyId,
     'UNKNOWN_BRANCH',
     'branch'
@@ -204,7 +199,7 @@ export async function applyPurchaseReceived(
       pharmacyId: ctx.pharmacyId,
       productId: line.productId,
       batchId: line.batchId,
-      branchId: payload.purchase.branchId,
+      branchId: effectiveBranchId,
       type: 'purchase' as const,
       quantitySigned: line.quantity,
       referenceType: 'purchase',
@@ -218,7 +213,7 @@ export async function applyPurchaseReceived(
 
     await insertChangeLog(tx, {
       pharmacyId: ctx.pharmacyId,
-      branchId: payload.purchase.branchId,
+      branchId: effectiveBranchId,
       entity: 'stock_movement',
       entityId: movementId,
       op: 'upsert',

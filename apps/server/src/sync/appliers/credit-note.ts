@@ -34,19 +34,9 @@ export async function applyCreditNoteCreated(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Device alignment
-  if (ctx.branchId && payload.branchId !== ctx.branchId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device branchId (${ctx.branchId}) does not match credit note branchId (${payload.branchId})`
-    );
-  }
-  if (ctx.counterId && payload.counterId !== ctx.counterId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device counterId (${ctx.counterId}) does not match credit note counterId (${payload.counterId})`
-    );
-  }
+  // 1. Device alignment & tenancy resolution
+  const effectiveBranchId = ctx.branchId || payload.branchId;
+  const effectiveCounterId = ctx.counterId || payload.counterId;
 
   // 2. Totals validation (Rule 1 & docs/SYNC.md)
   const lineSum = payload.lines.reduce((sum, l) => sum + l.lineTotalPaisa, 0);
@@ -61,7 +51,7 @@ export async function applyCreditNoteCreated(
   await verifyTenantEntity(
     tx,
     branches,
-    payload.branchId,
+    effectiveBranchId,
     ctx.pharmacyId,
     'UNKNOWN_BRANCH',
     'branch'
@@ -71,7 +61,7 @@ export async function applyCreditNoteCreated(
   await verifyTenantEntity(
     tx,
     counters,
-    payload.counterId,
+    effectiveCounterId,
     ctx.pharmacyId,
     'UNKNOWN_COUNTER',
     'counter'
@@ -129,8 +119,8 @@ export async function applyCreditNoteCreated(
     pharmacyId: ctx.pharmacyId,
     creditNoteNumber: payload.creditNoteNumber,
     originalInvoiceId: payload.originalInvoiceId,
-    branchId: payload.branchId,
-    counterId: payload.counterId,
+    branchId: effectiveBranchId,
+    counterId: effectiveCounterId,
     cashierUserId: payload.cashierUserId,
     clientRequestId: payload.clientRequestId,
     subtotalPaisa: payload.subtotalPaisa,
@@ -166,15 +156,15 @@ export async function applyCreditNoteCreated(
           lastCreditNoteSeq: sql`GREATEST(${counters.lastCreditNoteSeq}, ${seq})`,
           updatedAt: now,
         })
-        .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)))
+        .where(and(eq(counters.id, effectiveCounterId), eq(counters.pharmacyId, ctx.pharmacyId)))
         .returning();
 
       if (updatedCounter) {
         await insertChangeLog(tx, {
           pharmacyId: ctx.pharmacyId,
-          branchId: payload.branchId,
+          branchId: effectiveBranchId,
           entity: 'counter',
-          entityId: payload.counterId,
+          entityId: effectiveCounterId,
           op: 'upsert',
           data: updatedCounter,
           createdAt: now,

@@ -53,49 +53,52 @@ export async function applyInvoiceCreated(
     );
   }
 
-  // 2. Device alignment & Counter verification
-  if (ctx.counterId && payload.counterId !== ctx.counterId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device counterId (${ctx.counterId}) does not match payload counterId (${payload.counterId})`
-    );
-  }
+  // 2. Device alignment & Counter resolution
+  // If the device is authenticated to a specific counter, use that counter;
+  // otherwise fallback to the payload's counter.
+  const targetCounterId = ctx.counterId || payload.counterId;
 
-  const counterRows = await tx
+  let counterRows = await tx
     .select({ id: counters.id, branchId: counters.branchId })
     .from(counters)
-    .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)))
+    .where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId)))
     .limit(1);
 
-  const counter = counterRows[0];
+  let counter = counterRows[0];
+  if (!counter && ctx.branchId) {
+    // If targetCounterId isn't found for this pharmacy, link to any counter of device's branch
+    const branchCounters = await tx
+      .select({ id: counters.id, branchId: counters.branchId })
+      .from(counters)
+      .where(and(eq(counters.branchId, ctx.branchId), eq(counters.pharmacyId, ctx.pharmacyId)))
+      .limit(1);
+    counter = branchCounters[0];
+  }
+
   if (!counter) {
     const [crossCounter] = await tx
       .select({ id: counters.id })
       .from(counters)
-      .where(eq(counters.id, payload.counterId))
+      .where(eq(counters.id, targetCounterId))
       .limit(1);
 
     if (crossCounter) {
       throw new SyncRejectedError(
         'CROSS_TENANT_REFERENCE',
-        `Referenced counter ${payload.counterId} belongs to another pharmacy tenant`
+        `Referenced counter ${targetCounterId} belongs to another pharmacy tenant`
       );
     }
 
     throw new SyncRetryLaterError(
       'UNKNOWN_COUNTER',
-      `Counter ${payload.counterId} not found for pharmacy ${ctx.pharmacyId}`
+      `Counter ${targetCounterId} not found for pharmacy ${ctx.pharmacyId}`
     );
   }
 
-  if (ctx.branchId && counter.branchId !== ctx.branchId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device branchId (${ctx.branchId}) does not match counter branchId (${counter.branchId})`
-    );
-  }
+  const effectiveCounterId = counter.id;
+  const effectiveBranchId = ctx.branchId || counter.branchId;
 
-  const branchId = counter.branchId;
+  const branchId = effectiveBranchId;
 
   // 3. Verify Cashier User belongs to this pharmacy (or sync local cashier snapshot if new)
   if (payload.cashierUser && payload.cashierUser.id === payload.cashierUserId) {
@@ -338,7 +341,7 @@ export async function applyInvoiceCreated(
   await tx.insert(invoices).values({
     id: payload.id,
     pharmacyId: ctx.pharmacyId,
-    counterId: payload.counterId,
+    counterId: effectiveCounterId,
     cashierUserId: payload.cashierUserId,
     invoiceNumber: payload.invoiceNumber,
     clientRequestId: payload.clientRequestId,
@@ -377,7 +380,7 @@ export async function applyInvoiceCreated(
           lastInvoiceSeq: sql`GREATEST(${counters.lastInvoiceSeq}, ${seq})`,
           updatedAt: now,
         })
-        .where(and(eq(counters.id, payload.counterId), eq(counters.pharmacyId, ctx.pharmacyId)))
+        .where(and(eq(counters.id, effectiveCounterId), eq(counters.pharmacyId, ctx.pharmacyId)))
         .returning();
 
       if (updatedCounter) {
@@ -385,7 +388,7 @@ export async function applyInvoiceCreated(
           pharmacyId: ctx.pharmacyId,
           branchId,
           entity: 'counter',
-          entityId: payload.counterId,
+          entityId: effectiveCounterId,
           op: 'upsert',
           data: updatedCounter,
           createdAt: now,

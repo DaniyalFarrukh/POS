@@ -13,44 +13,41 @@ async function verifyShiftCounterAndCashier(
   cashierUserId: string,
   explicitBranchId?: string
 ): Promise<string> {
-  if (ctx.counterId && counterId !== ctx.counterId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device counterId (${ctx.counterId}) does not match shift counterId (${counterId})`
-    );
-  }
+  const targetCounterId = ctx.counterId || counterId;
 
-  const counterRows = await tx
+  let counterRows = await tx
     .select({ id: counters.id, branchId: counters.branchId })
     .from(counters)
-    .where(and(eq(counters.id, counterId), eq(counters.pharmacyId, ctx.pharmacyId)))
+    .where(and(eq(counters.id, targetCounterId), eq(counters.pharmacyId, ctx.pharmacyId)))
     .limit(1);
 
-  const counter = counterRows[0];
+  let counter = counterRows[0];
+  if (!counter && ctx.branchId) {
+    const branchCounters = await tx
+      .select({ id: counters.id, branchId: counters.branchId })
+      .from(counters)
+      .where(and(eq(counters.branchId, ctx.branchId), eq(counters.pharmacyId, ctx.pharmacyId)))
+      .limit(1);
+    counter = branchCounters[0];
+  }
+
   if (!counter) {
     const [crossCounter] = await tx
       .select({ id: counters.id })
       .from(counters)
-      .where(eq(counters.id, counterId))
+      .where(eq(counters.id, targetCounterId))
       .limit(1);
 
     if (crossCounter) {
       throw new SyncRejectedError(
         'CROSS_TENANT_REFERENCE',
-        `Referenced counter ${counterId} belongs to another pharmacy tenant`
+        `Referenced counter ${targetCounterId} belongs to another pharmacy tenant`
       );
     }
 
     throw new SyncRetryLaterError(
       'UNKNOWN_COUNTER',
-      `Counter ${counterId} not found for pharmacy ${ctx.pharmacyId}`
-    );
-  }
-
-  if (ctx.branchId && counter.branchId !== ctx.branchId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device branchId (${ctx.branchId}) does not match counter branchId (${counter.branchId})`
+      `Counter ${targetCounterId} not found for pharmacy ${ctx.pharmacyId}`
     );
   }
 

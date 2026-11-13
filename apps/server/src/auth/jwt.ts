@@ -48,6 +48,7 @@ export function isUserTokenRevoked(jti?: string): boolean {
 export interface DeviceTokenPayload {
   pharmacyId: string;
   branchId: string;
+  counterId?: string;
   deviceId: string;
 }
 
@@ -103,6 +104,7 @@ export function signDeviceToken(
     {
       pharmacyId: payload.pharmacyId,
       branchId: payload.branchId,
+      counterId: payload.counterId,
       deviceId: payload.deviceId,
       typ: 'device',
     },
@@ -150,6 +152,9 @@ export function verifyDeviceToken(
       break;
     } catch (err) {
       lastError = err as Error;
+      if (lastError.message.includes('jwt audience invalid')) {
+        break;
+      }
     }
   }
 
@@ -157,7 +162,7 @@ export function verifyDeviceToken(
     throw lastError || new Error('Invalid token payload: expected object');
   }
 
-  const { pharmacyId, branchId, deviceId, typ } = decoded as Record<string, unknown>;
+  const { pharmacyId, branchId, counterId, deviceId, typ } = decoded as Record<string, unknown>;
 
   if (typ !== 'device') {
     throw new Error('Invalid token type: expected device token');
@@ -174,6 +179,7 @@ export function verifyDeviceToken(
   return {
     pharmacyId,
     branchId,
+    counterId: typeof counterId === 'string' ? counterId : undefined,
     deviceId,
   };
 }

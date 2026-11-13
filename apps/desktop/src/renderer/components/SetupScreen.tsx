@@ -8,9 +8,10 @@ interface SetupScreenProps {
 }
 
 export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => {
-  const [branchName, setBranchName] = useState('City Pharmacy - Saddar');
-  const [counterName, setCounterName] = useState('Counter 01');
-  const [ownerName, setOwnerName] = useState('Dr. Tariq');
+  const [branchName, setBranchName] = useState('');
+  const [counterName, setCounterName] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [regCode, setRegCode] = useState('');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,20 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
       };
 
       const session = await window.api.auth.completeSetup(input);
+
+      if (regCode.trim() && window.api?.sync?.registerDevice) {
+        try {
+          await window.api.sync.registerDevice(
+            'https://api.hexalogictechandsolutions.com',
+            regCode.trim().toUpperCase(),
+            counterName.trim() || 'Counter 01'
+          );
+        } catch (pairErr) {
+          console.warn('Initial pairing note:', pairErr);
+          // Initial setup completed offline; user can also pair in Cloud Sync anytime
+        }
+      }
+
       onSetupComplete(session);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -150,7 +165,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
                 type="text"
                 value={branchName}
                 onChange={(e) => setBranchName(e.target.value)}
-                placeholder="e.g. City Pharmacy - Main"
+                placeholder="e.g. Main Branch / Saddar"
                 disabled={loading}
                 style={{
                   width: '100%',
@@ -208,7 +223,7 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
                 type="text"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
-                placeholder="e.g. Dr. Tariq"
+                placeholder="e.g. Dr. Usman / Pharmacy Owner"
                 disabled={loading}
                 style={{
                   width: '100%',
@@ -216,6 +231,38 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({ onSetupComplete }) => 
                   borderRadius: '6px',
                   border: '1px solid #cbd5e1',
                   fontSize: '14px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#334155',
+                  }}
+                >
+                  Cloud Pairing Code (Optional)
+                </label>
+                <span style={{ fontSize: '11px', color: '#64748b' }}>For multi-device sync</span>
+              </div>
+              <input
+                type="text"
+                value={regCode}
+                onChange={(e) => setRegCode(e.target.value.toUpperCase())}
+                placeholder="e.g. REG-70F7-D2C3-C7BB-860F"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  letterSpacing: '0.05em',
                   boxSizing: 'border-box',
                 }}
               />

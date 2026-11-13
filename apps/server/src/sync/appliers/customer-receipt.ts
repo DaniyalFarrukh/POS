@@ -51,28 +51,24 @@ export async function applyCustomerReceiptCreated(
   }
 
   // 2. Resolve and verify Branch ID, Counter ID, and Cashier User ID
-  if (payload.branchId) {
-    if (ctx.branchId && payload.branchId !== ctx.branchId) {
-      throw new SyncRejectedError(
-        'CROSS_TENANT_REFERENCE',
-        `Device branchId (${ctx.branchId}) does not match receipt branchId (${payload.branchId})`
-      );
-    }
+  const effectiveBranchId = ctx.branchId || payload.branchId;
+  if (effectiveBranchId) {
     await verifyTenantEntity(
       tx,
       branches,
-      payload.branchId,
+      effectiveBranchId,
       ctx.pharmacyId,
       'UNKNOWN_BRANCH',
       'branch'
     );
   }
 
-  if (payload.counterId) {
+  const effectiveCounterId = ctx.counterId || payload.counterId;
+  if (effectiveCounterId) {
     await verifyTenantEntity(
       tx,
       counters,
-      payload.counterId,
+      effectiveCounterId,
       ctx.pharmacyId,
       'UNKNOWN_COUNTER',
       'counter'

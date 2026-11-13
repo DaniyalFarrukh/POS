@@ -230,34 +230,45 @@ export async function login(
     ).run(new Date().toISOString(), userId);
   }
 
-  // Retrieve active branch and counter - prioritize the paired branch/counter from device sync token
+  // Retrieve active branch and counter - prioritize the paired branch/counter from sync_state or sync token
   let targetCounterId: string | null = null;
-  const tokenRow = db
-    .prepare("SELECT value FROM sync_state WHERE key = 'token_encrypted'")
+  const pairedCounterRow = db
+    .prepare("SELECT value FROM sync_state WHERE key = 'counter_id'")
     .get() as { value: string } | undefined;
 
-  if (tokenRow && tokenRow.value) {
-    try {
-      const rawToken = tokenRow.value.replace(/^plain:/, '');
-      const parts = rawToken.split('.');
-      const payloadPart = parts[1];
-      if (payloadPart) {
-        const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf8')) as {
-          branchId?: string;
-        };
-        if (payload.branchId) {
-          const branchCounter = db
-            .prepare(
-              'SELECT id, branch_id, name FROM counters WHERE branch_id = ? ORDER BY created_at DESC LIMIT 1'
-            )
-            .get(payload.branchId) as { id: string; branch_id: string; name: string } | undefined;
-          if (branchCounter) {
-            targetCounterId = branchCounter.id;
+  if (pairedCounterRow && pairedCounterRow.value) {
+    targetCounterId = pairedCounterRow.value;
+  } else {
+    const tokenRow = db
+      .prepare("SELECT value FROM sync_state WHERE key = 'token_encrypted'")
+      .get() as { value: string } | undefined;
+
+    if (tokenRow && tokenRow.value) {
+      try {
+        const rawToken = tokenRow.value.replace(/^plain:/, '');
+        const parts = rawToken.split('.');
+        const payloadPart = parts[1];
+        if (payloadPart) {
+          const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf8')) as {
+            counterId?: string;
+            branchId?: string;
+          };
+          if (payload.counterId) {
+            targetCounterId = payload.counterId;
+          } else if (payload.branchId) {
+            const branchCounter = db
+              .prepare(
+                'SELECT id, branch_id, name FROM counters WHERE branch_id = ? ORDER BY created_at DESC LIMIT 1'
+              )
+              .get(payload.branchId) as { id: string; branch_id: string; name: string } | undefined;
+            if (branchCounter) {
+              targetCounterId = branchCounter.id;
+            }
           }
         }
+      } catch {
+        // Ignore token decode failure and fallback to newest counter
       }
-    } catch {
-      // Ignore token decode failure and fallback to newest counter
     }
   }
 
@@ -279,6 +290,26 @@ export async function login(
       .get(counter.branch_id) as { id: string; name: string } | undefined;
     if (branchRow) {
       branch = { id: branchRow.id, name: branchRow.name };
+    }
+  } else if (targetCounterId) {
+    const pairedBranchId = (
+      db.prepare("SELECT value FROM sync_state WHERE key = 'branch_id'").get() as
+        | { value: string }
+        | undefined
+    )?.value;
+    const pairedCounterName = (
+      db.prepare("SELECT value FROM sync_state WHERE key = 'counter_name'").get() as
+        | { value: string }
+        | undefined
+    )?.value;
+    const pairedBranchName = (
+      db.prepare("SELECT value FROM sync_state WHERE key = 'branch_name'").get() as
+        | { value: string }
+        | undefined
+    )?.value;
+    counterObj = { id: targetCounterId, name: pairedCounterName || 'Counter 01' };
+    if (pairedBranchId) {
+      branch = { id: pairedBranchId, name: pairedBranchName || 'Main Branch' };
     }
   }
 

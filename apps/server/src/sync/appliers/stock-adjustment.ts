@@ -24,19 +24,14 @@ export async function applyStockAdjustmentCreated(
   const payload = parseResult.data;
   const now = new Date().toISOString();
 
-  // 1. Device alignment
-  if (ctx.branchId && payload.branchId !== ctx.branchId) {
-    throw new SyncRejectedError(
-      'CROSS_TENANT_REFERENCE',
-      `Device branchId (${ctx.branchId}) does not match stock adjustment branchId (${payload.branchId})`
-    );
-  }
+  // 1. Device alignment & Branch resolution
+  const effectiveBranchId = ctx.branchId || payload.branchId;
 
   // 2. Verify Branch belongs to this pharmacy
   await verifyTenantEntity(
     tx,
     branches,
-    payload.branchId,
+    effectiveBranchId,
     ctx.pharmacyId,
     'UNKNOWN_BRANCH',
     'branch'
@@ -68,7 +63,7 @@ export async function applyStockAdjustmentCreated(
     pharmacyId: ctx.pharmacyId,
     productId: payload.productId,
     batchId: payload.batchId,
-    branchId: payload.branchId,
+    branchId: effectiveBranchId,
     type: 'adjustment' as const,
     quantitySigned: payload.quantitySigned,
     referenceType: 'stock_adjustment',
@@ -82,7 +77,7 @@ export async function applyStockAdjustmentCreated(
 
   await insertChangeLog(tx, {
     pharmacyId: ctx.pharmacyId,
-    branchId: payload.branchId,
+    branchId: effectiveBranchId,
     entity: 'stock_movement',
     entityId: movementId,
     op: 'upsert',

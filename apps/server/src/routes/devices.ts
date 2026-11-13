@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { eq, and, isNull } from 'drizzle-orm';
 import { generateUuidV7, z } from '@pos/shared';
-import { deviceRegistrationCodes, devices } from '../db/schema';
+import { deviceRegistrationCodes, devices, branches, counters, pharmacies } from '../db/schema';
 import { hashRegistrationCode, signDeviceToken } from '../auth/jwt';
 import { requireDeviceAuth } from '../auth/device-auth';
 import { getDb } from '../db';
@@ -139,10 +139,30 @@ export const deviceRoutes: FastifyPluginAsync<DeviceRoutesOptions> = async (fast
         });
       }
 
-      // 5. Sign JWT containing tenancy and device identity
+      // 5. Look up branch, counter, and pharmacy details to return full context to client
+      const [branchRecord] = await db
+        .select({ id: branches.id, name: branches.name })
+        .from(branches)
+        .where(eq(branches.id, codeRecord.branchId))
+        .limit(1);
+
+      const [counterRecord] = await db
+        .select({ id: counters.id, name: counters.name })
+        .from(counters)
+        .where(eq(counters.id, codeRecord.counterId))
+        .limit(1);
+
+      const [pharmacyRecord] = await db
+        .select({ id: pharmacies.id, name: pharmacies.name })
+        .from(pharmacies)
+        .where(eq(pharmacies.id, codeRecord.pharmacyId))
+        .limit(1);
+
+      // 6. Sign JWT containing tenancy and device identity
       const token = signDeviceToken({
         pharmacyId: codeRecord.pharmacyId,
         branchId: codeRecord.branchId,
+        counterId: codeRecord.counterId,
         deviceId,
       });
 
@@ -150,7 +170,11 @@ export const deviceRoutes: FastifyPluginAsync<DeviceRoutesOptions> = async (fast
         ok: true,
         deviceId,
         pharmacyId: codeRecord.pharmacyId,
+        pharmacyName: pharmacyRecord?.name,
         branchId: codeRecord.branchId,
+        branchName: branchRecord?.name,
+        counterId: codeRecord.counterId,
+        counterName: counterRecord?.name,
         token,
       });
     }
