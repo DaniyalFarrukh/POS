@@ -77894,9 +77894,14 @@ var { Pool: Pool3 } = esm_default;
 var globalPool = null;
 var globalDb = null;
 function getDatabaseUrl() {
-  const SUPABASE_DEFAULT = "postgresql://postgres.mcljcfeahnmzztrmheyu:oneyeargoal%401122@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require";
   const url2 = process.env.DATABASE_URL;
-  return url2 || SUPABASE_DEFAULT;
+  if (!url2) {
+    if (process.env.NODE_ENV === "test") {
+      return "postgresql://pos:pos_dev_secret@localhost:5432/pos_server";
+    }
+    throw new Error("FATAL: DATABASE_URL environment variable is required.");
+  }
+  return url2;
 }
 function getPool(connectionString) {
   const url2 = connectionString || getDatabaseUrl();
@@ -79916,49 +79921,60 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
   const effectiveCounterId = counter.id;
   const effectiveBranchId = ctx.branchId || counter.branchId;
   const branchId = effectiveBranchId;
+  let effectiveCashierUserId = payload.cashierUserId;
   if (payload.cashierUser && payload.cashierUser.id === payload.cashierUserId) {
     const [existingTenantUser] = await tx.select({ id: users.id }).from(users).where(and(eq(users.id, payload.cashierUserId), eq(users.pharmacyId, ctx.pharmacyId))).limit(1);
     if (!existingTenantUser) {
-      const [crossUser] = await tx.select({ id: users.id }).from(users).where(eq(users.id, payload.cashierUserId)).limit(1);
-      if (crossUser) {
-        throw new SyncRejectedError(
-          "CROSS_TENANT_REFERENCE",
-          `Referenced user ${payload.cashierUserId} belongs to another pharmacy tenant`
-        );
-      }
-      const uCreatedAt = payload.cashierUser.createdAt || now;
-      await tx.insert(users).values({
-        id: payload.cashierUser.id,
-        pharmacyId: ctx.pharmacyId,
-        name: payload.cashierUser.name,
-        role: payload.cashierUser.role,
-        pinHash: payload.cashierUser.pinHash || "$2b$10$localplaceholderhash0000000000000000000000000000",
-        isActive: payload.cashierUser.isActive ?? true,
-        createdAt: uCreatedAt,
-        updatedAt: uCreatedAt
-      });
-      await insertChangeLog(tx, {
-        pharmacyId: ctx.pharmacyId,
-        entity: "user",
-        entityId: payload.cashierUser.id,
-        op: "upsert",
-        data: {
+      const [existingUserByName] = await tx.select({ id: users.id }).from(users).where(and(eq(users.name, payload.cashierUser.name), eq(users.pharmacyId, ctx.pharmacyId))).limit(1);
+      if (existingUserByName) {
+        effectiveCashierUserId = existingUserByName.id;
+        await tx.update(users).set({
+          isActive: true,
+          pinHash: payload.cashierUser.pinHash || void 0,
+          updatedAt: now
+        }).where(eq(users.id, existingUserByName.id));
+      } else {
+        const [crossUser] = await tx.select({ id: users.id }).from(users).where(eq(users.id, payload.cashierUserId)).limit(1);
+        if (crossUser) {
+          throw new SyncRejectedError(
+            "CROSS_TENANT_REFERENCE",
+            `Referenced user ${payload.cashierUserId} belongs to another pharmacy tenant`
+          );
+        }
+        const uCreatedAt = payload.cashierUser.createdAt || now;
+        await tx.insert(users).values({
           id: payload.cashierUser.id,
+          pharmacyId: ctx.pharmacyId,
           name: payload.cashierUser.name,
           role: payload.cashierUser.role,
-          pinHash: payload.cashierUser.pinHash || "",
+          pinHash: payload.cashierUser.pinHash || "$2b$10$localplaceholderhash0000000000000000000000000000",
           isActive: payload.cashierUser.isActive ?? true,
           createdAt: uCreatedAt,
           updatedAt: uCreatedAt
-        },
-        createdAt: now
-      });
+        });
+        await insertChangeLog(tx, {
+          pharmacyId: ctx.pharmacyId,
+          entity: "user",
+          entityId: payload.cashierUser.id,
+          op: "upsert",
+          data: {
+            id: payload.cashierUser.id,
+            name: payload.cashierUser.name,
+            role: payload.cashierUser.role,
+            pinHash: payload.cashierUser.pinHash || "",
+            isActive: payload.cashierUser.isActive ?? true,
+            createdAt: uCreatedAt,
+            updatedAt: uCreatedAt
+          },
+          createdAt: now
+        });
+      }
     }
   }
   await verifyTenantEntity(
     tx,
     users,
-    payload.cashierUserId,
+    effectiveCashierUserId,
     ctx.pharmacyId,
     "UNKNOWN_USER",
     "user"
@@ -79974,15 +79990,18 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
             `Referenced product ${prod.id} belongs to another pharmacy tenant`
           );
         }
-        if (prod.taxCategoryId) {
-          await verifyTenantEntity(
-            tx,
-            taxCategories,
-            prod.taxCategoryId,
-            ctx.pharmacyId,
-            "UNKNOWN_TAX_CATEGORY",
-            "tax category"
-          );
+        let effectiveTaxCategoryId = prod.taxCategoryId ?? null;
+        if (effectiveTaxCategoryId) {
+          const [existingTc] = await tx.select({ id: taxCategories.id }).from(taxCategories).where(
+            and(
+              eq(taxCategories.id, effectiveTaxCategoryId),
+              eq(taxCategories.pharmacyId, ctx.pharmacyId)
+            )
+          ).limit(1);
+          if (!existingTc) {
+            const [defaultTc] = await tx.select({ id: taxCategories.id }).from(taxCategories).where(eq(taxCategories.pharmacyId, ctx.pharmacyId)).orderBy(sql`${taxCategories.rateBp} DESC`).limit(1);
+            effectiveTaxCategoryId = defaultTc?.id ?? null;
+          }
         }
         const pCreatedAt = prod.createdAt || now;
         const prodRow = {
@@ -79994,7 +80013,7 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
           form: prod.form ?? "",
           manufacturer: prod.manufacturer ?? "",
           barcode: prod.barcode ?? null,
-          taxCategoryId: prod.taxCategoryId ?? null,
+          taxCategoryId: effectiveTaxCategoryId,
           mrpPaisa: prod.mrpPaisa,
           isControlled: prod.isControlled ?? false,
           isActive: prod.isActive ?? true,
@@ -80098,7 +80117,7 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
     id: payload.id,
     pharmacyId: ctx.pharmacyId,
     counterId: effectiveCounterId,
-    cashierUserId: payload.cashierUserId,
+    cashierUserId: effectiveCashierUserId,
     invoiceNumber: payload.invoiceNumber,
     clientRequestId: payload.clientRequestId,
     status: payload.status,
@@ -80239,7 +80258,7 @@ async function applyInvoiceCreated(tx, ctx, rawPayload) {
     await postInvoiceCreated(tx, {
       pharmacyId: ctx.pharmacyId,
       branchId,
-      createdBy: payload.cashierUserId,
+      createdBy: effectiveCashierUserId,
       invoice: payload
     });
   }
@@ -81314,6 +81333,7 @@ async function processSyncPushEvents(db, ctx, events) {
           message: "A transient server error occurred. Please retry."
         };
       } else {
+        console.error("[SyncPush] Unexpected internal error while applying event:", event.type, err);
         const sanitizedMessage = "An unexpected internal error occurred";
         try {
           await db.transaction(async (tx) => {
@@ -84084,7 +84104,8 @@ var CreateUserSchema = external_exports.object({
 });
 var UpdateUserSchema = external_exports.object({
   role: external_exports.enum(["owner", "manager", "accountant", "pharmacist", "cashier"]).optional(),
-  isActive: external_exports.boolean().optional()
+  isActive: external_exports.boolean().optional(),
+  pin: external_exports.string().min(6).max(8).optional()
 });
 var CreateBranchSchema = external_exports.object({
   name: external_exports.string().min(1, "Branch name is required"),
@@ -84224,7 +84245,7 @@ var adminRoutes = async (fastify) => {
           message: bodyParsed.error.issues[0]?.message || "Invalid update input"
         });
       }
-      const { role, isActive } = bodyParsed.data;
+      const { role, isActive, pin } = bodyParsed.data;
       const db = request.server.db || getDb();
       const now = (/* @__PURE__ */ new Date()).toISOString();
       const [existingUser] = await db.select({
@@ -84265,6 +84286,23 @@ var adminRoutes = async (fastify) => {
       }
       if (typeof isActive === "boolean") {
         updateFields.isActive = isActive;
+      }
+      if (pin && typeof pin === "string") {
+        const targetRole = role || existingUser.role;
+        const pinRegex = targetRole === "owner" ? /^\d{8}$/ : /^\d{6,8}$/;
+        if (!pinRegex.test(pin.trim())) {
+          const msg = targetRole === "owner" ? "Owner PIN must be exactly 8 digits" : "PIN must be between 6 and 8 digits";
+          return reply.status(400).send({ statusCode: 400, message: msg });
+        }
+        if (isTrivialPin(pin.trim())) {
+          return reply.status(400).send({
+            statusCode: 400,
+            message: "PIN cannot be a trivial repeating pattern (e.g. 000000 or 121212)"
+          });
+        }
+        updateFields.pinHash = await bcryptjs_default.hash(pin.trim(), 10);
+        updateFields.failedLoginAttempts = 0;
+        updateFields.lockedUntil = null;
       }
       const updatedUser = await db.transaction(async (tx) => {
         const updatedUsers = await tx.update(users).set(updateFields).where(and(eq(users.id, id), eq(users.pharmacyId, userContext.pharmacyId))).returning({

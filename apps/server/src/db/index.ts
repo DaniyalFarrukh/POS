@@ -16,11 +16,14 @@ let globalPool: pg.Pool | null = null;
 let globalDb: NodePgDatabase<typeof schema> | null = null;
 
 export function getDatabaseUrl(): string {
-  const SUPABASE_DEFAULT =
-    'postgresql://postgres.mcljcfeahnmzztrmheyu:oneyeargoal%401122@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require';
   const url = process.env.DATABASE_URL;
-
-  return url || SUPABASE_DEFAULT;
+  if (!url) {
+    if (process.env.NODE_ENV === 'test') {
+      return 'postgresql://pos:pos_dev_secret@localhost:5432/pos_server';
+    }
+    throw new Error('FATAL: DATABASE_URL environment variable is required.');
+  }
+  return url;
 }
 
 export function getPool(connectionString?: string): pg.Pool {
