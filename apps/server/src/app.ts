@@ -175,14 +175,11 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     }
 
     request.log.error(error);
-    const allProps: Record<string, unknown> = {};
-    for (const key of Object.getOwnPropertyNames(error)) {
-      allProps[key] = (error as Record<string, unknown>)[key];
-    }
+    request.log.error(error);
     return reply.status(500).send({
       statusCode: 500,
       error: 'Internal Server Error',
-      diagnostic: allProps,
+      message: 'Internal server error',
     });
   });
 

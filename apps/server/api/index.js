@@ -97925,14 +97925,11 @@ function buildApp(options = {}) {
       });
     }
     request.log.error(error62);
-    const allProps = {};
-    for (const key of Object.getOwnPropertyNames(error62)) {
-      allProps[key] = error62[key];
-    }
+    request.log.error(error62);
     return reply.status(500).send({
       statusCode: 500,
       error: "Internal Server Error",
-      diagnostic: allProps
+      message: "Internal server error"
     });
   });
   const defaultAllowedOrigins = [
