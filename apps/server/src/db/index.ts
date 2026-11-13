@@ -5,6 +5,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Ensure Node TLS permits Supabase self-signed cert chain in serverless environments
+if (process.env.NODE_ENV === 'production' || !process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 const { Pool } = pg;
 
 let globalPool: pg.Pool | null = null;

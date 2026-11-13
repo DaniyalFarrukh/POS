@@ -77887,6 +77887,9 @@ var revokedTokens = pgTable(
 // src/db/index.ts
 var import_dotenv = __toESM(require_main(), 1);
 import_dotenv.default.config();
+if (process.env.NODE_ENV === "production" || !process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
 var { Pool: Pool3 } = esm_default;
 var globalPool = null;
 var globalDb = null;
