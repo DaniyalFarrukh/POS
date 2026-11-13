@@ -37,6 +37,7 @@ const CreateUserSchema = z.object({
 const UpdateUserSchema = z.object({
   role: z.enum(['owner', 'manager', 'accountant', 'pharmacist', 'cashier']).optional(),
   isActive: z.boolean().optional(),
+  pin: z.string().min(6).max(8).optional(),
 });
 
 const CreateBranchSchema = z.object({
@@ -222,7 +223,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
           message: bodyParsed.error.issues[0]?.message || 'Invalid update input',
         });
       }
-      const { role, isActive } = bodyParsed.data;
+      const { role, isActive, pin } = bodyParsed.data;
 
       const db = request.server.db || getDb();
       const now = new Date().toISOString();
@@ -283,6 +284,26 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       }
       if (typeof isActive === 'boolean') {
         updateFields.isActive = isActive;
+      }
+      if (pin && typeof pin === 'string') {
+        const targetRole = role || existingUser.role;
+        const pinRegex = targetRole === 'owner' ? /^\d{8}$/ : /^\d{6,8}$/;
+        if (!pinRegex.test(pin.trim())) {
+          const msg =
+            targetRole === 'owner'
+              ? 'Owner PIN must be exactly 8 digits'
+              : 'PIN must be between 6 and 8 digits';
+          return reply.status(400).send({ statusCode: 400, message: msg });
+        }
+        if (isTrivialPin(pin.trim())) {
+          return reply.status(400).send({
+            statusCode: 400,
+            message: 'PIN cannot be a trivial repeating pattern (e.g. 000000 or 121212)',
+          });
+        }
+        updateFields.pinHash = await bcrypt.hash(pin.trim(), 10);
+        updateFields.failedLoginAttempts = 0;
+        updateFields.lockedUntil = null;
       }
 
       const updatedUser = await db.transaction(async (tx) => {
