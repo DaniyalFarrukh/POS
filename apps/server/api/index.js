@@ -42056,7 +42056,7 @@ function buildApp(options = {}) {
   return app;
 }
 
-// api/index.ts
+// src/serverless.ts
 var appPromise = null;
 async function getFastifyApp() {
   if (!appPromise) {

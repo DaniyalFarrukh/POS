@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['api/index.ts'],
+  entry: { index: 'src/serverless.ts' },
   format: ['esm'],
   target: 'node20',
   noExternal: ['@pos/shared'],

@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { InjectOptions } from 'fastify';
-import { buildApp } from '../src/app';
+import { buildApp } from './app';
 
 let appPromise: Promise<ReturnType<typeof buildApp>> | null = null;
 
@@ -71,4 +71,3 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     res.end(JSON.stringify({ error: 'Server initialization error', details: message }));
   }
 }
-
