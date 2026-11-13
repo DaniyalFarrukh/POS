@@ -15,7 +15,7 @@ jobs:
     name: Secret scan (gitleaks, full history)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history, needed to catch old leaked keys
       - name: Run gitleaks
@@ -27,7 +27,7 @@ jobs:
     name: Node audit, lint, test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check for package.json
         id: has
         run: |
@@ -58,7 +58,7 @@ jobs:
     name: Block sensitive files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Fail if env/key/db files are tracked
         run: |
           bad=$(git ls-files | grep -E '(^|/)\.env($|\.)|\.pem$|\.key$|\.sqlite$|\.db$|\.sql\.gz$|\.dump$' | grep -v '\.env\.example$' || true)
