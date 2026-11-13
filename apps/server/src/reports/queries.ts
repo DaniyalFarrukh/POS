@@ -573,7 +573,7 @@ export async function getSupplierLedgerReport(
     .groupBy(stockMovements.reason)
     .orderBy(desc(sql`MAX(${stockMovements.createdAt})`));
 
-  return rows.map((r) => ({
+  return rows.map((r): SupplierLedgerItem => ({
     supplierId: null,
     supplierName: String(r.reason || 'General Supplier'),
     purchaseCount: Number(r.purchaseCount),
