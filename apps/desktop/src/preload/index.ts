@@ -105,8 +105,12 @@ const api: DesktopApi = {
   sync: {
     getStatus: () => ipcRenderer.invoke('sync:getStatus'),
     syncNow: () => ipcRenderer.invoke('sync:syncNow'),
-    registerDevice: (serverUrl: string, code: string, deviceName?: string) =>
-      ipcRenderer.invoke('sync:registerDevice', serverUrl, code, deviceName),
+    registerDevice: (
+      serverUrl: string,
+      code: string,
+      deviceName?: string,
+      confirmReRegistration?: boolean
+    ) => ipcRenderer.invoke('sync:registerDevice', serverUrl, code, deviceName, confirmReRegistration),
     listExceptions: (status?: string) => ipcRenderer.invoke('sync:listExceptions', status),
     retryException: (id: string) => ipcRenderer.invoke('sync:retryException', id),
     dismissException: (id: string, note?: string) =>

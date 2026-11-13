@@ -16,6 +16,7 @@ import {
   isWeakOrSequentialPin,
 } from '@pos/shared';
 import { getDatabase } from './db';
+import { seedDatabase } from './db/seed';
 
 export class AuthError extends Error {
   constructor(message: string) {
@@ -126,6 +127,13 @@ export async function completeSetup(
   });
 
   setupTx();
+
+  // Auto-seed essential medicine catalog and top distributors so new store is operational immediately
+  try {
+    seedDatabase(db);
+  } catch (seedErr) {
+    console.warn('Initial catalog seed notice:', seedErr);
+  }
 
   const session: AuthSession = {
     user: {

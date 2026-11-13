@@ -60,6 +60,10 @@ export interface SyncStatus {
   lastPullOkAt?: string | null;
   lastOnlineAt?: string | null;
   lastError?: string | null;
+  isRegistered?: boolean;
+  pharmacyName?: string | null;
+  branchName?: string | null;
+  counterName?: string | null;
 }
 
 export interface SyncConfig {

@@ -161,6 +161,11 @@ export class SyncWorker extends EventEmitter {
       this.config.maxOfflineHours
     );
 
+    const deviceId = this.readStateKey('device_id');
+    const pharmacyName = this.readStateKey('pharmacy_name');
+    const branchName = this.readStateKey('branch_name');
+    const counterName = this.readStateKey('counter_name');
+
     return {
       state: this.state,
       offlineLevel: offlineLevelResult.level,
@@ -172,6 +177,10 @@ export class SyncWorker extends EventEmitter {
       lastPullOkAt,
       lastOnlineAt,
       lastError: this.lastError,
+      isRegistered: Boolean(deviceId),
+      pharmacyName,
+      branchName,
+      counterName,
     };
   }
 

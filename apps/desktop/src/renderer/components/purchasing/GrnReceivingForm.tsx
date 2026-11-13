@@ -47,6 +47,24 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
   const [productSearchResults, setProductSearchResults] = useState<ProductWithTax[]>([]);
   const [isSearchingProducts, setIsSearchingProducts] = useState<boolean>(false);
 
+  // Quick Add Supplier Modal
+  const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState('');
+  const [newSupplierPhone, setNewSupplierPhone] = useState('');
+  const [newSupplierContact, setNewSupplierContact] = useState('');
+  const [isSavingSupplier, setIsSavingSupplier] = useState(false);
+
+  // Quick Add Medicine Modal
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [newProdBrandName, setNewProdBrandName] = useState('');
+  const [newProdGenericName, setNewProdGenericName] = useState('');
+  const [newProdStrength, setNewProdStrength] = useState('500mg');
+  const [newProdForm, setNewProdForm] = useState('tablet');
+  const [newProdManufacturer, setNewProdManufacturer] = useState('');
+  const [newProdMrp, setNewProdMrp] = useState('');
+  const [targetLineIdForNewProd, setTargetLineIdForNewProd] = useState<string | null>(null);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+
   const supplierSelectRef = useRef<HTMLSelectElement>(null);
 
   // Load suppliers on mount
@@ -86,6 +104,68 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
 
     return () => clearTimeout(timer);
   }, [productSearchQuery]);
+
+  const handleQuickAddSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSupplierName.trim()) return;
+    setIsSavingSupplier(true);
+    try {
+      const created = await window.api.purchasing.createSupplier({
+        name: newSupplierName.trim(),
+        phone: newSupplierPhone.trim() || undefined,
+        contactPerson: newSupplierContact.trim() || undefined,
+      });
+      setSuppliers((prev) => [...prev, created]);
+      setSelectedSupplierId(created.id);
+      setIsAddSupplierModalOpen(false);
+      setNewSupplierName('');
+      setNewSupplierPhone('');
+      setNewSupplierContact('');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsSavingSupplier(false);
+    }
+  };
+
+  const handleQuickAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProdBrandName.trim()) return;
+    setIsSavingProduct(true);
+    try {
+      const taxCategories = await window.api.products.getTaxCategories();
+      const defaultTaxId = taxCategories[0]?.id;
+      if (!defaultTaxId) throw new Error('No tax category available');
+
+      const mrpNum = parseFloat(newProdMrp) || 0;
+      const created = await window.api.products.createProduct({
+        brandName: newProdBrandName.trim(),
+        genericName: newProdGenericName.trim() || newProdBrandName.trim(),
+        strength: newProdStrength.trim() || 'Standard',
+        form: newProdForm.trim() || 'tablet',
+        manufacturer: newProdManufacturer.trim() || 'Pharma',
+        taxCategoryId: defaultTaxId,
+        mrpPaisa: Math.round(mrpNum * 100),
+        isControlled: false,
+        isActive: true,
+      });
+
+      if (targetLineIdForNewProd) {
+        handleSelectProduct(targetLineIdForNewProd, created);
+      }
+      setIsAddProductModalOpen(false);
+      setNewProdBrandName('');
+      setNewProdGenericName('');
+      setNewProdStrength('500mg');
+      setNewProdForm('tablet');
+      setNewProdManufacturer('');
+      setNewProdMrp('');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsSavingProduct(false);
+    }
+  };
 
   // Add initial empty line if none
   const addLine = useCallback(() => {
@@ -401,17 +481,34 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
         }}
       >
         <div>
-          <label
-            style={{
-              display: 'block',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#334155',
-              marginBottom: '6px',
-            }}
-          >
-            Distributor / Supplier <span style={{ color: '#ef4444' }}>*</span>
-          </label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <label
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+              }}
+            >
+              Distributor / Supplier <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsAddSupplierModalOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#2563eb',
+                fontSize: '11.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+              }}
+            >
+              + Add New Supplier
+            </button>
+          </div>
           <select
             ref={supplierSelectRef}
             value={selectedSupplierId}
@@ -430,6 +527,8 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
           >
             {loadingSuppliers ? (
               <option>Loading suppliers...</option>
+            ) : suppliers.length === 0 ? (
+              <option value="">No suppliers yet - Click "+ Add New Supplier"</option>
             ) : (
               suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -645,50 +744,109 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
                                 Searching catalog...
                               </div>
                             ) : productSearchResults.length === 0 ? (
-                              <div style={{ padding: '10px', fontSize: '12px', color: '#64748b' }}>
-                                No medicines found matching "{productSearchQuery}"
+                              <div style={{ padding: '12px', fontSize: '12px', color: '#64748b' }}>
+                                <div>No medicines found matching "{productSearchQuery}"</div>
+                                {productSearchQuery.trim() && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setNewProdBrandName(productSearchQuery.trim());
+                                      setTargetLineIdForNewProd(line.id);
+                                      setIsAddProductModalOpen(true);
+                                    }}
+                                    style={{
+                                      marginTop: '8px',
+                                      width: '100%',
+                                      padding: '7px 10px',
+                                      backgroundColor: '#2563eb',
+                                      color: '#ffffff',
+                                      borderRadius: '5px',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      fontWeight: 600,
+                                      fontSize: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '5px',
+                                    }}
+                                  >
+                                    <span>➕</span> Add "{productSearchQuery.trim()}" as New Medicine
+                                  </button>
+                                )}
                               </div>
                             ) : (
-                              productSearchResults.map((prod) => (
-                                <div
-                                  key={prod.id}
-                                  onClick={() => handleSelectProduct(line.id, prod)}
-                                  style={{
-                                    padding: '8px 12px',
-                                    cursor: 'pointer',
-                                    borderBottom: '1px solid #f1f5f9',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    (e.currentTarget.style.backgroundColor = '#eff6ff')
-                                  }
-                                  onMouseLeave={(e) =>
-                                    (e.currentTarget.style.backgroundColor = '#ffffff')
-                                  }
-                                >
-                                  <div>
-                                    <span style={{ fontWeight: 600, color: '#1e293b' }}>
-                                      {prod.brandName} {prod.strength}
-                                    </span>
+                              <>
+                                {productSearchResults.map((prod) => (
+                                  <div
+                                    key={prod.id}
+                                    onClick={() => handleSelectProduct(line.id, prod)}
+                                    style={{
+                                      padding: '8px 12px',
+                                      cursor: 'pointer',
+                                      borderBottom: '1px solid #f1f5f9',
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      (e.currentTarget.style.backgroundColor = '#eff6ff')
+                                    }
+                                    onMouseLeave={(e) =>
+                                      (e.currentTarget.style.backgroundColor = '#ffffff')
+                                    }
+                                  >
+                                    <div>
+                                      <span style={{ fontWeight: 600, color: '#1e293b' }}>
+                                        {prod.brandName} {prod.strength}
+                                      </span>
+                                      <span
+                                        style={{
+                                          fontSize: '11px',
+                                          color: '#64748b',
+                                          marginLeft: '6px',
+                                        }}
+                                      >
+                                        ({prod.genericName})
+                                      </span>
+                                    </div>
                                     <span
-                                      style={{
-                                        fontSize: '11px',
-                                        color: '#64748b',
-                                        marginLeft: '6px',
-                                      }}
+                                      style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a' }}
                                     >
-                                      ({prod.genericName})
+                                      {formatPaisaToRupees(prod.mrpPaisa)}
                                     </span>
                                   </div>
-                                  <span
-                                    style={{ fontWeight: 700, fontSize: '12px', color: '#0f172a' }}
+                                ))}
+                                {productSearchQuery.trim() && (
+                                  <div
+                                    onClick={() => {
+                                      setNewProdBrandName(productSearchQuery.trim());
+                                      setTargetLineIdForNewProd(line.id);
+                                      setIsAddProductModalOpen(true);
+                                    }}
+                                    style={{
+                                      padding: '8px 12px',
+                                      backgroundColor: '#f8fafc',
+                                      borderTop: '1px dashed #cbd5e1',
+                                      color: '#2563eb',
+                                      cursor: 'pointer',
+                                      fontWeight: 600,
+                                      fontSize: '12px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      (e.currentTarget.style.backgroundColor = '#eff6ff')
+                                    }
+                                    onMouseLeave={(e) =>
+                                      (e.currentTarget.style.backgroundColor = '#f8fafc')
+                                    }
                                   >
-                                    {formatPaisaToRupees(prod.mrpPaisa)}
-                                  </span>
-                                </div>
-                              ))
+                                    <span>➕</span> Add "{productSearchQuery.trim()}" as New Medicine
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         )}
@@ -962,6 +1120,363 @@ export const GrnReceivingForm: React.FC<GrnReceivingFormProps> = ({ onSuccess })
           </button>
         </div>
       </div>
+
+      {/* Quick Add Supplier Modal */}
+      {isAddSupplierModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(3px)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddSupplierModalOpen(false);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              width: '420px',
+              maxWidth: '90vw',
+              padding: '24px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                Add Distributor / Supplier
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddSupplierModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAddSupplier} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Distributor Name <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="e.g. Muller & Phipps, Searle, Local Vendor"
+                  value={newSupplierName}
+                  onChange={(e) => setNewSupplierName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Phone / Contact #
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 0300-1234567"
+                  value={newSupplierPhone}
+                  onChange={(e) => setNewSupplierPhone(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Contact Person / Sales Agent
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Tariq Mehmood"
+                  value={newSupplierContact}
+                  onChange={(e) => setNewSupplierContact(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAddSupplierModalOpen(false)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#475569',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingSupplier || !newSupplierName.trim()}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: isSavingSupplier ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isSavingSupplier ? 'Adding...' : 'Add Supplier'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Medicine Modal */}
+      {isAddProductModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(3px)',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddProductModalOpen(false);
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              width: '460px',
+              maxWidth: '90vw',
+              padding: '24px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                Add New Medicine / Product
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsAddProductModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Brand Name <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="e.g. Panadol Extra, Augmentin"
+                  value={newProdBrandName}
+                  onChange={(e) => setNewProdBrandName(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    Generic / Salt Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Paracetamol"
+                    value={newProdGenericName}
+                    onChange={(e) => setNewProdGenericName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    Strength / Dosage
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 500mg, 1gm, 120ml"
+                    value={newProdStrength}
+                    onChange={(e) => setNewProdStrength(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    Form / Type
+                  </label>
+                  <select
+                    value={newProdForm}
+                    onChange={(e) => setNewProdForm(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13px',
+                      boxSizing: 'border-box',
+                      backgroundColor: '#ffffff',
+                    }}
+                  >
+                    <option value="tablet">Tablet</option>
+                    <option value="capsule">Capsule</option>
+                    <option value="syrup">Syrup / Suspension</option>
+                    <option value="injection">Injection / Infusion</option>
+                    <option value="drops">Eye / Ear Drops</option>
+                    <option value="cream">Ointment / Cream</option>
+                    <option value="inhaler">Inhaler</option>
+                    <option value="sachet">Sachet</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    Manufacturer
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. GSK, Searle, Getz"
+                    value={newProdManufacturer}
+                    onChange={(e) => setNewProdManufacturer(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Standard Retail MRP (Rs)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g. 500"
+                  value={newProdMrp}
+                  onChange={(e) => setNewProdMrp(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAddProductModalOpen(false)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#475569',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProduct || !newProdBrandName.trim()}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#16a34a',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: isSavingProduct ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isSavingProduct ? 'Saving...' : 'Save & Select Product'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

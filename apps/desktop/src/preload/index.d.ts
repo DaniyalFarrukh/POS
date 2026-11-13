@@ -189,7 +189,8 @@ export interface SyncApi {
   registerDevice: (
     serverUrl: string,
     code: string,
-    deviceName?: string
+    deviceName?: string,
+    confirmReRegistration?: boolean
   ) => Promise<{ success: boolean; deviceId: string; pharmacyId?: string; branchId?: string }>;
   listExceptions: (status?: string) => Promise<SyncExceptionRecord[]>;
   retryException: (id: string) => Promise<{ success: boolean }>;

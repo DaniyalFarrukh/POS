@@ -34,7 +34,13 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
     setActionMsg(null);
     try {
       if (!window.api?.sync?.registerDevice) throw new Error('Registration API unavailable');
-      await window.api.sync.registerDevice(regServerUrl.trim(), regCode.trim().toUpperCase(), 'Counter 01');
+      const confirmReReg = Boolean(status?.isRegistered);
+      await window.api.sync.registerDevice(
+        regServerUrl.trim(),
+        regCode.trim().toUpperCase(),
+        'Counter 01',
+        confirmReReg
+      );
       setActionMsg({ text: 'Device successfully paired with cloud! Syncing outbox...' });
       setRegCode('');
       setShowPairForm(false);
@@ -426,8 +432,52 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                 </div>
               )}
 
+              {/* Paired Info Banner when already paired */}
+              {status?.isRegistered && !showPairForm && (
+                <div
+                  style={{
+                    backgroundColor: '#f0fdf4',
+                    borderRadius: '10px',
+                    border: '1px solid #bbf7d0',
+                    padding: '14px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '20px' }}>🟢</span>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#15803d' }}>
+                        Device Registered & Paired with Cloud
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#166534', marginTop: '2px' }}>
+                        Pharmacy: <strong>{status.pharmacyName || 'HexaPharm'}</strong> &bull;{' '}
+                        {status.branchName || 'Main Branch'} ({status.counterName || 'Counter 1'})
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPairForm(true)}
+                    style={{
+                      border: '1px solid #86efac',
+                      background: '#ffffff',
+                      color: '#15803d',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Re-pair Terminal
+                  </button>
+                </div>
+              )}
+
               {/* Pair / Link Terminal Card */}
-              {(!status?.lastPushOkAt || showPairForm) && (
+              {(!status?.isRegistered || showPairForm) && (
                 <div
                   style={{
                     backgroundColor: '#eff6ff',
@@ -450,7 +500,7 @@ export const SyncStatusModal: React.FC<SyncStatusModalProps> = ({
                         Pair Terminal with Cloud Database
                       </strong>
                     </div>
-                    {status?.lastPushOkAt && (
+                    {status?.isRegistered && (
                       <button
                         type="button"
                         onClick={() => setShowPairForm(false)}

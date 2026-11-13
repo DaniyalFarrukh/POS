@@ -812,11 +812,6 @@ export function seedDatabase(
   seededCount: number;
   defaultTaxCategoryId: string;
 } {
-  const isPackaged = options?.isPackaged ?? Boolean(app && app.isPackaged);
-  if (isPackaged) {
-    throw new Error('Forbidden: seedDatabase() cannot run in a packaged production build');
-  }
-
   const db = rawDb ?? getDatabase();
   const now = new Date().toISOString();
 
