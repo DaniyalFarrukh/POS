@@ -230,10 +230,43 @@ export async function login(
     ).run(new Date().toISOString(), userId);
   }
 
-  // Retrieve active branch and counter
-  const counter = db
-    .prepare('SELECT id, branch_id, name FROM counters ORDER BY created_at ASC LIMIT 1')
-    .get() as { id: string; branch_id: string; name: string } | undefined;
+  // Retrieve active branch and counter - prioritize the paired branch/counter from device sync token
+  let targetCounterId: string | null = null;
+  const tokenRow = db
+    .prepare("SELECT value FROM sync_state WHERE key = 'token_encrypted'")
+    .get() as { value: string } | undefined;
+
+  if (tokenRow && tokenRow.value) {
+    try {
+      const rawToken = tokenRow.value.replace(/^plain:/, '');
+      const parts = rawToken.split('.');
+      if (parts.length >= 2) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as {
+          branchId?: string;
+        };
+        if (payload.branchId) {
+          const branchCounter = db
+            .prepare(
+              'SELECT id, branch_id, name FROM counters WHERE branch_id = ? ORDER BY created_at DESC LIMIT 1'
+            )
+            .get(payload.branchId) as { id: string; branch_id: string; name: string } | undefined;
+          if (branchCounter) {
+            targetCounterId = branchCounter.id;
+          }
+        }
+      }
+    } catch {
+      // Ignore token decode failure and fallback to newest counter
+    }
+  }
+
+  const counter = targetCounterId
+    ? (db.prepare('SELECT id, branch_id, name FROM counters WHERE id = ?').get(targetCounterId) as
+        | { id: string; branch_id: string; name: string }
+        | undefined)
+    : (db
+        .prepare('SELECT id, branch_id, name FROM counters ORDER BY created_at DESC LIMIT 1')
+        .get() as { id: string; branch_id: string; name: string } | undefined);
 
   let branch: { id: string; name: string } = { id: generateUuidV7(), name: 'Main Branch' };
   let counterObj: { id: string; name: string } = { id: generateUuidV7(), name: 'Counter 1' };
