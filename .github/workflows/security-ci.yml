@@ -36,7 +36,7 @@ jobs:
         if: steps.has.outputs.found == 'true'
         with:
           version: 12.15.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.has.outputs.found == 'true'
         with:
           node-version: 20
