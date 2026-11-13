@@ -825,7 +825,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
           userRole: 'system',
           summary: `${l.op.toUpperCase()} ${l.entity} (${l.entityId})`,
           data: safeData,
-          beforeState: null,
+          beforeState: null as Record<string, unknown> | null,
           afterState: safeData,
           createdAt: l.createdAt,
         };
