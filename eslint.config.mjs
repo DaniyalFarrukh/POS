@@ -12,6 +12,7 @@ export default tseslint.config(
       '**/release/**',
       '**/.turbo/**',
       '**/coverage/**',
+      'apps/server/api/index.js',
     ],
   },
   {

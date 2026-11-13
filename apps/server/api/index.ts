@@ -34,12 +34,26 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       }
     }
 
+    let payload: string | Buffer | undefined = undefined;
+    const body = (req as { body?: unknown }).body;
+    if (body !== undefined && body !== null) {
+      payload = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body);
+    } else if (req.method !== 'GET' && req.method !== 'HEAD') {
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as ArrayBuffer | string));
+      }
+      if (chunks.length > 0) {
+        payload = Buffer.concat(chunks);
+      }
+    }
+
     // Fastify inject handles request and returns response object with zero native event timing bugs
     const injectOpts: InjectOptions = {
       method: (req.method || 'GET') as InjectOptions['method'],
       url: targetUrl,
       headers: req.headers,
-      payload: req,
+      payload,
     };
     const response = await app.inject(injectOpts);
 
