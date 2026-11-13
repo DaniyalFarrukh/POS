@@ -97923,7 +97923,8 @@ function buildApp(options = {}) {
     return reply.status(500).send({
       statusCode: 500,
       error: "Internal Server Error",
-      message: "Internal server error"
+      message: errObj.message || "Internal server error",
+      debugCode: errObj.code
     });
   });
   const defaultAllowedOrigins = [
