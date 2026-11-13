@@ -11,20 +11,11 @@ let globalPool: pg.Pool | null = null;
 let globalDb: NodePgDatabase<typeof schema> | null = null;
 
 export function getDatabaseUrl(): string {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const SUPABASE_DEFAULT =
+    'postgresql://postgres.mcljcfeahnmzztrmheyu:oneyeargoal%401122@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require';
   const url = process.env.DATABASE_URL;
-  const DEV_DEFAULT = 'postgresql://pos:pos_dev_secret@localhost:5432/pos_server';
 
-  if (isProduction) {
-    if (!url) {
-      throw new Error('FATAL: DATABASE_URL environment variable is required in production');
-    }
-    if (url === DEV_DEFAULT) {
-      throw new Error('FATAL: Production DATABASE_URL cannot use default development credentials');
-    }
-  }
-
-  return url || DEV_DEFAULT;
+  return url || SUPABASE_DEFAULT;
 }
 
 export function getPool(connectionString?: string): pg.Pool {

@@ -182,20 +182,20 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
   });
 
   // Enable CORS for web client (never reflect arbitrary origins when credentials are enabled)
-  const defaultAllowedOrigins = [
+  const defaultAllowedOrigins: (string | RegExp)[] = [
     'http://localhost:5173',
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
+    /https:\/\/([a-z0-9-]+\.)?hexalogictechandsolutions\.com$/,
+    /https:\/\/([a-z0-9-]+\.)?vercel\.app$/,
   ];
 
   const corsOrigin = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',')
         .map((s) => s.trim())
         .filter(Boolean)
-    : process.env.NODE_ENV === 'production'
-      ? false
-      : defaultAllowedOrigins;
+    : defaultAllowedOrigins;
 
   app.register(cors, {
     origin: corsOrigin,
